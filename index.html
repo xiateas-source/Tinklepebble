@@ -2587,16 +2587,63 @@ function renderSetupPCCards(){
   if(!el)return;
   el.innerHTML=state.pcs.map((pc,idx)=>`
     <div class="panel" style="border-color:${pc.color||'var(--gold)'}">
-      <div class="panel-title" style="color:${pc.color||'var(--gold)'}">${esc(pc.name)} — ${esc(pc.race)} ${esc(pc.class)}</div>
-      <div class="form-group"><label class="field-label">Personality Traits</label>
-        <textarea style="min-height:60px" oninput="upd(${idx},'backstory_origin',this.value)">${esc(pc.backstory_origin||'')}</textarea>
+      <div class="panel-title" style="color:${pc.color||'var(--gold)'}">
+        ${esc(pc.name)} — ${esc(pc.race)} ${esc(pc.class)} Lv.${pc.level||1}
+        <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <label class="field-label" style="margin:0;font-size:9px">Color</label>
+          <input type="color" value="${pc.color||'#5a8a5a'}" onchange="upd(${idx},'color',this.value);renderSetupPCCards()" style="width:32px;height:26px;padding:1px;cursor:pointer;background:none;border:1px solid var(--border);border-radius:2px">
+        </span>
       </div>
-      <div class="form-group"><label class="field-label">Ideals</label>
-        <textarea style="min-height:50px" oninput="upd(${idx},'backstory_motivation',this.value)">${esc(pc.backstory_motivation||'')}</textarea>
+
+      <div class="form-row">
+        <div class="fg"><label class="field-label">Name</label><input type="text" value="${esc(pc.name)}" onchange="upd(${idx},'name',this.value);renderSetupPCCards()"></div>
+        <div class="fg"><label class="field-label">Race</label><input type="text" value="${esc(pc.race||'')}" onchange="upd(${idx},'race',this.value)"></div>
+        <div class="fg"><label class="field-label">Class</label><input type="text" value="${esc(pc.class||'')}" onchange="upd(${idx},'class',this.value)"></div>
+        <div style="width:60px"><label class="field-label">Level</label><input type="number" value="${pc.level||1}" min="1" max="20" onchange="upd(${idx},'level',parseInt(this.value)||1)"></div>
       </div>
-      <div class="form-group"><label class="field-label">Bonds & Flaws</label>
-        <textarea style="min-height:50px" oninput="upd(${idx},'backstory_secret',this.value)">${esc(pc.backstory_secret||'')}</textarea>
+      <div class="form-row">
+        <div class="fg"><label class="field-label">Background</label><input type="text" value="${esc(pc.background||'')}" onchange="upd(${idx},'background',this.value)"></div>
+        <div class="fg"><label class="field-label">Alignment</label><input type="text" value="${esc(pc.alignment||'')}" onchange="upd(${idx},'alignment',this.value)"></div>
+        <div style="width:68px"><label class="field-label">Max HP</label><input type="number" value="${pc.hp_max||10}" onchange="upd(${idx},'hp_max',parseInt(this.value)||1)"></div>
+        <div style="width:55px"><label class="field-label">AC</label><input type="number" value="${pc.ac||10}" onchange="upd(${idx},'ac',parseInt(this.value)||10)"></div>
+        <div style="width:65px"><label class="field-label">Initiative</label><input type="number" value="${pc.initiative||0}" onchange="upd(${idx},'initiative',parseInt(this.value)||0)"></div>
+        <div style="width:60px"><label class="field-label">Speed</label><input type="number" value="${pc.speed||30}" onchange="upd(${idx},'speed',parseInt(this.value)||30)"></div>
       </div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="fg"><label class="field-label">Pass. Perception</label><input type="number" value="${pc.passive_perception||10}" onchange="upd(${idx},'passive_perception',parseInt(this.value)||10)"></div>
+        <div class="fg"><label class="field-label">Pass. Insight</label><input type="number" value="${pc.passive_insight||10}" onchange="upd(${idx},'passive_insight',parseInt(this.value)||10)"></div>
+        <div class="fg"><label class="field-label">XP</label><input type="number" value="${pc.xp||0}" onchange="upd(${idx},'xp',parseInt(this.value)||0)"></div>
+      </div>
+
+      <div class="sec-label" style="margin-bottom:6px">Ability Scores</div>
+      <div class="stat-mini-row" style="margin-bottom:12px">
+        ${['str','dex','con','int','wis','cha'].map(s=>`<div><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${esc(pc[s]||'10 (+0)')}" onchange="upd(${idx},'${s}',this.value)" style="font-size:11px;padding:4px 5px"></div>`).join('')}
+      </div>
+
+      <div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label>
+        <textarea style="min-height:50px" onchange="upd(${idx},'skills',this.value)">${esc(pc.skills||'')}</textarea>
+      </div>
+      <div class="form-group"><label class="field-label">Features, Feats &amp; Class Abilities</label>
+        <textarea style="min-height:80px" onchange="upd(${idx},'features',this.value)">${esc(pc.features||'')}</textarea>
+      </div>
+      <div class="form-group"><label class="field-label">Spellcasting</label>
+        <textarea style="min-height:50px" onchange="upd(${idx},'magic',this.value)">${esc(pc.magic||'')}</textarea>
+      </div>
+
+      <details class="bs" style="margin-top:4px">
+        <summary>📖 Backstory &amp; Roleplay Hooks</summary>
+        <div class="bs-body">
+          <div class="form-group"><label class="field-label">Origin</label>
+            <textarea style="min-height:50px" onchange="upd(${idx},'backstory_origin',this.value)">${esc(pc.backstory_origin||'')}</textarea>
+          </div>
+          <div class="form-group"><label class="field-label">Motivation</label>
+            <textarea style="min-height:50px;border-color:var(--gold-dim)" onchange="upd(${idx},'backstory_motivation',this.value)">${esc(pc.backstory_motivation||'')}</textarea>
+          </div>
+          <div class="form-group"><label class="field-label">Secret / Flaw</label>
+            <textarea style="min-height:50px;border-color:var(--red-dim)" onchange="upd(${idx},'backstory_secret',this.value)">${esc(pc.backstory_secret||'')}</textarea>
+          </div>
+        </div>
+      </details>
     </div>`).join('');
 }
 function lockPremise(){
