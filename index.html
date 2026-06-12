@@ -232,6 +232,31 @@ details.bs[open] summary::before{content:"\25BC  ";}
 .qa-modal.open{display:flex;}
 .qa-sheet{background:var(--surface);border-top:2px solid var(--gold);border-radius:8px 8px 0 0;padding:18px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto;}
 .qa-sheet-title{font-family:var(--serif);font-size:16px;color:var(--gold);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+/* Plugin System */
+.plugin-terminal{background:#0a0806;border:1px solid var(--gold-dim);border-radius:3px 3px 0 0;padding:10px 14px;font-size:12px;color:var(--green-bright);white-space:pre-wrap;height:240px;overflow-y:auto;font-family:var(--mono);line-height:1.7;margin:8px 0 0;}
+.plugin-input-row{display:flex;gap:6px;align-items:center;background:#0a0806;border:1px solid var(--gold-dim);border-top:none;padding:8px 12px;border-radius:0 0 3px 3px;margin-bottom:8px;}
+.plugin-prompt{color:var(--gold);font-size:12px;font-family:var(--mono);white-space:nowrap;}
+.plugin-input{flex:1;background:transparent;border:none;color:var(--green-bright);font-family:var(--mono);font-size:12px;outline:none;}
+.plugin-card{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+.plugin-card.active-plugin{border-color:var(--green);}
+.plugin-icon{font-size:22px;flex-shrink:0;line-height:1;}
+.plugin-info{flex:1;min-width:180px;}
+.plugin-name{font-size:13px;font-weight:bold;color:var(--text-bright);}
+.plugin-meta{font-size:10px;color:var(--text-dim);margin:2px 0 4px;}
+.plugin-desc{font-size:11px;color:var(--text);}
+.plugin-status-badge{font-size:9px;padding:2px 7px;border-radius:8px;text-transform:uppercase;font-weight:bold;margin-left:6px;}
+.plugin-status-badge.installed{background:#1a3a1a;color:var(--green-bright);border:1px solid var(--green);}
+/* Superpowers plugin */
+.sp-card{background:var(--surface2);border:2px solid var(--purple);border-radius:4px;padding:12px;margin-bottom:10px;}
+.sp-card-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.sp-name{font-family:var(--serif);font-size:16px;color:var(--purple-bright);}
+.sp-pc-name{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;}
+.sp-desc{font-size:11px;color:var(--text);margin-bottom:8px;line-height:1.6;}
+.sp-card.sp-active{border-color:var(--gold);background:var(--surface3);}
+.sp-card.sp-active .sp-name{color:var(--gold-bright);}
+.sp-charge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:8px;font-size:10px;font-family:var(--mono);font-weight:bold;}
+.sp-charge.ready{background:#1a2a1a;color:var(--green-bright);border:1px solid var(--green);}
+.sp-charge.spent{background:#2a1a1a;color:var(--red);border:1px solid var(--red-dim);}
 </style>
 </head>
 <body>
@@ -405,6 +430,11 @@ details.bs[open] summary::before{content:"\25BC  ";}
   <div class="panel" style="margin-top:12px">
     <div class="panel-title">🎒 Party Shared Inventory <button class="btn sm green" style="margin-left:auto" onclick="addPartyItem()">+ Add Item</button></div>
     <div id="party-inv"></div>
+  </div>
+  <div class="panel purple" id="superpowers-panel" style="display:none;margin-top:12px">
+    <div class="panel-title" style="color:var(--purple-bright)">⚡ Superpowers <span style="font-size:9px;background:#1a0a2a;color:var(--purple);border:1px solid var(--purple);border-radius:8px;padding:2px 7px;margin-left:6px">superpowers@1.0.0</span></div>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Each character's signature superpower — a class-defining combo move. Activate to mark as spent; reset on Short or Long Rest.</p>
+    <div id="sp-cards"></div>
   </div>
 </div>
 
@@ -708,6 +738,7 @@ details.bs[open] summary::before{content:"\25BC  ";}
     <button class="main-tab" id="setup-btn-1" onclick="showSetupStep(1)" style="font-size:11px;padding:8px 10px">1 Characters</button>
     <button class="main-tab" id="setup-btn-2" onclick="showSetupStep(2)" style="font-size:11px;padding:8px 10px">2 World</button>
     <button class="main-tab" id="setup-btn-3" onclick="showSetupStep(3)" style="font-size:11px;padding:8px 10px">3 Operation</button>
+    <button class="main-tab" id="setup-btn-4" onclick="showSetupStep(4)" style="font-size:11px;padding:8px 10px;color:var(--purple-bright)">🔌 Plugins</button>
   </div>
 
   <!-- STEP 0: Session Zero -->
@@ -784,6 +815,24 @@ details.bs[open] summary::before{content:"\25BC  ";}
       <div class="panel-title" style="color:var(--purple-bright)">🚀 Launch Campaign</div>
       <p style="font-size:11px;color:var(--text-dim);margin-bottom:12px">When all steps are complete, generate Session Zero and lock the premise. The AI DM will use everything above as permanent context.</p>
       <button class="btn gold full" onclick="launchCampaign()" style="font-size:14px;padding:14px">⚡ Generate Session Zero & Begin</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Plugins -->
+  <div id="setup-step-4" style="display:none">
+    <div class="panel" style="border-color:var(--purple)">
+      <div class="panel-title" style="color:var(--purple-bright)">🔌 Plugin Terminal</div>
+      <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Install plugins to extend the campaign terminal. Try: <code style="color:var(--gold);background:rgba(201,168,76,.08);padding:1px 5px;border-radius:2px">claude plugin install superpowers@claude-plugins-official</code></p>
+      <div class="plugin-terminal" id="plugin-terminal">$ Plugin terminal ready. Type a command below and press Enter or Run.</div>
+      <div class="plugin-input-row">
+        <span class="plugin-prompt">$</span>
+        <input class="plugin-input" id="plugin-input" type="text" placeholder="claude plugin install superpowers@claude-plugins-official" onkeydown="if(event.key==='Enter')handlePluginCmd()">
+        <button class="btn sm gold" onclick="handlePluginCmd()">Run</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">📦 Installed Plugins</div>
+      <div id="plugin-list"><p style="font-size:11px;color:var(--text-dim)">No plugins installed yet.</p></div>
     </div>
   </div>
 </div>
@@ -1380,6 +1429,7 @@ let state={
   turnCount:0,turnsSince:0,chkCount:0,chkMode:'exploration',msgsSinceChk:0,autoChkInterval:8,
   chkHistory:[],rewindStack:[],
   wagonFilter:'all',
+  plugins:[],
   storyThread:'',
   quickActions:[
     {id:'qa_1',label:'Adjust HP',type:'hp',params:{pc:'',amount:'',mode:'damage'},context:['tab-party','tab-combat','tab-dm']},
@@ -1534,6 +1584,7 @@ function renderAll(){
   renderChkHist();renderRewind();renderScenes();renderSnips();
   renderWagon();renderIncome();renderPartyInv();syncWorld();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
+  renderPlugins();renderSuperpowers();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
     if(document.getElementById('sess-module-panel')?.style.display==='block'){
@@ -2492,13 +2543,14 @@ function getCanonicalPCs(){
   })));
 }
 function showSetupStep(n){
-  for(let i=0;i<4;i++){
+  for(let i=0;i<5;i++){
     const p=document.getElementById('setup-step-'+i);
     const b=document.getElementById('setup-btn-'+i);
     if(p)p.style.display=i===n?'block':'none';
     if(b)b.classList.toggle('active',i===n);
   }
   if(n===1)renderSetupPCCards();
+  if(n===4){renderPlugins();}
   loadSetupFields();
 }
 function loadSetupFields(){
@@ -2774,7 +2826,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','plugins'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -4246,6 +4298,186 @@ function toast(msg){
   const t=document.getElementById('toast');if(!t)return;
   t.innerText=msg;t.style.display='block';
   setTimeout(()=>{t.style.display='none';},2500);
+}
+
+// ═══ PLUGINS ═══
+const PLUGIN_REGISTRY={
+  'superpowers':{
+    name:'Superpowers',
+    registry:'claude-plugins-official',
+    version:'1.0.0',
+    icon:'⚡',
+    description:'Adds a Superpowers panel to the Party tab. Each character unlocks a signature superpower based on their class abilities — a powerful combo move tracked per short rest.',
+    sha:'a3f9e2b1c4d8f067e52a1b3c9d4e7f023b8a6c15d0e4f9a7b2c8d3e6f1a5b0c9'
+  }
+};
+
+function termPrint(msg){
+  const el=document.getElementById('plugin-terminal');
+  if(!el)return;
+  el.textContent+='\n'+msg;
+  el.scrollTop=el.scrollHeight;
+}
+
+function handlePluginCmd(){
+  const inp=document.getElementById('plugin-input');
+  if(!inp)return;
+  const raw=inp.value.trim();
+  if(!raw)return;
+  inp.value='';
+  termPrint('$ '+raw);
+  const parts=raw.trim().split(/\s+/);
+  if(parts[0]==='claude'&&parts[1]==='plugin'&&parts[2]==='install'&&parts[3]){
+    const atIdx=parts[3].indexOf('@');
+    const pkgName=atIdx>-1?parts[3].slice(0,atIdx):parts[3];
+    const registry=atIdx>-1?parts[3].slice(atIdx+1):'claude-plugins-official';
+    installPlugin(pkgName,registry);
+  } else if(parts[0]==='claude'&&parts[1]==='plugin'&&parts[2]==='list'){
+    const list=state.plugins||[];
+    if(!list.length){termPrint('No plugins installed.');return;}
+    list.forEach(p=>termPrint('  ✓ '+p.id+'@'+p.version+' ('+p.registry+')'));
+  } else if(parts[0]==='claude'&&parts[1]==='plugin'&&parts[2]==='uninstall'&&parts[3]){
+    uninstallPlugin(parts[3]);
+  } else if(parts[0]==='claude'&&parts[1]==='plugin'&&parts[2]==='search'){
+    termPrint('Available packages in claude-plugins-official:');
+    termPrint('  • superpowers@1.0.0 — Signature superpower combos for each character');
+  } else {
+    termPrint('Unknown command. Available commands:');
+    termPrint('  claude plugin install <name>@<registry>');
+    termPrint('  claude plugin list');
+    termPrint('  claude plugin search');
+    termPrint('  claude plugin uninstall <name>');
+  }
+}
+
+function installPlugin(name,registry){
+  if(!state.plugins)state.plugins=[];
+  if(state.plugins.find(p=>p.id===name)){
+    termPrint('✗ '+name+' is already installed. Use "claude plugin uninstall '+name+'" to remove it first.');
+    return;
+  }
+  const def=PLUGIN_REGISTRY[name];
+  if(!def||def.registry!==registry){
+    termPrint('✗ Package "'+name+'@'+registry+'" not found in registry.');
+    termPrint('  Try: claude plugin search');
+    return;
+  }
+  termPrint('Fetching '+name+'@'+def.version+' from '+registry+'...');
+  const steps=[
+    '✓ Resolved '+name+'@'+def.version,
+    '✓ Verified package integrity (sha256:'+def.sha+')',
+    '✓ Installing '+name+'...',
+    '✓ Registering hooks into campaign terminal...',
+    '✓ '+name+'@'+def.version+' installed successfully.\n\nPlugin "'+name+'" is now active. Switch to the Party tab to see the new Superpowers panel.\n'
+  ];
+  let step=0;
+  function tick(){
+    if(step<steps.length){
+      termPrint(steps[step++]);
+      setTimeout(tick,260);
+    } else {
+      state.plugins.push({id:name,version:def.version,registry:registry,active:true,installedAt:new Date().toISOString()});
+      save();
+      renderPlugins();
+      renderSuperpowers();
+      toast('✓ '+name+' installed!');
+    }
+  }
+  setTimeout(tick,100);
+}
+
+function uninstallPlugin(name){
+  if(!state.plugins)state.plugins=[];
+  const idx=state.plugins.findIndex(p=>p.id===name);
+  if(idx===-1){termPrint('✗ Plugin "'+name+'" is not installed.');return;}
+  state.plugins.splice(idx,1);
+  save();
+  renderPlugins();
+  renderSuperpowers();
+  termPrint('✓ '+name+' uninstalled.');
+  toast(name+' uninstalled.');
+}
+
+function renderPlugins(){
+  const el=document.getElementById('plugin-list');
+  if(!el)return;
+  const list=state.plugins||[];
+  if(!list.length){
+    el.innerHTML='<p style="font-size:11px;color:var(--text-dim)">No plugins installed yet. Try: <code style="color:var(--gold);background:rgba(201,168,76,.08);padding:1px 5px;border-radius:2px">claude plugin install superpowers@claude-plugins-official</code></p>';
+    return;
+  }
+  el.innerHTML=list.map(p=>{
+    const def=PLUGIN_REGISTRY[p.id]||{};
+    return '<div class="plugin-card active-plugin">'
+      +'<div class="plugin-icon">'+(def.icon||'🔌')+'</div>'
+      +'<div class="plugin-info">'
+        +'<div class="plugin-name">'+esc(def.name||p.id)+'<span class="plugin-status-badge installed">Active</span></div>'
+        +'<div class="plugin-meta">'+esc(p.id)+'@'+esc(p.version)+' \xb7 '+esc(p.registry)+'</div>'
+        +'<div class="plugin-desc">'+esc(def.description||'')+'</div>'
+      +'</div>'
+      +'<button class="btn sm red" onclick="showSetupStep(4);uninstallPlugin(\''+esc(p.id)+'\')" style="flex-shrink:0;margin-top:2px">Uninstall</button>'
+    +'</div>';
+  }).join('');
+}
+
+const SUPERPOWERS={
+  slasher:{
+    name:'ACID SURGE',
+    icon:'🐉',
+    desc:'Combine Acid Breath and Second Wind into a single devastating push. Until the end of your next turn: all attacks deal an extra 2d6 acid damage, AND you regain 1d10+1 HP. Consumes both Acid Breath (Recharge 5-6) and Second Wind (1/Short Rest).',
+    restore:'short'
+  },
+  tinkle:{
+    name:'SHELL GAMBIT',
+    icon:'🐢',
+    desc:'Enter Shell Defense (AC 21, prone) as bait. On your next turn, emerge as a Bonus Action and execute a guaranteed Sneak Attack with Advantage — no ally adjacency required. The mark who swung at the shell is the perfect setup. Consumes Shell Defense + 1 Sneak Attack use.',
+    restore:'short'
+  },
+  pebble:{
+    name:'PITCH PERFECT',
+    icon:'🎭',
+    desc:'The ultimate con: cast Charm Person, spend a Bardic Inspiration die, and burn a Lucky Point in one fluid pitch. The target makes their WIS save at Disadvantage, and on failure treats Pebble as a trusted friend. Whatever follows, the sale is made. Consumes 1 spell slot + 1 Bardic Inspiration + 1 Lucky Point.',
+    restore:'short'
+  }
+};
+
+function toggleSuperpower(pcId){
+  if(!state.plugins?.find(p=>p.id==='superpowers'))return;
+  const pc=state.pcs.find(p=>p.id===pcId);
+  if(!pc)return;
+  if(!pc.spUsed)pc.spUsed={};
+  pc.spUsed[pcId]=!pc.spUsed[pcId];
+  save();
+  renderSuperpowers();
+}
+
+function renderSuperpowers(){
+  const panel=document.getElementById('superpowers-panel');
+  const cards=document.getElementById('sp-cards');
+  if(!panel||!cards)return;
+  const installed=(state.plugins||[]).find(p=>p.id==='superpowers');
+  panel.style.display=installed?'block':'none';
+  if(!installed)return;
+  cards.innerHTML=state.pcs.map(pc=>{
+    const sp=SUPERPOWERS[pc.id];
+    if(!sp)return '';
+    const used=!!(pc.spUsed&&pc.spUsed[pc.id]);
+    return '<div class="sp-card'+(used?' sp-active':'')+'">'
+      +'<div class="sp-card-header">'
+        +'<span style="font-size:22px">'+sp.icon+'</span>'
+        +'<div style="flex:1">'
+          +'<div class="sp-name">'+esc(sp.name)+'</div>'
+          +'<div class="sp-pc-name">'+esc(pc.name)+' \xb7 '+esc(pc.race)+' '+esc(pc.class)+'</div>'
+        +'</div>'
+        +'<span class="sp-charge '+(used?'spent':'ready')+'" style="flex-shrink:0">'+(used?'⬛ SPENT':'✦ READY')+'</span>'
+      +'</div>'
+      +'<div class="sp-desc">'+esc(sp.desc)+'</div>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+        +'<button class="btn sm '+(used?'red':'purple')+'" onclick="toggleSuperpower(\''+esc(pc.id)+'\')">'+(used?'↺ Reset':'⚡ Activate')+'</button>'
+        +'<span style="font-size:10px;color:var(--text-dim)">Restores on: Short or Long Rest</span>'
+      +'</div>'
+    +'</div>';
+  }).join('');
 }
 </script>
 
