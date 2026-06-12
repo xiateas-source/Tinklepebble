@@ -1085,7 +1085,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
             <button class="btn sm gold" onclick="quickRoll(12)" style="min-width:36px">d12</button>
             <button class="btn sm gold" onclick="quickRoll(20)" style="min-width:36px">d20</button>
             <button class="btn sm gold" onclick="quickRoll(100)" style="min-width:40px">d100</button>
-            <input type="number" id="dice-mod" placeholder="+0" style="width:48px;padding:4px;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px" title="Modifier">
+            <input type="number" id="dice-mod-quick" placeholder="+0" style="width:48px;padding:4px;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px" title="Modifier">
           </div>
         </div>
         <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;flex-wrap:wrap;align-items:center">
@@ -1110,7 +1110,7 @@ const MAX_LB=1080;
 const ITYPES=['supply','foraged','ingredient','trade','loot','hoard','misc','key'];
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
-const SAVE_VERSION=6;
+const SAVE_VERSION=7;
 
 // ═══ FIREBASE DROP 2 ═══
 let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false;
@@ -2981,21 +2981,14 @@ function loadState(){
         'passive_perception','passive_insight','str','dex','con','int','wis','cha',
         'skills','features','magic','backstory_origin','backstory_motivation','backstory_secret',
         'color','hp_max','initiative','slots','resources','concentrating'];
-      // Also apply canonical starting inventory if PC has empty inventory
-      // (new character or version reset — don't overwrite earned items)
       getCanonicalPCs().forEach(canonical=>{
         const saved=p.pcs.find(pc=>pc.id===canonical.id);
         if(saved){
-          // Update sheet fields from canonical
           SHEET_FIELDS.forEach(f=>{if(canonical[f]!==undefined)saved[f]=canonical[f];});
-          // Apply starting inventory if saved inventory is empty
-          if(canonical.inventory&&canonical.inventory.length>0&&(!saved.inventory||saved.inventory.length===0)){
+          // v7: always reset to canonical starting inventory (clears stale test-session gear)
+          if(canonical.inventory&&canonical.inventory.length>0){
             saved.inventory=JSON.parse(JSON.stringify(canonical.inventory));
           }
-          // Never overwrite earned XP or current HP from merge
-          // saved.xp and saved.hp stay as-is
-          // HP preserved from saved state - not clamped during merge
-          // Restore canonical resources (class features may have changed)
           if(canonical.resources&&canonical.resources.length)saved.resources=canonical.resources;
         }
       });
@@ -3003,8 +2996,11 @@ function loadState(){
       state.pcs.forEach(canonical=>{
         if(!p.pcs.find(pc=>pc.id===canonical.id))p.pcs.push({...canonical});
       });
+      // v7: fix stale premise text (old saves may reference wrong race)
+      if(p.worldData&&p.worldData.premise){
+        p.worldData.premise=p.worldData.premise.replace(/Slasher the Halfling/gi,'Slasher the Black Dragonborn');
+      }
       p.saveVersion=SAVE_VERSION;
-      // Migration complete — v"+(savedVer)+'" → v'" + SAVE_VERSION
     }
     state=p;
   }
@@ -3412,7 +3408,7 @@ function toggleDicePicker(){
   if(b)b.style.background=open?'':'var(--gold-dim)';
 }
 function quickRoll(sides){
-  const modEl=document.getElementById('dice-mod');
+  const modEl=document.getElementById('dice-mod-quick');
   const modRaw=(modEl?.value||'').trim().replace(/^\+/,'');
   const mod=parseInt(modRaw)||0;
   const roll=Math.floor(Math.random()*sides)+1;
