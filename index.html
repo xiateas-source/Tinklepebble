@@ -768,7 +768,11 @@ details.bs[open] summary::before{content:"\25BC  ";}
   </div>
 
   <!-- STEP 1: Characters -->
-  <div id="setup-step-1" style="display:none">
+  <div id="setup-step-1" style="display:none;padding:12px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <p style="font-size:11px;color:var(--text-dim);margin:0">Fill in each character's identity, stats, and backstory. The AI DM uses all of this as permanent context.</p>
+      <button class="btn sm green" onclick="addNewChar();renderSetupPCCards()">+ Add Character</button>
+    </div>
     <div id="setup-pc-cards"></div>
   </div>
 
@@ -2585,66 +2589,123 @@ function saveSetup(){
 function renderSetupPCCards(){
   const el=document.getElementById('setup-pc-cards');
   if(!el)return;
-  el.innerHTML=state.pcs.map((pc,idx)=>`
-    <div class="panel" style="border-color:${pc.color||'var(--gold)'}">
-      <div class="panel-title" style="color:${pc.color||'var(--gold)'}">
-        ${esc(pc.name)} — ${esc(pc.race)} ${esc(pc.class)} Lv.${pc.level||1}
-        <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
-          <label class="field-label" style="margin:0;font-size:9px">Color</label>
-          <input type="color" value="${pc.color||'#5a8a5a'}" onchange="upd(${idx},'color',this.value);renderSetupPCCards()" style="width:32px;height:26px;padding:1px;cursor:pointer;background:none;border:1px solid var(--border);border-radius:2px">
-        </span>
-      </div>
+  try{
+    el.innerHTML='';
+    state.pcs.forEach(function(pc,idx){
+      const col=pc.color||'var(--gold)';
+      const div=document.createElement('div');
+      div.className='panel';
+      div.style.borderColor=col;
+      div.style.marginBottom='16px';
 
-      <div class="form-row">
-        <div class="fg"><label class="field-label">Name</label><input type="text" value="${esc(pc.name)}" onchange="upd(${idx},'name',this.value);renderSetupPCCards()"></div>
-        <div class="fg"><label class="field-label">Race</label><input type="text" value="${esc(pc.race||'')}" onchange="upd(${idx},'race',this.value)"></div>
-        <div class="fg"><label class="field-label">Class</label><input type="text" value="${esc(pc.class||'')}" onchange="upd(${idx},'class',this.value)"></div>
-        <div style="width:60px"><label class="field-label">Level</label><input type="number" value="${pc.level||1}" min="1" max="20" onchange="upd(${idx},'level',parseInt(this.value)||1)"></div>
-      </div>
-      <div class="form-row">
-        <div class="fg"><label class="field-label">Background</label><input type="text" value="${esc(pc.background||'')}" onchange="upd(${idx},'background',this.value)"></div>
-        <div class="fg"><label class="field-label">Alignment</label><input type="text" value="${esc(pc.alignment||'')}" onchange="upd(${idx},'alignment',this.value)"></div>
-        <div style="width:68px"><label class="field-label">Max HP</label><input type="number" value="${pc.hp_max||10}" onchange="upd(${idx},'hp_max',parseInt(this.value)||1)"></div>
-        <div style="width:55px"><label class="field-label">AC</label><input type="number" value="${pc.ac||10}" onchange="upd(${idx},'ac',parseInt(this.value)||10)"></div>
-        <div style="width:65px"><label class="field-label">Initiative</label><input type="number" value="${pc.initiative||0}" onchange="upd(${idx},'initiative',parseInt(this.value)||0)"></div>
-        <div style="width:60px"><label class="field-label">Speed</label><input type="number" value="${pc.speed||30}" onchange="upd(${idx},'speed',parseInt(this.value)||30)"></div>
-      </div>
-      <div class="form-row" style="margin-bottom:12px">
-        <div class="fg"><label class="field-label">Pass. Perception</label><input type="number" value="${pc.passive_perception||10}" onchange="upd(${idx},'passive_perception',parseInt(this.value)||10)"></div>
-        <div class="fg"><label class="field-label">Pass. Insight</label><input type="number" value="${pc.passive_insight||10}" onchange="upd(${idx},'passive_insight',parseInt(this.value)||10)"></div>
-        <div class="fg"><label class="field-label">XP</label><input type="number" value="${pc.xp||0}" onchange="upd(${idx},'xp',parseInt(this.value)||0)"></div>
-      </div>
+      // header
+      div.innerHTML=
+        '<div class="panel-title" style="color:'+col+'">'+
+          esc(pc.name)+' — '+esc(pc.race)+' '+esc(pc.class)+' Lv.'+(pc.level||1)+
+          '<span style="margin-left:auto;display:flex;align-items:center;gap:8px">'+
+            '<label class="field-label" style="margin:0;font-size:9px">Color</label>'+
+            '<input type="color" id="sp-col-'+idx+'" value="'+(pc.color||'#5a8a5a')+'" style="width:32px;height:26px;padding:1px;cursor:pointer;background:none;border:1px solid var(--border);border-radius:2px">'+
+            '<button class="btn sm red" onclick="delChar('+idx+')" style="font-size:10px">✕ Remove</button>'+
+          '</span>'+
+        '</div>'+
 
-      <div class="sec-label" style="margin-bottom:6px">Ability Scores</div>
-      <div class="stat-mini-row" style="margin-bottom:12px">
-        ${['str','dex','con','int','wis','cha'].map(s=>`<div><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${esc(pc[s]||'10 (+0)')}" onchange="upd(${idx},'${s}',this.value)" style="font-size:11px;padding:4px 5px"></div>`).join('')}
-      </div>
+        // identity
+        '<div class="sec-label" style="margin-bottom:6px">Identity</div>'+
+        '<div class="form-row">'+
+          '<div class="fg"><label class="field-label">Name</label><input type="text" id="sp-name-'+idx+'" value="'+esc(pc.name)+'"></div>'+
+          '<div class="fg"><label class="field-label">Race</label><input type="text" id="sp-race-'+idx+'" value="'+esc(pc.race||'')+'"></div>'+
+          '<div class="fg"><label class="field-label">Class</label><input type="text" id="sp-class-'+idx+'" value="'+esc(pc.class||'')+'"></div>'+
+          '<div style="width:60px"><label class="field-label">Level</label><input type="number" id="sp-level-'+idx+'" value="'+(pc.level||1)+'" min="1" max="20"></div>'+
+        '</div>'+
+        '<div class="form-row">'+
+          '<div class="fg"><label class="field-label">Background</label><input type="text" id="sp-bg-'+idx+'" value="'+esc(pc.background||'')+'"></div>'+
+          '<div class="fg"><label class="field-label">Alignment</label><input type="text" id="sp-align-'+idx+'" value="'+esc(pc.alignment||'')+'"></div>'+
+        '</div>'+
 
-      <div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label>
-        <textarea style="min-height:50px" onchange="upd(${idx},'skills',this.value)">${esc(pc.skills||'')}</textarea>
-      </div>
-      <div class="form-group"><label class="field-label">Features, Feats &amp; Class Abilities</label>
-        <textarea style="min-height:80px" onchange="upd(${idx},'features',this.value)">${esc(pc.features||'')}</textarea>
-      </div>
-      <div class="form-group"><label class="field-label">Spellcasting</label>
-        <textarea style="min-height:50px" onchange="upd(${idx},'magic',this.value)">${esc(pc.magic||'')}</textarea>
-      </div>
+        // combat stats
+        '<div class="sec-label" style="margin-bottom:6px;margin-top:4px">Combat Stats</div>'+
+        '<div class="form-row">'+
+          '<div style="width:68px"><label class="field-label">Max HP</label><input type="number" id="sp-hp-'+idx+'" value="'+(pc.hp_max||10)+'"></div>'+
+          '<div style="width:55px"><label class="field-label">AC</label><input type="number" id="sp-ac-'+idx+'" value="'+(pc.ac||10)+'"></div>'+
+          '<div style="width:65px"><label class="field-label">Initiative</label><input type="number" id="sp-init-'+idx+'" value="'+(pc.initiative||0)+'"></div>'+
+          '<div style="width:60px"><label class="field-label">Speed</label><input type="number" id="sp-spd-'+idx+'" value="'+(pc.speed||30)+'"></div>'+
+          '<div class="fg"><label class="field-label">Pass. Perception</label><input type="number" id="sp-pp-'+idx+'" value="'+(pc.passive_perception||10)+'"></div>'+
+          '<div class="fg"><label class="field-label">Pass. Insight</label><input type="number" id="sp-pi-'+idx+'" value="'+(pc.passive_insight||10)+'"></div>'+
+        '</div>'+
 
-      <details class="bs" style="margin-top:4px">
-        <summary>📖 Backstory &amp; Roleplay Hooks</summary>
-        <div class="bs-body">
-          <div class="form-group"><label class="field-label">Origin</label>
-            <textarea style="min-height:50px" onchange="upd(${idx},'backstory_origin',this.value)">${esc(pc.backstory_origin||'')}</textarea>
-          </div>
-          <div class="form-group"><label class="field-label">Motivation</label>
-            <textarea style="min-height:50px;border-color:var(--gold-dim)" onchange="upd(${idx},'backstory_motivation',this.value)">${esc(pc.backstory_motivation||'')}</textarea>
-          </div>
-          <div class="form-group"><label class="field-label">Secret / Flaw</label>
-            <textarea style="min-height:50px;border-color:var(--red-dim)" onchange="upd(${idx},'backstory_secret',this.value)">${esc(pc.backstory_secret||'')}</textarea>
-          </div>
-        </div>
-      </details>
-    </div>`).join('');
+        // ability scores
+        '<div class="sec-label" style="margin-bottom:6px;margin-top:4px">Ability Scores</div>'+
+        '<div class="stat-mini-row" style="margin-bottom:12px">'+
+          ['str','dex','con','int','wis','cha'].map(function(s){
+            return '<div><label class="field-label">'+s.toUpperCase()+'</label>'+
+              '<input type="text" id="sp-'+s+'-'+idx+'" value="'+esc(pc[s]||'10 (+0)')+'" style="font-size:11px;padding:4px 5px"></div>';
+          }).join('')+
+        '</div>'+
+
+        // AI DM context
+        '<div class="sec-label" style="margin-bottom:6px;margin-top:4px">AI DM Context</div>'+
+        '<div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label>'+
+          '<textarea id="sp-skills-'+idx+'" style="min-height:44px">'+esc(pc.skills||'')+'</textarea></div>'+
+        '<div class="form-group"><label class="field-label">Features, Feats &amp; Class Abilities</label>'+
+          '<textarea id="sp-feat-'+idx+'" style="min-height:80px">'+esc(pc.features||'')+'</textarea></div>'+
+        '<div class="form-group"><label class="field-label">Spellcasting</label>'+
+          '<textarea id="sp-magic-'+idx+'" style="min-height:44px">'+esc(pc.magic||'')+'</textarea></div>'+
+
+        // backstory
+        '<details class="bs" style="margin-top:4px">'+
+          '<summary>📖 Backstory &amp; Roleplay Hooks</summary>'+
+          '<div class="bs-body">'+
+            '<div class="form-group"><label class="field-label">Origin / Background Story</label>'+
+              '<textarea id="sp-origin-'+idx+'" style="min-height:50px">'+esc(pc.backstory_origin||'')+'</textarea></div>'+
+            '<div class="form-group"><label class="field-label">Motivation (what drives them)</label>'+
+              '<textarea id="sp-motiv-'+idx+'" style="min-height:50px;border-color:var(--gold-dim)">'+esc(pc.backstory_motivation||'')+'</textarea></div>'+
+            '<div class="form-group"><label class="field-label">Secret / Flaw (AI DM knows, players may not)</label>'+
+              '<textarea id="sp-secret-'+idx+'" style="min-height:50px;border-color:var(--red-dim)">'+esc(pc.backstory_secret||'')+'</textarea></div>'+
+          '</div>'+
+        '</details>'+
+
+        // save button
+        '<div style="margin-top:12px;display:flex;justify-content:flex-end">'+
+          '<button class="btn sm gold" onclick="saveSetupPC('+idx+')">✓ Save Character</button>'+
+        '</div>';
+
+      el.appendChild(div);
+
+      // wire color picker after DOM insert
+      const colEl=document.getElementById('sp-col-'+idx);
+      if(colEl) colEl.addEventListener('change',function(){upd(idx,'color',this.value);renderSetupPCCards();});
+    });
+  }catch(e){
+    el.innerHTML='<div class="panel" style="border-color:var(--red);color:var(--red);font-size:12px;padding:12px">⚠ Could not render characters: '+esc(e.message)+'</div>';
+  }
+}
+
+function saveSetupPC(idx){
+  const g=function(id){const el=document.getElementById(id);return el?el.value:'';};
+  const n=function(id){return parseInt(g(id))||0;};
+  const pc=state.pcs[idx];if(!pc)return;
+  pc.name=g('sp-name-'+idx)||pc.name;
+  pc.race=g('sp-race-'+idx);
+  pc.class=g('sp-class-'+idx);
+  pc.level=parseInt(g('sp-level-'+idx))||1;
+  pc.background=g('sp-bg-'+idx);
+  pc.alignment=g('sp-align-'+idx);
+  pc.hp_max=parseInt(g('sp-hp-'+idx))||1;
+  if(pc.hp>pc.hp_max)pc.hp=pc.hp_max;
+  pc.ac=parseInt(g('sp-ac-'+idx))||10;
+  pc.initiative=parseInt(g('sp-init-'+idx))||0;
+  pc.speed=parseInt(g('sp-spd-'+idx))||30;
+  pc.passive_perception=parseInt(g('sp-pp-'+idx))||10;
+  pc.passive_insight=parseInt(g('sp-pi-'+idx))||10;
+  ['str','dex','con','int','wis','cha'].forEach(function(s){pc[s]=g('sp-'+s+'-'+idx)||pc[s];});
+  pc.skills=g('sp-skills-'+idx);
+  pc.features=g('sp-feat-'+idx);
+  pc.magic=g('sp-magic-'+idx);
+  pc.backstory_origin=g('sp-origin-'+idx);
+  pc.backstory_motivation=g('sp-motiv-'+idx);
+  pc.backstory_secret=g('sp-secret-'+idx);
+  saveRefresh();
+  toast('✓ '+pc.name+' saved.');
 }
 function lockPremise(){
   state.worldData.premiseLocked=true;
