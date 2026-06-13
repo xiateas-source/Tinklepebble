@@ -11,23 +11,24 @@
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0f0d0b;
-  --surface:#181410;
-  --surface2:#201c16;
-  --surface3:#272118;
-  --border:#302820;
-  --border-bright:#4a3828;
-  --gold:#c9a84c;--gold-dim:#7a6028;--gold-bright:#f0c96a;
-  --red:#c04a3a;--red-dim:#6a2418;
-  --green:#4a7a4a;--green-bright:#72b072;
-  --blue:#3a6880;--blue-bright:#5a98b8;
-  --purple:#6050a0;--purple-bright:#8878c0;
-  --text:#ccc4b0;--text-dim:#6a5e4a;--text-bright:#ede4d0;
+  /* Autumn Corporate Steampunk palette */
+  --bg:#120d07;
+  --surface:#1c1510;
+  --surface2:#251b12;
+  --surface3:#2e2318;
+  --border:#3e2e1c;
+  --border-bright:#5c4430;
+  --gold:#c08040;--gold-dim:#7a4c20;--gold-bright:#e8a050;
+  --red:#c04828;--red-dim:#7a2c10;
+  --green:#527858;--green-bright:#7aaa7a;
+  --blue:#4a7090;--blue-bright:#6a98b0;
+  --purple:#7060a8;--purple-bright:#9080c8;
+  --text:#c8baa8;--text-dim:#7a6a54;--text-bright:#e8ddc8;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
   --mono:'Share Tech Mono','Courier New',monospace;
   --serif:'IM Fell English',Georgia,serif;
-  --touch:48px;
-  --radius:8px;--radius-sm:6px;
+  --touch:52px;
+  --radius:6px;--radius-sm:4px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55;min-height:100vh;-webkit-text-size-adjust:100%;}
@@ -328,30 +329,148 @@ details.bs[open] summary::before{content:"\25BC  ";}
 .sp-charge.ready{background:rgba(74,122,74,.2);color:var(--green-bright);border:1px solid var(--green);}
 .sp-charge.spent{background:rgba(192,74,58,.15);color:var(--red);border:1px solid var(--red-dim);}
 
-/* ── VISUAL POLISH ── */
-body{font-size:15px;line-height:1.62;}
-.app-header{background:linear-gradient(180deg,var(--surface) 0%,#100d09 100%);box-shadow:0 2px 22px rgba(0,0,0,.65),0 1px 0 rgba(201,168,76,.18);}
-.app-title{font-size:21px;text-shadow:0 0 22px rgba(201,168,76,.4);}
-.main-tab.active{text-shadow:0 0 8px rgba(201,168,76,.35);}
-.panel{box-shadow:0 2px 14px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.025);}
-.panel-title{text-shadow:0 0 12px rgba(201,168,76,.28);}
-.btn{background:linear-gradient(180deg,var(--surface3) 0%,var(--surface2) 100%);}
-.btn:hover,.btn:active{box-shadow:0 2px 10px rgba(0,0,0,.4);background:linear-gradient(180deg,#2a2218 0%,var(--surface3) 100%);}
-.btn.gold{background:linear-gradient(180deg,rgba(201,168,76,.12) 0%,rgba(201,168,76,.04) 100%);}
-.btn.gold:hover,.btn.gold:active{background:linear-gradient(180deg,var(--gold-bright) 0%,var(--gold) 100%);box-shadow:0 2px 16px rgba(201,168,76,.45);}
-.pc-card{border-color:var(--border-bright);box-shadow:0 4px 20px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.03);}
+/* ── AUTUMN CORPORATE STEAMPUNK REDESIGN ── */
+
+/* Base */
+body{font-size:16px;line-height:1.65;}
+
+/* Header — burnished brass bar */
+.app-header{
+  background:linear-gradient(180deg,var(--surface) 0%,#0e0a06 100%);
+  border-bottom:2px solid var(--border-bright);
+  box-shadow:0 2px 28px rgba(0,0,0,.75),0 -1px 0 rgba(192,128,64,.08) inset;
+}
+.app-title{font-size:22px;letter-spacing:.6px;text-shadow:0 0 28px rgba(192,128,64,.5);}
+.header-meta{font-size:12px;}
+
+/* Tab bar — aged timber underlining */
+.main-tabs{
+  background:linear-gradient(180deg,#0f0a06 0%,var(--surface) 100%);
+  border-bottom:2px solid var(--border-bright);
+  padding:0 6px;
+}
+.main-tab{font-size:12px;padding:12px 14px;min-height:var(--touch);letter-spacing:.4px;}
+.main-tab.active{
+  color:var(--gold-bright);
+  border-bottom-color:var(--gold);
+  text-shadow:0 0 12px rgba(192,128,64,.45);
+}
+.main-tab:hover{color:var(--text-bright);}
+
+/* Panels — leather-bound */
+.panel{
+  border-color:var(--border-bright);
+  box-shadow:0 2px 18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.03);
+}
+.panel.accent{box-shadow:0 2px 18px rgba(0,0,0,.55),0 0 0 1px rgba(192,128,64,.18) inset;}
+.panel-title{
+  font-size:11px;letter-spacing:1.6px;
+  background:linear-gradient(90deg,rgba(192,128,64,.1) 0%,transparent 65%);
+  margin:-14px -14px 14px;
+  padding:12px 14px;
+  border-radius:var(--radius) var(--radius) 0 0;
+  border-bottom:1px solid var(--border-bright);
+  text-shadow:0 0 14px rgba(192,128,64,.35);
+}
+
+/* Buttons — riveted copper */
+.btn{
+  background:linear-gradient(180deg,var(--surface3) 0%,var(--surface2) 100%);
+  border-color:var(--border-bright);
+  transition:all .18s ease;
+  letter-spacing:.4px;
+}
+.btn:hover,.btn:active{
+  background:linear-gradient(180deg,#382a1a 0%,var(--surface3) 100%);
+  border-color:var(--gold-dim);
+  color:var(--gold-bright);
+  box-shadow:0 2px 12px rgba(0,0,0,.5);
+}
+.btn.gold{background:linear-gradient(180deg,rgba(192,128,64,.15) 0%,rgba(192,128,64,.05) 100%);border-color:var(--gold-dim);}
+.btn.gold:hover,.btn.gold:active{
+  background:linear-gradient(180deg,var(--gold-bright) 0%,var(--gold) 100%);
+  color:var(--bg);box-shadow:0 2px 20px rgba(192,128,64,.55);border-color:var(--gold-bright);
+}
+.btn.red:hover,.btn.red:active{box-shadow:0 2px 12px rgba(192,72,40,.35);}
+.btn.green:hover,.btn.green:active{box-shadow:0 2px 12px rgba(82,120,88,.35);}
+
+/* Party cards — forged steel border */
+.pc-card{
+  border:1px solid var(--border-bright);
+  box-shadow:0 4px 24px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.03);
+}
 .pc-card-header{background:linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);}
-.modal-overlay{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
-.modal-box{box-shadow:0 24px 80px rgba(0,0,0,.85),0 0 0 1px rgba(201,168,76,.12);}
-.modal-title{text-shadow:0 0 16px rgba(201,168,76,.3);}
-.round-num{text-shadow:0 0 22px rgba(201,168,76,.5);}
-.init-badge{text-shadow:0 0 12px rgba(201,168,76,.4);}
-.dice-btn:hover,.dice-btn:active{box-shadow:0 0 12px rgba(201,168,76,.25);}
-.qa-fab{box-shadow:0 4px 24px rgba(0,0,0,.55),0 0 16px rgba(201,168,76,.3);}
-input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px rgba(201,168,76,.18);}
+.pc-name{letter-spacing:.3px;text-shadow:0 0 10px rgba(192,128,64,.18);}
+
+/* Stat blocks — engraved tiles */
+.stat-mini{border-color:var(--border-bright);background:linear-gradient(180deg,var(--surface3) 0%,var(--surface2) 100%);}
+
+/* HP bars — vivid autumn */
+.hp-bar-wrap{height:7px;border-radius:4px;}
+.hp-bar-fill{border-radius:4px;}
+
+/* Forms — etched glass */
+input[type=text],input[type=number],input[type=password],textarea,select{
+  background:linear-gradient(180deg,rgba(0,0,0,.2) 0%,var(--surface2) 100%);
+  border-color:var(--border-bright);
+  font-size:15px;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(192,128,64,.2);
+}
+textarea{min-height:72px;}
+
+/* Combat tracker */
+.round-num{text-shadow:0 0 28px rgba(192,128,64,.6);}
+.init-badge{text-shadow:0 0 16px rgba(192,128,64,.5);}
+.init-row.current{box-shadow:0 0 18px rgba(192,128,64,.22);}
+
+/* Dice — alchemical */
+.dice-btn{font-size:17px;}
+.dice-btn:hover,.dice-btn:active{box-shadow:0 0 16px rgba(192,128,64,.32);border-color:var(--gold);}
+
+/* Modals — velvet-lined chambers */
+.modal-overlay{
+  background:rgba(6,3,1,.9);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.modal-box{
+  border-color:var(--border-bright);
+  box-shadow:0 32px 80px rgba(0,0,0,.95),0 0 0 1px rgba(192,128,64,.18);
+}
+.modal-title{font-size:22px;text-shadow:0 0 20px rgba(192,128,64,.4);}
+
+/* Chat — parchment scrolls */
+.chat-msgs-wrap{background:#0d0905;border-color:var(--border-bright);}
+.chat-msg.dm{border-left:3px solid var(--gold);box-shadow:inset 3px 0 0 rgba(192,128,64,.1);}
+.chat-msg.player{border-right:3px solid var(--blue);}
+
+/* Log entries */
+.log-entry{border-radius:0 var(--radius-sm) var(--radius-sm) 0;}
+
+/* Session turn counter */
+.turn-num-big{font-size:24px;}
+
+/* Floating action button — gleaming copper rivet */
+.qa-fab{box-shadow:0 4px 28px rgba(0,0,0,.65),0 0 22px rgba(192,128,64,.4);}
+
+/* Scrollbars — tarnished rail */
 ::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-thumb{background:var(--gold-dim);}
-::-webkit-scrollbar-thumb:hover{background:var(--gold-bright);}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dim);}
+
+/* Mobile — Pixel-tuned spacing */
+@media(max-width:430px){
+  body{font-size:15px;}
+  .app-header{padding:10px 14px!important;}
+  .app-title{font-size:19px;}
+  .tab-section{padding:10px;padding-bottom:100px;}
+  .panel-title{font-size:10px;letter-spacing:1.4px;}
+  .main-tab{padding:11px 11px;font-size:11px;}
+}
 </style>
 </head>
 <body>
