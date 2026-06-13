@@ -912,9 +912,10 @@ body{background-image:none;}
 .err-log-cat{font-size:16px;flex-shrink:0;}
 .err-log-meta{font-size:10px;color:var(--text-dim);flex:1;}
 .err-log-verdict-badge{font-size:9px;padding:2px 8px;border-radius:8px;font-weight:600;text-transform:uppercase;}
-.err-log-verdict-badge.pass{background:#1a3a1a;color:var(--green-bright);border:1px solid var(--green);}
+.err-log-verdict-badge.pass,.err-log-verdict-badge.resolved{background:#1a3a1a;color:var(--green-bright);border:1px solid var(--green);}
 .err-log-verdict-badge.fail{background:#3a0a0a;color:var(--red);border:1px solid var(--red-dim);}
 .err-log-verdict-badge.pending{background:var(--surface3);color:var(--text-dim);border:1px solid var(--border);}
+.err-log-item.verdicted-resolved{border-color:var(--green);opacity:.7;}
 .err-log-context{font-size:11px;color:var(--text-dim);border-left:2px solid var(--border);padding-left:8px;margin:5px 0;white-space:pre-wrap;max-height:80px;overflow:hidden;}
 .err-log-note{font-size:12px;color:var(--text);margin:4px 0;}
 .err-log-ai-verdict{font-size:11px;color:var(--green-bright);border-left:2px solid var(--green);padding-left:8px;margin-top:6px;white-space:pre-wrap;}
@@ -1075,7 +1076,7 @@ body{background-image:none;}
   <div style="display:flex;align-items:center;gap:10px;width:100%">
     <div style="flex-shrink:0;cursor:pointer" onclick="showTab('tab-party')">
       <div class="app-title">Tinkle's <span>Tinctures</span></div>
-      <div class="header-meta"><span class="autosave-dot" id="as-dot"></span><span id="as-lbl">Saved</span><span id="fb-status-mini" style="font-size:9px;color:var(--text-dim);margin-left:4px"></span></div>
+      <div class="header-meta"><span class="autosave-dot" id="as-dot"></span><span id="as-lbl" style="display:none"></span><span id="fb-status-mini" style="font-size:9px;color:var(--text-dim);margin-left:4px"></span></div>
     </div>
     <div id="party-status-mini" style="flex:1;min-width:0;overflow:hidden;"></div>
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -1088,7 +1089,7 @@ body{background-image:none;}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
     <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
     <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
-    <button onclick="openDashboard('changelog');closeHeaderMenu()" class="btn">📋 Session</button>
+    <button onclick="openDashboard('changelog');closeHeaderMenu()" class="btn">📋 Patch Notes</button>
     <button onclick="exportConfig();closeHeaderMenu()" class="btn gold">📤 Export</button>
     <button onclick="copyStateCompact();closeHeaderMenu()" class="btn">📋 Copy State</button>
     <button onclick="switchUser()" class="btn" style="border-color:var(--purple-bright);color:var(--purple-bright)!important">👤 Switch Player</button>
@@ -1112,6 +1113,7 @@ body{background-image:none;}
   <button class="main-tab" onclick="showTab('tab-session')">Session</button>
   <button class="main-tab" id="tab-btn-ait" onclick="showTab('tab-ait')">AI Tools</button>
   <button class="main-tab" onclick="showTab('tab-dm')">AI DM</button>
+  <button class="main-tab" onclick="showTab('tab-dev')" style="border-color:var(--gold);color:var(--gold)">Dev</button>
   <button class="main-tab" onclick="showTab('tab-setup')" style="border-color:var(--purple-bright);color:var(--purple-bright)">Setup</button>
 </div>
 
@@ -1396,13 +1398,6 @@ body{background-image:none;}
       </div>
     </div>
     <div id="sess-prep-panel" style="display:none">
-      <div class="panel accent">
-        <div class="panel-title">Dev Notes
-          <span style="font-size:10px;color:var(--text-dim);margin-left:4px;font-weight:normal">Ops Debrief only — DM never sees this</span>
-          <button class="btn sm red" style="margin-left:auto" onclick="if(confirm('Clear dev notes?')){state.sessionNotes='';const el=document.getElementById('session-notes');if(el)el.value='';save();}">Clear</button>
-        </div>
-        <textarea id="session-notes" style="min-height:110px" oninput="state.sessionNotes=this.value;save()" placeholder="App bugs, things to fix, questions for dev. Never sent to the DM."></textarea>
-      </div>
       <div class="panel">
         <div class="panel-title">Session Log <button class="btn sm red" style="margin-left:auto" onclick="clearLog()">Clear</button></div>
         <div id="log-entries" style="max-height:400px;overflow-y:auto;overflow-x:hidden;word-break:break-word;"></div>
@@ -1413,16 +1408,6 @@ body{background-image:none;}
         <div class="btn-row">
           <button class="btn full" onclick="buildRawSummary()">↑ Build Raw</button>
           <button class="btn purple full" onclick="buildAISummary()">✨ AI Narrative</button>
-        </div>
-      </div>
-      <div class="panel danger" id="error-log-panel">
-        <div class="panel-title" style="color:var(--gold)">⚑ Error Log
-          <span id="error-log-count" style="font-size:10px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:1px 8px;margin-left:6px;color:var(--text-dim)">0</span>
-        </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Flags captured during play via ⚑ on AI messages or the ⚑ Flag button under the DM chat. Mark each Pass or Fail.</p>
-        <div id="error-log-list"><p style="font-size:11px;color:var(--text-dim)">No flags yet this session.</p></div>
-        <div id="error-log-audit-row" style="display:none;margin-top:10px">
-          <button class="btn red full" onclick="auditWithAI()">📤 Export Failures</button>
         </div>
       </div>
     </div>
@@ -1457,6 +1442,41 @@ body{background-image:none;}
     </div>
   </div>
 
+</div>
+
+<!-- DEV TAB -->
+<div id="tab-dev" class="tab-section">
+  <div class="panel accent">
+    <div class="panel-title">Dev Notes
+      <span style="font-size:10px;color:var(--text-dim);margin-left:4px;font-weight:normal">Ops Debrief only — DM never sees this</span>
+      <button class="btn sm red" style="margin-left:auto" onclick="if(confirm('Clear dev notes?')){state.sessionNotes='';const el=document.getElementById('session-notes');if(el)el.value='';save();}">Clear</button>
+    </div>
+    <textarea id="session-notes" style="min-height:110px" oninput="state.sessionNotes=this.value;save()" placeholder="App bugs, things to fix, questions for dev. Never sent to the DM."></textarea>
+  </div>
+  <div class="panel danger" id="error-log-panel">
+    <div class="panel-title" style="color:var(--gold)">⚑ Flag Review
+      <span id="error-log-count" style="font-size:10px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:1px 8px;margin-left:6px;color:var(--text-dim)">0</span>
+      <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm" onclick="exportFlagReport('pending')">Export Pending</button>
+        <button class="btn sm" onclick="exportFlagReport('all')">Export All</button>
+        <button class="btn sm red" onclick="clearResolvedFlags()">Clear Resolved</button>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Flags captured during play. Tap a flag's status badge to cycle: Pending → Fail → Resolved. Tap note text to edit.</p>
+    <div id="error-log-list"><p style="font-size:11px;color:var(--text-dim)">No flags yet this session.</p></div>
+    <div id="error-log-audit-row" style="display:none;margin-top:10px">
+      <button class="btn red full" onclick="auditWithAI()">📤 Export Failures</button>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <div class="panel-title">⚡ Ops Debrief</div>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Compiles execution data — copy and paste to dev.</p>
+    <button class="btn gold full" onclick="sessionRecap()">⚡ Compile Ops Debrief</button>
+    <div id="dev-recap-out" style="display:none;margin-top:10px">
+      <textarea id="dev-recap-text" readonly style="min-height:160px;font-size:10px;font-family:var(--mono);color:var(--text-dim);border-color:var(--gold)"></textarea>
+      <button class="btn gold full" style="margin-top:6px" onclick="copyText(document.getElementById('dev-recap-text').value,'✓ Ops report copied!')">📋 Copy — Paste to Dev</button>
+    </div>
+  </div>
 </div>
 
 <!-- CAMPAIGN SETUP TAB -->
@@ -1776,8 +1796,8 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         </div>
         <div class="chat-tab-row">
           <button class="chat-tab-btn active" id="chat-tab-narrative" onclick="showChatTab('narrative')">📖 Narrative</button>
-          <button class="chat-tab-btn" id="chat-tab-ooc" onclick="showChatTab('ooc')">💬 OOC</button>
-          <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party')">🗣️ Party</button>
+          <button class="chat-tab-btn" id="chat-tab-ooc" onclick="showChatTab('ooc')">⚙ Systems</button>
+          <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party')">🔮 OOC</button>
         </div>
         <div id="chat-pane-narrative">
         <div id="chat-msgs" class="chat-msgs-wrap" onscroll="handleChatScroll(this)"></div>
@@ -1841,16 +1861,11 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 <!-- SESSION DASHBOARD MODAL -->
 <div class="modal-overlay" id="dash-modal" onclick="if(event.target===this)closeModal('dash-modal')">
   <div class="modal-box" style="max-width:500px;max-height:92vh;overflow-y:auto">
-    <div class="modal-title" style="display:flex;align-items:center;gap:8px">Session Dashboard
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px">Patch Notes
       <button onclick="closeModal('dash-modal')" style="margin-left:auto;background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;line-height:1">&times;</button>
     </div>
     <div class="dash-stat-strip" id="dash-stats"></div>
-    <div class="dash-tab-row">
-      <button class="dash-tab-btn active" id="dash-btn-changelog" onclick="showDashTab('changelog')">What's New</button>
-      <button class="dash-tab-btn" id="dash-btn-flags" onclick="showDashTab('flags')">Flag Review</button>
-    </div>
     <div id="dash-tab-changelog" class="dash-changelog"></div>
-    <div id="dash-tab-flags" style="display:none;max-height:320px;overflow-y:auto"></div>
     <div style="border-top:1px solid var(--border);margin-top:14px;padding-top:12px">
       <button class="btn gold full" onclick="sessionRecap()">⚡ Compile Ops Debrief</button>
       <p style="font-size:10px;color:var(--text-dim);margin-top:6px;text-align:center">Compiles execution data — copy and paste to dev</p>
@@ -2251,6 +2266,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   renderQAMenu();
   showSessionMode('play'); // set initial session mode
   injectPanelFlags();
+  setInterval(renderStatusMini,60000);
 });
 
 function updatePlayerLbl(){
@@ -2629,9 +2645,15 @@ function renderStatusMini(){
     if(pc.hp<=0)badge='<span class="status-badge dead">⚠</span>';
     else if(pc.hp<pc.hp_max*0.4)badge='<span class="status-badge warn">!</span>';
     const d=document.createElement('div');d.className='psb-pc';
-    d.innerHTML=`<span class="psb-name" style="color:${pc.color||'var(--text-dim)'}">${esc(pc.name)}:</span><span class="psb-hp">${pc.hp}/${pc.hp_max}</span>${badge}${i<state.pcs.length-1?'<span class="psb-sep">|</span>':''}`;
+    d.innerHTML=`<span class="psb-name" style="color:${pc.color||'var(--text-dim)'}">${esc(pc.name)}:</span><span class="psb-hp">${pc.hp}/${pc.hp_max}</span>${badge}<span class="psb-sep">|</span>`;
     c.appendChild(d);
   });
+  const goldDelta=Math.round((parseFloat(state.treasuryData.gp)||0)-sessionStartGP);
+  const goldStr=(goldDelta>=0?'+':'')+goldDelta+' gp';
+  const meta=document.createElement('div');meta.className='psb-pc';
+  meta.style.cssText='flex-shrink:0;gap:8px;';
+  meta.innerHTML=`<span style="color:var(--gold);font-size:10px">💰 ${goldStr}</span><span class="psb-sep">|</span><span style="color:var(--text-dim);font-size:10px">⏱ ${getElapsed()}</span>`;
+  c.appendChild(meta);
 }
 
 // ═══ WORLD SYNC ═══
@@ -5492,12 +5514,12 @@ function resolveFlag(id){
   const f=(state.errorLog||[]).find(f=>f.id===id);
   if(!f)return;
   f.resolved=true;
-  save();renderErrorLog();renderFlagReview();
+  save();renderErrorLog();
 }
 function deleteFlag(id){
   if(!confirm('Delete this flag permanently?'))return;
   state.errorLog=(state.errorLog||[]).filter(f=>f.id!==id);
-  save();renderErrorLog();renderFlagReview();
+  save();renderErrorLog();
 }
 function editFlagNote(id){
   const f=(state.errorLog||[]).find(f=>f.id===id);if(!f)return;
@@ -5519,7 +5541,7 @@ function saveEditedNote(id){
   const f=(state.errorLog||[]).find(f=>f.id===id);if(!f)return;
   const ta=document.getElementById('fne-'+id);if(!ta)return;
   f.note=ta.value.trim();
-  save();renderErrorLog();renderFlagReview();
+  save();renderErrorLog();
   toast('✓ Note saved');
 }
 
@@ -5539,15 +5561,20 @@ function renderErrorLog(){
   if(auditRow)auditRow.style.display=failCount>0?'block':'none';
   list.innerHTML=flags.map(function(f){
     const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
-    const vClass=f.verdict?'verdicted-'+f.verdict:'';
-    const vBadge=f.verdict?
-      '<span class="err-log-verdict-badge '+f.verdict+'">'+f.verdict.toUpperCase()+'</span>':
-      '<span class="err-log-verdict-badge pending">Pending</span>';
+    const verdict=f.verdict==='pass'?'resolved':f.verdict;
+    const vClass=verdict?'verdicted-'+verdict:'';
+    let vBadgeClass,vBadgeText;
+    if(!verdict){vBadgeClass='pending';vBadgeText='Pending';}
+    else if(verdict==='fail'){vBadgeClass='fail';vBadgeText='Fail';}
+    else{vBadgeClass='resolved';vBadgeText='Resolved';}
+    const vBadge='<span class="err-log-verdict-badge '+vBadgeClass+'" onclick="toggleFlagVerdict(\''+f.id+'\')" style="cursor:pointer" title="Tap to cycle: Pending → Fail → Resolved">'+vBadgeText+'</span>';
     const snippet=f.msgContent?
       '<div class="err-log-context">'+esc(f.msgContent.slice(0,180))+(f.msgContent.length>180?'…':'')+'</div>':'';
-    const noteHtml=f.note?'<div class="err-log-note">'+esc(f.note)+'</div>':'';
+    const noteHtml=f.note?
+      '<div class="err-log-note" onclick="editFlagNote(\''+f.id+'\')" style="cursor:pointer" title="Tap to edit note">'+esc(f.note)+'</div>':
+      '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin:4px 0;cursor:pointer" onclick="editFlagNote(\''+f.id+'\')" title="Tap to add note">Add note…</div>';
     const aiVerdictHtml=f.aiVerdict?
-      '<div class="err-log-ai-verdict'+(f.verdict==='fail'?' fail-verdict':'')+'">🤖 '+esc(f.aiVerdict)+'</div>':'';
+      '<div class="err-log-ai-verdict'+(verdict==='fail'?' fail-verdict':'')+'">🤖 '+esc(f.aiVerdict)+'</div>':'';
     return '<div class="err-log-item '+vClass+'" id="flag-'+f.id+'">'+
       '<div class="err-log-header">'+
         '<span class="err-log-cat">'+cat.icon+'</span>'+
@@ -5558,19 +5585,42 @@ function renderErrorLog(){
         vBadge+
       '</div>'+
       snippet+noteHtml+aiVerdictHtml+
-      '<div data-flag-actions style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+
-        '<button class="btn sm green" onclick="setFlagVerdict(\''+f.id+'\',\'pass\')">'+
-          (f.verdict==='pass'?'✓ Pass (undo)':'✓ Pass')+
-        '</button>'+
-        '<button class="btn sm red" onclick="setFlagVerdict(\''+f.id+'\',\'fail\')">'+
-          (f.verdict==='fail'?'✗ Fail (undo)':'✗ Fail')+
-        '</button>'+
-        '<button class="btn sm" onclick="editFlagNote(\''+f.id+'\')" title="Edit note">✎ Edit</button>'+
-        '<button class="btn sm" style="margin-left:auto" onclick="resolveFlag(\''+f.id+'\')">Dismiss</button>'+
+      '<div data-flag-actions style="display:flex;justify-content:flex-end;margin-top:8px">'+
         '<button class="btn sm red" onclick="deleteFlag(\''+f.id+'\')" title="Delete flag permanently">🗑</button>'+
       '</div>'+
     '</div>';
   }).join('');
+}
+function toggleFlagVerdict(id){
+  const f=(state.errorLog||[]).find(f=>f.id===id);if(!f)return;
+  const cur=f.verdict==='pass'?'resolved':f.verdict;
+  const cycle=[null,'fail','resolved'];
+  f.verdict=cycle[(cycle.indexOf(cur)+1)%cycle.length];
+  save();renderErrorLog();
+}
+function clearResolvedFlags(){
+  if(!confirm('Remove all Resolved flags permanently?'))return;
+  state.errorLog=(state.errorLog||[]).filter(f=>f.verdict!=='resolved'&&f.verdict!=='pass');
+  save();renderErrorLog();
+  toast('✓ Resolved flags cleared');
+}
+function exportFlagReport(mode){
+  const all=(state.errorLog||[]).filter(f=>!f.resolved);
+  const flags=mode==='pending'?all.filter(f=>!f.verdict):all;
+  if(!flags.length){toast('No '+(mode==='pending'?'pending ':'')+'flags to export.');return;}
+  let report='=== FLAG REPORT — '+(mode==='pending'?'PENDING ONLY':'ALL FLAGS')+' ===\n';
+  report+='Generated: '+new Date().toLocaleString()+'\n\n';
+  flags.forEach(function(f,i){
+    const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
+    const v=f.verdict==='pass'?'resolved':f.verdict;
+    const verdictStr=!v?'PENDING':v.toUpperCase();
+    report+=(i+1)+'. ['+cat.icon+' '+cat.label+'] → '+verdictStr+'\n';
+    if(f.location)report+='   Location: '+f.location+(f.gameTs?' at '+f.gameTs:'')+'\n';
+    if(f.note)report+='   Note: '+f.note+'\n';
+    if(f.msgContent&&f.msgContent.indexOf('[')!==0)report+='   AI said: "'+f.msgContent.slice(0,200)+(f.msgContent.length>200?'…':'')+'"'+'\n';
+    report+='\n';
+  });
+  copyText(report,'✓ '+(mode==='pending'?'Pending':'All')+' flags copied!');
 }
 
 async function auditWithAI(){
@@ -5620,17 +5670,10 @@ function getElapsed(){
   return h>0?h+'h '+m+'m':m+'m';
 }
 function openDashboard(tab){
-  renderDashStats();renderChangelog();renderFlagReview();
-  showDashTab(tab||'changelog');openModal('dash-modal');
+  renderDashStats();renderChangelog();
+  openModal('dash-modal');
 }
-function showDashTab(tab){
-  ['changelog','flags'].forEach(t=>{
-    const btn=document.getElementById('dash-btn-'+t);
-    const pane=document.getElementById('dash-tab-'+t);
-    if(btn)btn.classList.toggle('active',t===tab);
-    if(pane)pane.style.display=t===tab?'block':'none';
-  });
-}
+function showDashTab(tab){}
 function renderDashStats(){
   const el=document.getElementById('dash-stats');if(!el)return;
   const goldDelta=Math.round((parseFloat(state.treasuryData.gp)||0)-sessionStartGP);
@@ -5680,43 +5723,7 @@ function renderChangelog(){
   ];
   el.innerHTML=versions.map(v=>'<div class="dash-version"><div class="dash-version-title">'+v.ver+' — '+v.date+'</div><ul>'+v.notes.map(n=>'<li>'+n+'</li>').join('')+'</ul></div>').join('');
 }
-function renderFlagReview(){
-  const el=document.getElementById('dash-tab-flags');if(!el)return;
-  const flags=(state.errorLog||[]).filter(f=>!f.resolved);
-  if(!flags.length){el.innerHTML='<p style="font-size:11px;color:var(--text-dim);padding:12px 0">No active flags this session.</p>';return;}
-  const cats=Object.keys(FLAG_CATS);
-  const summary=cats.map(k=>{
-    const count=flags.filter(f=>f.category===k).length;
-    return count?'<div class="dash-flag-cat"><span class="dash-flag-cat-icon">'+FLAG_CATS[k].icon+'</span><div class="dash-flag-cat-count">'+count+'</div><div style="font-size:9px;color:var(--text-dim)">'+FLAG_CATS[k].label.split('/')[0].trim()+'</div></div>':'';
-  }).join('');
-  const passCount=flags.filter(f=>f.verdict==='pass').length;
-  const failCount=flags.filter(f=>f.verdict==='fail').length;
-  const openCount=flags.filter(f=>!f.verdict).length;
-  const verdictBar='<div style="display:flex;gap:10px;margin:10px 0;font-size:11px;align-items:center">'+
-    '<span style="color:var(--green-bright)">✓ '+passCount+' Pass</span>'+
-    '<span style="color:var(--red)">✗ '+failCount+' Fail</span>'+
-    '<span style="color:var(--text-dim)">○ '+openCount+' Open</span>'+
-    (failCount>0?'<button class="btn sm red" style="margin-left:auto" onclick="auditWithAI();closeModal(\'dash-modal\')">📤 Export Failures</button>':'')+
-  '</div>';
-  el.innerHTML='<div class="dash-flag-summary">'+summary+'</div>'+verdictBar+
-    flags.map(function(f){
-      const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
-      const vCol=f.verdict==='pass'?'var(--green)':f.verdict==='fail'?'var(--red)':'var(--border)';
-      return '<div style="background:var(--surface2);border:1px solid '+vCol+';border-radius:3px;padding:8px 10px;margin-bottom:6px;font-size:11px">'+
-        '<div style="display:flex;gap:8px;align-items:center">'+
-          '<span>'+cat.icon+'</span>'+
-          '<span style="color:var(--text)">'+cat.label+'</span>'+
-          (f.verdict?'<span style="margin-left:auto;font-size:9px;font-weight:600;text-transform:uppercase;color:'+(f.verdict==='pass'?'var(--green-bright)':'var(--red)')+'">'+f.verdict+'</span>':'<span style="margin-left:auto;font-size:9px;color:var(--gold)">pending</span>')+
-        '</div>'+
-        (f.note?'<div style="color:var(--text-dim);margin-top:4px;border-left:2px solid var(--border);padding-left:6px">'+esc(f.note)+'</div>':'')+
-        (f.sectionCtx||f.gameTs||f.location?'<div style="color:var(--text-dim);font-size:10px;margin-top:3px">'+(f.sectionCtx?esc(f.sectionCtx)+' · ':'')+esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+'</div>':'')+
-        '<div style="display:flex;gap:6px;margin-top:6px">'+
-          '<button class="btn sm" style="font-size:10px;min-height:28px" onclick="editFlagNote(\''+f.id+'\');openDashboard(\'flags\')">✎ Edit</button>'+
-          '<button class="btn sm red" style="font-size:10px;min-height:28px" onclick="deleteFlag(\''+f.id+'\');openDashboard(\'flags\')">🗑 Delete</button>'+
-        '</div>'+
-      '</div>';
-    }).join('');
-}
+function renderFlagReview(){}
 function sessionRecap(){
   const flags=(state.errorLog||[]).filter(f=>!f.resolved);
   const ctxRefreshes=(state.logs||[]).filter(l=>l.body&&l.body.includes('[CONTEXT REFRESH]')).length;
@@ -5732,7 +5739,9 @@ function sessionRecap(){
     report+='\n--- FLAGGED MOMENTS ('+flags.length+') ---\n';
     flags.forEach(function(f,i){
       const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
-      report+=(i+1)+'. ['+cat.label+']'+(f.sectionCtx?' in '+f.sectionCtx:'')+(f.location?' @ '+f.location:'')+(f.gameTs?' ('+f.gameTs+')':'')+(f.verdict?' → '+f.verdict.toUpperCase():' → PENDING')+'\n';
+      const v=f.verdict==='pass'?'resolved':f.verdict;
+      const verdictStr=!v?'PENDING':v.toUpperCase();
+      report+=(i+1)+'. ['+cat.label+']'+(f.sectionCtx?' in '+f.sectionCtx:'')+(f.location?' @ '+f.location:'')+(f.gameTs?' ('+f.gameTs+')':'')+' → '+verdictStr+'\n';
       if(f.note)report+='   Note: '+f.note+'\n';
       if(f.msgContent&&f.msgContent.indexOf('[')!==0)report+='   AI said: "'+f.msgContent.slice(0,200)+(f.msgContent.length>200?'…':'')+'"'+'\n';
     });
@@ -5740,10 +5749,12 @@ function sessionRecap(){
     report+='\n--- NO FLAGS THIS SESSION ---\n';
   }
   report+='\n--- PROMPT FOR DEV ---\nReview this session\'s execution data above. Identify recurring failure patterns (rules the AI got wrong, mechanics that misfired, context refresh triggers). Suggest one to two specific, actionable, creative, or progressive changes to the system prompt or app configuration that would most improve the next session.';
-  const out=document.getElementById('dash-recap-out');
-  const txt=document.getElementById('dash-recap-text');
-  if(out)out.style.display='block';
-  if(txt){txt.value=report;setTimeout(()=>txt.select(),50);}
+  [['dash-recap-out','dash-recap-text'],['dev-recap-out','dev-recap-text']].forEach(([outId,txtId])=>{
+    const out=document.getElementById(outId);
+    const txt=document.getElementById(txtId);
+    if(out)out.style.display='block';
+    if(txt){txt.value=report;setTimeout(()=>txt.select(),50);}
+  });
   copyText(report,'✓ Ops report ready — paste to dev');
 }
 
