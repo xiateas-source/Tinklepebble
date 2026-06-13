@@ -1418,7 +1418,7 @@ body{background-image:none;}
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Flags captured during play via ⚑ on AI messages or the ⚑ Flag button under the DM chat. Mark each Pass or Fail.</p>
         <div id="error-log-list"><p style="font-size:11px;color:var(--text-dim)">No flags yet this session.</p></div>
         <div id="error-log-audit-row" style="display:none;margin-top:10px">
-          <button class="btn red full" onclick="auditWithAI()">🤖 Audit Fails with AI</button>
+          <button class="btn red full" onclick="auditWithAI()">📤 Export Failures</button>
         </div>
       </div>
     </div>
@@ -5603,7 +5603,7 @@ function renderFlagReview(){
     '<span style="color:var(--green-bright)">✓ '+passCount+' Pass</span>'+
     '<span style="color:var(--red)">✗ '+failCount+' Fail</span>'+
     '<span style="color:var(--text-dim)">○ '+openCount+' Open</span>'+
-    (failCount>0?'<button class="btn sm red" style="margin-left:auto" onclick="auditWithAI();closeModal(\'dash-modal\')">Audit Fails</button>':'')+
+    (failCount>0?'<button class="btn sm red" style="margin-left:auto" onclick="auditWithAI();closeModal(\'dash-modal\')">📤 Export Failures</button>':'')+
   '</div>';
   el.innerHTML='<div class="dash-flag-summary">'+summary+'</div>'+verdictBar+
     flags.map(function(f){
@@ -5646,7 +5646,7 @@ function sessionRecap(){
   }else{
     report+='\n--- NO FLAGS THIS SESSION ---\n';
   }
-  report+='\n--- PROMPT FOR DEVELOPER AI ---\nReview this session\'s execution data above. Identify recurring failure patterns (rules the AI got wrong, mechanics that misfired, context refresh triggers). Suggest ONE specific, actionable change to the system prompt or app configuration that would most improve the next session.';
+  report+='\n--- PROMPT FOR DEV ---\nReview this session\'s execution data above. Identify recurring failure patterns (rules the AI got wrong, mechanics that misfired, context refresh triggers). Suggest one to two specific, actionable, creative, or progressive changes to the system prompt or app configuration that would most improve the next session.';
   const out=document.getElementById('dash-recap-out');
   const txt=document.getElementById('dash-recap-text');
   if(out)out.style.display='block';
