@@ -5135,6 +5135,168 @@ document.addEventListener('click',e=>{
   }
 });
 
+// ═══ ERROR FLAGS ═══
+let _flagMsgIdx=-1;
+let _flagSelectedCat='';
+
+function openFlagModal(msgIdx){
+  _flagMsgIdx=msgIdx;
+  _flagSelectedCat='';
+  // Reset modal state
+  document.querySelectorAll('.flag-cat-btn').forEach(b=>b.classList.remove('selected'));
+  const noteEl=document.getElementById('flag-note');
+  if(noteEl)noteEl.value='';
+  // Build context display
+  const ctx=document.getElementById('flag-context-display');
+  if(ctx){
+    const loc=state.worldData?.location||'Unknown location';
+    const time=state.worldData?.time||'';
+    const inCombat=state.combat?.active;
+    let html='<strong>Location:</strong> '+esc(loc)+(time?' &nbsp;·&nbsp; <strong>Time:</strong> '+esc(time):'');
+    if(inCombat)html+=' &nbsp;·&nbsp; <strong>Combat:</strong> Round '+esc(String(state.combat.round||1));
+    if(msgIdx>=0&&state.chatHistory[msgIdx]){
+      const snippet=(state.chatHistory[msgIdx].content||'').slice(0,200);
+      html+='<br><br><strong>Flagged message:</strong><br><em style="color:var(--text)">'+esc(snippet)+(snippet.length>=200?'…':'')+'</em>';
+    }
+    ctx.innerHTML=html;
+    ctx.style.display='block';
+  }
+  document.getElementById('flag-modal').classList.add('open');
+}
+
+function closeFlagModal(){
+  document.getElementById('flag-modal').classList.remove('open');
+}
+
+function selectFlagCat(btn){
+  document.querySelectorAll('.flag-cat-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _flagSelectedCat=btn.dataset.cat||'other';
+}
+
+function submitFlag(){
+  if(!_flagSelectedCat){toast('Tap a category first.');return;}
+  if(!state.errorLog)state.errorLog=[];
+  const note=document.getElementById('flag-note')?.value.trim()||'';
+  const msgContent=_flagMsgIdx>=0?(state.chatHistory[_flagMsgIdx]?.content||''):'';
+  const flag={
+    id:'err_'+Date.now(),
+    gameTs:state.worldData?.time||'',
+    realTs:new Date().toISOString(),
+    tab:typeof currentTab!=='undefined'?currentTab:'',
+    location:state.worldData?.location||'',
+    category:_flagSelectedCat,
+    note:note,
+    msgContent:msgContent.slice(0,600),
+    combatActive:!!(state.combat?.active),
+    combatRound:state.combat?.round||null,
+    verdict:null,
+    aiVerdict:'',
+    resolved:false
+  };
+  state.errorLog.push(flag);
+  save();
+  renderErrorLog();
+  closeFlagModal();
+  toast('⚑ Flagged.');
+}
+
+const FLAG_CATS={
+  roll:{icon:'🎲',label:'Wrong Roll / Math'},
+  rule:{icon:'📜',label:'Wrong Rule'},
+  ai:{icon:'🤖',label:'AI Made It Up'},
+  story:{icon:'📖',label:'Story Error'},
+  other:{icon:'❓',label:'Something Felt Off'}
+};
+
+function setFlagVerdict(id,verdict){
+  const f=(state.errorLog||[]).find(f=>f.id===id);
+  if(!f)return;
+  f.verdict=f.verdict===verdict?null:verdict;
+  save();renderErrorLog();
+}
+
+function resolveFlag(id){
+  const f=(state.errorLog||[]).find(f=>f.id===id);
+  if(!f)return;
+  f.resolved=true;
+  save();renderErrorLog();
+}
+
+function renderErrorLog(){
+  const list=document.getElementById('error-log-list');
+  const countEl=document.getElementById('error-log-count');
+  const auditRow=document.getElementById('error-log-audit-row');
+  if(!list)return;
+  const flags=(state.errorLog||[]).filter(f=>!f.resolved);
+  if(countEl)countEl.textContent=flags.length;
+  if(!flags.length){
+    list.innerHTML='<p style="font-size:11px;color:var(--text-dim)">No active flags. Use ⚑ on any AI message or Manual Flag to capture moments during play.</p>';
+    if(auditRow)auditRow.style.display='none';
+    return;
+  }
+  const failCount=flags.filter(f=>f.verdict==='fail').length;
+  if(auditRow)auditRow.style.display=failCount>0?'block':'none';
+  list.innerHTML=flags.map(function(f){
+    const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
+    const vClass=f.verdict?'verdicted-'+f.verdict:'';
+    const vBadge=f.verdict?
+      '<span class="err-log-verdict-badge '+f.verdict+'">'+f.verdict.toUpperCase()+'</span>':
+      '<span class="err-log-verdict-badge pending">Unreviewed</span>';
+    const snippet=f.msgContent?
+      '<div class="err-log-context">'+esc(f.msgContent.slice(0,180))+(f.msgContent.length>180?'…':'')+'</div>':'';
+    const noteHtml=f.note?'<div class="err-log-note">'+esc(f.note)+'</div>':'';
+    const aiVerdictHtml=f.aiVerdict?
+      '<div class="err-log-ai-verdict'+(f.verdict==='fail'?' fail-verdict':'')+'">🤖 '+esc(f.aiVerdict)+'</div>':'';
+    return '<div class="err-log-item '+vClass+'" id="flag-'+f.id+'">'+
+      '<div class="err-log-header">'+
+        '<span class="err-log-cat">'+cat.icon+'</span>'+
+        '<div class="err-log-meta">'+
+          '<strong style="color:var(--text)">'+cat.label+'</strong><br>'+
+          esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+(f.combatActive?' · Combat R'+esc(String(f.combatRound||1)):'')+
+        '</div>'+
+        vBadge+
+      '</div>'+
+      snippet+noteHtml+aiVerdictHtml+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+
+        '<button class="btn sm green" onclick="setFlagVerdict(\''+f.id+'\',\'pass\')">'+
+          (f.verdict==='pass'?'✓ Pass (undo)':'✓ Pass')+
+        '</button>'+
+        '<button class="btn sm red" onclick="setFlagVerdict(\''+f.id+'\',\'fail\')">'+
+          (f.verdict==='fail'?'✗ Fail (undo)':'✗ Fail')+
+        '</button>'+
+        '<button class="btn sm" style="margin-left:auto" onclick="resolveFlag(\''+f.id+'\')">Dismiss</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+async function auditWithAI(){
+  const fails=(state.errorLog||[]).filter(f=>!f.resolved&&f.verdict==='fail');
+  if(!fails.length){toast('No Fails to audit.');return;}
+  const cat=FLAG_CATS;
+  let prompt='POST-SESSION ACCURACY AUDIT\n\nThe players have flagged '+fails.length+' moment'+(fails.length>1?'s':'')+' from this session as potential errors. For each one, evaluate whether the ruling was correct per D&D 5e PHB/DMG rules. Respond with PASS or FAIL for each, and a one-sentence explanation.\n\n';
+  fails.forEach(function(f,i){
+    const c=cat[f.category]||cat.other;
+    prompt+=(i+1)+'. ['+c.label+'] '+f.location+(f.gameTs?' at '+f.gameTs:'')+(f.combatActive?' (Combat R'+(f.combatRound||1)+')':'')+'\n';
+    if(f.msgContent)prompt+='   AI said: "'+f.msgContent.slice(0,300)+(f.msgContent.length>300?'…':'')+'"'+'\n';
+    if(f.note)prompt+='   Player note: '+f.note+'\n';
+    prompt+='\n';
+  });
+  prompt+='Format your response as:\n1. PASS/FAIL — [one-sentence explanation]\n2. PASS/FAIL — [one-sentence explanation]\n...';
+  if(!Array.isArray(state.chatHistory))state.chatHistory=[];
+  state.chatHistory.push({role:'user',content:prompt,ts:state.worldData?.time||''});
+  save();renderChat();
+  // Switch to AI DM tab
+  if(typeof showTab==='function')showTab('tab-dm');
+  toast('Audit sent to AI DM. Check the chat.');
+  // Trigger AI response
+  if(typeof sendMsg==='function'){
+    const inp=document.getElementById('chat-input');
+    if(inp){inp.value=prompt;await sendMsg();}
+  }
+}
+
 // ═══ TOAST ═══
 function toast(msg){
   const t=document.getElementById('toast');if(!t)return;
