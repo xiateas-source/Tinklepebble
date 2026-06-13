@@ -4541,9 +4541,11 @@ function renderRollDD(){const sel=document.getElementById('roll-pc');if(sel)sel.
 function sendContextRefresh(){
   genLedger();const ledger=document.getElementById('ledger-out')?.value||'';
   if(!state.oocHistory)state.oocHistory=[];
+  const oocId='ooc_'+Date.now();
   const content='[CONTEXT REFRESH] Full state update. Confirm what you now know in one sentence — do not narrate it in the main channel.\n\n'+ledger;
-  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:'System',id:'ooc_'+Date.now()});
-  save();showChatTab('ooc');renderOOC();
+  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:'System',id:oocId});
+  state.chatHistory.push({role:'ooc_echo',content:'System: Context refresh sent to OOC',echoTarget:oocId,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+  save();showChatTab('ooc');renderOOC();renderChat();
   _oocCallAI(content);
   toast('↺ Context refresh sent to OOC channel');
 }
@@ -5272,9 +5274,11 @@ function resyncAI(){
   genLedger();
   const ledger=document.getElementById('ledger-out')?.value||'';
   if(!state.oocHistory)state.oocHistory=[];
+  const oocId='ooc_'+Date.now();
   const content='[STATE RESYNC] Confirm what you now know: HP, inventory, location, active quests, NPCs met.\n\n'+ledger;
-  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:'System',id:'ooc_'+Date.now()});
-  save();showChatTab('ooc');renderOOC();
+  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:'System',id:oocId});
+  state.chatHistory.push({role:'ooc_echo',content:'System: AI resync sent to OOC',echoTarget:oocId,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+  save();showChatTab('ooc');renderOOC();renderChat();
   _oocCallAI(content);
   toast('↺ Re-syncing AI in OOC channel...');
 }
