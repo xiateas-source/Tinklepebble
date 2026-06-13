@@ -833,6 +833,68 @@ body{
   .round-num{font-size:26px;}
   .dice-btn{font-size:14px;}
 }
+
+/* ── MATURITY PASS ─────────────────────────────────
+   Strip noise. Earn sophistication.
+   ─────────────────────────────────────────────────── */
+
+/* No fake CSS textures — let the surfaces breathe */
+body{background-image:none;}
+.app-header{
+  background:linear-gradient(180deg,#1e1508 0%,#0e0a04 100%);
+  box-shadow:0 1px 0 #3c2c12,0 4px 36px rgba(0,0,0,.82);
+}
+.main-tabs{background:#0d0903;border-bottom-color:#3c2c12;}
+.panel{background:var(--surface);background-image:none;background-size:auto;}
+.pc-card{background:var(--surface);background-image:none;background-size:auto;}
+.modal-box{background:var(--surface);background-image:none;background-size:auto;}
+.chat-msgs-wrap{background:#08040200;}
+.chat-msg.dm{
+  background:linear-gradient(135deg,#2a1e10 0%,var(--surface3) 100%);
+  background-size:auto;
+}
+
+/* No diamond clipart */
+.panel::after{content:none;}
+
+/* Typography carries weight — no glow crutch */
+.app-title{text-shadow:none;font-size:18px;font-weight:700;letter-spacing:.6px;}
+.panel-title{text-shadow:none;color:var(--gold);font-size:12px;letter-spacing:.6px;}
+.modal-title{text-shadow:none;font-weight:600;}
+.pc-name{text-shadow:none;font-size:17px;font-weight:700;}
+.round-num{text-shadow:none;font-weight:700;font-size:28px;}
+.init-badge{text-shadow:none;font-weight:700;}
+
+/* Stat tiles — crisp rounded squares, not circles */
+.stat-mini{
+  border-radius:5px;
+  aspect-ratio:auto;
+  padding:5px 2px;
+  display:block;
+  background:linear-gradient(180deg,var(--surface3) 0%,var(--surface2) 100%);
+  border:1px solid var(--border-bright);
+  box-shadow:0 1px 4px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.04);
+}
+.stat-mini .s-val{color:var(--gold-bright);font-size:13px;}
+
+/* Buttons — confident, not carnival */
+.btn{box-shadow:none;}
+.btn:hover{box-shadow:none;}
+.btn:active{
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.28);
+  transform:none;
+}
+.btn.gold{box-shadow:none;}
+.btn.gold:hover,.btn.gold:active{
+  box-shadow:0 0 14px rgba(200,120,64,.32);
+}
+.btn.gold:active,.btn.red:active,.btn.green:active,
+.btn.sm:active,.btn.icon-btn:active{transform:none;}
+.dice-btn{box-shadow:none;}
+.dice-btn:active{transform:none;box-shadow:inset 0 1px 4px rgba(0,0,0,.3);}
+
+/* FAB — just a clean copper circle */
+.qa-fab:active{transform:scale(.92);box-shadow:0 2px 18px rgba(0,0,0,.65),0 0 20px rgba(200,120,64,.5);}
 </style>
 </head>
 <body>
