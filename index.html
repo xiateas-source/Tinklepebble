@@ -1809,8 +1809,12 @@ When the party travels through wilderness, arrives at a new outdoor location, or
     <div id="dash-tab-changelog" class="dash-changelog"></div>
     <div id="dash-tab-flags" style="display:none;max-height:320px;overflow-y:auto"></div>
     <div style="border-top:1px solid var(--border);margin-top:14px;padding-top:12px">
-      <button class="btn gold full" onclick="sessionRecap()">⚡ Session Recap — Ops Debrief</button>
-      <p style="font-size:10px;color:var(--text-dim);margin-top:6px;text-align:center">Sends execution data to AI for pattern analysis &amp; system prompt suggestions</p>
+      <button class="btn gold full" onclick="sessionRecap()">⚡ Compile Ops Debrief</button>
+      <p style="font-size:10px;color:var(--text-dim);margin-top:6px;text-align:center">Compiles execution data — copy and paste to your developer AI</p>
+      <div id="dash-recap-out" style="display:none;margin-top:10px">
+        <textarea id="dash-recap-text" readonly style="min-height:160px;font-size:10px;font-family:var(--mono);color:var(--text-dim);border-color:var(--gold)"></textarea>
+        <button class="btn gold full" style="margin-top:6px" onclick="copyText(document.getElementById('dash-recap-text').value,'✓ Ops report copied!')">📋 Copy — Paste to Developer AI</button>
+      </div>
     </div>
   </div>
 </div>
@@ -5475,35 +5479,34 @@ function renderFlagReview(){
       '</div>';
     }).join('');
 }
-async function sessionRecap(){
+function sessionRecap(){
   const flags=(state.errorLog||[]).filter(f=>!f.resolved);
   const ctxRefreshes=(state.logs||[]).filter(l=>l.body&&l.body.includes('[CONTEXT REFRESH]')).length;
-  let prompt='SESSION EXECUTION DEBRIEF\n\n';
-  prompt+='Duration: '+getElapsed()+'\n';
-  prompt+='Turns logged: '+state.turnCount+' | Checkpoints: '+state.chkCount+'\n';
-  prompt+='Context refreshes this session: '+ctxRefreshes+'\n';
-  prompt+='Gold delta: '+(Math.round((parseFloat(state.treasuryData.gp)||0)-sessionStartGP))+' gp\n\n';
-  if(state.sessionNotes)prompt+='\nDM NOTES:\n'+state.sessionNotes+'\n';
+  let report='=== TINKLE\'S TINCTURES — OPS DEBRIEF ===\n\n';
+  report+='Duration: '+getElapsed()+'\n';
+  report+='Turns logged: '+state.turnCount+' | Checkpoints: '+state.chkCount+'\n';
+  report+='Context refreshes: '+ctxRefreshes+'\n';
+  report+='Gold delta: '+(Math.round((parseFloat(state.treasuryData.gp)||0)-sessionStartGP))+' gp\n';
+  report+='Location at close: '+(state.worldData?.location||'—')+'\n';
+  if(state.worldData?.scene_title)report+='Last scene: '+state.worldData.scene_title+(state.worldData.scene_threat?' ['+state.worldData.scene_threat+']':'')+'\n';
+  if(state.sessionNotes){report+='\n--- DM NOTES ---\n'+state.sessionNotes+'\n';}
   if(flags.length){
-    prompt+='FLAGGED MOMENTS ('+flags.length+' total):\n';
+    report+='\n--- FLAGGED MOMENTS ('+flags.length+') ---\n';
     flags.forEach(function(f,i){
       const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
-      prompt+=(i+1)+'. ['+cat.label+'] '+(f.location||'')+(f.gameTs?' @ '+f.gameTs:'')+(f.verdict?' → '+f.verdict.toUpperCase():' → UNREVIEWED')+'\n';
-      if(f.note)prompt+='   Player note: '+f.note+'\n';
-      if(f.msgContent)prompt+='   AI said: "'+f.msgContent.slice(0,200)+(f.msgContent.length>200?'…':'')+'"'+'\n';
+      report+=(i+1)+'. ['+cat.label+']'+(f.sectionCtx?' in '+f.sectionCtx:'')+(f.location?' @ '+f.location:'')+(f.gameTs?' ('+f.gameTs+')':'')+(f.verdict?' → '+f.verdict.toUpperCase():' → UNREVIEWED')+'\n';
+      if(f.note)report+='   Note: '+f.note+'\n';
+      if(f.msgContent&&f.msgContent.indexOf('[')!==0)report+='   AI said: "'+f.msgContent.slice(0,200)+(f.msgContent.length>200?'…':'')+'"'+'\n';
     });
   }else{
-    prompt+='No moments flagged this session.\n';
+    report+='\n--- NO FLAGS THIS SESSION ---\n';
   }
-  prompt+='\nAnalyze this session\'s execution. Identify recurring failure patterns — rules the AI consistently got wrong, mechanics that misfired, or pacing issues. If context refreshes were high, note likely causes. Suggest ONE specific, actionable change to the system prompt or campaign setup that would most improve the next session. Keep the response focused and brief.';
-  if(!Array.isArray(state.chatHistory))state.chatHistory=[];
-  state.chatHistory.push({role:'user',content:prompt,ts:state.worldData?.time||''});
-  save();renderChat();
-  closeModal('dash-modal');
-  showTab('tab-dm');
-  toast('Ops debrief sent to AI DM.');
-  const inp=document.getElementById('chat-input');
-  if(inp){inp.value=prompt;await sendMsg();}
+  report+='\n--- PROMPT FOR DEVELOPER AI ---\nReview this session\'s execution data above. Identify recurring failure patterns (rules the AI got wrong, mechanics that misfired, context refresh triggers). Suggest ONE specific, actionable change to the system prompt or app configuration that would most improve the next session.';
+  const out=document.getElementById('dash-recap-out');
+  const txt=document.getElementById('dash-recap-text');
+  if(out)out.style.display='block';
+  if(txt){txt.value=report;setTimeout(()=>txt.select(),50);}
+  copyText(report,'✓ Ops report ready — paste to your developer AI');
 }
 
 // ═══ TOAST ═══
