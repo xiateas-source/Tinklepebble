@@ -976,14 +976,14 @@ body{background-image:none;}
    ════════════════════════════════════════════════════ */
 
 :root{
-  --bg:#4a3428;--surface:#5c4438;--surface2:#6e5448;--surface3:#806458;
-  --border:#6a4a3c;--border-bright:#8a6050;
-  --gold:#c8a06a;--gold-dim:#8a6040;--gold-bright:#e8c898;
-  --red:#a85040;--red-dim:#6a3028;
-  --green:#5a7860;--green-bright:#8aa38b;
-  --blue:#508070;--blue-bright:#6c8a80;
-  --purple:#6a5870;--purple-bright:#8a7890;
-  --text:#cbbba0;--text-dim:#8a7060;--text-bright:#f2efe9;
+  --bg:#f0d3b6;--surface:#e8d8c0;--surface2:#d4c4a8;--surface3:#c0a888;
+  --border:#c8b498;--border-bright:#a89070;
+  --gold:#a06828;--gold-dim:#6a4010;--gold-bright:#c8a06a;
+  --red:#a85040;--red-dim:#7a3828;
+  --green:#3a6848;--green-bright:#4a7858;
+  --blue:#306870;--blue-bright:#407870;
+  --purple:#5a4868;--purple-bright:#7a6878;
+  --text:#4a3428;--text-dim:#7a6050;--text-bright:#2c1d1a;
   --display:'Cinzel',Georgia,serif;
   --touch:52px;--radius:6px;--radius-sm:4px;
 }
@@ -2028,22 +2028,6 @@ button.fab{
 
 <!-- DEV TAB -->
 <div id="tab-dev" class="tab-section">
-  <div class="panel" id="theme-editor-panel">
-    <div class="panel-title" style="cursor:pointer" onclick="toggleThemeEditor()">🎨 Theme Editor
-      <span id="theme-editor-lbl" style="font-size:10px;color:var(--text-dim);margin-left:6px;font-weight:normal">tap to expand</span>
-      <button class="btn sm" style="margin-left:auto" onclick="event.stopPropagation();resetTheme()">Reset</button>
-    </div>
-    <div id="theme-editor-body" style="display:none">
-      <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button class="btn sm" style="flex:1" onclick="applyThemePreset('dark')">☕ Dark</button>
-        <button class="btn sm gold" style="flex:1" onclick="applyThemePreset('medium')">🌰 Medium</button>
-        <button class="btn sm" style="flex:1" onclick="applyThemePreset('light')">☀ Light</button>
-      </div>
-      <div id="theme-rows" style="display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;font-size:11px"></div>
-      <button class="btn gold full" style="margin-top:12px" onclick="copyThemeCSS()">📋 Copy as CSS</button>
-      <div id="theme-copy-confirm" style="display:none;text-align:center;font-size:11px;color:var(--green-bright);margin-top:6px">✓ Copied</div>
-    </div>
-  </div>
   <div class="panel accent">
     <div class="panel-title">Dev Notes
       <span style="font-size:10px;color:var(--text-dim);margin-left:4px;font-weight:normal">Ops Debrief only — DM never sees this</span>
@@ -2863,7 +2847,7 @@ function getMsgContent(idx){return msgMap[idx]||'';}
 
 // ═══ INIT ═══
 window.addEventListener('DOMContentLoaded',()=>{
-  loadState();applyTheme();loadKeys();loadTtsSettings();
+  loadState();loadKeys();loadTtsSettings();
   // Snapshot canonical PCs before Firebase can overwrite them
   window.INITIAL_PCS=JSON.parse(JSON.stringify(state.pcs));
   fbLoadConfig();
@@ -4244,7 +4228,6 @@ function migrate(s){
   if(!Array.isArray(s.relationships))s.relationships=[];
   if(!Array.isArray(s.quickActions))s.quickActions=[];
   if(!Array.isArray(s.errorLog))s.errorLog=[];
-  if(!s.theme)s.theme={...DEFAULT_THEME};
   if(!s.errorLog.find(f=>f.id==='dev_visual_redesign')){
     s.errorLog.unshift({id:'dev_visual_redesign',category:'infra',sectionCtx:'Dev Plan',location:'Visual Redesign',gameTs:'',ts:'',verdict:null,resolved:false,
       note:'VISUAL REDESIGN — Steampunk Fantasy (reference: screenshots shared 2026-06-13)\n\nPALETTE: body #1a0f00→#2a1a05 radial; surface #2d1f0a/#3a2812/#4a3520; gold #c8a850/#e8c870; text #d4b896/#a08060\n\nTEXTURES (pure CSS, no images): body repeating-linear-gradient noise over dark radial; panels inset box-shadow + subtle gradient; borders 1px gold-dim + outer glow; corner accents ::before/::after clip-path triangles\n\nCOMPONENT ORDER (one session):\n1. CSS variables + body (30m)\n2. Header + tab bar with icons (30m)\n3. Character cards + circular portrait frames (45m)\n4. Panel borders + corner ornaments (30m)\n5. Chat UI + badges (20m)\n6. Buttons + inputs (20m)\n\nTAB ICONS: Party=⚔ World=🌍 Wagon=🛞 Combat=💀 Session=📜 AI Tools=🔮 AI DM=🧙 Dev=⚙ Setup=🏛\n\nPORTRAIT FRAMES: circular clip-path colored div using pc.color, class initial or emoji as icon. No images needed.\n\nNOTE: Single CSS pass only. No external fonts, no images. All texture via CSS gradient patterns.'
