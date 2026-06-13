@@ -5428,8 +5428,27 @@ function deleteFlag(id){
 }
 function editFlagNote(id){
   const f=(state.errorLog||[]).find(f=>f.id===id);if(!f)return;
-  const newNote=prompt('Edit note:',f.note||'');
-  if(newNote===null)return;
+  const card=document.getElementById('flag-'+id);if(!card)return;
+  if(card.querySelector('.flag-note-edit'))return;
+  const editEl='<div class="flag-note-edit" style="margin-top:6px">'+
+    '<textarea id="fne-'+id+'" style="width:100%;min-height:60px;font-size:12px;margin:0" placeholder="Add a note...">'+(f.note||'')+'</textarea>'+
+    '<div style="display:flex;gap:6px;margin-top:4px">'+
+      '<button class="btn sm green" onclick="saveEditedNote(\''+id+'\')">Save</button>'+
+      '<button class="btn sm" onclick="renderErrorLog()">Cancel</button>'+
+    '</div></div>';
+  const actRow=card.querySelector('[data-flag-actions]');
+  if(actRow)actRow.insertAdjacentHTML('beforebegin',editEl);
+  else card.insertAdjacentHTML('beforeend',editEl);
+  const ta=document.getElementById('fne-'+id);
+  if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}
+}
+function saveEditedNote(id){
+  const f=(state.errorLog||[]).find(f=>f.id===id);if(!f)return;
+  const ta=document.getElementById('fne-'+id);if(!ta)return;
+  f.note=ta.value.trim();
+  save();renderErrorLog();renderFlagReview();
+  toast('✓ Note saved');
+}
   f.note=newNote.trim();
   save();renderErrorLog();renderFlagReview();
 }
@@ -5469,7 +5488,7 @@ function renderErrorLog(){
         vBadge+
       '</div>'+
       snippet+noteHtml+aiVerdictHtml+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+
+      '<div data-flag-actions style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+
         '<button class="btn sm green" onclick="setFlagVerdict(\''+f.id+'\',\'pass\')">'+
           (f.verdict==='pass'?'✓ Pass (undo)':'✓ Pass')+
         '</button>'+
