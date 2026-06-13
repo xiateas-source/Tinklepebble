@@ -919,6 +919,22 @@ body{background-image:none;}
 .err-log-note{font-size:12px;color:var(--text);margin:4px 0;}
 .err-log-ai-verdict{font-size:11px;color:var(--green-bright);border-left:2px solid var(--green);padding-left:8px;margin-top:6px;white-space:pre-wrap;}
 .err-log-ai-verdict.fail-verdict{color:var(--red);border-left-color:var(--red);}
+/* ── SESSION DASHBOARD ── */
+.dash-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.dash-stat-cell{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center;}
+.dash-stat-val{font-family:var(--serif);font-size:22px;color:var(--gold);}
+.dash-stat-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-top:2px;}
+.dash-tab-row{display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+.dash-tab-btn{background:none;border:1px solid transparent;cursor:pointer;font-size:12px;color:var(--text-dim);padding:5px 14px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;transition:all .15s;}
+.dash-tab-btn.active{color:var(--gold);border-color:var(--gold);background:var(--surface2);}
+.dash-changelog{max-height:320px;overflow-y:auto;}
+.dash-version{margin-bottom:14px;}
+.dash-version-title{font-family:var(--serif);font-size:12px;color:var(--gold);margin-bottom:6px;border-bottom:1px solid var(--border);padding-bottom:4px;}
+.dash-version ul{margin:0;padding-left:16px;font-size:11px;color:var(--text-dim);line-height:1.9;}
+.dash-flag-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.dash-flag-cat{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:7px 10px;text-align:center;min-width:70px;}
+.dash-flag-cat-icon{font-size:16px;display:block;}
+.dash-flag-cat-count{font-family:var(--mono);font-size:15px;color:var(--gold);}
 </style>
 </head>
 <body>
@@ -1053,6 +1069,7 @@ body{background-image:none;}
     <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
     <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
     <button onclick="populateVoices();openModal('tts-modal');closeHeaderMenu()" class="btn">🔊 Voice</button>
+    <button onclick="openDashboard('changelog');closeHeaderMenu()" class="btn">📋 Session</button>
     <button onclick="exportConfig();closeHeaderMenu()" class="btn gold">📤 Export</button>
     <button onclick="copyStateCompact();closeHeaderMenu()" class="btn">📋 Copy State</button>
     <button onclick="switchUser()" class="btn" style="border-color:var(--purple-bright);color:var(--purple-bright)!important">👤 Switch Player</button>
@@ -1767,6 +1784,26 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 </div>
 </div>
 
+<!-- SESSION DASHBOARD MODAL -->
+<div class="modal-overlay" id="dash-modal" onclick="if(event.target===this)closeModal('dash-modal')">
+  <div class="modal-box" style="max-width:500px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px">Session Dashboard
+      <button onclick="closeModal('dash-modal')" style="margin-left:auto;background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;line-height:1">&times;</button>
+    </div>
+    <div class="dash-stat-strip" id="dash-stats"></div>
+    <div class="dash-tab-row">
+      <button class="dash-tab-btn active" id="dash-btn-changelog" onclick="showDashTab('changelog')">What's New</button>
+      <button class="dash-tab-btn" id="dash-btn-flags" onclick="showDashTab('flags')">Flag Review</button>
+    </div>
+    <div id="dash-tab-changelog" class="dash-changelog"></div>
+    <div id="dash-tab-flags" style="display:none;max-height:320px;overflow-y:auto"></div>
+    <div style="border-top:1px solid var(--border);margin-top:14px;padding-top:12px">
+      <button class="btn gold full" onclick="sessionRecap()">⚡ Session Recap — Ops Debrief</button>
+      <p style="font-size:10px;color:var(--text-dim);margin-top:6px;text-align:center">Sends execution data to AI for pattern analysis &amp; system prompt suggestions</p>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2135,6 +2172,7 @@ let state={
 };
 
 let playerName='',playerChar='',provider='openrouter';
+let sessionStart=Date.now(),sessionStartGP=0;
 // Message content lookup — avoids JSON.stringify in onclick attributes
 const msgMap={};
 function getMsgContent(idx){return msgMap[idx]||'';}
@@ -2145,6 +2183,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   // Snapshot canonical PCs before Firebase can overwrite them
   window.INITIAL_PCS=JSON.parse(JSON.stringify(state.pcs));
   fbLoadConfig();
+  sessionStartGP=parseFloat(state.treasuryData.gp)||0;
   populateVoices();
   if(typeof speechSynthesis!=='undefined'&&speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=populateVoices;
   renderAll();genLedger();
@@ -5307,6 +5346,124 @@ async function auditWithAI(){
     const inp=document.getElementById('chat-input');
     if(inp){inp.value=prompt;await sendMsg();}
   }
+}
+
+// ═══ SESSION DASHBOARD ═══
+function getElapsed(){
+  const ms=Date.now()-sessionStart;
+  const h=Math.floor(ms/3600000);const m=Math.floor((ms%3600000)/60000);
+  return h>0?h+'h '+m+'m':m+'m';
+}
+function openDashboard(tab){
+  renderDashStats();renderChangelog();renderFlagReview();
+  showDashTab(tab||'changelog');openModal('dash-modal');
+}
+function showDashTab(tab){
+  ['changelog','flags'].forEach(t=>{
+    const btn=document.getElementById('dash-btn-'+t);
+    const pane=document.getElementById('dash-tab-'+t);
+    if(btn)btn.classList.toggle('active',t===tab);
+    if(pane)pane.style.display=t===tab?'block':'none';
+  });
+}
+function renderDashStats(){
+  const el=document.getElementById('dash-stats');if(!el)return;
+  const goldDelta=Math.round((parseFloat(state.treasuryData.gp)||0)-sessionStartGP);
+  const openFlags=(state.errorLog||[]).filter(f=>!f.resolved&&!f.verdict).length;
+  const goldStr=(goldDelta>=0?'+':'')+goldDelta+' gp';
+  el.innerHTML=[{val:getElapsed(),lbl:'Elapsed'},{val:goldStr,lbl:'Gold This Session'},{val:openFlags,lbl:'Unreviewed Flags'}]
+    .map(s=>'<div class="dash-stat-cell"><div class="dash-stat-val">'+s.val+'</div><div class="dash-stat-lbl">'+s.lbl+'</div></div>').join('');
+}
+function renderChangelog(){
+  const el=document.getElementById('dash-tab-changelog');if(!el)return;
+  const versions=[
+    {ver:'v1.3',date:'June 2026',notes:[
+      'Switch Player: tap your name in the DM chat bar to switch instantly',
+      'Player name can no longer disappear or default to blue "Party" mid-session',
+      'Error flagging: ⚑ button on every AI DM response and in the chat bar',
+      'Flag categories: Roll / Rule / AI Made It Up / Story / Other',
+      'Pass / Fail verdicts + AI accuracy audit for flagged moments',
+      'Active Scene panel at top of World tab (title, tone, conditions)',
+      'NPC HP field for enemy health tracking mid-combat',
+      'Quest 3-state status: Active / Done / Failed',
+      'Firebase panel deduplicated — one clean location in Checkpoints tab',
+      'Session Dashboard (this panel) with Ops Debrief button',
+    ]},
+    {ver:'v1.2',date:'May 2026',notes:[
+      'Plugin terminal: ⚡ Superpowers panel in Party tab',
+      'Dice modifier fixed in AI DM quick picker',
+      'Setup Characters page rebuilt for stability',
+      'SAVE_VERSION bump — stale inventory auto-cleared on load',
+    ]},
+    {ver:'v1.1',date:'April 2026',notes:[
+      'Full visual rework: Cinzel display font, textured surfaces, ornamental panels',
+      'Emoji clutter removed from UI labels; functional emoji preserved',
+      'Color palette muted toward warm copper-brown base',
+    ]}
+  ];
+  el.innerHTML=versions.map(v=>'<div class="dash-version"><div class="dash-version-title">'+v.ver+' — '+v.date+'</div><ul>'+v.notes.map(n=>'<li>'+n+'</li>').join('')+'</ul></div>').join('');
+}
+function renderFlagReview(){
+  const el=document.getElementById('dash-tab-flags');if(!el)return;
+  const flags=(state.errorLog||[]).filter(f=>!f.resolved);
+  if(!flags.length){el.innerHTML='<p style="font-size:11px;color:var(--text-dim);padding:12px 0">No active flags this session.</p>';return;}
+  const cats=Object.keys(FLAG_CATS);
+  const summary=cats.map(k=>{
+    const count=flags.filter(f=>f.category===k).length;
+    return count?'<div class="dash-flag-cat"><span class="dash-flag-cat-icon">'+FLAG_CATS[k].icon+'</span><div class="dash-flag-cat-count">'+count+'</div><div style="font-size:9px;color:var(--text-dim)">'+FLAG_CATS[k].label.split('/')[0].trim()+'</div></div>':'';
+  }).join('');
+  const passCount=flags.filter(f=>f.verdict==='pass').length;
+  const failCount=flags.filter(f=>f.verdict==='fail').length;
+  const openCount=flags.filter(f=>!f.verdict).length;
+  const verdictBar='<div style="display:flex;gap:10px;margin:10px 0;font-size:11px;align-items:center">'+
+    '<span style="color:var(--green-bright)">✓ '+passCount+' Pass</span>'+
+    '<span style="color:var(--red)">✗ '+failCount+' Fail</span>'+
+    '<span style="color:var(--text-dim)">○ '+openCount+' Open</span>'+
+    (failCount>0?'<button class="btn sm red" style="margin-left:auto" onclick="auditWithAI();closeModal(\'dash-modal\')">Audit Fails</button>':'')+
+  '</div>';
+  el.innerHTML='<div class="dash-flag-summary">'+summary+'</div>'+verdictBar+
+    flags.map(function(f){
+      const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
+      const vCol=f.verdict==='pass'?'var(--green)':f.verdict==='fail'?'var(--red)':'var(--border)';
+      return '<div style="background:var(--surface2);border:1px solid '+vCol+';border-radius:3px;padding:8px 10px;margin-bottom:6px;font-size:11px">'+
+        '<div style="display:flex;gap:8px;align-items:center">'+
+          '<span>'+cat.icon+'</span>'+
+          '<span style="color:var(--text)">'+cat.label+'</span>'+
+          (f.verdict?'<span style="margin-left:auto;font-size:9px;font-weight:600;text-transform:uppercase;color:'+(f.verdict==='pass'?'var(--green-bright)':'var(--red)')+'">'+f.verdict+'</span>':'<span style="margin-left:auto;font-size:9px;color:var(--text-dim)">open</span>')+
+        '</div>'+
+        (f.note?'<div style="color:var(--text-dim);margin-top:4px;border-left:2px solid var(--border);padding-left:6px">'+esc(f.note)+'</div>':'')+
+        (f.gameTs||f.location?'<div style="color:var(--text-dim);font-size:10px;margin-top:3px">'+esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+'</div>':'')+
+      '</div>';
+    }).join('');
+}
+async function sessionRecap(){
+  const flags=(state.errorLog||[]).filter(f=>!f.resolved);
+  const ctxRefreshes=(state.logs||[]).filter(l=>l.body&&l.body.includes('[CONTEXT REFRESH]')).length;
+  let prompt='SESSION EXECUTION DEBRIEF\n\n';
+  prompt+='Duration: '+getElapsed()+'\n';
+  prompt+='Turns logged: '+state.turnCount+' | Checkpoints: '+state.chkCount+'\n';
+  prompt+='Context refreshes this session: '+ctxRefreshes+'\n';
+  prompt+='Gold delta: '+(Math.round((parseFloat(state.treasuryData.gp)||0)-sessionStartGP))+' gp\n\n';
+  if(flags.length){
+    prompt+='FLAGGED MOMENTS ('+flags.length+' total):\n';
+    flags.forEach(function(f,i){
+      const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
+      prompt+=(i+1)+'. ['+cat.label+'] '+(f.location||'')+(f.gameTs?' @ '+f.gameTs:'')+(f.verdict?' → '+f.verdict.toUpperCase():' → UNREVIEWED')+'\n';
+      if(f.note)prompt+='   Player note: '+f.note+'\n';
+      if(f.msgContent)prompt+='   AI said: "'+f.msgContent.slice(0,200)+(f.msgContent.length>200?'…':'')+'"'+'\n';
+    });
+  }else{
+    prompt+='No moments flagged this session.\n';
+  }
+  prompt+='\nAnalyze this session\'s execution. Identify recurring failure patterns — rules the AI consistently got wrong, mechanics that misfired, or pacing issues. If context refreshes were high, note likely causes. Suggest ONE specific, actionable change to the system prompt or campaign setup that would most improve the next session. Keep the response focused and brief.';
+  if(!Array.isArray(state.chatHistory))state.chatHistory=[];
+  state.chatHistory.push({role:'user',content:prompt,ts:state.worldData?.time||''});
+  save();renderChat();
+  closeModal('dash-modal');
+  showTab('tab-dm');
+  toast('Ops debrief sent to AI DM.');
+  const inp=document.getElementById('chat-input');
+  if(inp){inp.value=prompt;await sendMsg();}
 }
 
 // ═══ TOAST ═══
