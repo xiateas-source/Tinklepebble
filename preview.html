@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tinkle's Tinctures — Color Preview</title>
+<style>
+  :root {
+    --bg:        #111009;
+    --surface:   #1e1b14;
+    --surface2:  #2a2518;
+    --surface3:  #38301e;
+
+    --text:      #ede0c8;
+    --text-dim:  #c4a87c;
+    --text-muted:#7a6a54;
+
+    --amber:        #c8854a;
+    --amber-bright: #e0a060;
+    --terracotta:   #a85840;
+    --sage:         #6a8a5a;
+    --steel:        #4a6878;
+    --mauve:        #8a6878;
+
+    --border:       #3a3020;
+    --border-bright:#5a4830;
+
+    --sans: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --serif: Georgia, 'Times New Roman', serif;
+    --mono: 'Menlo', 'Courier New', monospace;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 0 0 60px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--bg);
+    border-bottom: 1px solid var(--amber);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--text);
+    letter-spacing: .04em;
+  }
+  .header-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .fb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); }
+
+  /* ── TAB BAR ── */
+  .tab-bar {
+    display: flex;
+    overflow-x: auto;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 8px;
+    gap: 2px;
+    scrollbar-width: none;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 10px 12px 8px;
+    cursor: pointer;
+    letter-spacing: .03em;
+    transition: color .15s;
+  }
+  .tab-btn.active {
+    color: var(--text);
+    border-bottom-color: var(--amber);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text-dim); }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 500px; margin: 0 auto; padding: 0 12px; }
+  .section { margin-top: 28px; }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .panel-title {
+    font-family: var(--serif);
+    font-size: 13px;
+    color: var(--amber);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel.accent  { border-color: var(--amber); }
+  .panel.danger  { border-color: var(--terracotta); }
+  .panel.success { border-color: var(--sage); }
+  .panel.info    { border-color: var(--steel); }
+
+  /* ── TEXT SAMPLES ── */
+  .text-primary { color: var(--text); }
+  .text-dim     { color: var(--text-dim); font-size: 12px; }
+  .text-muted   { color: var(--text-muted); font-size: 11px; }
+  .text-mono    { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+  /* ── BUTTONS ── */
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .btn {
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+  .btn.amber  { border-color: var(--amber); color: var(--amber); }
+  .btn.danger { border-color: var(--terracotta); color: var(--terracotta); }
+  .btn.sage   { border-color: var(--sage); color: var(--sage); }
+  .btn.filled { background: var(--amber); color: var(--bg); border-color: var(--amber); font-weight: 600; }
+
+  /* ── BADGES ── */
+  .badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid;
+    font-family: var(--sans);
+    letter-spacing: .04em;
+  }
+  .badge.ok       { color: var(--sage); border-color: var(--sage); background: #1a2a16; }
+  .badge.warn     { color: var(--amber); border-color: var(--amber); background: #2a1e0a; }
+  .badge.danger   { color: var(--terracotta); border-color: var(--terracotta); background: #2a100a; }
+  .badge.neutral  { color: var(--text-muted); border-color: var(--border-bright); background: var(--surface2); }
+  .badge.mauve    { color: var(--mauve); border-color: var(--mauve); background: #1e141c; }
+
+  /* ── HP BAR ── */
+  .pc-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 4px;
+    border-left: 3px solid var(--amber);
+    margin-bottom: 8px;
+  }
+  .pc-card-row { display: flex; align-items: center; justify-content: space-between; }
+  .pc-name { font-size: 13px; font-weight: 600; }
+  .pc-hp   { font-size: 11px; color: var(--text-dim); font-family: var(--mono); }
+  .hp-bar-track { height: 5px; background: var(--surface3); border-radius: 3px; margin-top: 2px; }
+  .hp-bar-fill  { height: 5px; border-radius: 3px; transition: width .3s; }
+
+  /* ── COMBATANT CHIP ── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── ZONE BOX ── */
+  .zone-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .zone-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    min-height: 70px;
+  }
+  .zone-label {
+    font-size: 9px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .zone-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* ── CHAT MESSAGE ── */
+  .chat-msg {
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .chat-msg.dm {
+    background: var(--surface2);
+    border-left: 2px solid var(--amber);
+  }
+  .chat-msg.player {
+    background: var(--surface);
+    border-left: 2px solid var(--steel);
+  }
+  .chat-ts { font-size: 9px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── ROLL BADGE ── */
+  .roll-badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--surface2);
+    border: 1px solid var(--amber);
+    border-radius: 4px;
+    padding: 8px 14px;
+    min-width: 60px;
+  }
+  .roll-num  { font-family: var(--serif); font-size: 28px; color: var(--amber-bright); line-height: 1; }
+  .roll-die  { font-size: 9px; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+  .roll-who  { font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+
+  /* ── SWATCHES ── */
+  .swatch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .swatch {
+    border-radius: 4px;
+    padding: 10px 8px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,.06);
+  }
+  .swatch-name { font-size: 9px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .06em; }
+  .swatch-hex  { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,.5); margin-top: 2px; }
+
+  input, textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 8px 10px;
+    width: 100%;
+    outline: none;
+  }
+  input:focus, textarea:focus { border-color: var(--amber); }
+  input::placeholder, textarea::placeholder { color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-title">Tinkle's Tinctures</div>
+    <div class="header-sub">Campaign Terminal</div>
+  </div>
+  <div class="header-meta">
+    <div class="fb-dot"></div>
+    <span>Tinkle · Pebble · Slasher</span>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active">⚔ Party</button>
+  <button class="tab-btn">🌍 World</button>
+  <button class="tab-btn">🛞 Wagon</button>
+  <button class="tab-btn">💀 Combat</button>
+  <button class="tab-btn">📜 Session</button>
+  <button class="tab-btn">🔮 AI Tools</button>
+  <button class="tab-btn">🧙 AI DM</button>
+  <button class="tab-btn">⚙ Dev</button>
+  <button class="tab-btn">🏛 Setup</button>
+</div>
+
+<div class="page">
+
+  <!-- PALETTE SWATCHES -->
+  <div class="section">
+    <div class="section-label">Palette</div>
+    <div class="swatch-grid">
+      <div class="swatch" style="background:#111009"><div class="swatch-name">BG</div><div class="swatch-hex">#111009</div></div>
+      <div class="swatch" style="background:#1e1b14"><div class="swatch-name">Surface</div><div class="swatch-hex">#1e1b14</div></div>
+      <div class="swatch" style="background:#2a2518"><div class="swatch-name">Surface 2</div><div class="swatch-hex">#2a2518</div></div>
+      <div class="swatch" style="background:#38301e"><div class="swatch-name">Surface 3</div><div class="swatch-hex">#38301e</div></div>
+      <div class="swatch" style="background:#c8854a"><div class="swatch-name">Amber</div><div class="swatch-hex">#c8854a</div></div>
+      <div class="swatch" style="background:#e0a060"><div class="swatch-name">Amber Hi</div><div class="swatch-hex">#e0a060</div></div>
+      <div class="swatch" style="background:#a85840"><div class="swatch-name">Terracotta</div><div class="swatch-hex">#a85840</div></div>
+      <div class="swatch" style="background:#6a8a5a"><div class="swatch-name">Sage</div><div class="swatch-hex">#6a8a5a</div></div>
+      <div class="swatch" style="background:#4a6878"><div class="swatch-name">Steel</div><div class="swatch-hex">#4a6878</div></div>
+      <div class="swatch" style="background:#8a6878"><div class="swatch-name">Mauve</div><div class="swatch-hex">#8a6878</div></div>
+      <div class="swatch" style="background:#ede0c8"><div class="swatch-name" style="color:#111">Text</div><div class="swatch-hex" style="color:#111">#ede0c8</div></div>
+      <div class="swatch" style="background:#c4a87c"><div class="swatch-name" style="color:#111">Text Dim</div><div class="swatch-hex" style="color:#111">#c4a87c</div></div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="section">
+    <div class="section-label">Typography</div>
+    <div class="panel">
+      <div class="panel-title">Panel Title — Serif</div>
+      <p class="text-primary">Primary text — sans-serif, #ede0c8. Readable at 14px on dark surfaces. Used for all body copy, chat messages, and form labels.</p>
+      <p class="text-dim" style="margin-top:6px">Secondary text — #c4a87c. Descriptions, timestamps, supporting info. Still warm, slightly pulled back.</p>
+      <p class="text-muted" style="margin-top:6px">Muted text — #7a6a54. Placeholders, labels, truly background content.</p>
+      <p class="text-mono" style="margin-top:8px">Ledger · monospace · "gp: +8, location: Mill Road, weather: overcast"</p>
+    </div>
+  </div>
+
+  <!-- PANELS -->
+  <div class="section">
+    <div class="section-label">Panels</div>
+    <div class="panel accent">
+      <div class="panel-title">Campaign Premise <span style="font-size:11px;color:var(--text-muted);font-family:var(--sans);font-weight:normal">locked</span></div>
+      <p class="text-dim">Tinkle's Tinctures is a travelling medicine show. The cures may not work. The party definitely has something to hide.</p>
+    </div>
+    <div class="panel danger">
+      <div class="panel-title" style="color:var(--terracotta)">⚑ Active Flag</div>
+      <p class="text-dim">Income log not populating from gp: mechanic. Needs repro.</p>
+    </div>
+    <div class="panel success">
+      <div class="panel-title" style="color:var(--sage)">✓ Resolved</div>
+      <p class="text-dim">Dual timestamps shipping on all three chat channels.</p>
+    </div>
+    <div class="panel info">
+      <div class="panel-title" style="color:var(--steel)">ℹ Dev Note</div>
+      <p class="text-dim">buildPlayerView() implementation pending design Q answers.</p>
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="section">
+    <div class="section-label">Buttons</div>
+    <div class="panel">
+      <div class="btn-row">
+        <button class="btn filled">⚡ Compile Debrief</button>
+        <button class="btn amber">Export</button>
+        <button class="btn danger">Clear</button>
+        <button class="btn sage">+ Add</button>
+        <button class="btn">Default</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="section">
+    <div class="section-label">Badges &amp; Status</div>
+    <div class="panel">
+      <div class="badge-row">
+        <span class="badge ok">OK</span>
+        <span class="badge warn">LOW HP</span>
+        <span class="badge danger">⚠ DOWN</span>
+        <span class="badge neutral">PENDING</span>
+        <span class="badge mauve">AI</span>
+        <span class="badge ok">RESOLVED</span>
+        <span class="badge danger">FAIL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PC CARDS + HP BARS -->
+  <div class="section">
+    <div class="section-label">PC Cards + HP Bars (Drop 6 prep)</div>
+    <div class="pc-card">
+      <div class="pc-card-row">
+        <span class="pc-name" style="color:#8ecae6">Tinkle</span>
+        <span class="pc-hp">28 / 32</span>
+      </div>
+      <div class="hp-bar-track"><div class="hp-bar-fill" style="width:87%;background:#8ecae6"></div></div>
+      <div class="badge-row"><span class="badge ok">OK</span></div>
+    </div>
+    <div class="pc-card" style="border-left-color:#a8dadc">
+      <div class="pc-card-row">
+        <span class="pc-name" style="color:#a8dadc">Pebble</span>
+        <span class="pc-hp">11 / 28</span>
+      </div>
+      <div class="hp-bar-track"><div class="hp-bar-fill" style="width:39%;background:#a8dadc"></div></div>
+      <div class="badge-row"><span class="badge warn">LOW HP</span></div>
+    </div>
+    <div class="pc-card" style="border-left-color:#e76f51">
+      <div class="pc-card-row">
+        <span class="pc-name" style="color:#e76f51">Slasher</span>
+        <span class="pc-hp">0 / 45</span>
+      </div>
+      <div class="hp-bar-track"><div class="hp-bar-fill" style="width:0%;background:#e76f51"></div></div>
+      <div class="badge-row"><span class="badge danger">⚠ DOWN</span></div>
+    </div>
+  </div>
+
+  <!-- ZONE GRID (Drop 4 prep) -->
+  <div class="section">
+    <div class="section-label">Zone Combat Grid (Drop 4 prep)</div>
+    <div class="zone-grid">
+      <div class="zone-box" style="border-color:var(--terracotta)">
+        <div class="zone-label" style="color:var(--terracotta)">Frontline</div>
+        <div class="zone-chips">
+          <div class="chip"><div class="chip-dot" style="background:#e76f51"></div>Slasher</div>
+        </div>
+      </div>
+      <div class="zone-box">
+        <div class="zone-label">Backline</div>
+        <div class="zone-chips">
+          <div class="chip"><div class="chip-dot" style="background:#8ecae6"></div>Tinkle</div>
+          <div class="chip"><div class="chip-dot" style="background:#a8dadc"></div>Pebble</div>
+        </div>
+      </div>
+      <div class="zone-box">
+        <div class="zone-label">Left Flank</div>
+        <div class="zone-chips"></div>
+      </div>
+      <div class="zone-box">
+        <div class="zone-label">Right Flank</div>
+        <div class="zone-chips">
+          <div class="chip"><div class="chip-dot" style="background:#666"></div>Bandit</div>
+        </div>
+      </div>
+      <div class="zone-box">
+        <div class="zone-label">Air</div>
+        <div class="zone-chips"></div>
+      </div>
+      <div class="zone-box">
+        <div class="zone-label">Rear</div>
+        <div class="zone-chips"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROLL BADGE (Drop 5 prep) -->
+  <div class="section">
+    <div class="section-label">Roll Badge (Drop 5 prep)</div>
+    <div class="panel">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div class="roll-badge">
+          <div class="roll-num">18</div>
+          <div class="roll-die">d20 + Deception</div>
+          <div class="roll-who" style="color:#8ecae6">Tinkle</div>
+        </div>
+        <div class="roll-badge" style="border-color:var(--terracotta)">
+          <div class="roll-num" style="color:var(--terracotta)">4</div>
+          <div class="roll-die">d20 + Insight</div>
+          <div class="roll-who">Merchant</div>
+        </div>
+        <div class="roll-badge" style="border-color:var(--sage)">
+          <div class="roll-num" style="color:var(--sage)">2d6</div>
+          <div class="roll-die">Damage</div>
+          <div class="roll-who" style="color:#e76f51">Slasher</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="section">
+    <div class="section-label">Chat Messages</div>
+    <div class="chat-msg dm">
+      <div style="font-size:10px;color:var(--amber);margin-bottom:4px;letter-spacing:.04em">DM</div>
+      The merchant eyes Tinkle's wares suspiciously. Pebble's pitch lands well enough that the man reaches for his coin purse — but his gaze keeps drifting to Slasher, who is nodding enthusiastically at the wrong moments.
+      <div class="chat-ts">Midday · Market Day · 12:34</div>
+    </div>
+    <div class="chat-msg player">
+      <div style="font-size:10px;color:var(--steel);margin-bottom:4px;letter-spacing:.04em">Tinkle</div>
+      I slip behind the cart and swap the real tonic for the colored water. Roll Sleight of Hand?
+      <div class="chat-ts">Midday · Market Day · 12:35</div>
+    </div>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="section">
+    <div class="section-label">Inputs</div>
+    <div class="panel">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input placeholder="Location — Mill Road, Thornhaven">
+        <textarea rows="3" placeholder="Story thread — the party has been travelling for three days..."></textarea>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>
