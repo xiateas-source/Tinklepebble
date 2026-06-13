@@ -23,10 +23,11 @@
   --green:#425e48;--green-bright:#5e7e66;
   --blue:#38586a;--blue-bright:#507282;
   --purple:#524878;--purple-bright:#6e6892;
-  --text:#bfb09c;--text-dim:#726252;--text-bright:#ddd0b8;
+  --text:#bfb09c;--text-dim:#726252;--text-bright:#ddd0b8;--cream:#ddd0b8;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
   --mono:'Share Tech Mono','Courier New',monospace;
   --serif:'IM Fell English',Georgia,serif;
+  --display:'Cinzel',Georgia,serif;
   --touch:52px;
   --radius:6px;--radius-sm:4px;
 }
@@ -35,7 +36,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:4px;}
 
 /* ── HEADER ── */
-.app-header{background:var(--surface);border-bottom:1px solid var(--border-bright);padding:10px 16px!important;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.5);}
+.app-header{position:sticky;top:0;z-index:100;}
 .app-title{font-family:var(--serif);font-size:19px;color:var(--gold);letter-spacing:.5px;flex-shrink:0;}
 .app-title span{font-style:italic;color:var(--gold-bright);}
 .header-meta{font-size:11px;color:var(--text-dim);}
@@ -350,16 +351,7 @@ body{font-size:16px;line-height:1.68;}
 .round-num{font-family:var(--display);font-weight:700;}
 .qa-sheet-title{font-family:var(--display);font-weight:600;}
 
-/* ── HEADER ── */
-.app-header{
-  background:linear-gradient(180deg,#1c1408 0%,#0d0904 100%);
-  border-bottom:none;
-  box-shadow:0 1px 0 #3c2c14,0 2px 0 rgba(200,120,64,.14),0 6px 40px rgba(0,0,0,.82);
-}
-.app-title{
-  font-size:20px;letter-spacing:.4px;
-  text-shadow:0 0 36px rgba(200,120,64,.7),0 1px 3px rgba(0,0,0,.95);
-}
+/* ── HEADER (overridden below — do not add rules here) ── */
 
 /* ── TAB BAR ── */
 .main-tabs{background:#0e0904;border-bottom:2px solid #3c2c14;padding:0 8px;gap:0;}
@@ -839,10 +831,7 @@ body{
 
 /* No fake CSS textures — let the surfaces breathe */
 body{background-image:none;}
-.app-header{
-  background:linear-gradient(180deg,#1e1508 0%,#0e0a04 100%);
-  box-shadow:0 1px 0 #3c2c12,0 4px 36px rgba(0,0,0,.82);
-}
+/* app-header background overridden in final block below */
 .main-tabs{background:#0d0903;border-bottom-color:#3c2c12;}
 .panel{background:var(--surface);background-image:none;background-size:auto;}
 .pc-card{background:var(--surface);background-image:none;background-size:auto;}
@@ -983,7 +972,7 @@ body{background-image:none;}
   --green:#5a7860;--green-bright:#8aa38b;
   --blue:#508070;--blue-bright:#6c8a80;
   --purple:#6a5870;--purple-bright:#8a7890;
-  --text:#cbbba0;--text-dim:#8a7060;--text-bright:#f2efe9;
+  --text:#cbbba0;--text-dim:#8a7060;--text-bright:#f2efe9;--cream:#f2efe9;
   --display:'Cinzel',Georgia,serif;
   --touch:52px;--radius:6px;--radius-sm:4px;
 }
@@ -997,7 +986,7 @@ body.light-mode{
   --green:#3a6848;--green-bright:#4a7858;
   --blue:#306870;--blue-bright:#407870;
   --purple:#5a4868;--purple-bright:#7a6878;
-  --text:#4a3428;--text-dim:#7a6050;--text-bright:#2c1d1a;
+  --text:#4a3428;--text-dim:#7a6050;--text-bright:#2c1d1a;--cream:#2c1d1a;
 }
 body.light-mode .app-header{background:var(--surface);box-shadow:0 1px 0 var(--border-bright);}
 body.light-mode .main-tabs{background:var(--surface);border-bottom-color:var(--border);}
@@ -1019,25 +1008,41 @@ body{
   line-height:1.66;
 }
 
-/* ── Header ── */
+/* ── Header (canonical — all prior .app-header blocks neutralized) ── */
 .app-header{
   background:var(--surface);
-  border-bottom:1px solid var(--border);
+  border-bottom:1px solid var(--border-bright);
+  box-shadow:0 2px 12px rgba(0,0,0,.4);
   padding:8px 12px;
   display:flex;
   align-items:center;
-  gap:10px;
-  min-height:52px;
+  gap:8px;
+  min-height:48px;
 }
 .app-title{
-  font-family:var(--display);
-  font-size:15px;
-  font-weight:700;
-  letter-spacing:.06em;
-  color:var(--cream);
+  font-family:var(--serif);
+  font-size:16px;
+  font-weight:600;
+  letter-spacing:.3px;
+  color:var(--gold);
   text-shadow:none;
   white-space:nowrap;
+  line-height:1.2;
+}
+.header-meta{
+  font-size:11px;
+  color:var(--text-dim);
+  margin-top:2px;
+}
+#theme-toggle-btn,#hdr-menu-btn{
   flex-shrink:0;
+  min-width:36px;
+  min-height:36px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
 }
 
 /* ── Portrait badge circles ── */
@@ -1677,19 +1682,19 @@ button.fab{
 </div>
 
 <!-- HEADER -->
-<header class="app-header" style="padding:6px 12px;">
-  <div style="display:flex;align-items:center;gap:10px;width:100%">
-    <div style="flex-shrink:0;cursor:pointer" onclick="showTab('tab-party')">
-      <div class="app-title">Tinkle's <span>Tinctures</span></div>
-      <div class="header-meta"><span class="autosave-dot" id="as-dot"></span><span id="as-lbl" style="display:none"></span><span id="fb-status-mini" style="font-size:9px;color:var(--text-dim);margin-left:4px"></span></div>
-    </div>
-    <div id="party-status-mini" style="flex:1;min-width:0;overflow:hidden;"></div>
-    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-      <span id="hdr-chk-mini" class="chk-status-msg ok" style="font-size:10px;white-space:nowrap;cursor:pointer" onclick="showTab('tab-ait')"></span>
-      <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Toggle light/dark" style="background:var(--surface2);border:1px solid var(--border-bright);color:var(--text);padding:6px 10px;font-size:15px;cursor:pointer;border-radius:2px;min-height:36px;-webkit-tap-highlight-color:transparent">☀</button>
-      <button id="hdr-menu-btn" onclick="toggleHeaderMenu()" style="background:var(--surface2);border:1px solid var(--border-bright);color:var(--text);padding:6px 12px;font-family:var(--mono);font-size:18px;cursor:pointer;border-radius:2px;min-height:36px;-webkit-tap-highlight-color:transparent">☰</button>
+<header class="app-header">
+  <div style="flex:1;min-width:0;cursor:pointer" onclick="showTab('tab-party')">
+    <div class="app-title">Tinkle's Tinctures</div>
+    <div class="header-meta">
+      <span class="autosave-dot" id="as-dot"></span>
+      <span id="as-lbl" style="display:none"></span>
+      <span id="fb-status-mini" style="margin-left:3px"></span>
     </div>
   </div>
+  <div id="party-status-mini" style="display:none"></div>
+  <span id="hdr-chk-mini" class="chk-status-msg ok" style="display:none"></span>
+  <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Light/dark" class="btn sm">☀</button>
+  <button id="hdr-menu-btn" onclick="toggleHeaderMenu()" class="btn sm">☰</button>
 </header>
 <div id="header-menu" style="display:none;position:fixed;top:66px;right:0;left:0;background:var(--surface);border-bottom:1px solid var(--border-bright);z-index:99;padding:14px 16px 12px;box-shadow:0 8px 32px rgba(0,0,0,.7);">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -3255,6 +3260,7 @@ function awardXP(idx){
 // ═══ STATUS MINI ═══
 function renderStatusMini(){
   const c=document.getElementById('party-status-mini');if(!c)return;c.innerHTML='';
+  c.style.display=state.pcs.length?'flex':'none';
   state.pcs.forEach((pc,i)=>{
     let badge='<span class="status-badge ok">OK</span>';
     if(pc.hp<=0)badge='<span class="status-badge dead">⚠</span>';
