@@ -4232,6 +4232,11 @@ function migrate(s){
   if(!Array.isArray(s.relationships))s.relationships=[];
   if(!Array.isArray(s.quickActions))s.quickActions=[];
   if(!Array.isArray(s.errorLog))s.errorLog=[];
+  if(!s.errorLog.find(f=>f.id==='dev_visual_redesign')){
+    s.errorLog.unshift({id:'dev_visual_redesign',category:'infra',sectionCtx:'Dev Plan',location:'Visual Redesign',gameTs:'',ts:'',verdict:null,resolved:false,
+      note:'VISUAL REDESIGN — Steampunk Fantasy (reference: screenshots shared 2026-06-13)\n\nPALETTE: body #1a0f00→#2a1a05 radial; surface #2d1f0a/#3a2812/#4a3520; gold #c8a850/#e8c870; text #d4b896/#a08060\n\nTEXTURES (pure CSS, no images): body repeating-linear-gradient noise over dark radial; panels inset box-shadow + subtle gradient; borders 1px gold-dim + outer glow; corner accents ::before/::after clip-path triangles\n\nCOMPONENT ORDER (one session):\n1. CSS variables + body (30m)\n2. Header + tab bar with icons (30m)\n3. Character cards + circular portrait frames (45m)\n4. Panel borders + corner ornaments (30m)\n5. Chat UI + badges (20m)\n6. Buttons + inputs (20m)\n\nTAB ICONS: Party=⚔ World=🌍 Wagon=🛞 Combat=💀 Session=📜 AI Tools=🔮 AI DM=🧙 Dev=⚙ Setup=🏛\n\nPORTRAIT FRAMES: circular clip-path colored div using pc.color, class initial or emoji as icon. No images needed.\n\nNOTE: Single CSS pass only. No external fonts, no images. All texture via CSS gradient patterns.'
+    });
+  }
   if(!Array.isArray(s.oocHistory))s.oocHistory=[];
   if(!Array.isArray(s.partyChat))s.partyChat=[];
   // Remap old tab IDs from before consolidation
