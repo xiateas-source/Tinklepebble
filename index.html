@@ -1383,10 +1383,10 @@ body{background-image:none;}
     </div>
     <div id="sess-prep-panel" style="display:none">
       <div class="panel accent">
-        <div class="panel-title">Notes
-          <span style="font-size:10px;color:var(--text-dim);margin-left:auto;font-weight:normal">Exported with AI context</span>
+        <div class="panel-title">Dev Notes
+          <span style="font-size:10px;color:var(--text-dim);margin-left:auto;font-weight:normal">Ops Debrief only — DM never sees this</span>
         </div>
-        <textarea id="session-notes" style="min-height:110px" oninput="state.sessionNotes=this.value;save()" placeholder="Reminders, things to fix, anything you want the AI to know going into next session..."></textarea>
+        <textarea id="session-notes" style="min-height:110px" oninput="state.sessionNotes=this.value;save()" placeholder="App bugs, things to fix, questions for your developer AI. Never sent to the DM."></textarea>
       </div>
       <div class="panel">
         <div class="panel-title">Session Log <button class="btn sm red" style="margin-left:auto" onclick="clearLog()">Clear</button></div>
@@ -3073,7 +3073,6 @@ function genLedger(){
     if(state.worldData.plot)l+="\n━━━ PLOT ━━━\n"+state.worldData.plot+'\n';
     if(state.worldData.timers)l+="Timers: "+state.worldData.timers+'\n';
     if(state.logSummary)l+="\n━━━ SESSION SUMMARY ━━━\n"+state.logSummary+'\n';
-    if(state.sessionNotes)l+="\n━━━ DM NOTES ━━━\n"+state.sessionNotes+'\n';
   }
   if(state.combat.active){l+="\n━━━ ACTIVE COMBAT — ROUND "+state.combat.round+" ━━━\n";state.combat.list.forEach((c,i)=>l+=(i===state.combat.currentIdx?'>>> ':'')+c.val+' '+c.name+' HP:'+c.hp+' AC:'+c.ac+'\n');}
   const as=state.scenes?.[state.activeSceneIdx];if(as)l+="\n━━━ ACTIVE SCENE: "+as.name+" ━━━\n"+as.text+'\n';
@@ -4431,7 +4430,7 @@ function renderRollDD(){const sel=document.getElementById('roll-pc');if(sel)sel.
 function sendContextRefresh(){
   genLedger();const ledger=document.getElementById('ledger-out')?.value||'';
   const inp=document.getElementById('chat-input');
-  if(inp){inp.value='[CONTEXT REFRESH] Re-read current campaign state and confirm HP, conditions, and location for all PCs before continuing.\n\n'+ledger;sendMsg();}
+  if(inp){inp.value='[CONTEXT REFRESH — SILENT SYNC] The following is a full state update. Absorb it silently. Do NOT say "acknowledged", "synchronized", or reference this update in any way. Simply continue the scene naturally from where we left off.\n\n'+ledger;sendMsg();}
 }
 
 // ═══ SESSION ZERO ═══
