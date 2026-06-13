@@ -1163,11 +1163,6 @@ body{background-image:none;}
         <div class="form-group"><label class="field-label">Location Description</label><textarea id="w_loc_desc" oninput="sw('loc_desc',this.value)"></textarea></div>
         <div class="form-group"><label class="field-label">Campaign Setting / World Notes</label><textarea id="w_setting" style="min-height:60px" oninput="sw('setting',this.value)" placeholder="Unknown — discovering as we play..."></textarea></div>
       </div>
-      <div class="panel accent">
-        <div class="panel-title">Campaign Premise <button class="lock-btn unlocked" id="premise-btn" onclick="togglePremise()" style="margin-left:auto">🔓 Unlocked</button></div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Lock when ready. Locked premise is a fixed AI contract.</p>
-        <textarea id="w_premise" class="premise-ta" style="min-height:80px" oninput="sw('premise',this.value)" placeholder="Tinkle's Tinctures — an independent operation..."></textarea>
-      </div>
       <div class="panel">
         <div class="panel-title">Treasury</div>
         <div class="form-row">
@@ -1192,17 +1187,21 @@ body{background-image:none;}
       <div class="panel"><div class="panel-title">NPCs <button class="btn sm" style="margin-left:auto" onclick="addNPC()">+ Add</button></div><div id="npc-list"></div></div>
       <div class="panel">
         <div class="panel-title">Quest Log</div>
-        <div class="form-group"><label class="field-label">Primary Mission</label><input type="text" id="q_primary" placeholder="Main goal..." oninput="state.worldData.primaryMission=this.value;save()"></div>
+        <div class="form-group"><label class="field-label">Main Quest</label><input type="text" id="q_primary" placeholder="Main quest objective..." oninput="state.worldData.primaryMission=this.value;save()"></div>
         <hr class="divider">
         <div class="sec-label">Objectives</div>
         <div id="quest-list"></div>
         <button class="btn sm" onclick="addQuest()" style="margin-top:6px">+ Add Objective</button>
       </div>
+      <div class="panel accent">
+        <div class="panel-title">Campaign Premise <button class="lock-btn unlocked" id="premise-btn" onclick="togglePremise()" style="margin-left:auto">🔓 Unlocked</button></div>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Lock when ready. Locked premise is a fixed AI contract.</p>
+        <textarea id="w_premise" class="premise-ta" style="min-height:80px" oninput="sw('premise',this.value)" placeholder="Tinkle's Tinctures — an independent operation..."></textarea>
+      </div>
       <div class="panel">
         <div class="panel-title">Plot &amp; Lore</div>
         <div class="form-group"><label class="field-label">Active Plot Threads</label><textarea id="w_plot" style="min-height:70px" oninput="sw('plot',this.value)"></textarea></div>
         <div class="form-group"><label class="field-label">Pending Timers</label><textarea id="w_timers" style="min-height:50px" oninput="sw('timers',this.value)"></textarea></div>
-        <div class="form-group"><label class="field-label">Wagon Travel Log (auto)</label><textarea id="w_travel_log" style="min-height:50px;color:var(--text-dim)" readonly placeholder="Auto-updated when location changes..."></textarea></div>
       </div>
       <div class="panel accent">
         <div class="panel-title">Campaign Secrets
@@ -1290,6 +1289,11 @@ body{background-image:none;}
         <div class="panel-title">Forage Log <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('cargo','foraged')">+ Foraged</button></div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Ingredients tagged with location &amp; time collected.</p>
         <div id="forage-log"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Travel Log</div>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Auto-updated when location changes.</p>
+        <textarea id="w_travel_log" style="min-height:80px;color:var(--text-dim)" readonly placeholder="Auto-updated when location changes..."></textarea>
       </div>
     </div>
   </div>
@@ -1388,7 +1392,7 @@ body{background-image:none;}
           <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Update</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Running story record. Updated manually or via AI.</p>
-        <textarea id="story-thread" style="min-height:120px;border-color:var(--purple);" oninput="state.storyThread=this.value;save()" placeholder="No story thread yet. Tap ✨ Update to have the AI extract key plot moments."></textarea>
+        <textarea id="story-thread" style="min-height:240px;border-color:var(--purple);" oninput="state.storyThread=this.value;save()" placeholder="No story thread yet. Tap ✨ Update to have the AI extract key plot moments."></textarea>
       </div>
       <div class="panel">
         <div class="panel-title">Quick Log Entry</div>
@@ -1404,7 +1408,7 @@ body{background-image:none;}
       </div>
       <div class="panel">
         <div class="panel-title">Session Summary</div>
-        <div class="form-group"><textarea id="log-summary" style="min-height:80px" oninput="state.logSummary=this.value;save()" placeholder="Session summary..."></textarea></div>
+        <div class="form-group"><textarea id="log-summary" style="min-height:180px" oninput="state.logSummary=this.value;save()" placeholder="Session summary..."></textarea></div>
         <div class="btn-row">
           <button class="btn full" onclick="buildRawSummary()">↑ Build Raw</button>
           <button class="btn purple full" onclick="buildAISummary()">✨ AI Narrative</button>
@@ -1531,7 +1535,7 @@ body{background-image:none;}
       <div class="form-group"><label class="field-label">Campaign Setting</label>
         <textarea id="setup-setting" style="min-height:80px" placeholder="Low fantasy. Gritty medieval. Magic is rare and mistrusted." oninput="state.worldData.setting=this.value;save()"></textarea>
       </div>
-      <div class="form-group"><label class="field-label">Primary Mission</label>
+      <div class="form-group"><label class="field-label">Main Quest</label>
         <textarea id="setup-mission" style="min-height:60px" placeholder="What is the party's main objective?" oninput="state.worldData.primaryMission=this.value;save()"></textarea>
       </div>
       <div class="form-group"><label class="field-label">Key Factions / Power Players</label>
@@ -1797,7 +1801,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div class="chat-tab-row">
           <button class="chat-tab-btn active" id="chat-tab-narrative" onclick="showChatTab('narrative')">📖 Narrative</button>
           <button class="chat-tab-btn" id="chat-tab-ooc" onclick="showChatTab('ooc')">⚙ Systems</button>
-          <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party')">🔮 OOC</button>
+          <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party')">🗨️ OOC</button>
         </div>
         <div id="chat-pane-narrative">
         <div id="chat-msgs" class="chat-msgs-wrap" onscroll="handleChatScroll(this)"></div>
