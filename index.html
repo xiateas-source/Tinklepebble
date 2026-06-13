@@ -976,6 +976,20 @@ body{background-image:none;}
    ════════════════════════════════════════════════════ */
 
 :root{
+  --bg:#2c1d1a;--surface:#3b2b24;--surface2:#4a3b39;--surface3:#5a4a46;
+  --border:#4a3530;--border-bright:#6a5048;
+  --gold:#c8a06a;--gold-dim:#8a6040;--gold-bright:#e8c898;
+  --red:#a85040;--red-dim:#6a3028;
+  --green:#5a7860;--green-bright:#8aa38b;
+  --blue:#508070;--blue-bright:#6c8a80;
+  --purple:#6a5870;--purple-bright:#8a7890;
+  --text:#cbbba0;--text-dim:#8a7060;--text-bright:#f2efe9;
+  --display:'Cinzel',Georgia,serif;
+  --touch:52px;--radius:6px;--radius-sm:4px;
+}
+
+/* ── LIGHT MODE ── */
+body.light-mode{
   --bg:#f0d3b6;--surface:#e8d8c0;--surface2:#d4c4a8;--surface3:#c0a888;
   --border:#c8b498;--border-bright:#a89070;
   --gold:#a06828;--gold-dim:#6a4010;--gold-bright:#c8a06a;
@@ -984,9 +998,17 @@ body{background-image:none;}
   --blue:#306870;--blue-bright:#407870;
   --purple:#5a4868;--purple-bright:#7a6878;
   --text:#4a3428;--text-dim:#7a6050;--text-bright:#2c1d1a;
-  --display:'Cinzel',Georgia,serif;
-  --touch:52px;--radius:6px;--radius-sm:4px;
 }
+body.light-mode .app-header{background:var(--surface);box-shadow:0 1px 0 var(--border-bright);}
+body.light-mode .main-tabs{background:var(--surface);border-bottom-color:var(--border);}
+body.light-mode .chat-msgs-wrap{background:var(--surface2);}
+body.light-mode .panel{box-shadow:0 2px 8px rgba(0,0,0,.12);background:var(--surface);}
+body.light-mode .panel-title{text-shadow:none;background:linear-gradient(90deg,rgba(160,104,40,.1) 0%,transparent 68%);}
+body.light-mode .modal-overlay{background:rgba(30,20,10,.72);}
+body.light-mode .modal-box{background:var(--surface);box-shadow:0 8px 40px rgba(0,0,0,.3);}
+body.light-mode body{background-image:none;}
+body.light-mode .btn{background:var(--surface2);border-color:var(--border-bright);}
+body.light-mode .btn:hover{background:var(--surface3);border-color:var(--gold);}
 
 /* ── Base ── */
 body{
@@ -1664,6 +1686,7 @@ button.fab{
     <div id="party-status-mini" style="flex:1;min-width:0;overflow:hidden;"></div>
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
       <span id="hdr-chk-mini" class="chk-status-msg ok" style="font-size:10px;white-space:nowrap;cursor:pointer" onclick="showTab('tab-ait')"></span>
+      <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Toggle light/dark" style="background:var(--surface2);border:1px solid var(--border-bright);color:var(--text);padding:6px 10px;font-size:15px;cursor:pointer;border-radius:2px;min-height:36px;-webkit-tap-highlight-color:transparent">☀</button>
       <button id="hdr-menu-btn" onclick="toggleHeaderMenu()" style="background:var(--surface2);border:1px solid var(--border-bright);color:var(--text);padding:6px 12px;font-family:var(--mono);font-size:18px;cursor:pointer;border-radius:2px;min-height:36px;-webkit-tap-highlight-color:transparent">☰</button>
     </div>
   </div>
@@ -2847,7 +2870,7 @@ function getMsgContent(idx){return msgMap[idx]||'';}
 
 // ═══ INIT ═══
 window.addEventListener('DOMContentLoaded',()=>{
-  loadState();loadKeys();loadTtsSettings();
+  initThemeMode();loadState();loadKeys();loadTtsSettings();
   // Snapshot canonical PCs before Firebase can overwrite them
   window.INITIAL_PCS=JSON.parse(JSON.stringify(state.pcs));
   fbLoadConfig();
@@ -6365,6 +6388,18 @@ function renderChangelog(){
   el.innerHTML=versions.map(v=>'<div class="dash-version"><div class="dash-version-title">'+v.ver+' — '+v.date+'</div><ul>'+v.notes.map(n=>'<li>'+n+'</li>').join('')+'</ul></div>').join('');
 }
 function renderFlagReview(){}
+
+// ═══ THEME TOGGLE ═══
+function toggleThemeMode(){
+  const light=document.body.classList.toggle('light-mode');
+  localStorage.setItem('tt_theme_mode',light?'light':'dark');
+  const btn=document.getElementById('theme-toggle-btn');
+  if(btn)btn.textContent=light?'🌙':'☀';
+}
+function initThemeMode(){
+  const mode=localStorage.getItem('tt_theme_mode')||'dark';
+  if(mode==='light'){document.body.classList.add('light-mode');const btn=document.getElementById('theme-toggle-btn');if(btn)btn.textContent='🌙';}
+}
 
 // ═══ THEME EDITOR ═══
 const THEME_VARS=[
