@@ -5449,9 +5449,6 @@ function saveEditedNote(id){
   save();renderErrorLog();renderFlagReview();
   toast('✓ Note saved');
 }
-  f.note=newNote.trim();
-  save();renderErrorLog();renderFlagReview();
-}
 
 function renderErrorLog(){
   const list=document.getElementById('error-log-list');
