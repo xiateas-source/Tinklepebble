@@ -898,7 +898,7 @@ body{background-image:none;}
 /* ── ERROR FLAGS ── */
 .flag-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:3px 5px;border-radius:3px;opacity:.45;transition:opacity .2s;min-height:28px;min-width:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--gold);}
 .flag-btn:hover{opacity:1;}
-.flag-cat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0;}
+.flag-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
 .flag-cat-btn{background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);padding:10px 4px;text-align:center;cursor:pointer;transition:all .15s;font-size:10px;color:var(--text-dim);display:flex;flex-direction:column;align-items:center;gap:4px;min-height:64px;justify-content:center;}
 .flag-cat-btn:hover{border-color:var(--gold-dim);color:var(--text);}
 .flag-cat-btn.selected{border-color:var(--gold);background:rgba(192,128,64,.12);color:var(--gold);}
@@ -940,6 +940,17 @@ body{background-image:none;}
 .dash-flag-cat{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:7px 10px;text-align:center;min-width:70px;}
 .dash-flag-cat-icon{font-size:16px;display:block;}
 .dash-flag-cat-count{font-family:var(--mono);font-size:15px;color:var(--gold);}
+/* ── OOC CHANNEL ── */
+.chat-tab-row{display:flex;gap:0;border-bottom:1px solid var(--border);margin:-14px -14px 12px;padding:0 14px;}
+.chat-tab-btn{padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;transition:color .15s,border-color .15s;min-height:36px;-webkit-tap-highlight-color:transparent;}
+.chat-tab-btn:hover{color:var(--text);}
+.chat-tab-btn.active{color:var(--gold-bright);border-bottom-color:var(--gold);}
+.ooc-echo-bar{background:rgba(56,88,106,.14);border:1px solid var(--blue);border-radius:var(--radius-sm);padding:5px 10px;font-size:11px;color:var(--blue-bright);cursor:pointer;margin:2px 0;display:flex;align-items:center;gap:6px;align-self:center;max-width:98%;transition:background .15s;-webkit-tap-highlight-color:transparent;}
+.ooc-echo-bar:hover{background:rgba(56,88,106,.26);}
+.chat-msg.ooc-dm{background:rgba(56,88,106,.14);border:1px solid var(--blue);border-left:3px solid var(--blue);color:var(--text-bright);font-size:14px;align-self:flex-start;}
+.chat-msg.ooc-dm .msg-hdr{color:var(--blue-bright);}
+.chat-msg.ooc-player{background:var(--surface2);border:1px solid var(--border);border-right:3px solid var(--blue-bright);color:var(--text);align-self:flex-end;}
+.chat-msg.ooc-player .msg-hdr{color:var(--blue-bright);}
 </style>
 </head>
 <body>
@@ -1073,7 +1084,6 @@ body{background-image:none;}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
     <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
     <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
-    <button onclick="populateVoices();openModal('tts-modal');closeHeaderMenu()" class="btn">🔊 Voice</button>
     <button onclick="openDashboard('changelog');closeHeaderMenu()" class="btn">📋 Session</button>
     <button onclick="exportConfig();closeHeaderMenu()" class="btn gold">📤 Export</button>
     <button onclick="copyStateCompact();closeHeaderMenu()" class="btn">📋 Copy State</button>
@@ -1384,7 +1394,8 @@ body{background-image:none;}
     <div id="sess-prep-panel" style="display:none">
       <div class="panel accent">
         <div class="panel-title">Dev Notes
-          <span style="font-size:10px;color:var(--text-dim);margin-left:auto;font-weight:normal">Ops Debrief only — DM never sees this</span>
+          <span style="font-size:10px;color:var(--text-dim);margin-left:4px;font-weight:normal">Ops Debrief only — DM never sees this</span>
+          <button class="btn sm red" style="margin-left:auto" onclick="if(confirm('Clear dev notes?')){state.sessionNotes='';const el=document.getElementById('session-notes');if(el)el.value='';save();}">Clear</button>
         </div>
         <textarea id="session-notes" style="min-height:110px" oninput="state.sessionNotes=this.value;save()" placeholder="App bugs, things to fix, questions for your developer AI. Never sent to the DM."></textarea>
       </div>
@@ -1759,6 +1770,11 @@ When the party travels through wilderness, arrives at a new outdoor location, or
             <button class="btn sm red" onclick="clearChat()">Clear</button>
           </div>
         </div>
+        <div class="chat-tab-row">
+          <button class="chat-tab-btn active" id="chat-tab-narrative" onclick="showChatTab('narrative')">📖 Narrative</button>
+          <button class="chat-tab-btn" id="chat-tab-ooc" onclick="showChatTab('ooc')">💬 OOC</button>
+        </div>
+        <div id="chat-pane-narrative">
         <div id="chat-msgs" class="chat-msgs-wrap" onscroll="handleChatScroll(this)"></div>
         <button id="scroll-top-btn" onclick="scrollChatToTop()" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:5px 16px;font-size:11px;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.5);white-space:nowrap">↑ Back to Top</button>
         <div class="typing-ind" id="typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
@@ -1790,6 +1806,16 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button onclick="openFlagModal(-1)" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-dim);font-size:11px;padding:3px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">⚑ Flag</button>
           <button id="player-lbl" onclick="switchUser()" title="Tap to switch player" style="color:var(--gold);font-size:11px;margin-left:auto;background:none;border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer;padding:2px 8px;transition:border-color .15s;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='transparent'"></button>
         </div>
+        </div><!-- end chat-pane-narrative -->
+        <div id="chat-pane-ooc" style="display:none">
+          <div id="ooc-msgs" class="chat-msgs-wrap" style="min-height:300px;max-height:440px"></div>
+          <div class="typing-ind" id="ooc-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
+          <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
+            <div style="flex:1"><textarea id="ooc-input" style="min-height:52px;resize:none;margin:0;width:100%;padding:8px" placeholder="Ask OOC — rules questions, context checks (Enter to send)" onkeydown="oocKey(event)"></textarea></div>
+            <button class="btn gold" id="ooc-send-btn" onclick="sendOOCMsg()" style="min-height:52px;padding:0 16px">Ask</button>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Context refresh &amp; AI resync route here automatically.</div>
+        </div><!-- end chat-pane-ooc -->
       </div>
     </div>
 </div>
@@ -2159,6 +2185,7 @@ let state={
   wagonFilter:'all',
   plugins:[],
   errorLog:[],
+  oocHistory:[],
   storyThread:'',
   sessionNotes:'',
   quickActions:[
@@ -2323,7 +2350,7 @@ function renderAll(){
   renderChkHist();renderRewind();renderScenes();renderSnips();
   renderWagon();renderIncome();renderPartyInv();syncWorld();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
-  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();
+  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
     if(document.getElementById('sess-module-panel')?.style.display==='block'){
@@ -3579,6 +3606,7 @@ function migrate(s){
   if(!Array.isArray(s.relationships))s.relationships=[];
   if(!Array.isArray(s.quickActions))s.quickActions=[];
   if(!Array.isArray(s.errorLog))s.errorLog=[];
+  if(!Array.isArray(s.oocHistory))s.oocHistory=[];
   // Remap old tab IDs from before consolidation
   const tabRemap={'tab-log':'tab-session','tab-module':'tab-session','tab-ledger':'tab-ait','tab-chk':'tab-ait'};
   // Canonical context arrays — always sync these from defaults
@@ -3745,7 +3773,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','plugins','errorLog','sessionNotes'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','plugins','errorLog','sessionNotes'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -4174,6 +4202,13 @@ function renderChat(){
     return;
   }
   state.chatHistory.forEach((msg,msgIdx)=>{
+    if(msg.role==='ooc_echo'){
+      const d=document.createElement('div');
+      d.className='ooc-echo-bar';
+      d.onclick=()=>{showChatTab('ooc');setTimeout(()=>scrollToOOCMsg(msg.echoTarget),80);};
+      d.innerHTML='💬 <span>'+esc(msg.content||'OOC message')+'</span><span style="margin-left:auto;font-size:10px;opacity:.55">view →</span>';
+      c.appendChild(d);return;
+    }
     const isDM=msg.role==='assistant';const isSys=msg.role==='system';
     const d=document.createElement('div');
     const isChk=msg.isCheckpoint||false;
@@ -4210,7 +4245,83 @@ function renderChat(){
 }
 
 function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
-function clearChat(){if(confirm('Clear AI DM conversation? Log unaffected.')){state.chatHistory=[];saveRefresh();}}
+function clearChat(){if(confirm('Clear narrative chat and OOC channel? Log unaffected.')){state.chatHistory=[];state.oocHistory=[];showChatTab('narrative');saveRefresh();}}
+
+// ═══ OOC CHANNEL ═══
+let _oocActive=false;
+function showChatTab(tab){
+  _oocActive=(tab==='ooc');
+  const narPane=document.getElementById('chat-pane-narrative');
+  const oocPane=document.getElementById('chat-pane-ooc');
+  const narBtn=document.getElementById('chat-tab-narrative');
+  const oocBtn=document.getElementById('chat-tab-ooc');
+  if(narPane)narPane.style.display=_oocActive?'none':'block';
+  if(oocPane)oocPane.style.display=_oocActive?'block':'none';
+  if(narBtn)narBtn.classList.toggle('active',!_oocActive);
+  if(oocBtn)oocBtn.classList.toggle('active',_oocActive);
+}
+function renderOOC(){
+  const c=document.getElementById('ooc-msgs');if(!c)return;c.innerHTML='';
+  if(!state.oocHistory||!state.oocHistory.length){
+    c.innerHTML='<div class="chat-msg sys"><div class="chat-msg-text" style="font-size:11px">OOC channel — rules questions, context checks, resync. Replies are 1-3 sentences only.</div></div>';
+    return;
+  }
+  state.oocHistory.forEach(msg=>{
+    const d=document.createElement('div');
+    const isDM=msg.role==='assistant';
+    const isSys=msg.role==='sys'||msg.role==='system';
+    d.className='chat-msg '+(isSys?'sys':isDM?'ooc-dm':'ooc-player');
+    let text=esc(msg.content||'');
+    text=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    text=text.replace(/\*(.*?)\*/g,'<em>$1</em>');
+    text=text.replace(/\n/g,'<br>');
+    const sender=isSys?'System':isDM?'DM (OOC)':(msg.playerName||playerName||'Party');
+    const tsHtml=msg.ts?`<span style="font-size:9px;opacity:.5">[${esc(msg.ts)}]</span>`:'';
+    d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div>${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
+    if(msg.id)d.id='oocmsg_'+msg.id;
+    c.appendChild(d);
+  });
+  c.scrollTop=c.scrollHeight;
+}
+function oocKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendOOCMsg();}}
+function scrollToOOCMsg(id){
+  const el=document.getElementById('oocmsg_'+id);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.outline='2px solid var(--blue)';setTimeout(()=>el.style.outline='',1200);}
+}
+function sendOOCMsg(){
+  const inp=document.getElementById('ooc-input');
+  if(!inp||!inp.value.trim())return;
+  const key=getKey();if(!key){toast('Set an API key first.');return;}
+  const content=inp.value.trim();inp.value='';
+  const id='ooc_'+Date.now();
+  if(!state.oocHistory)state.oocHistory=[];
+  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:playerName||'Party',id});
+  state.chatHistory.push({role:'ooc_echo',content:'OOC: '+content.slice(0,80)+(content.length>80?'…':''),echoTarget:id,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+  save();renderOOC();renderChat();
+  _oocCallAI(content);
+}
+async function _oocCallAI(userMsg){
+  const key=getKey();if(!key)return;
+  const oocBtn=document.getElementById('ooc-send-btn');
+  const typingEl=document.getElementById('ooc-typing-ind');
+  if(typingEl)typingEl.classList.add('on');
+  if(oocBtn)oocBtn.disabled=true;
+  const oocSys='You are the Dungeon Master for Tinkle\'s Tinctures. This is the OUT-OF-CHARACTER channel. Rules: answer in 1-3 sentences only. No narrative prose. No mechanics block. For state refresh/sync: confirm what you now know in one sentence. For rules questions: state the rule directly. The story continues in the main narrative channel only.';
+  const histForAI=(state.oocHistory||[]).filter(m=>m.role==='user'||m.role==='assistant').slice(-10).map(m=>({role:m.role,content:m.content}));
+  try{
+    const response=await callAI(histForAI,oocSys,300);
+    state.oocHistory.push({role:'assistant',content:response,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),id:'ooc_'+Date.now()});
+    save();
+  }catch(err){
+    state.oocHistory.push({role:'sys',content:'OOC error: '+err.message,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+    save();
+  }finally{
+    if(typingEl)typingEl.classList.remove('on');
+    if(oocBtn)oocBtn.disabled=false;
+    renderOOC();
+  }
+}
+
 function toggleDicePicker(){
   const p=document.getElementById('dice-picker-panel');
   const b=document.getElementById('dice-picker-btn');
@@ -4429,8 +4540,12 @@ function rollAndSubmit(){openRollSheet();}
 function renderRollDD(){const sel=document.getElementById('roll-pc');if(sel)sel.innerHTML=state.pcs.map(pc=>'<option value="'+esc(pc.id)+'">'+esc(pc.name)+'</option>').join('');}
 function sendContextRefresh(){
   genLedger();const ledger=document.getElementById('ledger-out')?.value||'';
-  const inp=document.getElementById('chat-input');
-  if(inp){inp.value='[CONTEXT REFRESH — SILENT SYNC] The following is a full state update. Absorb it silently. Do NOT say "acknowledged", "synchronized", or reference this update in any way. Simply continue the scene naturally from where we left off.\n\n'+ledger;sendMsg();}
+  if(!state.oocHistory)state.oocHistory=[];
+  const content='[CONTEXT REFRESH] Full state update. Confirm what you now know in one sentence — do not narrate it in the main channel.\n\n'+ledger;
+  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:'System',id:'ooc_'+Date.now()});
+  save();showChatTab('ooc');renderOOC();
+  _oocCallAI(content);
+  toast('↺ Context refresh sent to OOC channel');
 }
 
 // ═══ SESSION ZERO ═══
@@ -5156,12 +5271,12 @@ function rollInitiativeToChat(){
 function resyncAI(){
   genLedger();
   const ledger=document.getElementById('ledger-out')?.value||'';
-  const inp=document.getElementById('chat-input');
-  if(inp){
-    inp.value='[STATE RESYNC] My app state may have drifted. Here is the current confirmed state — please re-read it completely and confirm what you now know about HP, inventory, location, active quests, and NPCs met. Do not continue the story until you confirm.\n\n'+ledger;
-    sendMsg();
-  }
-  toast('↺ Re-syncing AI with current state...');
+  if(!state.oocHistory)state.oocHistory=[];
+  const content='[STATE RESYNC] Confirm what you now know: HP, inventory, location, active quests, NPCs met.\n\n'+ledger;
+  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:'System',id:'ooc_'+Date.now()});
+  save();showChatTab('ooc');renderOOC();
+  _oocCallAI(content);
+  toast('↺ Re-syncing AI in OOC channel...');
 }
 
 // ═══ SCROLL TO TOP ═══
@@ -5285,6 +5400,7 @@ const FLAG_CATS={
   rule:{icon:'📜',label:'Wrong Rule'},
   ai:{icon:'🤖',label:'AI Made It Up'},
   story:{icon:'📖',label:'Story Error'},
+  infra:{icon:'🔧',label:'Infrastructure / App Issue'},
   other:{icon:'❓',label:'Something Felt Off'}
 };
 
@@ -5299,7 +5415,19 @@ function resolveFlag(id){
   const f=(state.errorLog||[]).find(f=>f.id===id);
   if(!f)return;
   f.resolved=true;
-  save();renderErrorLog();
+  save();renderErrorLog();renderFlagReview();
+}
+function deleteFlag(id){
+  if(!confirm('Delete this flag permanently?'))return;
+  state.errorLog=(state.errorLog||[]).filter(f=>f.id!==id);
+  save();renderErrorLog();renderFlagReview();
+}
+function editFlagNote(id){
+  const f=(state.errorLog||[]).find(f=>f.id===id);if(!f)return;
+  const newNote=prompt('Edit note:',f.note||'');
+  if(newNote===null)return;
+  f.note=newNote.trim();
+  save();renderErrorLog();renderFlagReview();
 }
 
 function renderErrorLog(){
@@ -5321,7 +5449,7 @@ function renderErrorLog(){
     const vClass=f.verdict?'verdicted-'+f.verdict:'';
     const vBadge=f.verdict?
       '<span class="err-log-verdict-badge '+f.verdict+'">'+f.verdict.toUpperCase()+'</span>':
-      '<span class="err-log-verdict-badge pending">Unreviewed</span>';
+      '<span class="err-log-verdict-badge pending">Pending</span>';
     const snippet=f.msgContent?
       '<div class="err-log-context">'+esc(f.msgContent.slice(0,180))+(f.msgContent.length>180?'…':'')+'</div>':'';
     const noteHtml=f.note?'<div class="err-log-note">'+esc(f.note)+'</div>':'';
@@ -5344,7 +5472,9 @@ function renderErrorLog(){
         '<button class="btn sm red" onclick="setFlagVerdict(\''+f.id+'\',\'fail\')">'+
           (f.verdict==='fail'?'✗ Fail (undo)':'✗ Fail')+
         '</button>'+
+        '<button class="btn sm" onclick="editFlagNote(\''+f.id+'\')" title="Edit note">✎ Edit</button>'+
         '<button class="btn sm" style="margin-left:auto" onclick="resolveFlag(\''+f.id+'\')">Dismiss</button>'+
+        '<button class="btn sm red" onclick="deleteFlag(\''+f.id+'\')" title="Delete flag permanently">🗑</button>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -5419,6 +5549,18 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.4',date:'June 2026',notes:[
+      'OOC channel — Narrative / OOC tabs in AI DM panel for out-of-character chat',
+      'Context refresh and AI resync now route to OOC (no more "Acknowledged" in narrative)',
+      'OOC echo indicator in narrative chat — tap to jump to OOC message',
+      'OOC clears with main chat (Clear button)',
+      'Flag system: edit note inline, delete flag permanently',
+      'Flag categories: added Infrastructure / App Issue (🔧)',
+      'Flag status: Unreviewed renamed to Pending everywhere',
+      'Dev Notes clear button added',
+      'Voice settings moved from ☰ menu into the 🔊 button (already in chat header)',
+      'Ops Debrief: DM NOTES → DEV NOTES, UNREVIEWED → PENDING',
+    ]},
     {ver:'v1.3',date:'June 2026',notes:[
       'Switch Player: tap your name in the DM chat bar to switch instantly',
       'Player name can no longer disappear or default to blue "Party" mid-session',
@@ -5471,10 +5613,14 @@ function renderFlagReview(){
         '<div style="display:flex;gap:8px;align-items:center">'+
           '<span>'+cat.icon+'</span>'+
           '<span style="color:var(--text)">'+cat.label+'</span>'+
-          (f.verdict?'<span style="margin-left:auto;font-size:9px;font-weight:600;text-transform:uppercase;color:'+(f.verdict==='pass'?'var(--green-bright)':'var(--red)')+'">'+f.verdict+'</span>':'<span style="margin-left:auto;font-size:9px;color:var(--text-dim)">open</span>')+
+          (f.verdict?'<span style="margin-left:auto;font-size:9px;font-weight:600;text-transform:uppercase;color:'+(f.verdict==='pass'?'var(--green-bright)':'var(--red)')+'">'+f.verdict+'</span>':'<span style="margin-left:auto;font-size:9px;color:var(--gold)">pending</span>')+
         '</div>'+
         (f.note?'<div style="color:var(--text-dim);margin-top:4px;border-left:2px solid var(--border);padding-left:6px">'+esc(f.note)+'</div>':'')+
         (f.sectionCtx||f.gameTs||f.location?'<div style="color:var(--text-dim);font-size:10px;margin-top:3px">'+(f.sectionCtx?esc(f.sectionCtx)+' · ':'')+esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+'</div>':'')+
+        '<div style="display:flex;gap:6px;margin-top:6px">'+
+          '<button class="btn sm" style="font-size:10px;min-height:28px" onclick="editFlagNote(\''+f.id+'\');openDashboard(\'flags\')">✎ Edit</button>'+
+          '<button class="btn sm red" style="font-size:10px;min-height:28px" onclick="deleteFlag(\''+f.id+'\');openDashboard(\'flags\')">🗑 Delete</button>'+
+        '</div>'+
       '</div>';
     }).join('');
 }
@@ -5488,12 +5634,12 @@ function sessionRecap(){
   report+='Gold delta: '+(Math.round((parseFloat(state.treasuryData.gp)||0)-sessionStartGP))+' gp\n';
   report+='Location at close: '+(state.worldData?.location||'—')+'\n';
   if(state.worldData?.scene_title)report+='Last scene: '+state.worldData.scene_title+(state.worldData.scene_threat?' ['+state.worldData.scene_threat+']':'')+'\n';
-  if(state.sessionNotes){report+='\n--- DM NOTES ---\n'+state.sessionNotes+'\n';}
+  if(state.sessionNotes){report+='\n--- DEV NOTES ---\n'+state.sessionNotes+'\n';}
   if(flags.length){
     report+='\n--- FLAGGED MOMENTS ('+flags.length+') ---\n';
     flags.forEach(function(f,i){
       const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
-      report+=(i+1)+'. ['+cat.label+']'+(f.sectionCtx?' in '+f.sectionCtx:'')+(f.location?' @ '+f.location:'')+(f.gameTs?' ('+f.gameTs+')':'')+(f.verdict?' → '+f.verdict.toUpperCase():' → UNREVIEWED')+'\n';
+      report+=(i+1)+'. ['+cat.label+']'+(f.sectionCtx?' in '+f.sectionCtx:'')+(f.location?' @ '+f.location:'')+(f.gameTs?' ('+f.gameTs+')':'')+(f.verdict?' → '+f.verdict.toUpperCase():' → PENDING')+'\n';
       if(f.note)report+='   Note: '+f.note+'\n';
       if(f.msgContent&&f.msgContent.indexOf('[')!==0)report+='   AI said: "'+f.msgContent.slice(0,200)+(f.msgContent.length>200?'…':'')+'"'+'\n';
     });
@@ -5714,6 +5860,7 @@ function renderSuperpowers(){
       <button class="flag-cat-btn" data-cat="rule" onclick="selectFlagCat(this)"><span class="cat-icon">📜</span>Wrong Rule</button>
       <button class="flag-cat-btn" data-cat="ai" onclick="selectFlagCat(this)"><span class="cat-icon">🤖</span>AI Made It Up</button>
       <button class="flag-cat-btn" data-cat="story" onclick="selectFlagCat(this)"><span class="cat-icon">📖</span>Story Error</button>
+      <button class="flag-cat-btn" data-cat="infra" onclick="selectFlagCat(this)"><span class="cat-icon">🔧</span>App Issue</button>
       <button class="flag-cat-btn" data-cat="other" onclick="selectFlagCat(this)"><span class="cat-icon">❓</span>Something Felt Off</button>
     </div>
     <div class="form-group">
