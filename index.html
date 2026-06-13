@@ -1837,6 +1837,10 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         </div>
         </div><!-- end chat-pane-narrative -->
         <div id="chat-pane-ooc" style="display:none">
+          <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
+            <button class="btn sm" onclick="document.getElementById('ooc-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
+            <button class="btn sm" onclick="const e=document.getElementById('ooc-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
+          </div>
           <div id="ooc-msgs" class="chat-msgs-wrap" style="min-height:300px;max-height:440px"></div>
           <div class="typing-ind" id="ooc-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
           <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
@@ -1846,6 +1850,10 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Context refresh &amp; AI resync route here automatically.</div>
         </div><!-- end chat-pane-ooc -->
         <div id="chat-pane-party" style="display:none">
+          <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
+            <button class="btn sm" onclick="document.getElementById('party-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
+            <button class="btn sm" onclick="const e=document.getElementById('party-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
+          </div>
           <div id="party-msgs" class="chat-msgs-wrap" style="min-height:300px;max-height:440px"></div>
           <div class="typing-ind" id="party-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
           <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
@@ -4270,7 +4278,8 @@ function renderChat(){
     const ttsBtn=isDM?`<button class="tts-btn" onclick="speakIdx(${msgIdx},this)" title="Read aloud">🔊</button>`:'';
     const copyBtn=`<button class="copy-btn" onclick="copyIdx(${msgIdx})" title="Copy message">📋</button>`;
     const flagBtn=isDM?`<button class="flag-btn" onclick="openFlagModal(${msgIdx})" title="Flag this response">⚑</button>`:'';
-    const tsHtml=msg.ts?`<span style="font-size:9px;opacity:.5">[${esc(msg.ts)}]</span>`:'';
+    let tsHtml='';
+    if(msg.ts||msg.realTs){tsHtml='<span style="font-size:9px;opacity:.5">';if(msg.ts)tsHtml+=esc(msg.ts);if(msg.ts&&msg.realTs)tsHtml+=' · ';if(msg.realTs)tsHtml+=esc(msg.realTs);tsHtml+='</span>';}
     let mechBadge='';
     if(msg.mechanics?.length){
       const pills=msg.mechanics.map(m=>`<span class="mech-pill${m.error?' err':''}">${esc(m.text)}</span>`).join('');
@@ -4319,7 +4328,8 @@ function renderOOC(){
     text=text.replace(/\*(.*?)\*/g,'<em>$1</em>');
     text=text.replace(/\n/g,'<br>');
     const sender=isSys?'System':isDM?'DM (OOC)':(msg.playerName||playerName||'Party');
-    const tsHtml=msg.ts?`<span style="font-size:9px;opacity:.5">[${esc(msg.ts)}]</span>`:'';
+    let tsHtml='';
+    if(msg.gameTs||msg.ts){tsHtml='<span style="font-size:9px;opacity:.5">';if(msg.gameTs)tsHtml+=esc(msg.gameTs);if(msg.gameTs&&msg.ts)tsHtml+=' · ';if(msg.ts)tsHtml+=esc(msg.ts);tsHtml+='</span>';}
     d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div>${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
     if(msg.id)d.id='oocmsg_'+msg.id;
     c.appendChild(d);
@@ -4349,7 +4359,8 @@ function renderParty(){
     text=text.replace(/\*(.*?)\*/g,'<em>$1</em>');
     text=text.replace(/\n/g,'<br>');
     const sender=isSys?'System':isDM?'Dungeon Master':(msg.playerName||playerName||'Party');
-    const tsHtml=msg.ts?`<span style="font-size:9px;opacity:.5">[${esc(msg.ts)}]</span>`:'';
+    let tsHtml='';
+    if(msg.gameTs||msg.ts){tsHtml='<span style="font-size:9px;opacity:.5">';if(msg.gameTs)tsHtml+=esc(msg.gameTs);if(msg.gameTs&&msg.ts)tsHtml+=' · ';if(msg.ts)tsHtml+=esc(msg.ts);tsHtml+='</span>';}
     d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div>${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
     c.appendChild(d);
   });
@@ -4361,7 +4372,7 @@ function sendPartyMsg(){
   if(!inp||!inp.value.trim())return;
   const content=inp.value.trim();inp.value='';
   if(!state.partyChat)state.partyChat=[];
-  state.partyChat.push({role:'player',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:playerName||'Party',id:'pc_'+Date.now()});
+  state.partyChat.push({role:'player',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),gameTs:state.worldData.time||'',playerName:playerName||'Party',id:'pc_'+Date.now()});
   save();renderParty();
 }
 async function askDMFromParty(){
@@ -4376,7 +4387,7 @@ async function askDMFromParty(){
   if(!state.partyChat)state.partyChat=[];
   try{
     const response=await callAI(msgs,partySys,500);
-    state.partyChat.push({role:'dm',content:response,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),id:'dm_'+Date.now()});
+    state.partyChat.push({role:'dm',content:response,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),gameTs:state.worldData.time||'',id:'dm_'+Date.now()});
     save();
   }catch(err){
     state.partyChat.push({role:'sys',content:'DM error: '+err.message,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
@@ -4394,7 +4405,7 @@ function sendOOCMsg(){
   const content=inp.value.trim();inp.value='';
   const id='ooc_'+Date.now();
   if(!state.oocHistory)state.oocHistory=[];
-  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:playerName||'Party',id});
+  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),gameTs:state.worldData.time||'',playerName:playerName||'Party',id});
   state.chatHistory.push({role:'ooc_echo',content:'OOC: '+content.slice(0,80)+(content.length>80?'…':''),echoTarget:id,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
   save();renderOOC();renderChat();
   _oocCallAI(content);
@@ -4409,7 +4420,7 @@ async function _oocCallAI(userMsg){
   const histForAI=(state.oocHistory||[]).filter(m=>m.role==='user'||m.role==='assistant').slice(-10).map(m=>({role:m.role,content:m.content}));
   try{
     const response=await callAI(histForAI,oocSys,300);
-    state.oocHistory.push({role:'assistant',content:response,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),id:'ooc_'+Date.now()});
+    state.oocHistory.push({role:'assistant',content:response,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),gameTs:state.worldData.time||'',id:'ooc_'+Date.now()});
     save();
   }catch(err){
     state.oocHistory.push({role:'sys',content:'OOC error: '+err.message,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
@@ -4465,8 +4476,9 @@ async function sendMsg(){
   const sendBtn=document.getElementById('send-btn');
   const typEl=document.getElementById('typing-ind');
   const ts=state.worldData.time||'';
+  const realTs=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   if(!state.chatHistory||!Array.isArray(state.chatHistory))state.chatHistory=[];
-  state.chatHistory.push({role:'user',content:text,ts,playerName,playerChar});
+  state.chatHistory.push({role:'user',content:text,ts,realTs,playerName,playerChar});
   if(document.getElementById('chat-log')?.checked)state.logs.push({ts,type:'player',body:'['+playerName+' / '+playerChar+'] '+text});
   inp.value='';saveRefresh();
   inp.disabled=true;if(sendBtn)sendBtn.disabled=true;
@@ -4509,7 +4521,7 @@ async function sendMsg(){
     .trim();
     cacheResp(text,displayText);
     if(localStorage.getItem('tt_tts_auto')==='1'&&typeof speechSynthesis!=='undefined')speak(displayText);
-    state.chatHistory.push({role:'assistant',content:displayText,mechanics,ts});
+    state.chatHistory.push({role:'assistant',content:displayText,mechanics,ts,realTs:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
     // Auto-checkpoint on message count
     state.msgsSinceChk=(state.msgsSinceChk||0)+1;
     if(state.msgsSinceChk>=(state.autoChkInterval||8)){
@@ -5689,6 +5701,20 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.5',date:'June 2026',notes:[
+      'Dev tab: Dev Notes, Flag Review, and Ops Debrief in dedicated Dev tab (last before Setup)',
+      'Header: autosave dot only; 💰 gold delta and ⏱ session timer now live in the status bar',
+      'Patch Notes: ☰ Session renamed; modal shows changelog + Debrief only (Flag Review moved to Dev tab)',
+      'Flag rework: tap status badge to cycle Pending → Fail → Resolved; tap note to edit; 🗑 delete only',
+      'Export Pending / Export All / Clear Resolved buttons added to Flag Review',
+      'AI DM tabs: OOC → ⚙ Systems; Party → 🗨️ OOC',
+      'Dual timestamps on all messages: game time + real clock time',
+      '↑ Top / ↓ Bottom scroll buttons on ⚙ Systems and 🗨️ OOC channels',
+      'Quest Log: Primary Mission renamed to Main Quest',
+      'Campaign Premise moved alongside Plot & Lore in World tab',
+      'Wagon Travel Log moved to Wagon tab',
+      'Story Thread and Session Summary boxes enlarged',
+    ]},
     {ver:'v1.4',date:'June 2026',notes:[
       'OOC channel — Narrative / OOC tabs in AI DM panel for out-of-character chat',
       'Context refresh and AI resync now route to OOC (no more "Acknowledged" in narrative)',
