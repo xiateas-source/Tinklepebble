@@ -1397,7 +1397,7 @@ body{background-image:none;}
           <span style="font-size:10px;color:var(--text-dim);margin-left:4px;font-weight:normal">Ops Debrief only — DM never sees this</span>
           <button class="btn sm red" style="margin-left:auto" onclick="if(confirm('Clear dev notes?')){state.sessionNotes='';const el=document.getElementById('session-notes');if(el)el.value='';save();}">Clear</button>
         </div>
-        <textarea id="session-notes" style="min-height:110px" oninput="state.sessionNotes=this.value;save()" placeholder="App bugs, things to fix, questions for your developer AI. Never sent to the DM."></textarea>
+        <textarea id="session-notes" style="min-height:110px" oninput="state.sessionNotes=this.value;save()" placeholder="App bugs, things to fix, notes for your next session. Never sent to the DM."></textarea>
       </div>
       <div class="panel">
         <div class="panel-title">Session Log <button class="btn sm red" style="margin-left:auto" onclick="clearLog()">Clear</button></div>
@@ -1836,10 +1836,10 @@ When the party travels through wilderness, arrives at a new outdoor location, or
     <div id="dash-tab-flags" style="display:none;max-height:320px;overflow-y:auto"></div>
     <div style="border-top:1px solid var(--border);margin-top:14px;padding-top:12px">
       <button class="btn gold full" onclick="sessionRecap()">⚡ Compile Ops Debrief</button>
-      <p style="font-size:10px;color:var(--text-dim);margin-top:6px;text-align:center">Compiles execution data — copy and paste to your developer AI</p>
+      <p style="font-size:10px;color:var(--text-dim);margin-top:6px;text-align:center">Compiles execution data for review</p>
       <div id="dash-recap-out" style="display:none;margin-top:10px">
         <textarea id="dash-recap-text" readonly style="min-height:160px;font-size:10px;font-family:var(--mono);color:var(--text-dim);border-color:var(--gold)"></textarea>
-        <button class="btn gold full" style="margin-top:6px" onclick="copyText(document.getElementById('dash-recap-text').value,'✓ Ops report copied!')">📋 Copy — Paste to Developer AI</button>
+        <button class="btn gold full" style="margin-top:6px" onclick="copyText(document.getElementById('dash-recap-text').value,'✓ Ops report copied!')">📋 Copy Report</button>
       </div>
     </div>
   </div>
@@ -5651,7 +5651,7 @@ function sessionRecap(){
   const txt=document.getElementById('dash-recap-text');
   if(out)out.style.display='block';
   if(txt){txt.value=report;setTimeout(()=>txt.select(),50);}
-  copyText(report,'✓ Ops report ready — paste to your developer AI');
+  copyText(report,'✓ Ops report copied!');
 }
 
 // ═══ TOAST ═══
