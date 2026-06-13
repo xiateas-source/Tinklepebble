@@ -8,7 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Autumn Corporate Steampunk palette */
@@ -337,9 +337,19 @@ details.bs[open] summary::before{content:"\25BC  ";}
 :root{
   --gold:#c87840;--gold-dim:#7a4818;--gold-bright:#f0a844;
   --text-bright:#f0e8d8;
+  --display:'Cinzel',Georgia,serif;
 }
 
 body{font-size:16px;line-height:1.68;}
+
+/* ── CINZEL DISPLAY FONT — carved-stone titles & names ── */
+/* IM Fell English stays for DM narrative chat (italic, aged storytelling feel) */
+.app-title{font-family:var(--display);font-weight:600;}
+.modal-title{font-family:var(--display);font-weight:600;}
+.pc-name{font-family:var(--display);font-weight:600;}
+.sp-name{font-family:var(--display);font-weight:600;}
+.round-num{font-family:var(--display);font-weight:700;}
+.qa-sheet-title{font-family:var(--display);font-weight:600;}
 
 /* ── HEADER ── */
 .app-header{
@@ -386,9 +396,9 @@ body{font-size:16px;line-height:1.68;}
 .panel.purple::before{background:linear-gradient(90deg,transparent,var(--purple-bright),transparent);}
 .panel.green::before{background:linear-gradient(90deg,transparent,var(--green-bright),transparent);}
 
-/* Panel title — serif brass nameplate, not generic all-caps sans */
+/* Panel title — Cinzel brass nameplate, not generic all-caps sans */
 .panel-title{
-  font-family:var(--serif);
+  font-family:var(--display);font-weight:400;
   font-size:14px;font-weight:400;
   text-transform:none;letter-spacing:.3px;
   color:var(--gold-bright);
@@ -487,7 +497,7 @@ textarea{min-height:72px;}
 .init-row.current .init-name{font-weight:700;letter-spacing:.2px;}
 
 /* ── DICE ── */
-.dice-btn{font-family:var(--serif);font-size:18px;letter-spacing:.2px;}
+.dice-btn{font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:.3px;}
 .dice-btn:hover,.dice-btn:active{
   border-color:var(--gold);color:var(--gold-bright);
   box-shadow:0 0 22px rgba(200,120,64,.42),inset 0 1px 0 rgba(255,255,255,.08);
