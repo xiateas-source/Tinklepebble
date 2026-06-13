@@ -895,6 +895,31 @@ body{background-image:none;}
 
 /* FAB — just a clean copper circle */
 .qa-fab:active{transform:scale(.92);box-shadow:0 2px 18px rgba(0,0,0,.65),0 0 20px rgba(200,120,64,.5);}
+
+/* ── ERROR FLAGS ── */
+.flag-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:3px 5px;border-radius:3px;opacity:.45;transition:opacity .2s;min-height:28px;min-width:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--gold);}
+.flag-btn:hover{opacity:1;}
+.flag-cat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0;}
+.flag-cat-btn{background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);padding:10px 4px;text-align:center;cursor:pointer;transition:all .15s;font-size:10px;color:var(--text-dim);display:flex;flex-direction:column;align-items:center;gap:4px;min-height:64px;justify-content:center;}
+.flag-cat-btn:hover{border-color:var(--gold-dim);color:var(--text);}
+.flag-cat-btn.selected{border-color:var(--gold);background:rgba(192,128,64,.12);color:var(--gold);}
+.flag-cat-btn .cat-icon{font-size:20px;line-height:1;}
+.flag-context-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.6;}
+.flag-context-box strong{color:var(--text);}
+.err-log-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;}
+.err-log-item.verdicted-pass{border-color:var(--green);}
+.err-log-item.verdicted-fail{border-color:var(--red);}
+.err-log-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.err-log-cat{font-size:16px;flex-shrink:0;}
+.err-log-meta{font-size:10px;color:var(--text-dim);flex:1;}
+.err-log-verdict-badge{font-size:9px;padding:2px 8px;border-radius:8px;font-weight:600;text-transform:uppercase;}
+.err-log-verdict-badge.pass{background:#1a3a1a;color:var(--green-bright);border:1px solid var(--green);}
+.err-log-verdict-badge.fail{background:#3a0a0a;color:var(--red);border:1px solid var(--red-dim);}
+.err-log-verdict-badge.pending{background:var(--surface3);color:var(--text-dim);border:1px solid var(--border);}
+.err-log-context{font-size:11px;color:var(--text-dim);border-left:2px solid var(--border);padding-left:8px;margin:5px 0;white-space:pre-wrap;max-height:80px;overflow:hidden;}
+.err-log-note{font-size:12px;color:var(--text);margin:4px 0;}
+.err-log-ai-verdict{font-size:11px;color:var(--green-bright);border-left:2px solid var(--green);padding-left:8px;margin-top:6px;white-space:pre-wrap;}
+.err-log-ai-verdict.fail-verdict{color:var(--red);border-left-color:var(--red);}
 </style>
 </head>
 <body>
@@ -1333,6 +1358,17 @@ body{background-image:none;}
         <div class="btn-row">
           <button class="btn full" onclick="buildRawSummary()">↑ Build Raw</button>
           <button class="btn purple full" onclick="buildAISummary()">✨ AI Narrative</button>
+        </div>
+      </div>
+      <div class="panel danger" id="error-log-panel">
+        <div class="panel-title" style="color:var(--gold)">⚑ Error Log
+          <span id="error-log-count" style="font-size:10px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:1px 8px;margin-left:6px;color:var(--text-dim)">0</span>
+          <button class="btn sm" style="margin-left:auto" onclick="openFlagModal(-1)">+ Manual Flag</button>
+        </div>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Flag moments during play using ⚑ on any AI message or the Manual Flag button. Review and mark each Pass or Fail after the session.</p>
+        <div id="error-log-list"><p style="font-size:11px;color:var(--text-dim)">No flags yet this session.</p></div>
+        <div id="error-log-audit-row" style="display:none;margin-top:10px">
+          <button class="btn red full" onclick="auditWithAI()">🤖 Audit Fails with AI</button>
         </div>
       </div>
     </div>
@@ -2072,6 +2108,7 @@ let state={
   chkHistory:[],rewindStack:[],
   wagonFilter:'all',
   plugins:[],
+  errorLog:[],
   storyThread:'',
   quickActions:[
     {id:'qa_1',label:'Adjust HP',type:'hp',params:{pc:'',amount:'',mode:'damage'},context:['tab-party','tab-combat','tab-dm']},
@@ -2226,7 +2263,7 @@ function renderAll(){
   renderChkHist();renderRewind();renderScenes();renderSnips();
   renderWagon();renderIncome();renderPartyInv();syncWorld();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
-  renderPlugins();renderSuperpowers();
+  renderPlugins();renderSuperpowers();renderErrorLog();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
     if(document.getElementById('sess-module-panel')?.style.display==='block'){
@@ -3467,6 +3504,7 @@ function migrate(s){
   }
   if(!Array.isArray(s.relationships))s.relationships=[];
   if(!Array.isArray(s.quickActions))s.quickActions=[];
+  if(!Array.isArray(s.errorLog))s.errorLog=[];
   // Remap old tab IDs from before consolidation
   const tabRemap={'tab-log':'tab-session','tab-module':'tab-session','tab-ledger':'tab-ait','tab-chk':'tab-ait'};
   // Canonical context arrays — always sync these from defaults
@@ -3632,7 +3670,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','plugins'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','plugins','errorLog'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -4076,13 +4114,14 @@ function renderChat(){
     const isLong=(msg.content||'').length>800;
     const ttsBtn=isDM?`<button class="tts-btn" onclick="speakIdx(${msgIdx},this)" title="Read aloud">🔊</button>`:'';
     const copyBtn=`<button class="copy-btn" onclick="copyIdx(${msgIdx})" title="Copy message">📋</button>`;
+    const flagBtn=isDM?`<button class="flag-btn" onclick="openFlagModal(${msgIdx})" title="Flag this response">⚑</button>`:'';
     const tsHtml=msg.ts?`<span style="font-size:9px;opacity:.5">[${esc(msg.ts)}]</span>`:'';
     let mechBadge='';
     if(msg.mechanics?.length){
       const pills=msg.mechanics.map(m=>`<span class="mech-pill${m.error?' err':''}">${esc(m.text)}</span>`).join('');
       mechBadge=`<div class="mech-badge"><div class="mech-badge-hdr" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='flex'?'none':'flex'"><span class="mech-badge-lbl">⚡ Changes</span><span style="font-size:10px;color:var(--green-bright);margin-left:4px">${msg.mechanics.length} — tap to expand</span></div><div class="mech-pills" style="display:none">${pills}</div></div>`;
     }
-    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${ttsBtn}${copyBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong?' msg-collapsed':''}">${text}</div>${isLong?'<span class="read-more" onclick="this.previousElementSibling.classList.remove(\'msg-collapsed\');this.remove()">Read more ▼</span>':''}${mechBadge}`;
+    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${ttsBtn}${copyBtn}${flagBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong?' msg-collapsed':''}">${text}</div>${isLong?'<span class="read-more" onclick="this.previousElementSibling.classList.remove(\'msg-collapsed\');this.remove()">Read more ▼</span>':''}${mechBadge}`;
     c.appendChild(d);
   });
   // Only auto-scroll if user is near bottom — don't interrupt reading
@@ -5289,6 +5328,30 @@ function renderSuperpowers(){
 <div class="qa-menu" id="qa-menu">
   <div class="qa-menu-title" id="qa-menu-title">Quick Actions</div>
   <div id="qa-menu-items"></div>
+</div>
+
+<!-- FLAG MODAL (bottom sheet) -->
+<div class="qa-modal" id="flag-modal">
+  <div class="qa-sheet" style="max-width:560px">
+    <div class="qa-sheet-title">⚑ Flag This Moment <button class="btn sm" onclick="closeFlagModal()">✕</button></div>
+    <div id="flag-context-display" class="flag-context-box" style="display:none"></div>
+    <div class="sec-label" style="margin-bottom:8px">What went wrong?</div>
+    <div class="flag-cat-grid">
+      <button class="flag-cat-btn" data-cat="roll" onclick="selectFlagCat(this)"><span class="cat-icon">🎲</span>Wrong Roll / Math</button>
+      <button class="flag-cat-btn" data-cat="rule" onclick="selectFlagCat(this)"><span class="cat-icon">📜</span>Wrong Rule</button>
+      <button class="flag-cat-btn" data-cat="ai" onclick="selectFlagCat(this)"><span class="cat-icon">🤖</span>AI Made It Up</button>
+      <button class="flag-cat-btn" data-cat="story" onclick="selectFlagCat(this)"><span class="cat-icon">📖</span>Story Error</button>
+      <button class="flag-cat-btn" data-cat="other" onclick="selectFlagCat(this)"><span class="cat-icon">❓</span>Something Felt Off</button>
+    </div>
+    <div class="form-group">
+      <label class="field-label">Note (optional)</label>
+      <textarea id="flag-note" style="min-height:60px" placeholder="Add detail if you want — or just tap a category and hit Flag It..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn red full" style="font-size:14px;padding:12px" onclick="submitFlag()">⚑ Flag It</button>
+      <button class="btn" onclick="closeFlagModal()">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <!-- QUICK ACTION MODAL (bottom sheet) -->
