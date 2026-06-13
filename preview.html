@@ -276,7 +276,13 @@
   .swatch-name { font-size: 9px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .06em; }
   .swatch-hex  { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,.5); margin-top: 2px; }
 
-  input, textarea {
+  .cp-row { display:flex; align-items:center; justify-content:space-between; gap:6px; cursor:pointer; }
+  .cp-lbl  { font-size:11px; color:var(--text-dim); flex:1; }
+  .cp-right { display:flex; align-items:center; gap:6px; }
+  .cp-hex  { font-family:var(--mono); font-size:10px; color:var(--text-muted); width:56px; }
+  input[type="color"] { width:32px; height:24px; border:1px solid var(--border-bright); border-radius:3px; background:none; cursor:pointer; padding:1px; }
+
+  input[type="text"], input[type="number"], textarea {
     background: var(--surface2);
     border: 1px solid var(--border-bright);
     border-radius: 4px;
@@ -287,8 +293,8 @@
     width: 100%;
     outline: none;
   }
-  input:focus, textarea:focus { border-color: var(--amber); }
-  input::placeholder, textarea::placeholder { color: var(--text-muted); }
+  input[type="text"]:focus, input[type="number"]:focus, textarea:focus { border-color: var(--amber); }
+  input[type="text"]::placeholder, textarea::placeholder { color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -302,6 +308,48 @@
   <div class="header-meta">
     <div class="fb-dot"></div>
     <span>Tinkle · Pebble · Slasher</span>
+  </div>
+</div>
+
+<!-- COLOR PICKER PANEL -->
+<div id="picker-panel" style="background:var(--surface);border-bottom:1px solid var(--border);padding:0">
+  <button onclick="togglePicker()" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text-dim);font-family:var(--sans);font-size:12px;padding:10px 16px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+    <span>🎨 Color Controls</span>
+    <span id="picker-toggle-lbl" style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)">Show</span>
+  </button>
+  <div id="picker-body" style="display:none;padding:14px 16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px">
+
+      <div style="grid-column:1/-1;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:2px">Backgrounds</div>
+
+      <label class="cp-row"><span class="cp-lbl">Background</span><div class="cp-right"><input type="color" value="#221d12" oninput="setVar('--bg',this.value)" onchange="setVar('--bg',this.value)"><span class="cp-hex" id="cp--bg">#221d12</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Surface</span><div class="cp-right"><input type="color" value="#2e2818" oninput="setVar('--surface',this.value)" onchange="setVar('--surface',this.value)"><span class="cp-hex" id="cp--surface">#2e2818</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Surface 2</span><div class="cp-right"><input type="color" value="#3c3420" oninput="setVar('--surface2',this.value)" onchange="setVar('--surface2',this.value)"><span class="cp-hex" id="cp--surface2">#3c3420</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Surface 3</span><div class="cp-right"><input type="color" value="#4a4028" oninput="setVar('--surface3',this.value)" onchange="setVar('--surface3',this.value)"><span class="cp-hex" id="cp--surface3">#4a4028</span></div></label>
+
+      <div style="grid-column:1/-1;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:6px;margin-bottom:2px">Text</div>
+
+      <label class="cp-row"><span class="cp-lbl">Text</span><div class="cp-right"><input type="color" value="#ede0c8" oninput="setVar('--text',this.value)" onchange="setVar('--text',this.value)"><span class="cp-hex" id="cp--text">#ede0c8</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Text Dim</span><div class="cp-right"><input type="color" value="#c4a87c" oninput="setVar('--text-dim',this.value)" onchange="setVar('--text-dim',this.value)"><span class="cp-hex" id="cp--text-dim">#c4a87c</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Text Muted</span><div class="cp-right"><input type="color" value="#7a6a54" oninput="setVar('--text-muted',this.value)" onchange="setVar('--text-muted',this.value)"><span class="cp-hex" id="cp--text-muted">#7a6a54</span></div></label>
+
+      <div style="grid-column:1/-1;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:6px;margin-bottom:2px">Accents</div>
+
+      <label class="cp-row"><span class="cp-lbl">Amber</span><div class="cp-right"><input type="color" value="#c8854a" oninput="setVar('--amber',this.value)" onchange="setVar('--amber',this.value)"><span class="cp-hex" id="cp--amber">#c8854a</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Amber Hi</span><div class="cp-right"><input type="color" value="#e0a060" oninput="setVar('--amber-bright',this.value)" onchange="setVar('--amber-bright',this.value)"><span class="cp-hex" id="cp--amber-bright">#e0a060</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Terracotta</span><div class="cp-right"><input type="color" value="#a85840" oninput="setVar('--terracotta',this.value)" onchange="setVar('--terracotta',this.value)"><span class="cp-hex" id="cp--terracotta">#a85840</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Sage</span><div class="cp-right"><input type="color" value="#6a8a5a" oninput="setVar('--sage',this.value)" onchange="setVar('--sage',this.value)"><span class="cp-hex" id="cp--sage">#6a8a5a</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Steel</span><div class="cp-right"><input type="color" value="#4a6878" oninput="setVar('--steel',this.value)" onchange="setVar('--steel',this.value)"><span class="cp-hex" id="cp--steel">#4a6878</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Mauve</span><div class="cp-right"><input type="color" value="#8a6878" oninput="setVar('--mauve',this.value)" onchange="setVar('--mauve',this.value)"><span class="cp-hex" id="cp--mauve">#8a6878</span></div></label>
+
+      <div style="grid-column:1/-1;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:6px;margin-bottom:2px">Borders</div>
+
+      <label class="cp-row"><span class="cp-lbl">Border</span><div class="cp-right"><input type="color" value="#3a3020" oninput="setVar('--border',this.value)" onchange="setVar('--border',this.value)"><span class="cp-hex" id="cp--border">#3a3020</span></div></label>
+      <label class="cp-row"><span class="cp-lbl">Border Hi</span><div class="cp-right"><input type="color" value="#5a4830" oninput="setVar('--border-bright',this.value)" onchange="setVar('--border-bright',this.value)"><span class="cp-hex" id="cp--border-bright">#5a4830</span></div></label>
+
+    </div>
+    <button onclick="copyPalette()" style="margin-top:14px;width:100%;background:var(--surface3);border:1px solid var(--amber);border-radius:4px;color:var(--amber);font-family:var(--sans);font-size:12px;padding:9px;cursor:pointer">📋 Copy Palette as CSS Variables</button>
+    <div id="copy-confirm" style="display:none;text-align:center;font-size:11px;color:var(--sage);margin-top:6px">✓ Copied to clipboard</div>
   </div>
 </div>
 
@@ -520,5 +568,43 @@
   </div>
 
 </div><!-- /page -->
+<script>
+  const VARS = {
+    '--bg':'#221d12','--surface':'#2e2818','--surface2':'#3c3420','--surface3':'#4a4028',
+    '--text':'#ede0c8','--text-dim':'#c4a87c','--text-muted':'#7a6a54',
+    '--amber':'#c8854a','--amber-bright':'#e0a060','--terracotta':'#a85840',
+    '--sage':'#6a8a5a','--steel':'#4a6878','--mauve':'#8a6878',
+    '--border':'#3a3020','--border-bright':'#5a4830'
+  };
+
+  function setVar(name, value) {
+    document.documentElement.style.setProperty(name, value);
+    VARS[name] = value;
+    const lbl = document.getElementById('cp-' + name);
+    if (lbl) lbl.textContent = value;
+  }
+
+  function togglePicker() {
+    const body = document.getElementById('picker-body');
+    const lbl  = document.getElementById('picker-toggle-lbl');
+    const open = body.style.display === 'none';
+    body.style.display = open ? 'block' : 'none';
+    lbl.textContent = open ? 'Hide' : 'Show';
+  }
+
+  function copyPalette() {
+    let css = ':root {\n';
+    Object.entries(VARS).forEach(([k, v]) => {
+      const live = getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+      css += '  ' + k + ': ' + (live || v) + ';\n';
+    });
+    css += '}';
+    navigator.clipboard.writeText(css).then(() => {
+      const el = document.getElementById('copy-confirm');
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 2000);
+    });
+  }
+</script>
 </body>
 </html>
