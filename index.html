@@ -327,6 +327,31 @@ details.bs[open] summary::before{content:"\25BC  ";}
 .sp-charge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;}
 .sp-charge.ready{background:rgba(74,122,74,.2);color:var(--green-bright);border:1px solid var(--green);}
 .sp-charge.spent{background:rgba(192,74,58,.15);color:var(--red);border:1px solid var(--red-dim);}
+
+/* ── VISUAL POLISH ── */
+body{font-size:15px;line-height:1.62;}
+.app-header{background:linear-gradient(180deg,var(--surface) 0%,#100d09 100%);box-shadow:0 2px 22px rgba(0,0,0,.65),0 1px 0 rgba(201,168,76,.18);}
+.app-title{font-size:21px;text-shadow:0 0 22px rgba(201,168,76,.4);}
+.main-tab.active{text-shadow:0 0 8px rgba(201,168,76,.35);}
+.panel{box-shadow:0 2px 14px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.025);}
+.panel-title{text-shadow:0 0 12px rgba(201,168,76,.28);}
+.btn{background:linear-gradient(180deg,var(--surface3) 0%,var(--surface2) 100%);}
+.btn:hover,.btn:active{box-shadow:0 2px 10px rgba(0,0,0,.4);background:linear-gradient(180deg,#2a2218 0%,var(--surface3) 100%);}
+.btn.gold{background:linear-gradient(180deg,rgba(201,168,76,.12) 0%,rgba(201,168,76,.04) 100%);}
+.btn.gold:hover,.btn.gold:active{background:linear-gradient(180deg,var(--gold-bright) 0%,var(--gold) 100%);box-shadow:0 2px 16px rgba(201,168,76,.45);}
+.pc-card{border-color:var(--border-bright);box-shadow:0 4px 20px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.03);}
+.pc-card-header{background:linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);}
+.modal-overlay{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+.modal-box{box-shadow:0 24px 80px rgba(0,0,0,.85),0 0 0 1px rgba(201,168,76,.12);}
+.modal-title{text-shadow:0 0 16px rgba(201,168,76,.3);}
+.round-num{text-shadow:0 0 22px rgba(201,168,76,.5);}
+.init-badge{text-shadow:0 0 12px rgba(201,168,76,.4);}
+.dice-btn:hover,.dice-btn:active{box-shadow:0 0 12px rgba(201,168,76,.25);}
+.qa-fab{box-shadow:0 4px 24px rgba(0,0,0,.55),0 0 16px rgba(201,168,76,.3);}
+input:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px rgba(201,168,76,.18);}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--gold-dim);}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-bright);}
 </style>
 </head>
 <body>
