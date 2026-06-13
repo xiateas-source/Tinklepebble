@@ -951,6 +951,10 @@ body{background-image:none;}
 .chat-msg.ooc-dm .msg-hdr{color:var(--blue-bright);}
 .chat-msg.ooc-player{background:var(--surface2);border:1px solid var(--border);border-right:3px solid var(--blue-bright);color:var(--text);align-self:flex-end;}
 .chat-msg.ooc-player .msg-hdr{color:var(--blue-bright);}
+.chat-msg.party-player{background:var(--surface2);border:1px solid var(--border);border-right:3px solid var(--purple-bright);color:var(--text);align-self:flex-end;}
+.chat-msg.party-player .msg-hdr{color:var(--purple-bright);}
+.chat-msg.party-dm{background:rgba(82,72,120,.14);border:1px solid var(--purple);border-left:3px solid var(--purple);color:var(--text-bright);font-size:14px;align-self:flex-start;}
+.chat-msg.party-dm .msg-hdr{color:var(--purple-bright);}
 </style>
 </head>
 <body>
@@ -1773,6 +1777,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div class="chat-tab-row">
           <button class="chat-tab-btn active" id="chat-tab-narrative" onclick="showChatTab('narrative')">📖 Narrative</button>
           <button class="chat-tab-btn" id="chat-tab-ooc" onclick="showChatTab('ooc')">💬 OOC</button>
+          <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party')">🗣️ Party</button>
         </div>
         <div id="chat-pane-narrative">
         <div id="chat-msgs" class="chat-msgs-wrap" onscroll="handleChatScroll(this)"></div>
@@ -1816,6 +1821,18 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           </div>
           <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Context refresh &amp; AI resync route here automatically.</div>
         </div><!-- end chat-pane-ooc -->
+        <div id="chat-pane-party" style="display:none">
+          <div id="party-msgs" class="chat-msgs-wrap" style="min-height:300px;max-height:440px"></div>
+          <div class="typing-ind" id="party-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
+          <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
+            <div style="flex:1"><textarea id="party-input" style="min-height:52px;resize:none;margin:0;width:100%;padding:8px" placeholder="Party discussion — theory craft, plan your next move (Enter to send)" onkeydown="partyKey(event)"></textarea></div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <button class="btn gold" id="party-send-btn" onclick="sendPartyMsg()" style="min-height:28px;padding:0 14px">Send</button>
+              <button class="btn sm purple" id="party-dm-btn" onclick="askDMFromParty()" title="Consult the DM">🧙 Ask DM</button>
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Player-only channel — synced across devices. Tap 🧙 Ask DM to pull in the DM.</div>
+        </div><!-- end chat-pane-party -->
       </div>
     </div>
 </div>
@@ -2186,6 +2203,7 @@ let state={
   plugins:[],
   errorLog:[],
   oocHistory:[],
+  partyChat:[],
   storyThread:'',
   sessionNotes:'',
   quickActions:[
@@ -2350,7 +2368,7 @@ function renderAll(){
   renderChkHist();renderRewind();renderScenes();renderSnips();
   renderWagon();renderIncome();renderPartyInv();syncWorld();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
-  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();
+  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
     if(document.getElementById('sess-module-panel')?.style.display==='block'){
@@ -3607,6 +3625,7 @@ function migrate(s){
   if(!Array.isArray(s.quickActions))s.quickActions=[];
   if(!Array.isArray(s.errorLog))s.errorLog=[];
   if(!Array.isArray(s.oocHistory))s.oocHistory=[];
+  if(!Array.isArray(s.partyChat))s.partyChat=[];
   // Remap old tab IDs from before consolidation
   const tabRemap={'tab-log':'tab-session','tab-module':'tab-session','tab-ledger':'tab-ait','tab-chk':'tab-ait'};
   // Canonical context arrays — always sync these from defaults
@@ -3773,7 +3792,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','plugins','errorLog','sessionNotes'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -4247,18 +4266,16 @@ function renderChat(){
 function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
 function clearChat(){if(confirm('Clear narrative chat and OOC channel? Log unaffected.')){state.chatHistory=[];state.oocHistory=[];showChatTab('narrative');saveRefresh();}}
 
-// ═══ OOC CHANNEL ═══
-let _oocActive=false;
+// ═══ CHAT TABS ═══
+let _activeTab='narrative';
 function showChatTab(tab){
-  _oocActive=(tab==='ooc');
-  const narPane=document.getElementById('chat-pane-narrative');
-  const oocPane=document.getElementById('chat-pane-ooc');
-  const narBtn=document.getElementById('chat-tab-narrative');
-  const oocBtn=document.getElementById('chat-tab-ooc');
-  if(narPane)narPane.style.display=_oocActive?'none':'block';
-  if(oocPane)oocPane.style.display=_oocActive?'block':'none';
-  if(narBtn)narBtn.classList.toggle('active',!_oocActive);
-  if(oocBtn)oocBtn.classList.toggle('active',_oocActive);
+  _activeTab=tab;
+  ['narrative','ooc','party'].forEach(t=>{
+    const pane=document.getElementById('chat-pane-'+t);
+    const btn=document.getElementById('chat-tab-'+t);
+    if(pane)pane.style.display=(t===tab)?'block':'none';
+    if(btn)btn.classList.toggle('active',t===tab);
+  });
 }
 function renderOOC(){
   const c=document.getElementById('ooc-msgs');if(!c)return;c.innerHTML='';
@@ -4287,6 +4304,62 @@ function oocKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendOOCMs
 function scrollToOOCMsg(id){
   const el=document.getElementById('oocmsg_'+id);
   if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.outline='2px solid var(--blue)';setTimeout(()=>el.style.outline='',1200);}
+}
+
+// ═══ PARTY CHANNEL ═══
+function renderParty(){
+  const c=document.getElementById('party-msgs');if(!c)return;c.innerHTML='';
+  if(!state.partyChat||!state.partyChat.length){
+    c.innerHTML='<div class="chat-msg sys"><div class="chat-msg-text" style="font-size:11px">Party channel — discuss strategy, theory craft, plan your next move. Tap 🧙 Ask DM to pull the DM in.</div></div>';
+    return;
+  }
+  state.partyChat.forEach(msg=>{
+    const d=document.createElement('div');
+    const isDM=msg.role==='dm';
+    const isSys=msg.role==='sys';
+    d.className='chat-msg '+(isSys?'sys':isDM?'party-dm':'party-player');
+    let text=esc(msg.content||'');
+    text=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    text=text.replace(/\*(.*?)\*/g,'<em>$1</em>');
+    text=text.replace(/\n/g,'<br>');
+    const sender=isSys?'System':isDM?'Dungeon Master':(msg.playerName||playerName||'Party');
+    const tsHtml=msg.ts?`<span style="font-size:9px;opacity:.5">[${esc(msg.ts)}]</span>`:'';
+    d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div>${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
+    c.appendChild(d);
+  });
+  c.scrollTop=c.scrollHeight;
+}
+function partyKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendPartyMsg();}}
+function sendPartyMsg(){
+  const inp=document.getElementById('party-input');
+  if(!inp||!inp.value.trim())return;
+  const content=inp.value.trim();inp.value='';
+  if(!state.partyChat)state.partyChat=[];
+  state.partyChat.push({role:'player',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:playerName||'Party',id:'pc_'+Date.now()});
+  save();renderParty();
+}
+async function askDMFromParty(){
+  const key=getKey();if(!key){toast('Set an API key first.');return;}
+  const dmBtn=document.getElementById('party-dm-btn');
+  const typingEl=document.getElementById('party-typing-ind');
+  if(typingEl)typingEl.classList.add('on');
+  if(dmBtn)dmBtn.disabled=true;
+  const recentMsgs=(state.partyChat||[]).filter(m=>m.role==='player').slice(-6).map(m=>'['+esc(m.playerName||'Player')+']: '+m.content).join('\n');
+  const partySys='You are the Dungeon Master for Tinkle\'s Tinctures. The players are discussing strategy out-of-character. Read their discussion and respond helpfully — answer questions, offer hints about what their characters might reasonably know, or clarify rules. Keep it to 3-5 sentences. No mechanics block. No in-character narration unless specifically asked.';
+  const msgs=[{role:'user',content:'Party discussion:\n'+recentMsgs+'\n\nWe\'d like your input.'}];
+  if(!state.partyChat)state.partyChat=[];
+  try{
+    const response=await callAI(msgs,partySys,500);
+    state.partyChat.push({role:'dm',content:response,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),id:'dm_'+Date.now()});
+    save();
+  }catch(err){
+    state.partyChat.push({role:'sys',content:'DM error: '+err.message,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+    save();
+  }finally{
+    if(typingEl)typingEl.classList.remove('on');
+    if(dmBtn)dmBtn.disabled=false;
+    renderParty();
+  }
 }
 function sendOOCMsg(){
   const inp=document.getElementById('ooc-input');
