@@ -847,11 +847,24 @@ body{background-image:none;}
 .panel{background:var(--surface);background-image:none;background-size:auto;}
 .pc-card{background:var(--surface);background-image:none;background-size:auto;}
 .modal-box{background:var(--surface);background-image:none;background-size:auto;}
-.chat-msgs-wrap{background:#08040200;}
+.chat-msgs-wrap{background:var(--bg);border-color:var(--border);}
 .chat-msg.dm{
-  background:linear-gradient(135deg,#2a1e10 0%,var(--surface3) 100%);
+  background:var(--surface);
+  border:1px solid var(--border-bright);
+  border-left:3px solid var(--gold);
+  color:var(--text-bright);
   background-size:auto;
+  background-image:none;
 }
+.chat-msg.player{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-right:3px solid var(--blue-bright);
+  color:var(--text-bright);
+  background-image:none;
+}
+.chat-msg.sys{color:var(--text);}
+.chat-msg .msg-hdr{border-bottom:1px solid rgba(255,255,255,.08);}
 
 /* No diamond clipart */
 .panel::after{content:none;}
