@@ -1053,9 +1053,7 @@ body{background-image:none;}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
     <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
     <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
-    <button onclick="generateSessionZero();openModal('s0-modal');closeHeaderMenu()" class="btn gold">⚡ Session Zero</button>
     <button onclick="populateVoices();openModal('tts-modal');closeHeaderMenu()" class="btn">🔊 Voice</button>
-    <button onclick="openModal('provider-modal');closeHeaderMenu()" class="btn">🔑 API Key</button>
     <button onclick="exportConfig();closeHeaderMenu()" class="btn gold">📤 Export</button>
     <button onclick="copyStateCompact();closeHeaderMenu()" class="btn">📋 Copy State</button>
     <button onclick="switchUser()" class="btn" style="border-color:var(--purple-bright);color:var(--purple-bright)!important">👤 Switch Player</button>
@@ -1103,6 +1101,21 @@ body{background-image:none;}
 
 <!-- WORLD TAB -->
 <div id="tab-world" class="tab-section">
+  <div class="panel accent" style="margin-bottom:12px">
+    <div class="panel-title">🎬 Active Scene
+      <select id="w_scene_threat" onchange="sw('scene_threat',this.value)" style="margin-left:auto;width:120px;font-size:11px;padding:3px 6px;border-color:var(--gold)">
+        <option value="">— Tone —</option>
+        <option value="Calm">🟢 Calm</option>
+        <option value="Tense">🟡 Tense</option>
+        <option value="Combat">🔴 Combat</option>
+        <option value="Critical">💀 Critical</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label class="field-label">Scene Title</label><input type="text" id="w_scene_title" placeholder="e.g. Ambush at Duskwall Bridge" oninput="sw('scene_title',this.value)"></div>
+      <div class="fg"><label class="field-label">Active Conditions</label><input type="text" id="w_scene_cond" placeholder="Darkness, Difficult terrain, Poisoned..." oninput="sw('scene_cond',this.value)"></div>
+    </div>
+  </div>
   <div class="grid-2">
     <div class="col">
       <div class="panel">
@@ -1612,7 +1625,6 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div class="btn-row" style="flex-direction:column;gap:6px">
           <button class="btn gold full" onclick="genLedger()">⚡ Compile Ledger</button>
           <button class="btn full" onclick="copyText(document.getElementById('ledger-out').value,'✓ Ledger copied!')">📋 Copy Ledger</button>
-          <button class="btn full" onclick="generateSessionZero();openModal('s0-modal')">⚡ Session Zero</button>
         </div>
       </div>
     </div>
@@ -1623,23 +1635,6 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div id="ledger-tokens" style="margin-top:4px;font-size:10px;color:var(--text-dim)"></div>
       </div>
     </div>
-  </div>
-  <div class="col">
-    <div class="panel accent" id="firebase-panel">
-        <div class="panel-title">🔥 Firebase Sync — Drop 2
-          <span id="fb-status" style="margin-left:auto;font-size:11px;color:var(--text-dim)">⚪ Local only</span>
-        </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Connect Firebase to sync state between both phones live. One setup, works every session.</p>
-        <div class="form-group"><label class="field-label">Paste Firebase Config JSON</label>
-          <textarea id="fb-config-input" style="min-height:90px;font-size:10px;font-family:var(--mono)" placeholder='{"apiKey":"AIza...","databaseURL":"https://your-project-rtdb.firebaseio.com","projectId":"your-project",...}'></textarea>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button class="btn gold full" onclick="connectFirebase()">🔥 Connect</button>
-          <button class="btn red" id="fb-disconnect-btn" onclick="fbDisconnect()" style="display:none">Disconnect</button>
-        </div>
-        <div id="fb-error" style="display:none;color:var(--red);font-size:11px;padding:6px;background:rgba(192,74,58,.1);border:1px solid var(--red);border-radius:2px;margin-bottom:8px"></div>
-        <p style="font-size:10px;color:var(--text-dim)"><strong style="color:var(--text)">Setup:</strong> firebase.google.com → Create project → Realtime Database → Create database → Project Settings → Your Apps → Web app → copy config → paste above. Set rules to allow read/write.</p>
-      </div>
   </div>
 </div>
 
@@ -1693,6 +1688,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button class="btn red" id="fb-disconnect-btn" onclick="fbDisconnect()" style="display:none">Disconnect</button>
         </div>
         <p style="font-size:10px;color:var(--text-dim)"><strong style="color:var(--text)">Setup:</strong> firebase.google.com → Create project → Realtime Database → Create database → Project Settings → Your Apps → Web app → copy config → paste above.<br><br>Set rules to allow read/write for household use.</p>
+        <div id="fb-error" style="display:none;color:var(--red);font-size:11px;padding:6px;background:rgba(192,74,58,.1);border:1px solid var(--red);border-radius:2px;margin-top:8px"></div>
       </div>
       <div class="panel">
         <div class="panel-title">⚡ Context Refresh</div>
@@ -2026,6 +2022,9 @@ let state={
     premise:"Tinkles Tinctures is a traveling con operation run by three mismatched grifters. Tinkle the Tortle brews the product (mostly useless, occasionally real). Pebble the Goliath sells it to crowds who want to believe. Slasher the Black Dragonborn ensures things escalate in ways nobody planned. They travel in a brightly painted wagon called The Shelled Alchemist, moving town to town before the locals compare notes. Former associates of Goodbarrel Logistics — a connection they neither advertise nor fully disavow.",
     premiseLocked:false,
     primaryMission:'PENDING — To be established through play.',
+    scene_title:'',
+    scene_threat:'',
+    scene_cond:'',
     travelLog:[],
     townReputation:[],
     businessProfile:{
@@ -2537,7 +2536,7 @@ function renderStatusMini(){
 
 // ═══ WORLD SYNC ═══
 function syncWorld(){
-  ['time','season','weather','illum','location','loc_desc','setting','plot','secrets','timers','premise'].forEach(k=>{
+  ['time','season','weather','illum','location','loc_desc','setting','plot','secrets','timers','premise','scene_title','scene_threat','scene_cond'].forEach(k=>{
     const el=document.getElementById('w_'+k);if(el&&state.worldData[k]!==undefined)el.value=state.worldData[k]||'';
   });
   ['pp','gp','ep','sp','cp','lifestyle'].forEach(k=>{const el=document.getElementById('t_'+k);if(el)el.value=state.treasuryData[k]||0;});
@@ -2574,11 +2573,11 @@ function renderNPCs(){
   state.npcs.forEach((n,idx)=>{
     const d=document.createElement('div');
     d.className='npc-row'+(n.status==='deceased'?' deceased':'');
-    d.innerHTML=`<input type="text" style="flex:1;min-width:70px;font-size:11px" value="${esc(n.name)}" placeholder="Name" onchange="updNPC(${idx},'name',this.value)"><input type="text" style="width:85px;font-size:11px" value="${esc(n.disposition||'')}" placeholder="Disposition" onchange="updNPC(${idx},'disposition',this.value)"><input type="text" style="flex:2;min-width:90px;font-size:11px" value="${esc(n.details||'')}" placeholder="Details" onchange="updNPC(${idx},'details',this.value)"><select style="width:85px;font-size:11px;padding:4px" onchange="updNPC(${idx},'status',this.value)"><option value="active" ${n.status!=='deceased'&&n.status!=='departed'?'selected':''}>Active</option><option value="deceased" ${n.status==='deceased'?'selected':''}>Deceased</option><option value="departed" ${n.status==='departed'?'selected':''}>Departed</option></select><button class="btn sm red icon-btn" onclick="remNPC(${idx})">&times;</button>`;
+    d.innerHTML=`<input type="text" style="flex:1;min-width:70px;font-size:11px" value="${esc(n.name)}" placeholder="Name" onchange="updNPC(${idx},'name',this.value)"><input type="text" style="width:76px;font-size:11px" value="${esc(n.disposition||'')}" placeholder="Disposition" onchange="updNPC(${idx},'disposition',this.value)"><input type="number" style="width:48px;font-size:11px;text-align:center" value="${n.hp||0}" title="Current HP" onchange="updNPC(${idx},'hp',parseInt(this.value)||0)"><input type="text" style="flex:2;min-width:80px;font-size:11px" value="${esc(n.details||'')}" placeholder="Details / Conditions" onchange="updNPC(${idx},'details',this.value)"><select style="width:82px;font-size:11px;padding:4px" onchange="updNPC(${idx},'status',this.value)"><option value="active" ${n.status!=='deceased'&&n.status!=='departed'?'selected':''}>Active</option><option value="deceased" ${n.status==='deceased'?'selected':''}>Deceased</option><option value="departed" ${n.status==='departed'?'selected':''}>Departed</option></select><button class="btn sm red icon-btn" onclick="remNPC(${idx})">&times;</button>`;
     c.appendChild(d);
   });
 }
-function addNPC(){state.npcs.push({name:'',disposition:'Neutral',details:'',status:'active',lastSeen:state.worldData.location||''});saveRefresh();}
+function addNPC(){state.npcs.push({name:'',disposition:'Neutral',details:'',status:'active',hp:0,lastSeen:state.worldData.location||''});saveRefresh();}
 function updNPC(i,k,v){state.npcs[i][k]=v;save();}
 function remNPC(i){state.npcs.splice(i,1);saveRefresh();}
 
@@ -2587,11 +2586,13 @@ function renderQuests(){
   const c=document.getElementById('quest-list');if(!c)return;c.innerHTML='';
   state.quests.forEach((q,idx)=>{
     const d=document.createElement('div');d.style.cssText='display:flex;gap:8px;margin-bottom:6px;align-items:center';
-    d.innerHTML=`<input type="checkbox" ${q.done?'checked':''} onchange="updQ(${idx},'done',this.checked)" style="min-width:20px;height:20px"><input type="text" style="flex:1;font-size:12px;${q.done?'text-decoration:line-through;color:var(--text-dim)':''}" value="${esc(q.text)}" onchange="updQ(${idx},'text',this.value)"><button class="btn sm red icon-btn" onclick="remQ(${idx})">&times;</button>`;
+    const qst=q.status||'active';
+    const qcol=qst==='done'?'var(--text-dim)':qst==='failed'?'var(--red)':'var(--green)';
+    d.innerHTML=`<select style="width:82px;font-size:10px;padding:3px 4px;border-color:${qcol};color:${qcol}" onchange="updQ(${idx},'status',this.value)"><option value="active" ${qst==='active'?'selected':''}>🟢 Active</option><option value="done" ${qst==='done'?'selected':''}>✓ Done</option><option value="failed" ${qst==='failed'?'selected':''}>✗ Failed</option></select><input type="text" style="flex:1;font-size:12px;${qst==='done'?'text-decoration:line-through;color:var(--text-dim)':qst==='failed'?'color:var(--red-dim)':''}" value="${esc(q.text)}" onchange="updQ(${idx},'text',this.value)"><button class="btn sm red icon-btn" onclick="remQ(${idx})">&times;</button>`;
     c.appendChild(d);
   });
 }
-function addQuest(){state.quests.push({text:'',done:false});saveRefresh();}
+function addQuest(){state.quests.push({text:'',status:'active'});saveRefresh();}
 function updQ(i,k,v){state.quests[i][k]=v;saveRefresh();}
 function remQ(i){state.quests.splice(i,1);saveRefresh();}
 
@@ -2987,6 +2988,8 @@ function genLedger(){
   l+="━━━ WORLD ━━━\n";
   l+='Time: '+state.worldData.time+' | Season: '+state.worldData.season+' | Weather: '+state.worldData.weather+'\n';
   l+='Location: '+state.worldData.location+'\n'+state.worldData.loc_desc+'\n';
+  if(state.worldData.scene_title)l+='Scene: '+state.worldData.scene_title+(state.worldData.scene_threat?' ['+state.worldData.scene_threat+']':'')+'\n';
+  if(state.worldData.scene_cond)l+='Active Conditions: '+state.worldData.scene_cond+'\n';
   if(state.worldData.setting)l+='Setting: '+state.worldData.setting+'\n';
   if(fmt==='full'){
     l+="\n━━━ TREASURY ━━━\n";
@@ -3001,9 +3004,9 @@ function genLedger(){
     if(state.wagon.hoard?.length){l+="Pebble's Hoard:\n";state.wagon.hoard.forEach(i=>l+='  '+i.name+' x'+i.qty+' '+i.weight+'lb\n');}
     l+="\n━━━ QUESTS ━━━\n";
     l+='Primary: '+(state.worldData.primaryMission||'')+'\n';
-    state.quests.forEach((q,i)=>l+='  ['+(q.done?'DONE':'ACTIVE')+'] '+(i+1)+'. '+q.text+'\n');
+    state.quests.forEach((q,i)=>l+='  ['+(q.status||'active').toUpperCase()+'] '+(i+1)+'. '+q.text+'\n');
     l+="\n━━━ NPCs ━━━\n";
-    state.npcs.filter(n=>n.status!=='deceased').forEach(n=>l+='  '+n.name+' ['+n.disposition+'] — '+n.details+'\n');
+    state.npcs.filter(n=>n.status!=='deceased').forEach(n=>l+='  '+n.name+' ['+n.disposition+']'+(n.hp?' HP:'+n.hp:'')+' — '+n.details+'\n');
     if(state.worldData.plot)l+="\n━━━ PLOT ━━━\n"+state.worldData.plot+'\n';
     if(state.worldData.timers)l+="Timers: "+state.worldData.timers+'\n';
     if(state.logSummary)l+="\n━━━ SESSION SUMMARY ━━━\n"+state.logSummary+'\n';
@@ -3497,7 +3500,9 @@ function migrate(s){
     });
   });
   if(!Array.isArray(s.npcs))s.npcs=[];
+  s.npcs.forEach(function(n){if(n.hp===undefined)n.hp=0;});
   if(!Array.isArray(s.quests))s.quests=[];
+  s.quests.forEach(function(q){if(!q.status){q.status=q.done?'done':'active';}});
   // Deduplicate quests by text
   if(s.quests.length>0){
     const seen=new Set();
@@ -4065,10 +4070,10 @@ function parseMechanics(responseText){
           const m=part.trim().match(/^([^+]+)\+(\d+)$/);
           if(m){const pc=findPC(m[1].trim());if(pc){const amt=parseInt(m[2]);pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});const nxt=XP_T[Math.min(pc.level||1,19)];if(pc.xp>=nxt&&(pc.level||1)<20)changes.push({text:'⚠ '+pc.name+' can level up!'});}}
         });
-      }else if(key==='quest_done'){const q=state.quests.find(qu=>qu.text.toLowerCase().includes(val.toLowerCase()));if(q&&!q.done){q.done=true;changes.push({text:'Quest ✓: '+q.text.slice(0,30)});}}
+      }else if(key==='quest_done'){const q=state.quests.find(qu=>qu.text.toLowerCase().includes(val.toLowerCase()));if(q&&q.status!=='done'){q.status='done';changes.push({text:'Quest ✓: '+q.text.slice(0,30)});}}
       else if(key==='quest_add'){state.quests.push({text:val,done:false});changes.push({text:'New quest: '+val.slice(0,30)});}
       else if(key==='npc_mood'){const pts=val.split('=');const npc=state.npcs.find(n=>n.name.toLowerCase()===pts[0]?.trim().toLowerCase());if(npc&&pts[1]){npc.disposition=pts[1].trim();changes.push({text:npc.name+' → '+npc.disposition});}}
-      else if(key==='npc_add'){const pts=val.split(',').map(p=>p.trim());state.npcs.push({name:pts[0]||'NPC',disposition:pts[1]||'Neutral',details:pts[2]||'',status:'active',lastSeen:state.worldData.location});changes.push({text:'New NPC: '+pts[0]});}
+      else if(key==='npc_add'){const pts=val.split(',').map(p=>p.trim());state.npcs.push({name:pts[0]||'NPC',disposition:pts[1]||'Neutral',details:pts[2]||'',status:'active',hp:0,lastSeen:state.worldData.location});changes.push({text:'New NPC: '+pts[0]});}
       else if(key==='pc_update'){
         const pts=val.split(',').map(p=>p.trim());const pc=findPC(pts[0]);const field=pts[1];const nv=pts.slice(2).join(',');
         const fields=['name','race','class','level','background','alignment','initiative','speed','passive_perception','passive_insight','xp','str','dex','con','int','wis','cha','skills','features','magic','backstory_origin','backstory_motivation','backstory_secret','ac','hp_max'];
