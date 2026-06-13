@@ -18,12 +18,12 @@
   --surface3:#2e2318;
   --border:#3e2e1c;
   --border-bright:#5c4430;
-  --gold:#c08040;--gold-dim:#7a4c20;--gold-bright:#e8a050;
-  --red:#c04828;--red-dim:#7a2c10;
-  --green:#527858;--green-bright:#7aaa7a;
-  --blue:#4a7090;--blue-bright:#6a98b0;
-  --purple:#7060a8;--purple-bright:#9080c8;
-  --text:#c8baa8;--text-dim:#7a6a54;--text-bright:#e8ddc8;
+  --gold:#b07030;--gold-dim:#6a3c12;--gold-bright:#c88038;
+  --red:#7a3220;--red-dim:#48180c;
+  --green:#425e48;--green-bright:#5e7e66;
+  --blue:#38586a;--blue-bright:#507282;
+  --purple:#524878;--purple-bright:#6e6892;
+  --text:#bfb09c;--text-dim:#726252;--text-bright:#ddd0b8;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
   --mono:'Share Tech Mono','Courier New',monospace;
   --serif:'IM Fell English',Georgia,serif;
@@ -333,10 +333,9 @@ details.bs[open] summary::before{content:"\25BC  ";}
    AUTUMN CORPORATE STEAMPUNK — HAND-CRAFTED
    ══════════════════════════════════════════ */
 
-/* Richer copper — less muddy, more saturated */
 :root{
-  --gold:#c87840;--gold-dim:#7a4818;--gold-bright:#f0a844;
-  --text-bright:#f0e8d8;
+  --gold:#b07030;--gold-dim:#6a3c12;--gold-bright:#c88038;
+  --text-bright:#ddd0b8;
   --display:'Cinzel',Georgia,serif;
 }
 
@@ -391,10 +390,10 @@ body{font-size:16px;line-height:1.68;}
   top:-1px;left:22%;right:22%;height:2px;
   background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
 }
-.panel.accent::before{background:linear-gradient(90deg,transparent,var(--gold),transparent);}
-.panel.danger::before{background:linear-gradient(90deg,transparent,var(--red),transparent);}
-.panel.purple::before{background:linear-gradient(90deg,transparent,var(--purple-bright),transparent);}
-.panel.green::before{background:linear-gradient(90deg,transparent,var(--green-bright),transparent);}
+.panel.accent::before{background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);}
+.panel.danger::before{background:linear-gradient(90deg,transparent,var(--red),transparent);opacity:.7;}
+.panel.purple::before{background:linear-gradient(90deg,transparent,var(--purple),transparent);opacity:.7;}
+.panel.green::before{background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.7;}
 
 /* Panel title — Cinzel brass nameplate, not generic all-caps sans */
 .panel-title{
@@ -902,7 +901,7 @@ body{background-image:none;}
 <!-- SETUP MODAL -->
 <div class="modal-overlay" id="setup-modal">
   <div class="modal-box" style="max-width:460px">
-    <div class="modal-title" style="font-size:22px">🧪 Tinkle's Tinctures</div>
+    <div class="modal-title" style="font-size:22px">Tinkle's Tinctures</div>
     <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;font-family:var(--serif);font-style:italic;">Former associates of Goodbarrel Logistics, now striking out on their own.</p>
     <div class="form-group"><label class="field-label">Your Name</label><input type="text" id="setup-name" placeholder="e.g. Sarah" autocomplete="given-name"></div>
     <div class="form-group"><label class="field-label">You Are Playing</label><select id="setup-character"><option value="">— Select your character —</option></select></div>
@@ -913,7 +912,7 @@ body{background-image:none;}
 <!-- SESSION ZERO MODAL -->
 <div class="modal-overlay" id="s0-modal">
   <div class="modal-box" style="max-width:800px">
-    <div class="modal-title">⚡ Session Zero — AI DM Onboarding</div>
+    <div class="modal-title">Session Zero — AI DM Onboarding</div>
     <div class="form-group"><label class="field-label">Verify these items</label><input type="text" id="s0-verify" value="all PC names with current HP, current location, and primary quest objective"></div>
     <div id="s0-output" class="modal-output" style="height:320px">— Click Generate —</div>
     <div class="modal-actions">
@@ -927,7 +926,7 @@ body{background-image:none;}
 <!-- CHECKPOINT MODAL -->
 <div class="modal-overlay" id="chk-modal">
   <div class="modal-box" style="max-width:800px">
-    <div class="modal-title" id="chk-modal-title">🔔 Checkpoint</div>
+    <div class="modal-title" id="chk-modal-title">Checkpoint</div>
     <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px" id="chk-modal-desc"></p>
     <div id="chk-modal-output" class="modal-output" style="height:260px"></div>
     <div class="modal-actions">
@@ -940,7 +939,7 @@ body{background-image:none;}
 <!-- PASTE IMPORT MODAL -->
 <div id="reset-modal" class="modal-overlay">
   <div class="modal-box" style="max-width:420px">
-    <div class="modal-title" id="reset-modal-title">🌅 New Campaign</div>
+    <div class="modal-title" id="reset-modal-title">New Campaign</div>
     <p id="reset-modal-desc" style="font-size:12px;color:var(--text-dim);margin-bottom:12px"></p>
     <div class="form-group">
       <label class="field-label">Starting Gold (GP)</label>
@@ -957,7 +956,7 @@ body{background-image:none;}
   </div>
 </div><div id="paste-modal" class="modal-overlay">
   <div class="modal-box" style="max-width:620px">
-    <div class="modal-title">📋 Paste JSON Import</div>
+    <div class="modal-title">Paste JSON Import</div>
     <div class="form-group"><label class="field-label">Paste save JSON here</label><textarea id="paste-json" style="min-height:200px;font-size:11px;color:var(--green-bright);background:#0e0b08;border:1px dashed var(--gold-dim);" placeholder='{ "pcs": [...] }'></textarea></div>
     <div id="paste-err" style="color:var(--red);font-size:11px;display:none;margin-bottom:8px"></div>
     <div class="modal-actions">
@@ -970,7 +969,7 @@ body{background-image:none;}
 <!-- TTS MODAL -->
 <div class="modal-overlay" id="tts-modal">
   <div class="modal-box" style="max-width:480px">
-    <div class="modal-title">🔊 Voice / Read-Aloud Settings</div>
+    <div class="modal-title">Voice / Read-Aloud Settings</div>
     <div class="form-group"><label class="field-label">Voice Provider</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <button id="tts-btn-browser" class="btn gold" onclick="setTtsProvider('browser')">🌐 Browser</button>
@@ -1047,30 +1046,30 @@ body{background-image:none;}
 </div>
 
 <div class="main-tabs">
-  <button class="main-tab active" onclick="showTab('tab-party')">⚔ Party</button>
-  <button class="main-tab" onclick="showTab('tab-world')">🌍 World</button>
-  <button class="main-tab" onclick="showTab('tab-wagon')">🐂 Wagon</button>
-  <button class="main-tab" onclick="showTab('tab-combat')">🎲 Combat</button>
-  <button class="main-tab" onclick="showTab('tab-session')">📜 Session</button>
-  <button class="main-tab" id="tab-btn-ait" onclick="showTab('tab-ait')">🤖 AI Tools</button>
-  <button class="main-tab" onclick="showTab('tab-dm')">🧙 AI DM</button>
-  <button class="main-tab" onclick="showTab('tab-setup')" style="border-color:var(--purple-bright);color:var(--purple-bright)">⚙ Setup</button>
+  <button class="main-tab active" onclick="showTab('tab-party')">Party</button>
+  <button class="main-tab" onclick="showTab('tab-world')">World</button>
+  <button class="main-tab" onclick="showTab('tab-wagon')">Wagon</button>
+  <button class="main-tab" onclick="showTab('tab-combat')">Combat</button>
+  <button class="main-tab" onclick="showTab('tab-session')">Session</button>
+  <button class="main-tab" id="tab-btn-ait" onclick="showTab('tab-ait')">AI Tools</button>
+  <button class="main-tab" onclick="showTab('tab-dm')">AI DM</button>
+  <button class="main-tab" onclick="showTab('tab-setup')" style="border-color:var(--purple-bright);color:var(--purple-bright)">Setup</button>
 </div>
 
 <!-- PARTY TAB -->
 <div id="tab-party" class="tab-section active">
   <div class="party-grid" id="party-cards"></div>
   <div class="panel">
-    <div class="panel-title">📋 Character Editor <button class="btn sm green" style="margin-left:auto" onclick="addNewChar()">+ Add Character</button></div>
+    <div class="panel-title">Character Editor <button class="btn sm green" style="margin-left:auto" onclick="addNewChar()">+ Add Character</button></div>
     <div id="char-tabs" style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;"></div>
     <div id="edit-sheets"></div>
   </div>
   <div class="panel" style="margin-top:12px">
-    <div class="panel-title">🎒 Party Shared Inventory <button class="btn sm green" style="margin-left:auto" onclick="addPartyItem()">+ Add Item</button></div>
+    <div class="panel-title">Party Shared Inventory <button class="btn sm green" style="margin-left:auto" onclick="addPartyItem()">+ Add Item</button></div>
     <div id="party-inv"></div>
   </div>
   <div class="panel purple" id="superpowers-panel" style="display:none;margin-top:12px">
-    <div class="panel-title" style="color:var(--purple-bright)">⚡ Superpowers <span style="font-size:9px;background:#1a0a2a;color:var(--purple);border:1px solid var(--purple);border-radius:8px;padding:2px 7px;margin-left:6px">superpowers@1.0.0</span></div>
+    <div class="panel-title" style="color:var(--purple-bright)">Superpowers <span style="font-size:9px;background:#1a0a2a;color:var(--purple);border:1px solid var(--purple);border-radius:8px;padding:2px 7px;margin-left:6px">superpowers@1.0.0</span></div>
     <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Each character's signature superpower — a class-defining combo move. Activate to mark as spent; reset on Short or Long Rest.</p>
     <div id="sp-cards"></div>
   </div>
@@ -1081,7 +1080,7 @@ body{background-image:none;}
   <div class="grid-2">
     <div class="col">
       <div class="panel">
-        <div class="panel-title">🕰 Environment</div>
+        <div class="panel-title">Environment</div>
         <div class="form-row"><div class="fg"><label class="field-label">Time</label><input type="text" id="w_time" oninput="sw('time',this.value)"></div><div class="fg"><label class="field-label">Season</label><input type="text" id="w_season" oninput="sw('season',this.value)"></div></div>
         <div class="form-row"><div class="fg"><label class="field-label">Weather</label><input type="text" id="w_weather" oninput="sw('weather',this.value)"></div><div class="fg"><label class="field-label">Illumination</label><input type="text" id="w_illum" oninput="sw('illum',this.value)"></div></div>
         <div class="form-group"><label class="field-label">Current Location</label><input type="text" id="w_location" oninput="sw('location',this.value)"></div>
@@ -1089,12 +1088,12 @@ body{background-image:none;}
         <div class="form-group"><label class="field-label">Campaign Setting / World Notes</label><textarea id="w_setting" style="min-height:60px" oninput="sw('setting',this.value)" placeholder="Unknown — discovering as we play..."></textarea></div>
       </div>
       <div class="panel accent">
-        <div class="panel-title">🔒 Campaign Premise <button class="lock-btn unlocked" id="premise-btn" onclick="togglePremise()" style="margin-left:auto">🔓 Unlocked</button></div>
+        <div class="panel-title">Campaign Premise <button class="lock-btn unlocked" id="premise-btn" onclick="togglePremise()" style="margin-left:auto">🔓 Unlocked</button></div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Lock when ready. Locked premise is a fixed AI contract.</p>
         <textarea id="w_premise" class="premise-ta" style="min-height:80px" oninput="sw('premise',this.value)" placeholder="Tinkle's Tinctures — an independent operation..."></textarea>
       </div>
       <div class="panel">
-        <div class="panel-title">💰 Treasury</div>
+        <div class="panel-title">Treasury</div>
         <div class="form-row">
           <div class="fg"><label class="field-label">PP</label><input type="number" id="t_pp" oninput="st('pp',this.value)"></div>
           <div class="fg"><label class="field-label">GP</label><input type="number" id="t_gp" oninput="st('gp',this.value)"></div>
@@ -1114,9 +1113,9 @@ body{background-image:none;}
       </div>
     </div>
     <div class="col">
-      <div class="panel"><div class="panel-title">👥 NPCs <button class="btn sm" style="margin-left:auto" onclick="addNPC()">+ Add</button></div><div id="npc-list"></div></div>
+      <div class="panel"><div class="panel-title">NPCs <button class="btn sm" style="margin-left:auto" onclick="addNPC()">+ Add</button></div><div id="npc-list"></div></div>
       <div class="panel">
-        <div class="panel-title">🗺 Quest Log</div>
+        <div class="panel-title">Quest Log</div>
         <div class="form-group"><label class="field-label">Primary Mission</label><input type="text" id="q_primary" placeholder="Main goal..." oninput="state.worldData.primaryMission=this.value;save()"></div>
         <hr class="divider">
         <div class="sec-label">Objectives</div>
@@ -1124,27 +1123,27 @@ body{background-image:none;}
         <button class="btn sm" onclick="addQuest()" style="margin-top:6px">+ Add Objective</button>
       </div>
       <div class="panel">
-        <div class="panel-title">📖 Plot &amp; Lore</div>
+        <div class="panel-title">Plot &amp; Lore</div>
         <div class="form-group"><label class="field-label">Active Plot Threads</label><textarea id="w_plot" style="min-height:70px" oninput="sw('plot',this.value)"></textarea></div>
         <div class="form-group"><label class="field-label">Pending Timers</label><textarea id="w_timers" style="min-height:50px" oninput="sw('timers',this.value)"></textarea></div>
         <div class="form-group"><label class="field-label">Wagon Travel Log (auto)</label><textarea id="w_travel_log" style="min-height:50px;color:var(--text-dim)" readonly placeholder="Auto-updated when location changes..."></textarea></div>
       </div>
       <div class="panel accent">
-        <div class="panel-title">🔐 Campaign Secrets
+        <div class="panel-title">Campaign Secrets
           <button class="btn sm green" style="margin-left:auto" onclick="addCampaignSecret()">+ Add</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Active plot threads the players are aware of. The AI references these for character moments and story hooks.</p>
         <div id="campaign-secrets-list"></div>
       </div>
       <div class="panel green">
-        <div class="panel-title">🏘 Town Reputation Log
+        <div class="panel-title">Town Reputation Log
           <button class="btn sm green" style="margin-left:auto" onclick="addTownRep()">+ Add Town</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Track which towns have been visited and whether it's safe to return. The AI will not suggest returning to burned towns.</p>
         <div id="town-rep-list"></div>
       </div>
       <div class="panel purple">
-        <div class="panel-title">🧪 Business Profile — Tinkle's Tinctures</div>
+        <div class="panel-title">Business Profile — Tinkle's Tinctures</div>
         <div class="form-group"><label class="field-label">Wagon Name</label><input type="text" id="bp_wagonName" oninput="saveBP('wagaonName',this.value)" placeholder="The Shelled Alchemist"></div>
         <div class="form-group"><label class="field-label">Real Stock (functional products)</label><textarea id="bp_realStock" style="min-height:50px" oninput="saveBP('realStock',this.value)" placeholder="Genuine healing potions, quality reagents..."></textarea></div>
         <div class="form-group"><label class="field-label">Snake Oil (the main product line)</label><textarea id="bp_snakeOil" style="min-height:50px" oninput="saveBP('snakeOil',this.value)" placeholder="Miracle cures, vitality tonics, cure-alls..."></textarea></div>
@@ -1161,7 +1160,7 @@ body{background-image:none;}
   <div class="grid-2">
     <div class="col">
       <div class="panel accent">
-        <div class="panel-title">🐂 Grit — The Ox</div>
+        <div class="panel-title">Grit — The Ox</div>
         <div class="form-row">
           <div class="fg"><label class="field-label">Name</label><input type="text" id="ox-name" oninput="state.wagon.ox.name=this.value;save()"></div>
           <div style="width:65px"><label class="field-label">HP</label><input type="number" id="ox-hp" oninput="state.wagon.ox.hp=parseInt(this.value)||0;save();renderCapacity()"></div>
@@ -1182,20 +1181,20 @@ body{background-image:none;}
         <div class="form-group"><label class="field-label">Experiment Log Reference</label><input type="text" id="ox-exp-log" style="font-size:11px" oninput="state.wagon.ox.experimentLog=this.value;save()" placeholder="Vol. 3 (current)..."></div>
       </div>
       <div class="panel">
-        <div class="panel-title">📊 Cargo Capacity</div>
+        <div class="panel-title">Cargo Capacity</div>
         <div class="cap-bar-wrap"><div class="cap-bar-fill" id="cap-fill" style="width:0%;background:var(--green)"></div><div class="cap-bar-label" id="cap-lbl">0 / 1,080 lb</div></div>
         <div id="cap-warn" style="font-size:11px;color:var(--red);display:none;margin-top:4px">⚠ Encumbered! Ox speed reduced per 5e encumbrance rules.</div>
         <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Encumbered &gt;540 lb (−10ft) | Heavy &gt;1,080 lb (−20ft, disadvantage on Str/Dex/Con)</div>
       </div>
       <div class="panel danger">
-        <div class="panel-title">🔒 Holding Cells <button class="btn sm green" style="margin-left:auto" onclick="addCell()">+ Add Cell</button></div>
+        <div class="panel-title">Holding Cells <button class="btn sm green" style="margin-left:auto" onclick="addCell()">+ Add Cell</button></div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Dynamic cages. Creature weight counts toward cargo limit.</p>
         <div id="holding-cells"></div>
       </div>
     </div>
     <div class="col">
       <div class="panel">
-        <div class="panel-title">📦 General Cargo <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('cargo','supply')">+ Add</button></div>
+        <div class="panel-title">General Cargo <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('cargo','supply')">+ Add</button></div>
         <div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap">
           <button class="btn sm" id="wf-all" onclick="setWFilter('all')">All</button>
           <button class="btn sm" id="wf-supply" onclick="setWFilter('supply')">Supply</button>
@@ -1207,12 +1206,12 @@ body{background-image:none;}
         <div id="wagon-cargo"></div>
       </div>
       <div class="panel purple">
-        <div class="panel-title">🪣 Pebble's Hoard <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('hoard','hoard')">+ Add</button></div>
+        <div class="panel-title">Pebble's Hoard <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('hoard','hoard')">+ Add</button></div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">"Mine." — Pebble</p>
         <div id="wagon-hoard"></div>
       </div>
       <div class="panel green">
-        <div class="panel-title">🌿 Forage Log <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('cargo','foraged')">+ Foraged</button></div>
+        <div class="panel-title">Forage Log <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('cargo','foraged')">+ Foraged</button></div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Ingredients tagged with location &amp; time collected.</p>
         <div id="forage-log"></div>
       </div>
@@ -1225,7 +1224,7 @@ body{background-image:none;}
   <div class="grid-2">
     <div class="col">
       <div class="panel">
-        <div class="panel-title">⚔ Initiative Tracker</div>
+        <div class="panel-title">Initiative Tracker</div>
         <div class="round-counter">
           <span style="font-size:11px;color:var(--text-dim);text-transform:uppercase">Round</span>
           <span class="round-num" id="round-num">1</span>
@@ -1246,7 +1245,7 @@ body{background-image:none;}
         <button class="btn full" onclick="addPartyToCombat()" style="margin-top:6px">+ Add All PCs to Initiative</button>
       </div>
       <div class="panel">
-        <div class="panel-title">💤 Rests</div>
+        <div class="panel-title">Rests</div>
         <div class="btn-row">
           <button class="btn gold" onclick="doShortRest()">⛺ Short Rest</button>
           <button class="btn purple" onclick="doLongRest()">🌙 Long Rest</button>
@@ -1254,14 +1253,14 @@ body{background-image:none;}
         <p style="font-size:11px;color:var(--text-dim);margin-top:8px"><b style="color:var(--gold)">Short:</b> Spend Hit Dice. Some features restore.<br><b style="color:var(--purple-bright)">Long:</b> Full HP + spell slots. Auto-checkpoint.</p>
       </div>
       <div class="panel">
-        <div class="panel-title">📦 Encounter Presets <button class="btn sm green" style="margin-left:auto" onclick="addPreset()">+ New</button></div>
+        <div class="panel-title">Encounter Presets <button class="btn sm green" style="margin-left:auto" onclick="addPreset()">+ New</button></div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Format: Name:HP:AC per enemy, comma separated.</p>
         <div id="preset-list"></div>
       </div>
     </div>
     <div class="col">
       <div class="panel">
-        <div class="panel-title">🎲 Dice Roller</div>
+        <div class="panel-title">Dice Roller</div>
         <div class="dice-row">
           <button class="dice-btn" onclick="rollDie(4)">d4</button>
           <button class="dice-btn" onclick="rollDie(6)">d6</button>
@@ -1280,7 +1279,7 @@ body{background-image:none;}
         <div class="roll-history" id="roll-hist"></div>
       </div>
       <div class="panel">
-        <div class="panel-title">📐 Conditions Reference</div>
+        <div class="panel-title">Conditions Reference</div>
         <div style="font-size:11px;color:var(--text-dim);line-height:1.8">
           <b style="color:var(--red)">Blinded:</b> Auto-fail sight checks, attacks vs you have adv.<br>
           <b style="color:var(--red)">Charmed:</b> Can't attack charmer; charmer adv on social checks.<br>
@@ -1301,22 +1300,22 @@ body{background-image:none;}
 <!-- LOG TAB -->
 <div id="tab-session" class="tab-section">
   <div id="sess-subnav" style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border);">
-    <button class="main-tab active" id="sess-btn-play" onclick="showSessionMode('play')" style="font-size:11px;padding:8px 12px">⚔ During Session</button>
-    <button class="main-tab" id="sess-btn-prep" onclick="showSessionMode('prep')" style="font-size:11px;padding:8px 12px">📋 Between Sessions</button>
-    <button class="main-tab" id="sess-btn-module" onclick="showSessionTab('module')" style="font-size:11px;padding:8px 12px">📖 Module</button>
+    <button class="main-tab active" id="sess-btn-play" onclick="showSessionMode('play')" style="font-size:11px;padding:8px 12px">During Session</button>
+    <button class="main-tab" id="sess-btn-prep" onclick="showSessionMode('prep')" style="font-size:11px;padding:8px 12px">Between Sessions</button>
+    <button class="main-tab" id="sess-btn-module" onclick="showSessionTab('module')" style="font-size:11px;padding:8px 12px">Module</button>
   </div>
 
   <div id="sess-log-panel">
     <div id="sess-play-panel">
       <div class="panel">
-        <div class="panel-title">📖 Story Thread
+        <div class="panel-title">Story Thread
           <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Update</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Running story record. Updated manually or via AI.</p>
         <textarea id="story-thread" style="min-height:120px;border-color:var(--purple);" oninput="state.storyThread=this.value;save()" placeholder="No story thread yet. Tap ✨ Update to have the AI extract key plot moments."></textarea>
       </div>
       <div class="panel">
-        <div class="panel-title">📝 Quick Log Entry</div>
+        <div class="panel-title">Quick Log Entry</div>
         <div class="form-group"><label class="field-label">Type</label><select id="log-type"><option value="dm">DM Narration</option><option value="player">Player Action</option><option value="combat">Combat</option><option value="loot">Loot</option><option value="rest">Rest</option></select></div>
         <div class="form-group"><label class="field-label">Entry</label><textarea id="log-input" style="min-height:70px"></textarea></div>
         <button class="btn gold full" onclick="addLogEntry()">Add to Log</button>
@@ -1324,11 +1323,11 @@ body{background-image:none;}
     </div>
     <div id="sess-prep-panel" style="display:none">
       <div class="panel">
-        <div class="panel-title">📜 Session Log <button class="btn sm red" style="margin-left:auto" onclick="clearLog()">Clear</button></div>
+        <div class="panel-title">Session Log <button class="btn sm red" style="margin-left:auto" onclick="clearLog()">Clear</button></div>
         <div id="log-entries" style="max-height:400px;overflow-y:auto;overflow-x:hidden;word-break:break-word;"></div>
       </div>
       <div class="panel">
-        <div class="panel-title">📋 Session Summary</div>
+        <div class="panel-title">Session Summary</div>
         <div class="form-group"><textarea id="log-summary" style="min-height:80px" oninput="state.logSummary=this.value;save()" placeholder="Session summary..."></textarea></div>
         <div class="btn-row">
           <button class="btn full" onclick="buildRawSummary()">↑ Build Raw</button>
@@ -1342,7 +1341,7 @@ body{background-image:none;}
     <div class="grid-1">
       <div class="col">
         <div class="panel">
-          <div class="panel-title">📖 Module Scenes <button class="btn sm green" style="margin-left:auto" onclick="addScene()">+ Add Scene</button></div>
+          <div class="panel-title">Module Scenes <button class="btn sm green" style="margin-left:auto" onclick="addScene()">+ Add Scene</button></div>
           <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">The <b style="color:var(--gold)">active scene</b> is injected into AI context automatically. Paste room descriptions, read-aloud text, encounter notes.</p>
           <div id="scene-list"></div>
           <div class="btn-row" style="margin-top:8px">
@@ -1351,7 +1350,7 @@ body{background-image:none;}
           </div>
         </div>
         <div class="panel danger">
-          <div class="panel-title">🔒 Secret DM Notes</div>
+          <div class="panel-title">Secret DM Notes</div>
           <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">AI reads these. Players never see them. Trap locations, hidden motives, plot twists.</p>
           <textarea id="dm-secrets" style="min-height:150px;border-color:var(--red-dim)" placeholder="- Aldric is a thieves guild informant&#10;- Trap on door to room 7 (DC 14 Perception)"></textarea>
           <button class="btn sm red" style="margin-top:6px" onclick="saveDmSecrets()">Save Secrets</button>
@@ -1359,7 +1358,7 @@ body{background-image:none;}
       </div>
       <div class="col">
         <div class="panel purple">
-          <div class="panel-title">📚 Reference Snippets <button class="btn sm green" style="margin-left:auto" onclick="addSnip()">+ Add</button></div>
+          <div class="panel-title">Reference Snippets <button class="btn sm green" style="margin-left:auto" onclick="addSnip()">+ Add</button></div>
           <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px"><b style="color:var(--purple-bright)">Active snippets</b> are always in the AI system prompt. DMG tables, house rules, class features.</p>
           <div id="snip-list"></div>
         </div>
@@ -1376,13 +1375,13 @@ body{background-image:none;}
     <button class="main-tab" id="setup-btn-1" onclick="showSetupStep(1)" style="font-size:11px;padding:8px 10px">1 Characters</button>
     <button class="main-tab" id="setup-btn-2" onclick="showSetupStep(2)" style="font-size:11px;padding:8px 10px">2 World</button>
     <button class="main-tab" id="setup-btn-3" onclick="showSetupStep(3)" style="font-size:11px;padding:8px 10px">3 Operation</button>
-    <button class="main-tab" id="setup-btn-4" onclick="showSetupStep(4)" style="font-size:11px;padding:8px 10px;color:var(--purple-bright)">🔌 Plugins</button>
+    <button class="main-tab" id="setup-btn-4" onclick="showSetupStep(4)" style="font-size:11px;padding:8px 10px;color:var(--purple-bright)">Plugins</button>
   </div>
 
   <!-- STEP 0: Session Zero -->
   <div id="setup-step-0">
     <div class="panel">
-      <div class="panel-title">⚡ Step 0 — Session Zero</div>
+      <div class="panel-title">Step 0 — Session Zero</div>
       <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Before the first session: establish tone, expectations, and how the party met. This is sent to the AI DM as a permanent contract.</p>
       <div class="form-group"><label class="field-label">Campaign Tone</label>
         <input type="text" id="setup-tone" placeholder="Gritty con-artist fantasy. Dark humour. Real consequences." oninput="saveSetup()">
@@ -1398,7 +1397,7 @@ body{background-image:none;}
       </div>
     </div>
     <div class="panel">
-      <div class="panel-title">📋 Campaign Premise
+      <div class="panel-title">Campaign Premise
         <button class="btn sm" style="margin-left:auto" onclick="lockPremise()">🔒 Lock When Ready</button>
       </div>
       <textarea id="setup-premise" style="min-height:100px;border-color:var(--purple)" oninput="state.worldData.premise=this.value;save()" placeholder="Describe the campaign in 2-3 sentences..."></textarea>
@@ -1417,7 +1416,7 @@ body{background-image:none;}
   <!-- STEP 2: World -->
   <div id="setup-step-2" style="display:none">
     <div class="panel">
-      <div class="panel-title">🌍 Step 2 — World Building</div>
+      <div class="panel-title">Step 2 — World Building</div>
       <div class="form-group"><label class="field-label">Campaign Setting</label>
         <textarea id="setup-setting" style="min-height:80px" placeholder="Low fantasy. Gritty medieval. Magic is rare and mistrusted." oninput="state.worldData.setting=this.value;save()"></textarea>
       </div>
@@ -1436,7 +1435,7 @@ body{background-image:none;}
   <!-- STEP 3: The Operation -->
   <div id="setup-step-3" style="display:none">
     <div class="panel">
-      <div class="panel-title">🐂 Step 3 — The Operation</div>
+      <div class="panel-title">Step 3 — The Operation</div>
       <div class="form-group"><label class="field-label">Wagon Name</label>
         <input type="text" id="setup-wagon-name" placeholder="The Shelled Alchemist" oninput="state.wagon.wagonName=this.value;save()">
       </div>
@@ -1454,7 +1453,7 @@ body{background-image:none;}
       </div>
     </div>
     <div class="panel" style="border-color:var(--purple)">
-      <div class="panel-title" style="color:var(--purple-bright)">🚀 Launch Campaign</div>
+      <div class="panel-title" style="color:var(--purple-bright)">Launch Campaign</div>
       <p style="font-size:11px;color:var(--text-dim);margin-bottom:12px">When all steps are complete, generate Session Zero and lock the premise. The AI DM will use everything above as permanent context.</p>
       <button class="btn gold full" onclick="launchCampaign()" style="font-size:14px;padding:14px">⚡ Generate Session Zero & Begin</button>
     </div>
@@ -1463,7 +1462,7 @@ body{background-image:none;}
   <!-- STEP 4: Plugins -->
   <div id="setup-step-4" style="display:none">
     <div class="panel" style="border-color:var(--purple)">
-      <div class="panel-title" style="color:var(--purple-bright)">🔌 Plugin Terminal</div>
+      <div class="panel-title" style="color:var(--purple-bright)">Plugin Terminal</div>
       <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Install plugins to extend the campaign terminal. Try: <code style="color:var(--gold);background:rgba(201,168,76,.08);padding:1px 5px;border-radius:2px">claude plugin install superpowers@claude-plugins-official</code></p>
       <div class="plugin-terminal" id="plugin-terminal">$ Plugin terminal ready. Type a command below and press Enter or Run.</div>
       <div class="plugin-input-row">
@@ -1473,7 +1472,7 @@ body{background-image:none;}
       </div>
     </div>
     <div class="panel">
-      <div class="panel-title">📦 Installed Plugins</div>
+      <div class="panel-title">Installed Plugins</div>
       <div id="plugin-list"><p style="font-size:11px;color:var(--text-dim)">No plugins installed yet.</p></div>
     </div>
   </div>
@@ -1484,7 +1483,7 @@ body{background-image:none;}
   <div class="grid-2">
     <div class="col">
       <div class="panel accent">
-        <div class="panel-title">🤖 AI System Prompt Contracts</div>
+        <div class="panel-title">AI System Prompt Contracts</div>
         <div class="form-group"><label class="field-label">Contract 1 — DM Persona &amp; Tone</label><textarea id="ai-persona" style="min-height:70px">You are the Dungeon Master for Tinkle's Tinctures, a D&D 5e campaign. Narrate immersively, enforce strict RAW mechanics, and treat every player action seriously. Maintain consistent narrator voice — do not drift more casual or formal over time.
 
 Tone: Gritty traveling-con-artist fantasy. Grounded, low-magic, darkly comic. The operation is morally grey and everyone knows it. Dry wit welcome. Melodrama earned, not given.
@@ -1564,7 +1563,7 @@ In combat, treat each player message as that character's turn action in initiati
 When the party travels through wilderness, arrives at a new outdoor location, or takes a rest outdoors: note 1-3 harvestable ingredients appropriate to the biome. Do not mention ingredients in every message — only on arrival and rest.</textarea></div>
       </div>
       <div class="panel">
-        <div class="panel-title">⚙ Ledger Settings</div>
+        <div class="panel-title">Ledger Settings</div>
         <div class="form-group"><label class="field-label">Context Format</label>
           <select id="ledger-fmt">
             <option value="compact">Compact (~600 tokens) — recommended for mid-session</option>
@@ -1583,7 +1582,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
     </div>
     <div class="col">
       <div class="panel" style="flex:1">
-        <div class="panel-title">📋 Compiled Ledger <span id="ledger-chars" style="margin-left:auto;font-size:10px;color:var(--text-dim)"></span></div>
+        <div class="panel-title">Compiled Ledger <span id="ledger-chars" style="margin-left:auto;font-size:10px;color:var(--text-dim)"></span></div>
         <textarea id="ledger-out" class="ledger-output" readonly></textarea>
         <div id="ledger-tokens" style="margin-top:4px;font-size:10px;color:var(--text-dim)"></div>
       </div>
@@ -1591,7 +1590,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
   </div>
   <div class="col">
     <div class="panel accent" id="firebase-panel">
-        <div class="panel-title">🔥 Firebase Sync — Drop 2
+        <div class="panel-title">Firebase Sync — Drop 2
           <span id="fb-status" style="margin-left:auto;font-size:11px;color:var(--text-dim)">⚪ Local only</span>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Connect Firebase to sync state between both phones live. One setup, works every session.</p>
@@ -1613,7 +1612,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
   <div class="grid-2">
     <div class="col">
       <div class="panel accent">
-        <div class="panel-title">🔔 Turn Counter &amp; Checkpoints</div>
+        <div class="panel-title">Turn Counter &amp; Checkpoints</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Total Turns</div><div style="font-family:var(--serif);font-size:26px;color:var(--gold)" id="stat-turns">0</div></div>
           <div style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Since Chk</div><div style="font-family:var(--serif);font-size:26px;color:var(--gold)" id="stat-since">0</div></div>
@@ -1646,7 +1645,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 
 
       <div class="panel accent" id="firebase-panel">
-        <div class="panel-title">🔥 Firebase Sync — Drop 2
+        <div class="panel-title">Firebase Sync — Drop 2
           <span id="fb-status" style="margin-left:auto;font-size:11px;color:var(--text-dim)">⚪ Local only</span>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Connect Firebase to sync state between both phones live. One setup, works every session.</p>
@@ -1660,12 +1659,12 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <p style="font-size:10px;color:var(--text-dim)"><strong style="color:var(--text)">Setup:</strong> firebase.google.com → Create project → Realtime Database → Create database → Project Settings → Your Apps → Web app → copy config → paste above.<br><br>Set rules to allow read/write for household use.</p>
       </div>
       <div class="panel">
-        <div class="panel-title">⚡ Context Refresh</div>
+        <div class="panel-title">Context Refresh</div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Resend full ledger to AI when responses start drifting.</p>
         <button class="btn gold full" onclick="sendContextRefresh()">Send Context Refresh to Chat</button>
       </div>
       <div class="panel accent">
-        <div class="panel-title">⚡ Quick Actions Editor
+        <div class="panel-title">Quick Actions Editor
           <button class="btn sm green" style="margin-left:auto" onclick="addQA()">+ Add Action</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Customise the ⚡ floating button. Set label, type, and which tabs it appears on.</p>
@@ -1679,7 +1678,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div id="rewind-list"></div>
       </div>
       <div class="panel">
-        <div class="panel-title">📋 Checkpoint History</div>
+        <div class="panel-title">Checkpoint History</div>
         <div id="chk-hist" style="max-height:260px;overflow-y:auto"></div>
         <button class="btn sm red" onclick="clearChkHist()" style="margin-top:8px">Clear History</button>
       </div>
@@ -5303,7 +5302,7 @@ function renderSuperpowers(){
 <!-- PROVIDER SETTINGS MODAL -->
 <div class="modal-overlay" id="provider-modal">
   <div class="modal-box" style="max-width:480px">
-    <div class="modal-title">🔑 AI Provider Settings</div>
+    <div class="modal-title">AI Provider Settings</div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button class="btn" id="btn-google" onclick="setProvider('google')" style="flex:1">Google AI Studio</button>
       <button class="btn gold" id="btn-or" onclick="setProvider('openrouter')" style="flex:1">OpenRouter</button>
