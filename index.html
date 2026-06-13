@@ -1765,7 +1765,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-log" checked> Log</label>
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-ledger" checked> Include Ledger</label>
           <button onclick="openFlagModal(-1)" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-dim);font-size:11px;padding:3px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">⚑ Flag</button>
-          <span id="player-lbl" style="color:var(--gold);font-size:11px;margin-left:auto"></span>
+          <button id="player-lbl" onclick="switchUser()" title="Tap to switch player" style="color:var(--gold);font-size:11px;margin-left:auto;background:none;border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer;padding:2px 8px;transition:border-color .15s;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='transparent'"></button>
         </div>
       </div>
     </div>
@@ -2154,10 +2154,16 @@ window.addEventListener('DOMContentLoaded',()=>{
   showSessionMode('play'); // set initial session mode
 });
 
+function updatePlayerLbl(){
+  const el=document.getElementById('player-lbl');if(!el)return;
+  if(playerName&&playerChar){el.textContent='👤 '+playerName+' ('+playerChar+') ✎';el.title='Tap to switch player';}
+  else{el.textContent='👤 Set player ▸';el.title='Set up your player name';}
+}
 function checkSetup(){
   playerName=localStorage.getItem('tt_pname')||'';
   playerChar=localStorage.getItem('tt_pchar')||'';
-  if(playerName&&playerChar){closeModal('setup-modal');document.getElementById('player-lbl').textContent=playerName+' ('+playerChar+')';}
+  if(playerName&&playerChar){closeModal('setup-modal');}
+  updatePlayerLbl();
 }
 function populateSetup(){
   const sel=document.getElementById('setup-character');
@@ -2174,7 +2180,7 @@ function completeSetup(){
   if(!c){toast('Select your character.');return;}
   playerName=n;playerChar=c;
   localStorage.setItem('tt_pname',n);localStorage.setItem('tt_pchar',c);
-  document.getElementById('player-lbl').textContent=n+' ('+c+')';
+  updatePlayerLbl();
   closeModal('setup-modal');toast('Welcome, '+n+'!');
 }
 
@@ -2263,7 +2269,7 @@ function renderAll(){
   renderChkHist();renderRewind();renderScenes();renderSnips();
   renderWagon();renderIncome();renderPartyInv();syncWorld();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
-  renderPlugins();renderSuperpowers();renderErrorLog();
+  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
     if(document.getElementById('sess-module-panel')?.style.display==='block'){
@@ -4176,6 +4182,7 @@ async function sendMsg(){
     return;
   }
   const key=getKey();if(!key){toast('Set an API key in the AI DM tab first.');return;}
+  if(!playerName){populateSetup();openModal('setup-modal');toast('Set your player name first.');return;}
   const sendBtn=document.getElementById('send-btn');
   const typEl=document.getElementById('typing-ind');
   const ts=state.worldData.time||'';
@@ -5042,6 +5049,7 @@ function switchUser(){
   localStorage.removeItem('tt_pname');
   localStorage.removeItem('tt_pchar');
   playerName='';playerChar='';
+  updatePlayerLbl();
   closeHeaderMenu();
   setTimeout(function(){
     populateSetup();
