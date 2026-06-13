@@ -1363,9 +1363,8 @@ body{background-image:none;}
       <div class="panel danger" id="error-log-panel">
         <div class="panel-title" style="color:var(--gold)">⚑ Error Log
           <span id="error-log-count" style="font-size:10px;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:1px 8px;margin-left:6px;color:var(--text-dim)">0</span>
-          <button class="btn sm" style="margin-left:auto" onclick="openFlagModal(-1)">+ Manual Flag</button>
         </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Flag moments during play using ⚑ on any AI message or the Manual Flag button. Review and mark each Pass or Fail after the session.</p>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Flags captured during play via ⚑ on AI messages or the ⚑ Flag button under the DM chat. Mark each Pass or Fail, then audit with AI.</p>
         <div id="error-log-list"><p style="font-size:11px;color:var(--text-dim)">No flags yet this session.</p></div>
         <div id="error-log-audit-row" style="display:none;margin-top:10px">
           <button class="btn red full" onclick="auditWithAI()">🤖 Audit Fails with AI</button>
@@ -1765,6 +1764,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;flex-wrap:wrap;align-items:center">
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-log" checked> Log</label>
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-ledger" checked> Include Ledger</label>
+          <button onclick="openFlagModal(-1)" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-dim);font-size:11px;padding:3px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">⚑ Flag</button>
           <span id="player-lbl" style="color:var(--gold);font-size:11px;margin-left:auto"></span>
         </div>
       </div>
