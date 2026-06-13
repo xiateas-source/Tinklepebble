@@ -276,11 +276,12 @@
   .swatch-name { font-size: 9px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .06em; }
   .swatch-hex  { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,.5); margin-top: 2px; }
 
-  .cp-row { display:flex; align-items:center; justify-content:space-between; gap:6px; cursor:pointer; }
+  .cp-row { display:flex; align-items:center; justify-content:space-between; gap:6px; }
   .cp-lbl  { font-size:11px; color:var(--text-dim); flex:1; }
   .cp-right { display:flex; align-items:center; gap:6px; }
-  .cp-hex  { font-family:var(--mono); font-size:10px; color:var(--text-muted); width:56px; }
-  input[type="color"] { width:32px; height:24px; border:1px solid var(--border-bright); border-radius:3px; background:none; cursor:pointer; padding:1px; }
+  .cp-hex-input { width:72px; font-family:var(--mono); font-size:11px; padding:3px 6px; background:var(--surface3); border:1px solid var(--border-bright); border-radius:3px; color:var(--text-dim); text-align:center; cursor:text; }
+  .cp-hex-input:focus { border-color:var(--amber); outline:none; }
+  input[type="color"] { width:32px; height:26px; border:1px solid var(--border-bright); border-radius:3px; background:none; cursor:pointer; padding:1px; }
 
   input[type="text"], input[type="number"], textarea {
     background: var(--surface2);
@@ -322,30 +323,30 @@
 
       <div style="grid-column:1/-1;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding-bottom:4px;border-bottom:1px solid var(--border);margin-bottom:2px">Backgrounds</div>
 
-      <label class="cp-row"><span class="cp-lbl">Background</span><div class="cp-right"><input type="color" value="#221d12" oninput="setVar('--bg',this.value)" onchange="setVar('--bg',this.value)"><span class="cp-hex" id="cp--bg">#221d12</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Surface</span><div class="cp-right"><input type="color" value="#2e2818" oninput="setVar('--surface',this.value)" onchange="setVar('--surface',this.value)"><span class="cp-hex" id="cp--surface">#2e2818</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Surface 2</span><div class="cp-right"><input type="color" value="#3c3420" oninput="setVar('--surface2',this.value)" onchange="setVar('--surface2',this.value)"><span class="cp-hex" id="cp--surface2">#3c3420</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Surface 3</span><div class="cp-right"><input type="color" value="#4a4028" oninput="setVar('--surface3',this.value)" onchange="setVar('--surface3',this.value)"><span class="cp-hex" id="cp--surface3">#4a4028</span></div></label>
+      <div class="cp-row"><span class="cp-lbl">Background</span><div class="cp-right"><input type="color" id="clr---bg" value="#221d12" oninput="syncColor('--bg',this.value,'color')" onchange="syncColor('--bg',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---bg" value="#221d12" oninput="syncColor('--bg',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Surface</span><div class="cp-right"><input type="color" id="clr---surface" value="#2e2818" oninput="syncColor('--surface',this.value,'color')" onchange="syncColor('--surface',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---surface" value="#2e2818" oninput="syncColor('--surface',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Surface 2</span><div class="cp-right"><input type="color" id="clr---surface2" value="#3c3420" oninput="syncColor('--surface2',this.value,'color')" onchange="syncColor('--surface2',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---surface2" value="#3c3420" oninput="syncColor('--surface2',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Surface 3</span><div class="cp-right"><input type="color" id="clr---surface3" value="#4a4028" oninput="syncColor('--surface3',this.value,'color')" onchange="syncColor('--surface3',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---surface3" value="#4a4028" oninput="syncColor('--surface3',this.value,'text')"></div></div>
 
       <div style="grid-column:1/-1;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:6px;margin-bottom:2px">Text</div>
 
-      <label class="cp-row"><span class="cp-lbl">Text</span><div class="cp-right"><input type="color" value="#ede0c8" oninput="setVar('--text',this.value)" onchange="setVar('--text',this.value)"><span class="cp-hex" id="cp--text">#ede0c8</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Text Dim</span><div class="cp-right"><input type="color" value="#c4a87c" oninput="setVar('--text-dim',this.value)" onchange="setVar('--text-dim',this.value)"><span class="cp-hex" id="cp--text-dim">#c4a87c</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Text Muted</span><div class="cp-right"><input type="color" value="#7a6a54" oninput="setVar('--text-muted',this.value)" onchange="setVar('--text-muted',this.value)"><span class="cp-hex" id="cp--text-muted">#7a6a54</span></div></label>
+      <div class="cp-row"><span class="cp-lbl">Text</span><div class="cp-right"><input type="color" id="clr---text" value="#ede0c8" oninput="syncColor('--text',this.value,'color')" onchange="syncColor('--text',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---text" value="#ede0c8" oninput="syncColor('--text',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Text Dim</span><div class="cp-right"><input type="color" id="clr---text-dim" value="#c4a87c" oninput="syncColor('--text-dim',this.value,'color')" onchange="syncColor('--text-dim',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---text-dim" value="#c4a87c" oninput="syncColor('--text-dim',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Text Muted</span><div class="cp-right"><input type="color" id="clr---text-muted" value="#7a6a54" oninput="syncColor('--text-muted',this.value,'color')" onchange="syncColor('--text-muted',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---text-muted" value="#7a6a54" oninput="syncColor('--text-muted',this.value,'text')"></div></div>
 
       <div style="grid-column:1/-1;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:6px;margin-bottom:2px">Accents</div>
 
-      <label class="cp-row"><span class="cp-lbl">Amber</span><div class="cp-right"><input type="color" value="#c8854a" oninput="setVar('--amber',this.value)" onchange="setVar('--amber',this.value)"><span class="cp-hex" id="cp--amber">#c8854a</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Amber Hi</span><div class="cp-right"><input type="color" value="#e0a060" oninput="setVar('--amber-bright',this.value)" onchange="setVar('--amber-bright',this.value)"><span class="cp-hex" id="cp--amber-bright">#e0a060</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Terracotta</span><div class="cp-right"><input type="color" value="#a85840" oninput="setVar('--terracotta',this.value)" onchange="setVar('--terracotta',this.value)"><span class="cp-hex" id="cp--terracotta">#a85840</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Sage</span><div class="cp-right"><input type="color" value="#6a8a5a" oninput="setVar('--sage',this.value)" onchange="setVar('--sage',this.value)"><span class="cp-hex" id="cp--sage">#6a8a5a</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Steel</span><div class="cp-right"><input type="color" value="#4a6878" oninput="setVar('--steel',this.value)" onchange="setVar('--steel',this.value)"><span class="cp-hex" id="cp--steel">#4a6878</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Mauve</span><div class="cp-right"><input type="color" value="#8a6878" oninput="setVar('--mauve',this.value)" onchange="setVar('--mauve',this.value)"><span class="cp-hex" id="cp--mauve">#8a6878</span></div></label>
+      <div class="cp-row"><span class="cp-lbl">Amber</span><div class="cp-right"><input type="color" id="clr---amber" value="#c8854a" oninput="syncColor('--amber',this.value,'color')" onchange="syncColor('--amber',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---amber" value="#c8854a" oninput="syncColor('--amber',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Amber Hi</span><div class="cp-right"><input type="color" id="clr---amber-bright" value="#e0a060" oninput="syncColor('--amber-bright',this.value,'color')" onchange="syncColor('--amber-bright',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---amber-bright" value="#e0a060" oninput="syncColor('--amber-bright',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Terracotta</span><div class="cp-right"><input type="color" id="clr---terracotta" value="#a85840" oninput="syncColor('--terracotta',this.value,'color')" onchange="syncColor('--terracotta',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---terracotta" value="#a85840" oninput="syncColor('--terracotta',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Sage</span><div class="cp-right"><input type="color" id="clr---sage" value="#6a8a5a" oninput="syncColor('--sage',this.value,'color')" onchange="syncColor('--sage',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---sage" value="#6a8a5a" oninput="syncColor('--sage',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Steel</span><div class="cp-right"><input type="color" id="clr---steel" value="#4a6878" oninput="syncColor('--steel',this.value,'color')" onchange="syncColor('--steel',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---steel" value="#4a6878" oninput="syncColor('--steel',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Mauve</span><div class="cp-right"><input type="color" id="clr---mauve" value="#8a6878" oninput="syncColor('--mauve',this.value,'color')" onchange="syncColor('--mauve',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---mauve" value="#8a6878" oninput="syncColor('--mauve',this.value,'text')"></div></div>
 
       <div style="grid-column:1/-1;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding-bottom:4px;border-bottom:1px solid var(--border);margin-top:6px;margin-bottom:2px">Borders</div>
 
-      <label class="cp-row"><span class="cp-lbl">Border</span><div class="cp-right"><input type="color" value="#3a3020" oninput="setVar('--border',this.value)" onchange="setVar('--border',this.value)"><span class="cp-hex" id="cp--border">#3a3020</span></div></label>
-      <label class="cp-row"><span class="cp-lbl">Border Hi</span><div class="cp-right"><input type="color" value="#5a4830" oninput="setVar('--border-bright',this.value)" onchange="setVar('--border-bright',this.value)"><span class="cp-hex" id="cp--border-bright">#5a4830</span></div></label>
+      <div class="cp-row"><span class="cp-lbl">Border</span><div class="cp-right"><input type="color" id="clr---border" value="#3a3020" oninput="syncColor('--border',this.value,'color')" onchange="syncColor('--border',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---border" value="#3a3020" oninput="syncColor('--border',this.value,'text')"></div></div>
+      <div class="cp-row"><span class="cp-lbl">Border Hi</span><div class="cp-right"><input type="color" id="clr---border-bright" value="#5a4830" oninput="syncColor('--border-bright',this.value,'color')" onchange="syncColor('--border-bright',this.value,'color')"><input type="text" class="cp-hex-input" id="txt---border-bright" value="#5a4830" oninput="syncColor('--border-bright',this.value,'text')"></div></div>
 
     </div>
     <button onclick="copyPalette()" style="margin-top:14px;width:100%;background:var(--surface3);border:1px solid var(--amber);border-radius:4px;color:var(--amber);font-family:var(--sans);font-size:12px;padding:9px;cursor:pointer">📋 Copy Palette as CSS Variables</button>
@@ -580,8 +581,18 @@
   function setVar(name, value) {
     document.documentElement.style.setProperty(name, value);
     VARS[name] = value;
-    const lbl = document.getElementById('cp-' + name);
-    if (lbl) lbl.textContent = value;
+  }
+
+  function syncColor(varName, value, source) {
+    if (source === 'text') {
+      if (!/^#[0-9a-fA-F]{6}$/.test(value)) return;
+      const clr = document.getElementById('clr-' + varName);
+      if (clr) clr.value = value;
+    } else {
+      const txt = document.getElementById('txt-' + varName);
+      if (txt) txt.value = value;
+    }
+    setVar(varName, value);
   }
 
   function togglePicker() {
