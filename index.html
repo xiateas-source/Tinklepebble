@@ -919,6 +919,11 @@ body{background-image:none;}
 .err-log-note{font-size:12px;color:var(--text);margin:4px 0;}
 .err-log-ai-verdict{font-size:11px;color:var(--green-bright);border-left:2px solid var(--green);padding-left:8px;margin-top:6px;white-space:pre-wrap;}
 .err-log-ai-verdict.fail-verdict{color:var(--red);border-left-color:var(--red);}
+/* ── LOG & PANEL FLAGS ── */
+.log-flag-btn{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:12px;color:var(--text);opacity:0.15;padding:2px 5px;transition:opacity .2s;line-height:1;}
+.log-flag-btn:hover{opacity:0.85;color:var(--gold);}
+.panel-flag-btn{background:none;border:none;cursor:pointer;font-size:10px;color:var(--text-dim);opacity:0.18;padding:1px 5px;margin-left:5px;transition:opacity .2s;flex-shrink:0;line-height:1;}
+.panel-flag-btn:hover{opacity:1;color:var(--gold);}
 /* ── SESSION DASHBOARD ── */
 .dash-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
 .dash-stat-cell{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center;}
@@ -1377,6 +1382,12 @@ body{background-image:none;}
       </div>
     </div>
     <div id="sess-prep-panel" style="display:none">
+      <div class="panel accent">
+        <div class="panel-title">Notes
+          <span style="font-size:10px;color:var(--text-dim);margin-left:auto;font-weight:normal">Exported with AI context</span>
+        </div>
+        <textarea id="session-notes" style="min-height:110px" oninput="state.sessionNotes=this.value;save()" placeholder="Reminders, things to fix, anything you want the AI to know going into next session..."></textarea>
+      </div>
       <div class="panel">
         <div class="panel-title">Session Log <button class="btn sm red" style="margin-left:auto" onclick="clearLog()">Clear</button></div>
         <div id="log-entries" style="max-height:400px;overflow-y:auto;overflow-x:hidden;word-break:break-word;"></div>
@@ -2145,6 +2156,7 @@ let state={
   plugins:[],
   errorLog:[],
   storyThread:'',
+  sessionNotes:'',
   quickActions:[
     {id:'qa_1',label:'Adjust HP',type:'hp',params:{pc:'',amount:'',mode:'damage'},context:['tab-party','tab-combat','tab-dm']},
     {id:'qa_2',label:'Add Condition',type:'condition_add',params:{pc:'',condition:''},context:['tab-party','tab-combat','tab-dm']},
@@ -2189,6 +2201,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   renderAll();genLedger();
   renderQAMenu();
   showSessionMode('play'); // set initial session mode
+  injectPanelFlags();
 });
 
 function updatePlayerLbl(){
@@ -2579,6 +2592,7 @@ function syncWorld(){
   });
   ['pp','gp','ep','sp','cp','lifestyle'].forEach(k=>{const el=document.getElementById('t_'+k);if(el)el.value=state.treasuryData[k]||0;});
   const sl=document.getElementById('log-summary');if(sl)sl.value=state.logSummary||'';
+  const sn=document.getElementById('session-notes');if(sn)sn.value=state.sessionNotes||'';
   const st2=document.getElementById('story-thread');if(st2)st2.value=state.storyThread||'';
   const ds=document.getElementById('dm-secrets');if(ds)ds.value=state.dmSecrets||'';
   const qp=document.getElementById('q_primary');if(qp)qp.value=state.worldData.primaryMission||'';
@@ -2867,9 +2881,16 @@ function doLongRest(){
 // ═══ SESSION LOG ═══
 function renderLogs(){
   const c=document.getElementById('log-entries');if(!c)return;c.innerHTML='';
-  state.logs.forEach(l=>{
-    const d=document.createElement('div');d.className='log-entry '+(l.type||'dm');
-    d.innerHTML=`<div class="log-ts">[${esc(l.ts)}]</div><div>${esc(l.body)}</div>`;
+  state.logs.forEach(function(l){
+    const d=document.createElement('div');
+    d.className='log-entry '+(l.type||'dm');
+    d.style.position='relative';d.style.paddingRight='24px';
+    const ts=document.createElement('div');ts.className='log-ts';ts.textContent='['+l.ts+']';
+    const body=document.createElement('div');body.textContent=l.body;
+    const btn=document.createElement('button');
+    btn.className='log-flag-btn';btn.textContent='⚑';btn.title='Flag this entry';
+    (function(entry){btn.onclick=function(){openFlagModal(-1,'Log: '+entry.body.slice(0,60));};})(l);
+    d.appendChild(ts);d.appendChild(body);d.appendChild(btn);
     c.appendChild(d);
   });
   c.scrollTop=c.scrollHeight;
@@ -3048,6 +3069,7 @@ function genLedger(){
     if(state.worldData.plot)l+="\n━━━ PLOT ━━━\n"+state.worldData.plot+'\n';
     if(state.worldData.timers)l+="Timers: "+state.worldData.timers+'\n';
     if(state.logSummary)l+="\n━━━ SESSION SUMMARY ━━━\n"+state.logSummary+'\n';
+    if(state.sessionNotes)l+="\n━━━ DM NOTES ━━━\n"+state.sessionNotes+'\n';
   }
   if(state.combat.active){l+="\n━━━ ACTIVE COMBAT — ROUND "+state.combat.round+" ━━━\n";state.combat.list.forEach((c,i)=>l+=(i===state.combat.currentIdx?'>>> ':'')+c.val+' '+c.name+' HP:'+c.hp+' AC:'+c.ac+'\n');}
   const as=state.scenes?.[state.activeSceneIdx];if(as)l+="\n━━━ ACTIVE SCENE: "+as.name+" ━━━\n"+as.text+'\n';
@@ -3653,6 +3675,7 @@ function migrate(s){
   if(s.msgsSinceChk===undefined)s.msgsSinceChk=0;
   if(!s.autoChkInterval)s.autoChkInterval=8;
   if(!s.storyThread)s.storyThread='';
+  if(!s.sessionNotes)s.sessionNotes='';
   if(!s.wagonFilter)s.wagonFilter='all';
   // worldData
   if(!s.worldData||typeof s.worldData!=='object')s.worldData={};
@@ -3719,7 +3742,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','plugins','errorLog'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','plugins','errorLog','sessionNotes'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -5189,15 +5212,15 @@ document.addEventListener('click',e=>{
 // ═══ ERROR FLAGS ═══
 let _flagMsgIdx=-1;
 let _flagSelectedCat='';
+let _flagSectionCtx='';
 
-function openFlagModal(msgIdx){
+function openFlagModal(msgIdx,sectionCtx){
   _flagMsgIdx=msgIdx;
   _flagSelectedCat='';
-  // Reset modal state
+  _flagSectionCtx=sectionCtx||'';
   document.querySelectorAll('.flag-cat-btn').forEach(b=>b.classList.remove('selected'));
   const noteEl=document.getElementById('flag-note');
   if(noteEl)noteEl.value='';
-  // Build context display
   const ctx=document.getElementById('flag-context-display');
   if(ctx){
     const loc=state.worldData?.location||'Unknown location';
@@ -5205,6 +5228,7 @@ function openFlagModal(msgIdx){
     const inCombat=state.combat?.active;
     let html='<strong>Location:</strong> '+esc(loc)+(time?' &nbsp;·&nbsp; <strong>Time:</strong> '+esc(time):'');
     if(inCombat)html+=' &nbsp;·&nbsp; <strong>Combat:</strong> Round '+esc(String(state.combat.round||1));
+    if(sectionCtx)html+='<br><strong>Section:</strong> '+esc(sectionCtx);
     if(msgIdx>=0&&state.chatHistory[msgIdx]){
       const snippet=(state.chatHistory[msgIdx].content||'').slice(0,200);
       html+='<br><br><strong>Flagged message:</strong><br><em style="color:var(--text)">'+esc(snippet)+(snippet.length>=200?'…':'')+'</em>';
@@ -5229,13 +5253,14 @@ function submitFlag(){
   if(!_flagSelectedCat){toast('Tap a category first.');return;}
   if(!state.errorLog)state.errorLog=[];
   const note=document.getElementById('flag-note')?.value.trim()||'';
-  const msgContent=_flagMsgIdx>=0?(state.chatHistory[_flagMsgIdx]?.content||''):'';
+  const msgContent=_flagMsgIdx>=0?(state.chatHistory[_flagMsgIdx]?.content||''):(_flagSectionCtx?'['+_flagSectionCtx+']':'');
   const flag={
     id:'err_'+Date.now(),
     gameTs:state.worldData?.time||'',
     realTs:new Date().toISOString(),
     tab:typeof currentTab!=='undefined'?currentTab:'',
     location:state.worldData?.location||'',
+    sectionCtx:_flagSectionCtx||'',
     category:_flagSelectedCat,
     note:note,
     msgContent:msgContent.slice(0,600),
@@ -5304,7 +5329,7 @@ function renderErrorLog(){
         '<span class="err-log-cat">'+cat.icon+'</span>'+
         '<div class="err-log-meta">'+
           '<strong style="color:var(--text)">'+cat.label+'</strong><br>'+
-          esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+(f.combatActive?' · Combat R'+esc(String(f.combatRound||1)):'')+
+          (f.sectionCtx?esc(f.sectionCtx)+' · ':'')+esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+(f.combatActive?' · Combat R'+esc(String(f.combatRound||1)):'')+
         '</div>'+
         vBadge+
       '</div>'+
@@ -5346,6 +5371,20 @@ async function auditWithAI(){
     const inp=document.getElementById('chat-input');
     if(inp){inp.value=prompt;await sendMsg();}
   }
+}
+
+// ═══ PANEL FLAGS ═══
+function injectPanelFlags(){
+  document.querySelectorAll('.panel-title').forEach(function(title){
+    if(title.querySelector('.panel-flag-btn'))return;
+    const raw=Array.from(title.childNodes).filter(n=>n.nodeType===3).map(n=>n.textContent.trim()).join(' ').trim();
+    const sectionName=(raw||title.textContent.trim()).slice(0,50);
+    if(!sectionName)return;
+    const btn=document.createElement('button');
+    btn.className='panel-flag-btn';btn.textContent='⚑';btn.title='Flag this section';
+    btn.onclick=function(e){e.stopPropagation();openFlagModal(-1,sectionName);};
+    title.appendChild(btn);
+  });
 }
 
 // ═══ SESSION DASHBOARD ═══
@@ -5432,7 +5471,7 @@ function renderFlagReview(){
           (f.verdict?'<span style="margin-left:auto;font-size:9px;font-weight:600;text-transform:uppercase;color:'+(f.verdict==='pass'?'var(--green-bright)':'var(--red)')+'">'+f.verdict+'</span>':'<span style="margin-left:auto;font-size:9px;color:var(--text-dim)">open</span>')+
         '</div>'+
         (f.note?'<div style="color:var(--text-dim);margin-top:4px;border-left:2px solid var(--border);padding-left:6px">'+esc(f.note)+'</div>':'')+
-        (f.gameTs||f.location?'<div style="color:var(--text-dim);font-size:10px;margin-top:3px">'+esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+'</div>':'')+
+        (f.sectionCtx||f.gameTs||f.location?'<div style="color:var(--text-dim);font-size:10px;margin-top:3px">'+(f.sectionCtx?esc(f.sectionCtx)+' · ':'')+esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+'</div>':'')+
       '</div>';
     }).join('');
 }
@@ -5444,6 +5483,7 @@ async function sessionRecap(){
   prompt+='Turns logged: '+state.turnCount+' | Checkpoints: '+state.chkCount+'\n';
   prompt+='Context refreshes this session: '+ctxRefreshes+'\n';
   prompt+='Gold delta: '+(Math.round((parseFloat(state.treasuryData.gp)||0)-sessionStartGP))+' gp\n\n';
+  if(state.sessionNotes)prompt+='\nDM NOTES:\n'+state.sessionNotes+'\n';
   if(flags.length){
     prompt+='FLAGGED MOMENTS ('+flags.length+' total):\n';
     flags.forEach(function(f,i){
