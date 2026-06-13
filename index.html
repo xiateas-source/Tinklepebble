@@ -1857,11 +1857,6 @@ button.fab{
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">"Mine." — Pebble</p>
         <div id="wagon-hoard"></div>
       </div>
-      <div class="panel green">
-        <div class="panel-title">Forage Log <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('cargo','foraged')">+ Foraged</button></div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Ingredients tagged with location &amp; time collected.</p>
-        <div id="forage-log"></div>
-      </div>
       <div class="panel">
         <div class="panel-title">Travel Log</div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Auto-updated when location changes.</p>
@@ -3345,7 +3340,7 @@ function addIncome(){
 }
 
 // ═══ WAGON ═══
-function renderWagon(){renderCapacity();renderCells();renderCargo();renderHoard();renderForage();const wfBtn=document.getElementById('wf-'+(state.wagonFilter||'all'));if(wfBtn)wfBtn.classList.add('gold');}
+function renderWagon(){renderCapacity();renderCells();renderCargo();renderHoard();const wfBtn=document.getElementById('wf-'+(state.wagonFilter||'all'));if(wfBtn)wfBtn.classList.add('gold');}
 function calcWeight(){
   let w=0;
   (state.wagon.cargo||[]).forEach(i=>w+=(parseFloat(i.weight)||0)*(parseInt(i.qty)||1));
@@ -3399,17 +3394,7 @@ function renderHoard(){
   if(!(state.wagon.hoard||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">"Mine." — Pebble</div>';return;}
   (state.wagon.hoard||[]).forEach((item,idx)=>renderInvRow(c,item,idx,'hoard'));
 }
-function renderForage(){
-  const c=document.getElementById('forage-log');if(!c)return;c.innerHTML='';
-  const foraged=(state.wagon.cargo||[]).filter(i=>i.type==='foraged'||i.type==='ingredient');
-  if(!foraged.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">Nothing foraged yet.</div>';return;}
-  foraged.forEach(item=>{
-    const d=document.createElement('div');
-    d.style.cssText='padding:5px 8px;background:var(--surface2);border-left:3px solid var(--green);margin-bottom:4px;font-size:11px;border-radius:0 2px 2px 0';
-    d.innerHTML=`<div style="display:flex;justify-content:space-between"><strong style="color:var(--green-bright)">${esc(item.name)}</strong><span style="color:var(--text-dim)">x${item.qty||1} | ${item.weight||0}lb</span></div><div style="color:var(--text-dim);font-size:10px">${esc(item.location||'')} ${esc(item.ts||'')} ${esc(item.notes||'')}</div>`;
-    c.appendChild(d);
-  });
-}
+
 function renderInvRow(container,item,idx,listType){
   const d=document.createElement('div');d.className='inv-item';
   const tag=item.type?`<span class="inv-tag ${item.type}">${item.type}</span>`:'';
@@ -4235,6 +4220,16 @@ function migrate(s){
   if(!s.errorLog.find(f=>f.id==='dev_visual_redesign')){
     s.errorLog.unshift({id:'dev_visual_redesign',category:'infra',sectionCtx:'Dev Plan',location:'Visual Redesign',gameTs:'',ts:'',verdict:null,resolved:false,
       note:'VISUAL REDESIGN — Steampunk Fantasy (reference: screenshots shared 2026-06-13)\n\nPALETTE: body #1a0f00→#2a1a05 radial; surface #2d1f0a/#3a2812/#4a3520; gold #c8a850/#e8c870; text #d4b896/#a08060\n\nTEXTURES (pure CSS, no images): body repeating-linear-gradient noise over dark radial; panels inset box-shadow + subtle gradient; borders 1px gold-dim + outer glow; corner accents ::before/::after clip-path triangles\n\nCOMPONENT ORDER (one session):\n1. CSS variables + body (30m)\n2. Header + tab bar with icons (30m)\n3. Character cards + circular portrait frames (45m)\n4. Panel borders + corner ornaments (30m)\n5. Chat UI + badges (20m)\n6. Buttons + inputs (20m)\n\nTAB ICONS: Party=⚔ World=🌍 Wagon=🛞 Combat=💀 Session=📜 AI Tools=🔮 AI DM=🧙 Dev=⚙ Setup=🏛\n\nPORTRAIT FRAMES: circular clip-path colored div using pc.color, class initial or emoji as icon. No images needed.\n\nNOTE: Single CSS pass only. No external fonts, no images. All texture via CSS gradient patterns.'
+    });
+  }
+  if(!s.errorLog.find(f=>f.id==='dev_vtt_roadmap')){
+    s.errorLog.unshift({id:'dev_vtt_roadmap',category:'infra',sectionCtx:'Dev Plan',location:'VTT Roadmap',gameTs:'',ts:'',verdict:null,resolved:false,
+      note:'VTT ROADMAP — Drops 4-7 (logged 2026-06-13)\n\nDROP 4 — Zone-Based Combat Map\nReplace flat initiative list with 6 spatial zones: Frontline/Backline/Left/Right/Air/Rear. Characters assigned to zones, DM moves them via UI, ledger reports positions. No grid — phone-friendly. REPLACES entire Combat tab initiative tracker.\n⚠ Do NOT refactor Combat tab before Drop 4 — it gets rebuilt.\n\nDROP 5 — Shared Dice Roll Feed\nFirebase broadcasts every roll to all connected devices in real time. Players see each other\'s rolls without DM narrating. Covers "did that hit?" gap.\n⚠ Move dice roller to globally accessible location before Drop 5 (currently buried in Combat tab).\n\nDROP 6 — Player View Mode\nSimplified Firebase-synced screen for second phone. Shows: HP bars, conditions, current scene, quest status, chat feed. No DM secrets, no config panels.\n⚠ Requires buildPlayerView() + state visibility split (see dev_state_visibility flag) BEFORE building this.\n\nDROP 7 — Handout / Image Cards\nStore URLs or base64 thumbnails on Firebase. DM taps "Show players" → appears on player view. Additive to Drop 6.'
+    });
+  }
+  if(!s.errorLog.find(f=>f.id==='dev_state_visibility')){
+    s.errorLog.unshift({id:'dev_state_visibility',category:'infra',sectionCtx:'Dev Plan',location:'State Visibility Audit',gameTs:'',ts:'',verdict:null,resolved:false,
+      note:'STATE VISIBILITY AUDIT — Player View Foundation (logged 2026-06-13)\n\nAPPROACH: buildPlayerView() function — non-disruptive, additive only.\nComputes safe snapshot from existing state. Writes to Firebase /session/playerView on every save(). Player View (Drop 6) reads ONLY from /session/playerView.\n\nPUBLIC (player-visible):\n- pcs[*]: name, color, hp, hp_max, ac, conditions (NOT backstory_secret)\n- worldData: time, season, weather, location, scene_title, travelLog, premise, primaryMission\n- quests: all WHERE hidden !== true (needs hidden:false default added to quest model)\n- chatHistory: full narrative feed\n- combat.list: initiative + HP during combat\n- treasuryData: gp/pp/sp/cp/ep\n\nDM-ONLY (never in player view):\n- worldData.secrets, worldData.plot, worldData.timers, worldData.campaignSecrets\n- dmSecrets\n- pcs[*].backstory_secret\n- businessProfile.realStock, businessProfile.snakeOil\n- npcs[*].trueMotivation (if field added later)\n\nOPEN DESIGN QUESTIONS (answer before Drop 6):\n1. Town reputation — player-visible? (they\'d know their own rep in a town)\n2. Income log — player-visible? (they know what they sold)\n3. NPC dispositions — show to players or DM-only meta?\n4. Hidden quests — add hidden:false default to quest model for DM-planted objectives?\n\nIMPLEMENTATION CHECKLIST:\n[ ] Answer 4 open questions above\n[ ] Add hidden:false default to new quest objects\n[ ] Write buildPlayerView() function\n[ ] Call buildPlayerView() inside save() → write to Firebase /session/playerView\n[ ] Build Player View screen (Drop 6)'
     });
   }
   if(!Array.isArray(s.oocHistory))s.oocHistory=[];
@@ -5864,7 +5859,7 @@ function updateStateFixForm(){
   const pcOpts=state.pcs.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
   const forms={
     item:`<div class="form-group"><label class="field-label">Who gets it</label>
-      <select id="sf-pc">${pcOpts}<option value="wagon">Wagon Cargo</option><option value="party">Party (shared)</option><option value="hoard">Pebble's Hoard</option><option value="forage">Forage Log</option></select></div>
+      <select id="sf-pc">${pcOpts}<option value="wagon">Wagon Cargo</option><option value="party">Party (shared)</option><option value="hoard">Pebble's Hoard</option></select></div>
       <div class="form-group"><label class="field-label">Item Name</label><input type="text" id="sf-name" placeholder="Silver-Leaf Seaweed..."></div>
       <div class="form-row"><div class="fg"><label class="field-label">Qty</label><input type="number" id="sf-qty" value="1" min="1"></div>
       <div class="fg"><label class="field-label">Type</label><select id="sf-itype"><option>foraged</option><option>supply</option><option>loot</option><option>key</option><option>trade</option><option>misc</option></select></div></div>`,
