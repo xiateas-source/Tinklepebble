@@ -11,23 +11,24 @@
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0f0d0b;
-  --surface:#181410;
-  --surface2:#201c16;
-  --surface3:#272118;
-  --border:#302820;
-  --border-bright:#4a3828;
-  --gold:#c9a84c;--gold-dim:#7a6028;--gold-bright:#f0c96a;
-  --red:#c04a3a;--red-dim:#6a2418;
-  --green:#4a7a4a;--green-bright:#72b072;
-  --blue:#3a6880;--blue-bright:#5a98b8;
-  --purple:#6050a0;--purple-bright:#8878c0;
-  --text:#ccc4b0;--text-dim:#6a5e4a;--text-bright:#ede4d0;
+  /* Autumn Corporate Steampunk palette */
+  --bg:#120d07;
+  --surface:#1c1510;
+  --surface2:#251b12;
+  --surface3:#2e2318;
+  --border:#3e2e1c;
+  --border-bright:#5c4430;
+  --gold:#c08040;--gold-dim:#7a4c20;--gold-bright:#e8a050;
+  --red:#c04828;--red-dim:#7a2c10;
+  --green:#527858;--green-bright:#7aaa7a;
+  --blue:#4a7090;--blue-bright:#6a98b0;
+  --purple:#7060a8;--purple-bright:#9080c8;
+  --text:#c8baa8;--text-dim:#7a6a54;--text-bright:#e8ddc8;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
   --mono:'Share Tech Mono','Courier New',monospace;
   --serif:'IM Fell English',Georgia,serif;
-  --touch:48px;
-  --radius:8px;--radius-sm:6px;
+  --touch:52px;
+  --radius:6px;--radius-sm:4px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55;min-height:100vh;-webkit-text-size-adjust:100%;}
@@ -327,6 +328,241 @@ details.bs[open] summary::before{content:"\25BC  ";}
 .sp-charge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;}
 .sp-charge.ready{background:rgba(74,122,74,.2);color:var(--green-bright);border:1px solid var(--green);}
 .sp-charge.spent{background:rgba(192,74,58,.15);color:var(--red);border:1px solid var(--red-dim);}
+
+/* ══════════════════════════════════════════
+   AUTUMN CORPORATE STEAMPUNK — HAND-CRAFTED
+   ══════════════════════════════════════════ */
+
+/* Richer copper — less muddy, more saturated */
+:root{
+  --gold:#c87840;--gold-dim:#7a4818;--gold-bright:#f0a844;
+  --text-bright:#f0e8d8;
+}
+
+body{font-size:16px;line-height:1.68;}
+
+/* ── HEADER ── */
+.app-header{
+  background:linear-gradient(180deg,#1c1408 0%,#0d0904 100%);
+  border-bottom:none;
+  box-shadow:0 1px 0 #3c2c14,0 2px 0 rgba(200,120,64,.14),0 6px 40px rgba(0,0,0,.82);
+}
+.app-title{
+  font-size:20px;letter-spacing:.4px;
+  text-shadow:0 0 36px rgba(200,120,64,.7),0 1px 3px rgba(0,0,0,.95);
+}
+
+/* ── TAB BAR ── */
+.main-tabs{background:#0e0904;border-bottom:2px solid #3c2c14;padding:0 8px;gap:0;}
+.main-tab{
+  font-size:11px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;
+  padding:13px 12px;border-bottom:3px solid transparent;
+  transition:color .15s,background .15s,border-color .15s;
+}
+.main-tab:hover{color:var(--text-bright);background:rgba(255,255,255,.03);}
+.main-tab.active{
+  color:var(--gold-bright);border-bottom-color:var(--gold);
+  background:rgba(200,120,64,.07);
+  text-shadow:0 0 14px rgba(200,120,64,.55);
+}
+
+/* ── PANELS ── */
+.panel{
+  border:1px solid var(--border-bright);
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(200,120,64,.06) 0%,transparent 55%),
+    var(--surface);
+  box-shadow:0 4px 28px rgba(0,0,0,.64),inset 0 1px 0 rgba(255,255,255,.04);
+  position:relative;
+}
+/* Copper crown — top accent line per panel variant */
+.panel::before{
+  content:'';position:absolute;
+  top:-1px;left:22%;right:22%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+}
+.panel.accent::before{background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.panel.danger::before{background:linear-gradient(90deg,transparent,var(--red),transparent);}
+.panel.purple::before{background:linear-gradient(90deg,transparent,var(--purple-bright),transparent);}
+.panel.green::before{background:linear-gradient(90deg,transparent,var(--green-bright),transparent);}
+
+/* Panel title — serif brass nameplate, not generic all-caps sans */
+.panel-title{
+  font-family:var(--serif);
+  font-size:14px;font-weight:400;
+  text-transform:none;letter-spacing:.3px;
+  color:var(--gold-bright);
+  background:linear-gradient(90deg,rgba(200,120,64,.13) 0%,transparent 68%);
+  margin:-14px -14px 14px;
+  padding:12px 14px 11px;
+  border-radius:var(--radius) var(--radius) 0 0;
+  border-bottom:1px solid var(--border-bright);
+  text-shadow:0 0 20px rgba(200,120,64,.5),0 1px 2px rgba(0,0,0,.75);
+}
+
+/* ── BUTTONS ── */
+.btn{
+  background:linear-gradient(175deg,var(--surface3) 0%,#1e1610 100%);
+  border:1px solid var(--border-bright);
+  letter-spacing:.5px;font-size:12px;font-weight:600;
+  transition:all .16s ease;
+}
+.btn:hover,.btn:active{
+  background:linear-gradient(175deg,#3e2e1c 0%,var(--surface3) 100%);
+  border-color:var(--gold-dim);color:var(--gold-bright);
+  box-shadow:0 3px 18px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.btn.gold{
+  background:linear-gradient(175deg,rgba(200,120,64,.18) 0%,rgba(200,120,64,.06) 100%);
+  border-color:var(--gold-dim);color:var(--gold-bright);
+}
+.btn.gold:hover,.btn.gold:active{
+  background:linear-gradient(175deg,var(--gold-bright) 0%,var(--gold) 100%);
+  color:var(--bg);border-color:var(--gold-bright);
+  box-shadow:0 3px 26px rgba(200,120,64,.68),inset 0 1px 0 rgba(255,255,255,.28);
+}
+.btn.red{border-color:var(--red-dim);color:#e87060;}
+.btn.red:hover,.btn.red:active{background:rgba(192,72,40,.22);box-shadow:0 0 20px rgba(192,72,40,.38);}
+.btn.green{border-color:var(--green);color:var(--green-bright);}
+.btn.green:hover,.btn.green:active{background:rgba(82,136,98,.22);box-shadow:0 0 20px rgba(82,136,98,.38);}
+
+/* ── PARTY CARDS ── */
+.pc-card{
+  border:1px solid var(--border-bright);
+  box-shadow:0 6px 32px rgba(0,0,0,.68),0 1px 0 rgba(255,255,255,.04);
+  position:relative;overflow:hidden;
+}
+/* Copper spine — binding edge like a dossier */
+.pc-card::before{
+  content:'';position:absolute;
+  top:0;bottom:0;left:0;width:3px;
+  background:linear-gradient(180deg,var(--gold-dim) 0%,var(--gold) 50%,var(--gold-dim) 100%);
+}
+.pc-card-header{
+  background:linear-gradient(135deg,var(--surface2) 0%,var(--surface) 100%);
+  border-bottom:1px solid var(--border-bright);
+  padding-left:18px;
+}
+.pc-card-body{padding-left:18px;}
+.pc-name{
+  font-size:19px;letter-spacing:.2px;
+  text-shadow:0 0 18px rgba(200,120,64,.32),0 1px 2px rgba(0,0,0,.85);
+}
+.pc-class{text-transform:uppercase;font-size:10px;letter-spacing:.8px;}
+
+/* Stat tiles — embossed metal */
+.stat-mini{
+  background:linear-gradient(180deg,var(--surface3) 0%,var(--surface2) 100%);
+  border-color:var(--border-bright);
+}
+.stat-mini .s-val{color:var(--gold-bright);}
+
+/* HP bar */
+.hp-bar-wrap{height:8px;border-radius:3px;background:rgba(0,0,0,.48);}
+.hp-bar-fill{border-radius:3px;}
+.hp-display{font-family:var(--mono);font-size:23px;}
+
+/* ── FORMS ── */
+input[type=text],input[type=number],input[type=password],textarea,select{
+  background:linear-gradient(180deg,rgba(0,0,0,.24) 0%,var(--surface2) 100%);
+  border-color:var(--border-bright);font-size:15px;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(200,120,64,.24);
+}
+textarea{min-height:72px;}
+
+/* ── COMBAT ── */
+.round-num{
+  font-size:30px;
+  text-shadow:0 0 36px rgba(200,120,64,.75),0 2px 5px rgba(0,0,0,.95);
+}
+.init-badge{font-size:19px;text-shadow:0 0 20px rgba(200,120,64,.6);}
+.init-row.current{
+  background:linear-gradient(90deg,rgba(200,120,64,.11) 0%,var(--surface3) 55%);
+  border-left:3px solid var(--gold);
+  box-shadow:0 0 24px rgba(200,120,64,.3);
+}
+.init-row.current .init-name{font-weight:700;letter-spacing:.2px;}
+
+/* ── DICE ── */
+.dice-btn{font-family:var(--serif);font-size:18px;letter-spacing:.2px;}
+.dice-btn:hover,.dice-btn:active{
+  border-color:var(--gold);color:var(--gold-bright);
+  box-shadow:0 0 22px rgba(200,120,64,.42),inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+/* ── MODALS ── */
+.modal-overlay{
+  background:rgba(5,2,1,.93);
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+}
+.modal-box{
+  background:
+    radial-gradient(ellipse at 6% 5%,rgba(200,120,64,.09) 0%,transparent 48%),
+    radial-gradient(ellipse at 94% 95%,rgba(120,80,40,.07) 0%,transparent 48%),
+    var(--surface);
+  border:1px solid var(--border-bright);
+  box-shadow:0 36px 90px rgba(0,0,0,.97),0 0 0 1px rgba(200,120,64,.24);
+  position:relative;
+}
+/* Crown line on modal */
+.modal-box::before{
+  content:'';position:absolute;
+  top:0;left:12%;right:12%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.modal-title{
+  font-size:23px;letter-spacing:.3px;
+  text-shadow:0 0 26px rgba(200,120,64,.55),0 1px 3px rgba(0,0,0,.95);
+}
+
+/* ── CHAT ── */
+.chat-msgs-wrap{
+  border:1px solid var(--border-bright);
+  background:radial-gradient(ellipse at 50% 0%,rgba(200,120,64,.055) 0%,#090603 38%);
+}
+.chat-msg.dm{
+  background:linear-gradient(135deg,rgba(46,34,18,.95) 0%,var(--surface3) 100%);
+  border:1px solid rgba(200,120,64,.24);
+  border-left:3px solid var(--gold);
+}
+.chat-msg.player{
+  background:linear-gradient(135deg,var(--surface2) 0%,rgba(28,20,12,.95) 100%);
+  border-right:3px solid var(--blue);
+}
+
+/* ── LOG ── */
+.log-entry{
+  background:linear-gradient(90deg,rgba(200,120,64,.055) 0%,var(--surface2) 18%);
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* ── TURN COUNTER ── */
+.turn-num-big{font-family:var(--mono);font-size:26px;}
+
+/* ── FAB ── */
+.qa-fab{
+  background:linear-gradient(135deg,var(--gold-bright) 0%,var(--gold) 100%);
+  box-shadow:0 4px 32px rgba(0,0,0,.72),0 0 28px rgba(200,120,64,.58);
+}
+
+/* ── SCROLLBARS ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dim);}
+
+/* ── PIXEL MOBILE ── */
+@media(max-width:430px){
+  body{font-size:15px;}
+  .app-title{font-size:17px;}
+  .tab-section{padding:10px;padding-bottom:100px;}
+  .panel-title{font-size:13px;}
+  .main-tab{padding:11px 10px;font-size:10px;}
+  .pc-name{font-size:17px;}
+}
 </style>
 </head>
 <body>
