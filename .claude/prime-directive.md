@@ -128,6 +128,7 @@ The AI contracts are not suggestions. They exist because:
 - The AI narrated gold transactions and NPC introductions without calling state functions
 - The AI duplicated NPCs instead of updating existing records
 - Context Refresh and Re-sync were routing to OOC instead of the main narrative AI
+- OOC and Party channels had no contract — AI answered stale/multi-topic questions and had no secret protection
 
 Every contract addition is a rule the AI violated in actual play. The contracts are a growing record of the AI's failure modes, patched one session at a time.
 
