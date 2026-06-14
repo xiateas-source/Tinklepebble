@@ -41,7 +41,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 @keyframes tabFlash{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 2px var(--gold),0 0 10px 1px rgba(200,160,106,.35)}}
 .tab-flash{animation:tabFlash .9s ease 2;}
 .tab-overflow-wrap{position:relative;margin-left:auto;flex-shrink:0;}
-#tab-overflow-menu{position:absolute;right:0;top:100%;background:var(--surface2);border:1px solid var(--border-bright);border-radius:var(--radius);z-index:300;min-width:130px;box-shadow:0 6px 24px rgba(0,0,0,.6);display:none;}
+#tab-overflow-menu{position:fixed;right:auto;top:auto;background:var(--surface2);border:1px solid var(--border-bright);border-radius:var(--radius);z-index:300;min-width:130px;box-shadow:0 6px 24px rgba(0,0,0,.6);display:none;}
 #tab-overflow-menu .main-tab{display:block;width:100%;text-align:left;border-bottom:1px solid var(--border);border-radius:0;border-left:none;border-right:none;border-top:none;}
 #tab-overflow-menu .main-tab:last-child{border-bottom:none;}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -6560,7 +6560,14 @@ document.addEventListener('click',e=>{
     om.style.display='none';
   }
 });
-function toggleTabOverflow(){const m=document.getElementById('tab-overflow-menu');if(m)m.style.display=m.style.display==='block'?'none':'block';}
+function toggleTabOverflow(){
+  const m=document.getElementById('tab-overflow-menu');
+  if(!m)return;
+  if(m.style.display==='block'){m.style.display='none';return;}
+  const btn=document.getElementById('tab-overflow-btn');
+  if(btn){const r=btn.getBoundingClientRect();m.style.top=r.bottom+'px';m.style.right=(window.innerWidth-r.right)+'px';}
+  m.style.display='block';
+}
 function closeTabOverflow(){const m=document.getElementById('tab-overflow-menu');if(m)m.style.display='none';}
 
 // ═══ ERROR FLAGS ═══
