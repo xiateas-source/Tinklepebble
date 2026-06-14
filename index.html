@@ -2611,7 +2611,7 @@ const BARD_SPELLS={
 
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
-const SAVE_VERSION=10;
+const SAVE_VERSION=11;
 
 // ═══ FIREBASE DROP 2 ═══
 let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false;
@@ -4919,6 +4919,46 @@ function migrate(s){
         {name:'Lucky Points',max:3,used:0,restore:'long',desc:'Advantage on d20 test or force enemy disadvantage'}
       ]
     });
+  }
+
+  // ══ VERSION GATE: savedVer < 11 — re-patch L3 data clobbered by SHEET_FIELDS bug (2026-06-14) ══
+  // The v10 gate ran correctly but its changes were overwritten by a stale SHEET_FIELDS merge
+  // that read from pre-migration state.pcs. The corrupted data was then saved as saveVersion=10.
+  // This gate re-applies the same patch so both localStorage and Firebase data are fixed.
+  if(savedVer<11){
+    const _p11=function(id,upd){const pc=(s.pcs||[]).find(p=>p.id===id);if(!pc)return;Object.keys(upd).forEach(k=>{pc[k]=upd[k];});};
+    _p11('slasher',{
+      class:'Fighter (Battle Master)',subclass:'Battle Master',level:3,hp_max:39,
+      features:'GREAT WEAPON FIGHTING (Style): When rolling damage for an attack with a two-handed weapon, reroll any 1 or 2 — must use new roll.\nSECOND WIND (Bonus Action, 1/Short Rest): Regain 1d10+3 HP as a bonus action.\nACTION SURGE (1/Short Rest): Take one additional action on your turn.\nACID BREATH (Action, Recharge 5-6): 5x30ft line, all creatures make DC 13 CON save or take 2d6 acid damage (half on success).\nACID RESISTANCE: Resistance to acid damage.\nHEAVY ARMOR PROFICIENCY: Wearing chain mail (AC 16). Disadvantage on Stealth checks.\nGREATSWORD: 2d6 slashing, heavy, two-handed. Primary weapon.\nSMITH\'S TOOLS: Proficient. Handles all equipment maintenance and repairs.\nGUILD MEMBERSHIP: Can call on the Smith\'s Guild for support, lodging, and contacts.\nHONEST TO A FAULT: Cannot deceive. Genuinely baffled by Tinkle and Pebble\'s methods.\nPROTECTOR: Sworn to keep Tinkle and Pebble safe.\nCOMBAT SUPERIORITY: 4 Superiority Dice (d8s) per short rest.\nMANEUVERS: Bait & Switch (swap with ally, add d8 to roll for AC), Precision Attack (add d8 to hit after roll), Trip Attack (add d8 damage, target makes DC 13 STR save or falls prone).',
+      magic:'None.',slots:[],
+      resources:[
+        {name:'Second Wind',max:1,used:0,restore:'short',desc:'Bonus action, heal 1d10+3 HP'},
+        {name:'Action Surge',max:1,used:0,restore:'short',desc:'One additional action on your turn'},
+        {name:'Superiority Dice (d8)',max:4,used:0,restore:'short',desc:'Spend to trigger Battle Master maneuvers'}
+      ]
+    });
+    const _sl=s.pcs.find(p=>p.id==='slasher');if(_sl&&(_sl.hp===undefined||_sl.hp<1||_sl.hp>39))_sl.hp=39;
+    _p11('tinkle',{
+      class:'Rogue (Arcane Trickster)',subclass:'Arcane Trickster',level:3,hp_max:27,
+      features:'NATURAL ARMOR: AC 17 flat. Cannot wear armor. Shields allowed.\nSHELL DEFENSE (Reaction or Hide Action): Withdraw into shell. Gain +4 AC (AC 21), become prone and incapacitated. Emerge using Bonus Action.\nSNEAK ATTACK (2d6): Once per turn when attacking with advantage OR when an ally is adjacent to target.\nCUNNING ACTION: Dash, Disengage, or Hide as a Bonus Action each turn.\nTHIEVES CANT: Secret underworld language.\nEXPERTISE: Deception and Investigation at double proficiency.\nHOLD BREATH: Up to 1 hour.\nCLAWS: 1d4 slashing natural weapon.\nBLOWGUN: 1d1 piercing, range 25/100ft. Loaded with Torpor Poison (DC 15 CON save or incapacitated for 4d6 hours).\nMAGE HAND LEGERDEMAIN: Mage Hand is invisible, can pick pockets, disarm traps, or stow objects remotely.\nTHE MASTERMIND: Manufactures the tonics, runs the operation, writes the labels.',
+      magic:'Spellcasting: Intelligence | Save DC: 13 | Attack Bonus: +5\nCantrips: Mage Hand, Message, Prestidigitation\nLevel 1 Spells: Disguise Self, Find Familiar (Rat), Sleep',
+      resources:[]
+    });
+    const _tk=s.pcs.find(p=>p.id==='tinkle');
+    if(_tk){if(!_tk.slots||!_tk.slots[0]||_tk.slots[0].max!==2)_tk.slots=[{max:2,used:(_tk.slots||[])[0]?.used||0}];if(_tk.hp===undefined||_tk.hp<1||_tk.hp>27)_tk.hp=27;}
+    _p11('pebble',{
+      class:'Bard (College of Lore)',subclass:'College of Lore',level:3,hp_max:30,passive_perception:12,
+      skills:'Persuasion +7 (Expertise), Deception +7 (Expertise), Performance +5, Insight +2, Perception +2, Arcana +3, Sleight of Hand +4',
+      features:'LITTLE GIANT: Counts as Large size for carrying capacity (240 lb) and push/drag/lift (480 lb).\nSTONES ENDURANCE (2/Long Rest): Reaction to reduce damage by 1d12+2. If reduced to 0, active concentration is automatically protected.\nLUCKY FEAT (3 Points/Long Rest): Spend 1 point to gain Advantage on a d20 Test OR impose Disadvantage on an attack against you.\nBARDIC INSPIRATION (3/Long Rest): Bonus Action, give a d6 die to a target within 60ft. They may add it to one d20 Test within 10 minutes, after seeing the roll.\nJACK OF ALL TRADES: Add +1 (half proficiency) to any ability check not already including proficiency.\nSONG OF REST: Allies who spend Hit Dice during a Short Rest regain an extra 1d6 HP.\nCOLLEGE OF LORE — BONUS PROFICIENCIES: Gained Perception, Arcana, and Sleight of Hand.\nCOLLEGE OF LORE — CUTTING WORDS: Use a Bardic Inspiration die as a Reaction to subtract the roll from an enemy\'s attack, ability check, or damage roll — declared before outcome.\nTHE PITCHMAN: Public face of Tinkle Tonics. High CHA is the product.',
+      magic:'Spellcasting: Charisma | Save DC: 13 | Attack Bonus: +5\nCantrips: Friends, Vicious Mockery\n1st-Level Spells: Charm Person, Healing Word, Sleep\n2nd-Level Spells: Lesser Restoration, Suggestion',
+      resources:[
+        {name:'Bardic Inspiration',max:3,used:0,restore:'long',desc:'d6 bonus die for allies; Cutting Words also expends a use'},
+        {name:"Stone's Endurance",max:2,used:0,restore:'long',desc:'Reaction, 1d12+2 damage reduction; 0 dmg = concentration protected'},
+        {name:'Lucky Points',max:3,used:0,restore:'long',desc:'Advantage on d20 test or force enemy disadvantage'}
+      ]
+    });
+    const _pb=s.pcs.find(p=>p.id==='pebble');
+    if(_pb){if(!_pb.slots||_pb.slots.length<2||_pb.slots[0].max!==4)_pb.slots=[{max:4,used:(_pb.slots||[])[0]?.used||0},{max:2,used:(_pb.slots||[])[1]?.used||0}];if(_pb.hp===undefined||_pb.hp<1||_pb.hp>30)_pb.hp=30;}
   }
 
   // ══ CANONICAL QA COMPLETENESS — always run to pick up QAs added in current version ══
