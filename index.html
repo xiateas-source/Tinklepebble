@@ -3309,7 +3309,7 @@ function renderSheets(){
       ${['str','dex','con','int','wis','cha'].map(s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);const ms=(m>=0?'+':'')+m;return`<div style="text-align:center"><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${n}" onchange="upd(${idx},'${s}',parseInt(this.value)||10)" style="text-align:center;font-size:15px;font-weight:600"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-top:3px;letter-spacing:.5px">${ms}</div></div>`;}).join('')}
     </div>
     <div style="display:flex;gap:0;margin:14px 0 10px;border-bottom:1px solid var(--border)">
-      ${['Skills','Features','Spells','Gear'].map((t,i)=>`<button onclick="setSheetTab(${i})" style="flex:1;padding:8px 4px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;border:none;border-bottom:2px solid ${i===_pcSheetTab?'var(--gold)':'transparent'};background:none;color:${i===_pcSheetTab?'var(--gold)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans);min-height:36px;transition:color .15s">${t}</button>`).join('')}
+      ${['Skills','Features','Spells','Spellbook','Gear'].map((t,i)=>`<button onclick="setSheetTab(${i})" style="flex:1;padding:8px 4px;font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;border:none;border-bottom:2px solid ${i===_pcSheetTab?'var(--gold)':'transparent'};background:none;color:${i===_pcSheetTab?'var(--gold)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans);min-height:36px;transition:color .15s">${t}</button>`).join('')}
     </div>
     ${_pcSheetTab===0?`
     <div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label><textarea id="sheet-skills-${idx}" onchange="upd(${idx},'skills',this.value)" style="min-height:120px"></textarea></div>
@@ -3326,10 +3326,27 @@ function renderSheets(){
     <div class="form-group"><label class="field-label">Spell Slots <button class="slot-add-btn" onclick="addSlotLvl(${idx})">+ Add Level</button></label><div id="slot-ed-${idx}"></div></div>
     `:''}
     ${_pcSheetTab===3?`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:11px;color:var(--text-dim)">✨ ${pc.spellbook&&pc.spellbook.length?pc.spellbook.length+' spell'+(pc.spellbook.length===1?'':'s'):'No spells yet'}</span>
+      <button class="btn sm gold" onclick="addSpell(${idx})">+ Add Spell</button>
+    </div>
+    <div id="spellbook-panel-${idx}"></div>
+    `:''}
+    ${_pcSheetTab===4?`
     <details class="bs" open>
       <summary>🎒 Inventory <button class="slot-add-btn" onclick="event.stopPropagation();addPcItem(${idx})">+ Add Item</button></summary>
       <div class="bs-body" id="inv-ed-${idx}"></div>
     </details>
+    ${pc.familiar?`
+    <details class="bs" style="margin-top:8px" open>
+      <summary>🦉 Familiar — ${esc(pc.familiar.name||'Unnamed')}</summary>
+      <div class="bs-body" id="familiar-panel-${idx}"></div>
+    </details>
+    `:`
+    <div style="margin-top:10px;text-align:center">
+      <button class="btn sm" onclick="addFamiliar(${idx})">🦉 Add Familiar</button>
+    </div>
+    `}
     <details class="bs" style="margin-top:8px">
       <summary>🔗 Relationships</summary>
       <div class="bs-body" id="rel-editor-${idx}"></div>
@@ -3348,6 +3365,8 @@ function renderSheets(){
   renderResourceEditor(idx);
   renderPcInvEditor(idx);
   renderRelationships(idx);
+  renderSpellbook(idx);
+  renderFamiliarPanel(idx);
   // Set textarea values directly — innerHTML doesn't reliably populate textareas on mobile browsers
   const setTA=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
   setTA('sheet-skills-'+idx, pc.skills);
@@ -5084,6 +5103,8 @@ function migrate(s){
     if(!pc.hp_max||pc.hp_max<1)pc.hp_max=10;
     if(pc.hp===undefined||pc.hp===null)pc.hp=pc.hp_max;
     if(pc.levelReady===undefined)pc.levelReady=false;
+    if(!Array.isArray(pc.spellbook))pc.spellbook=[];
+    if(pc.familiar===undefined)pc.familiar=null;
   });
 }
 // ═══ PERSISTENCE ═══
@@ -6485,6 +6506,89 @@ function addRelationship(fromId){
 }
 function updRel(i,k,v){if(state.relationships[i])state.relationships[i][k]=v;save();}
 function remRel(i){state.relationships.splice(i,1);save();renderSheets();}
+
+// ─── SPELLBOOK ───
+function renderSpellbook(idx){
+  const c=document.getElementById('spellbook-panel-'+idx);if(!c)return;
+  const pc=state.pcs[idx];if(!pc)return;
+  c.innerHTML='';
+  const book=pc.spellbook||[];
+  if(!book.length){c.innerHTML='<div style="color:var(--text-dim);font-size:12px;padding:14px 0;text-align:center">No spells added yet. Tap + Add Spell above.</div>';return;}
+  const LVLS=['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
+  book.forEach((sp,si)=>{
+    const d=document.createElement('details');d.className='bs';d.style.marginBottom='7px';
+    const lvlStr=sp.level===0?'Cantrip':(LVLS[sp.level]||sp.level+'th')+' Level';
+    d.innerHTML=`
+      <summary style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+        <div style="flex:1;min-width:0">
+          <span style="font-weight:600;color:var(--text-bright);font-size:13px">${esc(sp.name||'Unnamed Spell')}</span>
+          <span style="margin-left:7px;font-size:10px;color:var(--purple-bright);background:rgba(138,94,106,.2);border-radius:3px;padding:1px 6px;white-space:nowrap">${esc(lvlStr)}</span>
+          ${sp.school?`<span style="margin-left:4px;font-size:10px;color:var(--text-dim)">${esc(sp.school)}</span>`:''}
+          ${sp.castTime?`<span style="display:block;font-size:10px;color:var(--text-dim);margin-top:1px">${esc(sp.castTime)}${sp.range?' · '+esc(sp.range):''}${sp.duration?' · '+esc(sp.duration):''}</span>`:''}
+        </div>
+        <button class="btn sm red icon-btn" onclick="event.stopPropagation();remSpell(${idx},${si})" style="flex-shrink:0">&times;</button>
+      </summary>
+      <div class="bs-body">
+        <div class="form-row" style="margin-bottom:8px">
+          <div style="width:58px"><label class="field-label">Level</label><input type="number" min="0" max="9" value="${sp.level||0}" onchange="updSpell(${idx},${si},'level',parseInt(this.value)||0)"></div>
+          <div class="fg"><label class="field-label">School</label><input type="text" value="${esc(sp.school||'')}" placeholder="Enchantment" onchange="updSpell(${idx},${si},'school',this.value)"></div>
+          <div class="fg"><label class="field-label">Cast Time</label><input type="text" value="${esc(sp.castTime||'')}" placeholder="1 action" onchange="updSpell(${idx},${si},'castTime',this.value)"></div>
+        </div>
+        <div class="form-row" style="margin-bottom:8px">
+          <div class="fg"><label class="field-label">Range</label><input type="text" value="${esc(sp.range||'')}" placeholder="30 feet" onchange="updSpell(${idx},${si},'range',this.value)"></div>
+          <div class="fg"><label class="field-label">Duration</label><input type="text" value="${esc(sp.duration||'')}" placeholder="Instantaneous" onchange="updSpell(${idx},${si},'duration',this.value)"></div>
+          <div class="fg"><label class="field-label">Components</label><input type="text" value="${esc(sp.components||'')}" placeholder="V, S" onchange="updSpell(${idx},${si},'components',this.value)"></div>
+        </div>
+        <div class="form-group"><label class="field-label">Spell Name</label><input type="text" value="${esc(sp.name||'')}" onchange="updSpell(${idx},${si},'name',this.value)"></div>
+        <div class="form-group"><label class="field-label">Description &amp; Rules</label><textarea id="spell-desc-${idx}-${si}" onchange="updSpell(${idx},${si},'desc',this.value)" style="min-height:90px;font-size:13px;line-height:1.5"></textarea></div>
+      </div>`;
+    c.appendChild(d);
+    const ta=d.querySelector('#spell-desc-'+idx+'-'+si);if(ta)ta.value=sp.desc||'';
+  });
+}
+function addSpell(idx){
+  if(!state.pcs[idx])return;
+  if(!Array.isArray(state.pcs[idx].spellbook))state.pcs[idx].spellbook=[];
+  state.pcs[idx].spellbook.push({name:'',level:1,school:'',castTime:'1 action',range:'',duration:'',components:'V, S',desc:''});
+  save();_pcSheetTab=3;renderSheets();
+}
+function updSpell(idx,si,k,v){const sp=state.pcs[idx]?.spellbook?.[si];if(!sp)return;sp[k]=v;save();}
+function remSpell(idx,si){state.pcs[idx].spellbook.splice(si,1);save();renderSheets();}
+
+// ─── FAMILIAR ───
+function addFamiliar(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  pc.familiar={name:'',type:'',hp:1,hp_max:1,ac:10,speed:'20 ft.',
+    str:3,dex:15,con:10,int:2,wis:12,cha:7,passive_perception:11,notes:''};
+  save();_pcSheetTab=4;renderSheets();
+}
+function renderFamiliarPanel(idx){
+  const c=document.getElementById('familiar-panel-'+idx);if(!c)return;
+  const pc=state.pcs[idx];if(!pc||!pc.familiar)return;
+  const f=pc.familiar;
+  c.innerHTML=`
+    <div class="form-row" style="margin-bottom:8px">
+      <div class="fg"><label class="field-label">Name</label><input type="text" value="${esc(f.name||'')}" placeholder="e.g. Pip" onchange="updFamiliar(${idx},'name',this.value)"></div>
+      <div class="fg"><label class="field-label">Type / Species</label><input type="text" value="${esc(f.type||'')}" placeholder="Owl, Bat, Cat..." onchange="updFamiliar(${idx},'type',this.value)"></div>
+    </div>
+    <div class="form-row" style="margin-bottom:10px">
+      <div style="width:52px"><label class="field-label">HP</label><input type="number" value="${f.hp||1}" onchange="updFamiliar(${idx},'hp',parseInt(this.value)||1)"></div>
+      <div style="width:62px"><label class="field-label">Max HP</label><input type="number" value="${f.hp_max||1}" onchange="updFamiliar(${idx},'hp_max',parseInt(this.value)||1)"></div>
+      <div style="width:52px"><label class="field-label">AC</label><input type="number" value="${f.ac||10}" onchange="updFamiliar(${idx},'ac',parseInt(this.value)||10)"></div>
+      <div class="fg"><label class="field-label">Speed</label><input type="text" value="${esc(f.speed||'20 ft.')}" onchange="updFamiliar(${idx},'speed',this.value)"></div>
+    </div>
+    <div class="stat-mini-row" style="margin-bottom:10px">
+      ${['str','dex','con','int','wis','cha'].map(s=>{const n=parseInt(f[s])||10;const m=Math.floor((n-10)/2);const ms=(m>=0?'+':'')+m;return`<div style="text-align:center"><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${n}" onchange="updFamiliar(${idx},'${s}',parseInt(this.value)||10)" style="text-align:center;font-size:15px;font-weight:600"><div style="font-size:13px;font-weight:700;color:var(--purple-bright);margin-top:3px">${ms}</div></div>`;}).join('')}
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <div style="width:80px"><label class="field-label">Pass. Perc.</label><input type="number" value="${f.passive_perception||11}" onchange="updFamiliar(${idx},'passive_perception',parseInt(this.value)||10)"></div>
+    </div>
+    <div class="form-group"><label class="field-label">Special Abilities &amp; Notes</label><textarea id="familiar-notes-${idx}" onchange="updFamiliar(${idx},'notes',this.value)" style="min-height:70px"></textarea></div>
+    <button class="btn sm red" style="margin-top:8px" onclick="if(confirm('Remove familiar?')){state.pcs[${idx}].familiar=null;save();renderSheets();}">🗑 Remove Familiar</button>
+  `;
+  const nt=c.querySelector('#familiar-notes-'+idx);if(nt)nt.value=f.notes||'';
+}
+function updFamiliar(idx,k,v){const f=state.pcs[idx]?.familiar;if(!f)return;f[k]=v;save();}
 
 // ═══ CAMPAIGN SECRETS ═══
 function renderCampaignSecrets(){
