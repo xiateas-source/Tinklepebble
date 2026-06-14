@@ -56,8 +56,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 
 /* ── LAYOUT ── */
 .tab-section{display:none;padding:14px;padding-bottom:90px;}.tab-section.module-active{padding-top:0;}
-.tab-section.active{display:block;overflow:hidden;animation:pageFlip .22s ease-out;}
-@keyframes pageFlip{0%{opacity:0;transform:perspective(1200px) rotateY(-6deg) translateX(-7px);transform-origin:left center}100%{opacity:1;transform:perspective(1200px) rotateY(0) translateX(0);transform-origin:left center}}
+.tab-section.active{display:block;overflow:hidden;animation:tabFade .16s ease-out;}
+@keyframes tabFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.tab-section.active{animation:none}}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
@@ -6625,7 +6625,7 @@ function renderChangelog(){
       'Party Ask DM: fixed multi-question context drift — now sends proper alternating conversation history',
       '✨ State changelog: parsed mechanics now surface as a stacking ledger feed (HP, quests, NPCs, conditions) — tap to dismiss',
       '🎲 Dice roll flourish: slot-machine flicker + color cue (gold nat-max, red nat-1), button press feedback, haptic on landing',
-      '📖 Page-turn tab transitions — subtle 3D lift when switching tabs',
+      '📖 Soft tab transitions — gentle fade-up when switching tabs',
       '♿ Honors prefers-reduced-motion — all new motion disabled for users who opt out',
     ]},
     {ver:'v1.5',date:'June 2026',notes:[
