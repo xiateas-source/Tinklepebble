@@ -4355,6 +4355,11 @@ function migrate(s){
       note:'STATE VISIBILITY AUDIT — Player View Foundation (logged 2026-06-13)\n\nAPPROACH: buildPlayerView() function — non-disruptive, additive only.\nComputes safe snapshot from existing state. Writes to Firebase /session/playerView on every save(). Player View (Drop 6) reads ONLY from /session/playerView.\n\nPUBLIC (player-visible):\n- pcs[*]: name, color, hp, hp_max, ac, conditions (NOT backstory_secret)\n- worldData: time, season, weather, location, scene_title, travelLog, premise, primaryMission\n- quests: all WHERE hidden !== true (needs hidden:false default added to quest model)\n- chatHistory: full narrative feed\n- combat.list: initiative + HP during combat\n- treasuryData: gp/pp/sp/cp/ep\n\nDM-ONLY (never in player view):\n- worldData.secrets, worldData.plot, worldData.timers, worldData.campaignSecrets\n- dmSecrets\n- pcs[*].backstory_secret\n- businessProfile.realStock, businessProfile.snakeOil\n- npcs[*].trueMotivation (if field added later)\n\nOPEN DESIGN QUESTIONS (answer before Drop 6):\n1. Town reputation — player-visible? (they\'d know their own rep in a town)\n2. Income log — player-visible? (they know what they sold)\n3. NPC dispositions — show to players or DM-only meta?\n4. Hidden quests — add hidden:false default to quest model for DM-planted objectives?\n\nIMPLEMENTATION CHECKLIST:\n[ ] Answer 4 open questions above\n[ ] Add hidden:false default to new quest objects\n[ ] Write buildPlayerView() function\n[ ] Call buildPlayerView() inside save() → write to Firebase /session/playerView\n[ ] Build Player View screen (Drop 6)'
     });
   }
+  // Auto-resolve dev flags that are now captured in roadmap
+  ['dev_vtt_roadmap','dev_state_visibility'].forEach(id=>{
+    const f=s.errorLog.find(f=>f.id===id);
+    if(f&&!f.resolved)f.resolved=true;
+  });
   if(!Array.isArray(s.oocHistory))s.oocHistory=[];
   if(!Array.isArray(s.partyChat))s.partyChat=[];
   // Remap old tab IDs from before consolidation

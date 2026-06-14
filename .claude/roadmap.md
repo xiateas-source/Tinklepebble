@@ -129,6 +129,38 @@ App parses `[STATE]` lines and applies updates silently after each AI response. 
 - World tab Operations split is prerequisite for Drop 6 DM control surface
 - Vite migration should happen before Drop 4
 
+## Visual Redesign — Steampunk Fantasy
+*(from dev_visual_redesign flag, logged 2026-06-13)*
+
+**Palette (target):**
+```
+body: #1a0f00 → #2a1a05 radial gradient
+surface: #2d1f0a / #3a2812 / #4a3520
+gold: #c8a850 / #e8c870
+text: #d4b896 / #a08060
+```
+
+**Textures (pure CSS, no images):**
+- body: `repeating-linear-gradient` noise over dark radial
+- panels: inset `box-shadow` + subtle gradient
+- borders: 1px gold-dim + outer glow
+- corner accents: `::before`/`::after` with `clip-path` triangles
+
+**Tab icons:**
+Party=⚔ World=🌍 Wagon=🛞 Combat=💀 Session=📜 AI Tools=🔮 AI DM=🧙 Dev=⚙ Setup=🏛
+
+**Portrait frames:** circular `clip-path` colored div using `pc.color`, class initial or emoji as icon. No images needed.
+
+**Component order (est. one session):**
+1. CSS variables + body (30m)
+2. Header + tab bar with icons (30m)
+3. Character cards + circular portrait frames (45m)
+4. Panel borders + corner ornaments (30m)
+5. Chat UI + badges (20m)
+6. Buttons + inputs (20m)
+
+**Constraint:** Single CSS pass only. No external fonts, no images. All texture via CSS gradient patterns.
+
 ## Dead Code (safe to remove anytime)
 - Theme editor functions: `THEME_VARS`, `DEFAULT_THEME`, `THEME_PRESETS`, `applyTheme()`,
   `setThemeVar()`, `syncThemeColor()`, `applyThemePreset()`, `resetTheme()`,
