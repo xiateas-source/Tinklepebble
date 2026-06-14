@@ -2465,6 +2465,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         </div>
         <div id="chat-msgs" class="chat-msgs-wrap"></div>
         <div class="typing-ind" id="typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
+        <div id="ai-retry-status" style="display:none;font-size:11px;color:var(--text-dim);padding:4px 0 2px;font-family:var(--mono)"></div>
         <div class="offline-banner" id="offline-banner">📴 Offline — showing cached response</div>
         <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
           <div style="flex:1"><textarea id="chat-input" style="min-height:52px;resize:none;margin:0;width:100%;padding:8px" placeholder="Describe your action... (Enter to send, Shift+Enter for newline)" onkeydown="chatKey(event)"></textarea></div>
@@ -4860,36 +4861,72 @@ function updProvStatus(){
 function toggleVis(id){const el=document.getElementById(id);if(el)el.type=el.type==='password'?'text':'password';}
 
 // ═══ CORE AI CALL ═══
+function setAIStatus(msg){
+  const el=document.getElementById('ai-retry-status');if(!el)return;
+  el.textContent=msg;el.style.display=msg?'block':'none';
+}
+async function _fetchGoogle(messages,sysProm,maxTok,key,signal){
+  const model=localStorage.getItem('tt_gm')||'gemini-2.5-flash-lite';
+  const url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key;
+  const body={system_instruction:{parts:[{text:sysProm}]},contents:messages.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]})),generationConfig:{maxOutputTokens:maxTok}};
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error('Google AI '+res.status+': '+(e?.error?.message||res.statusText));}
+  const data=await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text||'(No response)';
+}
+async function _fetchOR(messages,sysProm,maxTok,key,signal,modelOverride){
+  const mr=modelOverride||(localStorage.getItem('tt_om')||'google/gemini-2.0-flash-exp');
+  const model=(!modelOverride&&mr==='custom')?(localStorage.getItem('tt_oc')||'google/gemini-2.0-flash-exp'):mr;
+  const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,'HTTP-Referer':window.location.href,'X-Title':"Tinkle's Tinctures"},
+    body:JSON.stringify({model,messages:[{role:'system',content:sysProm},...messages],max_tokens:maxTok}),
+    signal
+  });
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error('OpenRouter '+res.status+': '+(e?.error?.message||res.statusText));}
+  const data=await res.json();
+  return data.choices?.[0]?.message?.content||'(No response)';
+}
 async function callAI(messages,sysProm,maxTok=1400){
   const key=getKey();if(!key)throw new Error('No API key set.');
-  const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),25000);
-  try{
-  if(provider==='google'){
-    const model=localStorage.getItem('tt_gm')||'gemini-2.5-flash-lite';
-    const url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key;
-    const body={system_instruction:{parts:[{text:sysProm}]},contents:messages.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]})),generationConfig:{maxOutputTokens:maxTok}};
-    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl.signal});
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error('Google AI '+res.status+': '+(e?.error?.message||res.statusText));}
-    const data=await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text||'(No response)';
-  }else{
-    const mr=localStorage.getItem('tt_om')||'google/gemini-2.0-flash-exp';
-    const model=mr==='custom'?(localStorage.getItem('tt_oc')||'google/gemini-2.0-flash-exp'):mr;
-    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,'HTTP-Referer':window.location.href,'X-Title':"Tinkle's Tinctures"},
-      body:JSON.stringify({model,messages:[{role:'system',content:sysProm},...messages],max_tokens:maxTok}),
-      signal:ctrl.signal
-    });
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error('OpenRouter '+res.status+': '+(e?.error?.message||res.statusText));}
-    const data=await res.json();
-    return data.choices?.[0]?.message?.content||'(No response)';
+  const RETRY_DELAYS=[1200,2400];
+  const DR4_NO_RETRY=/4\d\d/; // never retry 4xx (auth, quota, bad request)
+  const is5xx=msg=>/5\d\d/.test(msg)||msg.includes('Failed to fetch')||msg.includes('NetworkError');
+  let lastErr=null;
+  // ── Primary provider with up to 2 retries ──
+  for(let i=0;i<=RETRY_DELAYS.length;i++){
+    if(i>0){
+      setAIStatus('Retrying… ('+i+'/'+RETRY_DELAYS.length+')');
+      await new Promise(r=>setTimeout(r,RETRY_DELAYS[i-1]));
+    }
+    const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),25000);
+    try{
+      const result=provider==='google'
+        ?await _fetchGoogle(messages,sysProm,maxTok,key,ctrl.signal)
+        :await _fetchOR(messages,sysProm,maxTok,key,ctrl.signal);
+      setAIStatus('');return result;
+    }catch(e){
+      clearTimeout(timer);
+      if(e.name==='AbortError'){setAIStatus('');throw new Error('AI request timed out after 25s. Check your connection and try again.');}
+      lastErr=e;
+      if(DR4_NO_RETRY.test(e.message)||!is5xx(e.message))break; // don't retry auth/4xx/unknown
+    }finally{clearTimeout(timer);}
   }
-  }catch(e){
-    if(e.name==='AbortError')throw new Error('AI request timed out after 25s. Check your connection and try again.');
-    throw e;
-  }finally{clearTimeout(timer);}
+  // ── Fallback: OpenRouter free model (only if primary was Google and OR key exists) ──
+  if(provider==='google'){
+    const orKey=localStorage.getItem('tt_ok');
+    if(orKey){
+      setAIStatus('Switching to fallback provider…');
+      const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),25000);
+      try{
+        const result=await _fetchOR(messages,sysProm,maxTok,orKey,ctrl.signal,'meta-llama/llama-3.1-8b-instruct:free');
+        setAIStatus('⚠ Fallback provider used — primary unavailable');
+        setTimeout(()=>setAIStatus(''),4000);
+        return result;
+      }catch(e2){clearTimeout(timer);}finally{clearTimeout(timer);}
+    }
+  }
+  setAIStatus('');throw lastErr;
 }
 
 // ═══ SYSTEM PROMPT BUILDER ═══
@@ -5583,25 +5620,7 @@ async function sendMsg(){
       role:m.role==='assistant'?'assistant':'user',
       content:(m.playerName&&m.role!=='assistant'?'['+m.playerName+' playing '+m.playerChar+']: ':'')+m.content
     }));
-    // Auto-retry on 503 (temporary overload)
-    let responseText='';
-    let lastErr=null;
-    for(let attempt=1;attempt<=3;attempt++){
-      try{
-        if(attempt>1){
-          const wait=attempt===2?2000:4000;
-          if(typEl)typEl.querySelector('.tdot') && (typEl.innerHTML=`Retrying (${attempt-1}/2)<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span>`);
-          await new Promise(r=>setTimeout(r,wait));
-        }
-        responseText=await callAI(histForApi,sysProm,1400);
-        lastErr=null;
-        break;
-      }catch(e){
-        lastErr=e;
-        if(!e.message.includes('503')&&!e.message.includes('overload'))break;
-      }
-    }
-    if(lastErr)throw lastErr;
+    const responseText=await callAI(histForApi,sysProm,1400);
     const mechanics=parseMechanics(responseText);
     // Strip mechanics block from display - handle with or without ---END---
   let displayText=responseText
@@ -6829,6 +6848,13 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.10',date:'June 2026',notes:[
+      'DR-4: callAI() retry + provider fallback — 2 auto-retries on 5xx/network errors (1.2s, 2.4s backoff)',
+      'Fallback: if Google fails all retries and OpenRouter key is set, silently retries on free Llama model',
+      'Status display: "Retrying… (1/2)" / "Switching to fallback provider…" shown below send button',
+      'Never retries 4xx errors (auth failures, bad request) — avoids wasting API credits',
+      'Tab overflow ⋮ menu fixed: now position:fixed so it is no longer clipped by tab bar overflow',
+    ]},
     {ver:'v1.9',date:'June 2026',notes:[
       'Campaign lock: Setup tab shows read-only banner after launch; ⚙ Edit to unlock, 🔒 to re-lock',
       'Deep links in Setup lock banner: World and Wagon tabs linked directly from lock banner',

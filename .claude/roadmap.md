@@ -94,11 +94,12 @@ These are correct, battle-tested, and carry high regression risk if touched:
 - Setup tab: `#setup-lock-banner` div + `renderSetupLock()` — locked banner with → World, → Wagon deep-links + ⚙ Edit escape hatch; `_setupUnlocked` local toggle (not persisted)
 - `[Severity: Low] [Complexity: Hours] [Risk: Low]`
 
-**4. `callAI()` retry + provider fallback wrapper**
-- Depends on: nothing structural; but extract `callGoogle()` / `callOpenRouter()` as standalone functions first
-- Add: `AbortController` (25s timeout), exponential backoff (1.2s → 2.4s, max 2 retries), provider fallback to OpenRouter on 5xx, user-facing status ("Retrying… / Switching provider… / Failed")
-- ⚠ `RETRY_CODES` must NOT include 401/403 — never retry auth failures
-- Fallback model: hardcode `meta-llama/llama-3.1-8b-instruct:free` for fallback (not user's saved OR model, which may also be over-quota)
+**4. `callAI()` retry + provider fallback wrapper — DONE 2026-06-14** ✅
+- Extracted `_fetchGoogle()` + `_fetchOR()` as standalone inner functions
+- `callAI()` wraps both: 2 retries (1.2s → 2.4s), retries only on 5xx / network errors; never retries 4xx
+- Provider fallback: if Google exhausts retries and `tt_ok` (OR key) exists, retries on `meta-llama/llama-3.1-8b-instruct:free`
+- `setAIStatus()` + `#ai-retry-status` div: shows "Retrying… (1/2)" / "Switching to fallback…" below send button
+- Old retry loop in `sendMsg()` removed (was 503-only, duplicate logic)
 - `[Severity: High] [Complexity: Days] [Risk: Low — additive only]`
 
 **5. `parseMechanics()` → dispatch table registry**
