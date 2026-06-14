@@ -199,7 +199,8 @@ state = {
   campaignLaunched: bool,       // DR-3: true after launchCampaign(); locks Setup tab UI
   sessionNotes: string,
 
-  errorLog: [{id, category, sectionCtx, location, gameTs, ts, verdict, resolved, note}],
+  errorLog: [{id, category, uiCtx, tab, sectionCtx, location, gameTs, realTs, verdict, aiVerdict, resolved, note, msgContent, combatActive, combatRound}],
+  // uiCtx: auto-built human-readable "where" string e.g. "AI DM → Narrative", "World → World State"
   plugins: [{id, name, version, manifest}],
 
   // Checkpoint & turn tracking
@@ -341,7 +342,10 @@ Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model sele
 
 ### Flags & Dev
 - `flagIt(cat, sect, loc, note)` — Capture error flag
-- `renderErrorLog()` — Error flag list + verdict UI
+- `openFlagModal(msgIdx, sectionCtx)` — Open flag bottom sheet; auto-calls `_buildFlagUIContext()`
+- `_buildFlagUIContext()` — Reads `currentTab` + `_activeTab` + visible sub-panels to build "AI DM → Narrative"-style where string; stored in `_flagUICtx`
+- `submitFlag()` — Creates flag object with `uiCtx`, `tab`, `sectionCtx`, `location`, `gameTs`, `msgContent`
+- `renderErrorLog()` — Error flag list; shows 📍 uiCtx in gold + location/time below; falls back to tab name for old flags
 - `exportFlagReport(mode)` — Export pending/all flags as JSON
 - `clearResolvedFlags()` — Remove resolved entries
 - `auditWithAI()` — Send failures to AI for review
@@ -564,8 +568,10 @@ Each is a permanent AI instruction in every system prompt:
 - `module_episode:` mechanic for AI updates
 
 ### Error Flag System
-- Categories: mechanics, ai, narrative, setting, typo, infra
-- Verdict: pending/pass/fail/resolved
+- Categories: roll, rule, ai, story, infra, other
+- Verdict: pending/fail/resolved (cycle on tap)
+- `uiCtx` field: auto-built at flag creation time — "AI DM → Narrative", "World → World State", "World → Operations", "Session → Module", etc.
+- Flag cards display 📍 where (gold) above location/time; old flags fall back to tab name
 - AI audit + JSON export
 
 ### Rewind Stack

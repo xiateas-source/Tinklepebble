@@ -883,6 +883,9 @@ body{background-image:none;}
 .flag-cat-btn.selected{border-color:var(--gold);background:rgba(192,128,64,.12);color:var(--gold);}
 .flag-cat-btn .cat-icon{font-size:20px;line-height:1;}
 .flag-context-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.6;}
+.lu-option{padding:10px 14px;background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;font-size:13px;transition:border-color .15s,background .15s;}
+.lu-option:hover{border-color:var(--gold-dim);}
+.lu-option.selected{border-color:var(--gold);background:rgba(200,160,106,.1);color:var(--gold-bright);}
 .flag-context-box strong{color:var(--text);}
 .err-log-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;}
 .err-log-item.verdicted-pass{border-color:var(--green);}
@@ -2242,10 +2245,13 @@ You may apply any standard D&D 5e RAW rule confidently. Only pause when genuinel
 - CONCENTRATION (PHB p.203): When Pebble takes ANY damage while concentrating, immediately call for a CON saving throw. DC = 10 OR half the damage taken, whichever is higher. DC is 10 for any hit dealing 21 or less. DC rises above 10 only at 22+ damage. Each separate damage source = separate CON save. On fail: spell ends, announce it, output concentration: pebble=none. Exception: if Stone's Endurance reduces damage to 0, no save needed
 - NEVER forget concentration saves. NEVER assume concentration holds after damage
 - ACTION ECONOMY (PHB p.189): Each PC gets ONE Action, ONE Bonus Action, ONE Reaction per round. Track these strictly. Pebble cannot cast a spell AND use Bardic Inspiration AND help Slasher in the same turn without accounting for each slot. State which action type is being used for each action. Call out when a bonus action or reaction is available
-- REST RESOURCES: Short Rest restores — Second Wind (Slasher), Stone's Endurance (Pebble), Bardic Inspiration (Pebble). Long Rest restores — Lucky Points (Pebble), spell slots (Pebble). NEVER restore Long Rest resources from a Short Rest
-- PASSIVE PERCEPTION: Slasher 11, Tinkle 10, Pebble 11. Hidden threats/traps only revealed automatically if their DC is at or below the relevant PC's Passive Perception. Above that threshold: call for active WIS (Perception) check. Never reveal hidden things without either passive perception succeeding or an active check
+- REST RESOURCES: Short Rest restores — Second Wind (Slasher), Action Surge (Slasher), Superiority Dice (Slasher), Stone's Endurance (Pebble). Long Rest restores — Bardic Inspiration (Pebble), Lucky Points (Pebble), spell slots (Pebble and Tinkle/Arcane Trickster). NEVER restore Long Rest resources on a Short Rest. Bardic Inspiration becomes Short Rest only at Level 5 (Font of Inspiration).
+- TINKLE SPELLS (Arcane Trickster, INT-based, DC 13, +5): Cantrips: Mage Hand (invisible via Mage Hand Legerdemain), Message, Prestidigitation. Level 1 Slots (2): Disguise Self, Find Familiar (Rat familiar active), Sleep. Mage Hand can pick pockets, disarm traps, stow objects remotely — invisible, cannot attack.
+- SLASHER BATTLE MASTER: 4 Superiority Dice (d8) per Short Rest. Maneuvers: Bait & Switch (swap position with willing ally, ally gets d8 to AC), Precision Attack (add d8 to attack roll after rolling), Trip Attack (add d8 damage, DC 13 STR save or prone). Declare maneuver BEFORE rolling.
+- PASSIVE PERCEPTION: Slasher 11, Tinkle 10, Pebble 12. Hidden threats/traps only revealed automatically if their DC is at or below the relevant PC's Passive Perception. Above that threshold: call for active WIS (Perception) check. Never reveal hidden things without either passive perception succeeding or an active check
 - ADVANTAGE/DISADVANTAGE: Always state reasoning before every roll. Advantage: attacking prone enemy within 5ft, attacking while hidden, Help action from ally. Disadvantage: attacking prone enemy beyond 5ft, ranged attack with adjacent enemy, attacking while prone. Never silently apply or ignore these
 - SHELL DEFENSE (Tinkle): Costs a Reaction to enter. While in shell: Prone, Incapacitated, cannot take Actions or Reactions except to emerge (Bonus Action to exit). AC becomes 21. When Tinkle enters shell: output shell_defense: tinkle=on in the mechanics block. When Tinkle emerges: output shell_defense: tinkle=off — this clears Prone, Incapacitated, and Shell Defense automatically. NEVER leave shell_defense conditions active between scenes or sessions.
+- SCENE / COMBAT TRANSITION: When combat ends or the scene shifts to a non-combat context, immediately audit every PC's condition list. For each combat-temporary condition still active (Prone, Incapacitated, Restrained, Grappled, Stunned, Paralyzed), emit conditions: pcname-condition to clear it in that same mechanics block. Do NOT wait for the next message. Exception: Shell Defense and Concentrating are player-controlled — never auto-clear them. Shell Defense resolves only via shell_defense: tinkle=off; concentration ends only on failed save or explicit spell end.
 - HALFLING LUCKY (Slasher racial): automatic reroll when rolling a 1. Not luck points. Happens automatically. NOTE: Slasher is now a Black Dragonborn — this no longer applies. Remove from memory
 - LUCKY FEAT (Pebble): 3 luck points per long rest. Spend to gain advantage on own d20 OR impose disadvantage on attack vs Pebble. These are different features — never confuse them
 - Tinkle and Pebble prefer non-violence. Always narrate non-violent options before combat escalates. Slasher will try to help but follow the party's lead
@@ -2269,7 +2275,7 @@ PROCEDURE for every action:
 7. State all mechanical consequences: HP changes, conditions, slots used, resources spent, action/bonus action/reaction used
 8. State who goes next and what each character perceives
 
-ENCUMBRANCE: Track cargo and hoard weight. STR carry capacity = STR score x 15 lbs. Slasher: 255lb capacity. Wagon overloading affects travel speed.</textarea></div>
+ENCUMBRANCE (PHB p.176 variant): STR carry capacity = STR score × 15 lbs. Slasher (STR 17): 255 lb limit. Encumbered threshold = STR × 5 lbs (Slasher: 85 lbs of personal carry) → speed reduced 10 ft. Heavily Encumbered = STR × 10 lbs (Slasher: 170 lbs) → speed reduced 20 ft + disadvantage on all STR/DEX/CON checks, saves, and attacks. Wagon cargo capacity: 1080 lbs total. When wagon is over capacity, travel speed is halved. Call out encumbrance when PCs pick up heavy loot, prisoners, or bulk supplies. Never assume a PC can carry unlimited personal gear.</textarea></div>
         <div class="form-group"><label class="field-label">Contract 4 — Continuity &amp; Wagon Awareness</label><textarea id="ai-continuity" style="min-height:70px">At the start of every response, internally verify: who is at 0 HP, active conditions, concentration spells, current location, last player action. Never contradict these.
 
 The wagon is the party's livelihood and home. Always consider its location, cargo, Grit's condition, and holding cell contents when narrating travel or combat. Grit is bonded to Tinkle — skittish around loud magic, stubborn on roads he has decided are bad ideas.
@@ -2562,9 +2568,50 @@ const XP_T=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,12000
 const CP_INT={exploration:6,combat:3,roleplay:8,custom:6};
 const MAX_LB=1080;
 const ITYPES=['supply','foraged','ingredient','trade','loot','hoard','misc','key'];
+
+// ── Level-Up Data (Fighter/Rogue/Bard L2–L5) ──
+const LEVEL_UP_DATA={
+  fighter:{hit_die:10,levels:{
+    2:{auto:['Action Surge (1/Short Rest): Take one additional action on your turn.'],choose:[]},
+    3:{auto:[],choose:[{type:'subclass',prompt:'Choose Martial Archetype',options:['Champion','Battle Master','Eldritch Knight']}]},
+    4:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]},
+    5:{auto:['Extra Attack: Attack twice when you take the Attack action.'],choose:[]}
+  }},
+  rogue:{hit_die:8,levels:{
+    2:{auto:['Cunning Action: Dash, Disengage, or Hide as a Bonus Action each turn.'],choose:[]},
+    3:{auto:['Sneak Attack increases to 2d6.'],choose:[{type:'subclass',prompt:'Choose Roguish Archetype',options:['Arcane Trickster','Assassin','Thief','Mastermind','Swashbuckler']}]},
+    4:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]},
+    5:{auto:['Uncanny Dodge: Use Reaction to halve damage from an attacker you can see.','Sneak Attack increases to 3d6.'],choose:[]}
+  }},
+  bard:{hit_die:8,
+    slots:{1:[2],2:[3],3:[4,2],4:[4,3],5:[4,3,2]},
+    levels:{
+      2:{auto:["Jack of All Trades: Add half your proficiency bonus (rounded down) to ability checks you aren't proficient in.",'Song of Rest (d6): Allies regain extra 1d6 HP when spending Hit Dice during a Short Rest.'],
+        choose:[{type:'spell',prompt:'Choose 1 new Bard spell (1st level)',count:1,tier:1}]},
+      3:{auto:['Expertise: Choose 2 more skills to double your proficiency bonus on them.'],
+        choose:[
+          {type:'subclass',prompt:'Choose Bard College',options:['College of Lore','College of Valor','College of Glamour','College of Whispers','College of Creation']},
+          {type:'spell',prompt:'Choose 1 new Bard spell (up to 2nd level)',count:1,tier:2}
+        ]},
+      4:{auto:[],choose:[
+        {type:'asi',prompt:'Ability Score Improvement'},
+        {type:'spell',prompt:'Choose 1 new Bard spell or cantrip',count:1,tier:1,cantrip:true}
+      ]},
+      5:{auto:['Bardic Inspiration die upgrades to d8 (was d6).','Font of Inspiration: Regain all Bardic Inspiration uses on a Short Rest.'],
+        choose:[{type:'spell',prompt:'Choose 1 new Bard spell (up to 3rd level)',count:1,tier:3}]}
+    }
+  }
+};
+const BARD_SPELLS={
+  0:['Dancing Lights','Friends','Light','Mage Hand','Mending','Message','Minor Illusion','Prestidigitation','True Strike','Vicious Mockery'],
+  1:['Animal Friendship','Bane','Charm Person','Comprehend Languages','Cure Wounds','Detect Magic','Disguise Self','Faerie Fire','Feather Fall','Healing Word','Heroism','Identify','Illusory Script','Longstrider','Silent Image','Sleep','Speak with Animals','Thunderwave','Unseen Servant'],
+  2:['Animal Messenger','Blindness/Deafness','Calm Emotions','Cloud of Daggers','Crown of Madness','Detect Thoughts','Enhance Ability','Enthrall','Heat Metal','Hold Person','Invisibility','Knock','Lesser Restoration','Locate Object','Magic Mouth','Phantasmal Force','See Invisibility','Shatter','Silence','Suggestion','Zone of Truth'],
+  3:['Bestow Curse','Clairvoyance','Dispel Magic','Fear','Hypnotic Pattern','Major Image','Nondetection','Plant Growth','Sending','Slow','Speak with Dead','Stinking Cloud','Tongues']
+};
+
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
-const SAVE_VERSION=9;
+const SAVE_VERSION=10;
 
 // ═══ FIREBASE DROP 2 ═══
 let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false;
@@ -3142,6 +3189,7 @@ function renderCards(){
     let badge='<span class="status-badge ok">OK</span>';
     if(pc.hp<=0)badge='<span class="status-badge dead">DOWN</span>';
     else if(pct<50||(pc.conditions||[]).length>0)badge='<span class="status-badge warn">HURT</span>';
+    else if(pc.levelReady)badge='<span class="status-badge" style="background:var(--gold);color:var(--bg);font-weight:700;cursor:pointer" onclick="openLevelUpWizard('+idx+')" title="Ready to level up!">⬆ LVL</span>';
     // Resource pips
     let resourceHtml='';
     if((pc.resources||[]).length){
@@ -3175,6 +3223,7 @@ function renderCards(){
           <div style="display:flex;gap:4px"><input type="number" id="hpamt-${idx}" style="width:55px;text-align:center;padding:4px" placeholder="Amt"><button class="btn sm green" onclick="adjHP(${idx},true)">+</button><button class="btn sm red" onclick="adjHP(${idx},false)">−</button></div>
         </div>
         <div class="hp-bar-wrap"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
+        ${pc.levelReady?'<div onclick="openLevelUpWizard('+idx+')" style="font-size:11px;font-weight:700;color:var(--bg);background:var(--gold);border-radius:var(--radius-sm);padding:5px 10px;margin-bottom:6px;cursor:pointer;text-align:center">⬆ Ready for Level '+(lvl+1)+'! Tap to level up (after Long Rest)</div>':''}
         <div class="stat-mini-row">
           <div class="stat-mini"><span class="s-name">STR</span><span class="s-val">${(pc.str||'').split(' ')[0]}</span></div>
           <div class="stat-mini"><span class="s-name">DEX</span><span class="s-val">${(pc.dex||'').split(' ')[0]}</span></div>
@@ -3331,14 +3380,7 @@ function awardXP(idx){
   const amt=parseInt(prompt('Award XP to '+state.pcs[idx].name+'?','50'));
   if(isNaN(amt)||amt<=0)return;
   state.pcs[idx].xp=(state.pcs[idx].xp||0)+amt;
-  const lvl=state.pcs[idx].level||1;
-  if(state.pcs[idx].xp>=XP_T[Math.min(lvl,19)]&&lvl<20){
-    if(confirm(state.pcs[idx].name+' can level up to '+(lvl+1)+'! Level up now?')){
-      state.pcs[idx].level=lvl+1;
-      if(document.getElementById('auto-lvl')?.checked)triggerChk('Level Up: '+state.pcs[idx].name);
-      toast('🎉 '+state.pcs[idx].name+' is Level '+(lvl+1)+'!');
-    }
-  }
+  checkLevelUp(state.pcs[idx]);
   saveRefresh();
 }
 
@@ -3748,6 +3790,246 @@ function doLongRest(){
   saveRefresh();
   if(document.getElementById('auto-rest')?.checked)triggerChk('Long Rest');
   toast('🌙 Long Rest — all HP and slots restored!');
+  const readyIdx=state.pcs.findIndex(pc=>pc.levelReady);
+  if(readyIdx>=0)setTimeout(()=>openLevelUpWizard(readyIdx),800);
+}
+
+// ═══ LEVEL UP WIZARD ═══
+let _luWiz=null;
+
+function checkLevelUp(pc){
+  const lvl=pc.level||1;if(lvl>=20||pc.levelReady)return;
+  if((pc.xp||0)>=XP_T[Math.min(lvl,19)]){
+    pc.levelReady=true;
+    toast('⬆ '+pc.name+' ready for Level '+(lvl+1)+'! Take a Long Rest to advance.');
+    _ctxInject='[LEVEL UP PENDING] '+pc.name+' has earned enough XP to reach Level '+(lvl+1)+'. They need a Long Rest first. Do not grant any new abilities yet.';
+  }
+}
+
+function openLevelUpWizard(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  const newLvl=(pc.level||1)+1;
+  const clsKey=Object.keys(LEVEL_UP_DATA).find(k=>(pc.class||'').toLowerCase().includes(k))||null;
+  const data=clsKey?LEVEL_UP_DATA[clsKey]:null;
+  const lvlData=(data&&data.levels[newLvl])||{auto:[],choose:[]};
+  const hitDie=data?data.hit_die:8;
+  const steps=[{type:'hp',hitDie}];
+  if((lvlData.auto||[]).length)steps.push({type:'auto',features:lvlData.auto});
+  (lvlData.choose||[]).forEach(c=>steps.push({type:'choice',choice:c}));
+  steps.push({type:'confirm'});
+  _luWiz={idx,pc,newLvl,clsKey,data,lvlData,steps,stepIdx:0,
+    choices:{hp:0,autoFeatures:lvlData.auto||[],subclass:'',spells:[],asi:''}};
+  document.getElementById('levelup-modal').classList.add('open');
+  _renderLevelUpStep();
+}
+
+function closeLevelUpModal(){
+  document.getElementById('levelup-modal').classList.remove('open');
+  _luWiz=null;
+}
+
+function _luNext(){
+  if(!_luWiz)return;
+  _luWiz.stepIdx++;
+  _renderLevelUpStep();
+}
+
+function _luRollHP(hd,conMod){
+  if(!_luWiz)return;
+  const roll=Math.ceil(Math.random()*hd);
+  const total=Math.max(1,roll+conMod);
+  _luWiz.choices.hp=total;
+  const r=document.getElementById('lu-hp-roll');if(r)r.textContent=roll;
+  const res=document.getElementById('lu-hp-result');
+  if(res)res.textContent='Rolled '+roll+' + '+(conMod>=0?'+':'')+conMod+' = +'+total+' HP';
+  const nb=document.getElementById('lu-next-btn');if(nb){nb.disabled=false;nb.textContent='→ Next';}
+}
+
+function _luSetHP(hp){
+  if(!_luWiz)return;
+  _luWiz.choices.hp=hp;
+  const r=document.getElementById('lu-hp-roll');if(r)r.textContent='avg';
+  const res=document.getElementById('lu-hp-result');if(res)res.textContent='Average taken: +'+hp+' HP';
+  const nb=document.getElementById('lu-next-btn');if(nb){nb.disabled=false;nb.textContent='→ Next';}
+}
+
+function _luSelectSubclass(name){
+  if(!_luWiz)return;
+  _luWiz.choices.subclass=name;
+  document.querySelectorAll('.lu-option').forEach(el=>{el.style.borderColor='var(--border)';el.classList.remove('selected');});
+  const sid='luopt_'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  const el=document.getElementById(sid);
+  if(el){el.style.borderColor='var(--gold)';el.classList.add('selected');}
+  const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=false;
+}
+
+function _luToggleSpell(name){
+  if(!_luWiz)return;
+  const step=_luWiz.steps[_luWiz.stepIdx];
+  const max=(step&&step.choice)?step.choice.count:1;
+  const arr=_luWiz.choices.spells;
+  const i=arr.indexOf(name);
+  if(i>=0){arr.splice(i,1);}
+  else if(arr.length<max){arr.push(name);}
+  else{
+    const old=arr.shift();arr.push(name);
+    document.querySelectorAll('#lu-spell-list input[type=checkbox]').forEach(cb=>{if(cb.value===old)cb.checked=false;});
+  }
+  const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=(arr.length<max);
+}
+
+function _luUpdateASI(){
+  if(!_luWiz)return;
+  const s1=(document.getElementById('lu-asi-1')||{}).value||'';
+  const s2=(document.getElementById('lu-asi-2')||{}).value||'';
+  let asi='';let preview='';
+  if(s1&&s2&&s1!==s2){asi=s1.toLowerCase()+'+1,'+s2.toLowerCase()+'+1';preview=s1+' +1 & '+s2+' +1';}
+  else if(s1){asi=s1.toLowerCase()+'+2';preview=s1+' +2';}
+  _luWiz.choices.asi=asi;
+  const pv=document.getElementById('lu-asi-preview');if(pv)pv.textContent=preview?'→ '+preview:'';
+  const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=!s1;
+}
+
+function _getBardSpells(ch){
+  const tier=ch.tier||1;
+  let pool=[];
+  if(ch.cantrip)(BARD_SPELLS[0]||[]).forEach(s=>pool.push('[Cantrip] '+s));
+  for(let t=1;t<=tier;t++){(BARD_SPELLS[t]||[]).forEach(s=>pool.push((t>1?'[L'+t+'] ':'')+s));}
+  const known=(_luWiz&&_luWiz.pc&&_luWiz.pc.magic)||'';
+  return pool.filter(s=>!known.includes(s.replace(/^\[[^\]]+\]\s*/,'')));
+}
+
+function _renderLevelUpStep(){
+  if(!_luWiz)return;
+  const {pc,newLvl,steps,stepIdx,choices,data,clsKey}=_luWiz;
+  const step=steps[stepIdx];
+  const titleEl=document.getElementById('lu-title');
+  const bodyEl=document.getElementById('lu-body');
+  const actEl=document.getElementById('lu-actions');
+  if(!titleEl||!bodyEl||!actEl)return;
+  const prog='<small style="opacity:.5;font-size:10px;font-weight:400;margin-left:6px">'+(stepIdx+1)+'/'+steps.length+'</small>';
+  const X='<button class="btn sm" onclick="closeLevelUpModal()" style="margin-left:auto">✕</button>';
+
+  if(step.type==='hp'){
+    const hd=step.hitDie||8;
+    const conMod=parseInt(((pc.con||'10 (+0)').match(/\(([^)]+)\)/)||['','0'])[1])||0;
+    const avg=Math.floor(hd/2)+1+conMod;
+    titleEl.innerHTML='⬆ '+esc(pc.name)+' → Level '+newLvl+prog+X;
+    bodyEl.innerHTML=
+      '<div style="font-size:13px;font-weight:600;margin-bottom:12px">Hit Points</div>'+
+      '<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px">'+
+        '<div id="lu-hp-roll" style="font-size:36px;font-weight:700;color:var(--gold);width:64px;height:64px;display:flex;align-items:center;justify-content:center;border:2px solid var(--gold-dim);border-radius:8px">d'+hd+'</div>'+
+        '<div style="font-size:12px;color:var(--text-dim);line-height:2">Hit Die: d'+hd+'<br>CON mod: '+(conMod>=0?'+':'')+conMod+'<br>Average: <strong>+'+avg+'</strong></div>'+
+      '</div>'+
+      '<div id="lu-hp-result" style="font-size:14px;color:var(--gold);font-weight:600;min-height:22px"></div>';
+    actEl.innerHTML=
+      '<button class="btn gold" onclick="_luRollHP('+hd+','+conMod+')">🎲 Roll d'+hd+'</button>'+
+      '<button class="btn" onclick="_luSetHP('+avg+')">Take Average (+'+avg+')</button>'+
+      '<button class="btn" id="lu-next-btn" disabled onclick="_luNext()" style="margin-left:auto">→ Next</button>';
+  }
+  else if(step.type==='auto'){
+    titleEl.innerHTML='⬆ New Features'+prog+X;
+    bodyEl.innerHTML=
+      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">'+esc(pc.name)+' gains at Level '+newLvl+':</div>'+
+      step.features.map(f=>'<div style="padding:10px 14px;background:var(--surface3);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--radius-sm);margin-bottom:8px;font-size:12px;line-height:1.6">'+esc(f)+'</div>').join('');
+    actEl.innerHTML='<button class="btn gold full" onclick="_luNext()">✓ Got It →</button>';
+  }
+  else if(step.type==='choice'){
+    const ch=step.choice;
+    titleEl.innerHTML='⬆ '+esc(ch.prompt||'Choose')+prog+X;
+    if(ch.type==='subclass'){
+      bodyEl.innerHTML='<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">This choice is permanent.</div>'+
+        ch.options.map(o=>'<div id="luopt_'+o.replace(/[^a-zA-Z0-9]/g,'_')+'" class="lu-option" onclick="_luSelectSubclass(\''+o.replace(/'/g,"\\'")+'\')">'+esc(o)+'</div>').join('');
+      actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
+    }
+    else if(ch.type==='spell'){
+      const spells=_getBardSpells(ch);
+      bodyEl.innerHTML='<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Select '+ch.count+':</div>'+
+        '<div id="lu-spell-list" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">'+
+        spells.map(s=>'<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border)">'+
+          '<input type="checkbox" value="'+esc(s.replace(/^\[[^\]]+\]\s*/,''))+'" onchange="_luToggleSpell(\''+s.replace(/^\[[^\]]+\]\s*/,'').replace(/'/g,"\\'")+'\')"> <span style="font-size:12px">'+esc(s)+'</span></label>').join('')+
+        '</div>';
+      actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
+    }
+    else if(ch.type==='asi'){
+      const stats=['STR','DEX','CON','INT','WIS','CHA'];
+      const opts=stats.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+      bodyEl.innerHTML='<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">+2 to one ability, or +1 to two different abilities. Max 20.</div>'+
+        '<div class="form-group"><label class="field-label">First Ability</label><select id="lu-asi-1" onchange="_luUpdateASI()"><option value="">— Choose —</option>'+opts+'</select></div>'+
+        '<div class="form-group"><label class="field-label">Second Ability (optional — split into +1/+1)</label><select id="lu-asi-2" onchange="_luUpdateASI()"><option value="">— None (first ability gets +2) —</option>'+opts+'</select></div>'+
+        '<div id="lu-asi-preview" style="font-size:13px;color:var(--gold);font-weight:600;margin-top:6px;min-height:18px"></div>';
+      actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
+    }
+  }
+  else if(step.type==='confirm'){
+    titleEl.innerHTML='⬆ Confirm Level Up'+X;
+    const rows=[];
+    rows.push('<div style="font-size:15px;font-weight:700;color:var(--gold-bright);margin-bottom:10px">'+esc(pc.name)+' → Level '+newLvl+'</div>');
+    rows.push('<div style="font-size:12px;line-height:2;color:var(--text-dim)">');
+    rows.push('HP Max: '+(pc.hp_max||0)+' → <strong style="color:var(--text)">'+(pc.hp_max+choices.hp)+'</strong> (+'+choices.hp+')<br>');
+    if(choices.autoFeatures&&choices.autoFeatures.length)rows.push('New Features: <strong style="color:var(--text)">'+esc(choices.autoFeatures.map(f=>f.split(':')[0]).join(', '))+'</strong><br>');
+    if(choices.subclass)rows.push('Archetype: <strong style="color:var(--text)">'+esc(choices.subclass)+'</strong><br>');
+    if(choices.spells&&choices.spells.length)rows.push('Spells Learned: <strong style="color:var(--text)">'+esc(choices.spells.join(', '))+'</strong><br>');
+    if(choices.asi)rows.push('Ability Improvement: <strong style="color:var(--text)">'+esc(choices.asi.replace(/,/g,' & ').replace(/([a-z]+)/g,s=>s.toUpperCase()).replace(/\+/g,' +'))+'</strong><br>');
+    if(clsKey==='bard'&&data&&data.slots&&data.slots[newLvl])rows.push('Spell Slots: <strong style="color:var(--text)">'+data.slots[newLvl].map((m,i)=>SPELL_LVLS[i]+': '+m).join(', ')+'</strong><br>');
+    rows.push('</div>');
+    bodyEl.innerHTML='<div style="padding:12px;background:var(--surface3);border-radius:var(--radius-sm)">'+rows.join('')+'</div>';
+    actEl.innerHTML='<button class="btn gold full" style="font-size:15px;padding:14px" onclick="applyLevelUp()">🎉 Level Up!</button>';
+  }
+}
+
+function applyLevelUp(){
+  if(!_luWiz)return;
+  const {idx,pc,newLvl,clsKey,data,choices}=_luWiz;
+  const p=state.pcs[idx];
+  // HP
+  p.hp_max=(p.hp_max||0)+choices.hp;
+  p.hp=Math.min((p.hp||0)+choices.hp,p.hp_max);
+  // Level
+  p.level=newLvl;
+  // Auto features
+  if(choices.autoFeatures&&choices.autoFeatures.length)
+    p.features=(p.features?p.features+'\n':'')+choices.autoFeatures.join('\n');
+  // Subclass
+  if(choices.subclass){
+    p.subclass=choices.subclass;
+    p.features=(p.features?p.features+'\n':'')+choices.subclass+' (Level '+newLvl+')';
+  }
+  // ASI
+  if(choices.asi){
+    choices.asi.split(',').forEach(part=>{
+      const m=part.match(/^([a-z]+)\+(\d)$/);
+      if(!m)return;
+      const cur=parseInt((p[m[1]]||'10').split(' ')[0]);
+      const nv=Math.min(20,cur+parseInt(m[2]));
+      const mod=Math.floor((nv-10)/2);
+      p[m[1]]=nv+' ('+(mod>=0?'+':'')+mod+')';
+    });
+  }
+  // Spells
+  if(choices.spells&&choices.spells.length)
+    p.magic=(p.magic?p.magic+'\n':'')+'[Level '+newLvl+'] '+choices.spells.join(', ');
+  // Bard spell slots
+  if(clsKey==='bard'&&data&&data.slots&&data.slots[newLvl]){
+    p.slots=data.slots[newLvl].map((max,i)=>({max,used:Math.min((p.slots&&p.slots[i]?p.slots[i].used:0),max)}));
+  }
+  // Clear levelReady
+  p.levelReady=false;
+  // AI notification
+  const parts=[pc.name+' advances to Level '+newLvl+'.'];
+  parts.push('New HP max: '+p.hp_max+'.');
+  if(choices.autoFeatures&&choices.autoFeatures.length)parts.push('New features: '+choices.autoFeatures.map(f=>f.split(':')[0]).join(', ')+'.');
+  if(choices.subclass)parts.push('Chosen archetype: '+choices.subclass+'.');
+  if(choices.spells&&choices.spells.length)parts.push('New spells: '+choices.spells.join(', ')+'.');
+  if(choices.asi)parts.push('Ability improvement: '+choices.asi+'.');
+  _ctxInject='[LEVEL UP COMPLETE] '+parts.join(' ')+' Update your full understanding of this character and narrate the advancement when prompted.';
+  triggerChk('Level Up: '+pc.name+' → Level '+newLvl);
+  saveRefresh();
+  closeLevelUpModal();
+  toast('🎉 '+pc.name+' is now Level '+newLvl+'!');
+  // Queue next ready PC
+  const nextIdx=state.pcs.findIndex((p2,i)=>i!==idx&&p2.levelReady);
+  if(nextIdx>=0)setTimeout(()=>openLevelUpWizard(nextIdx),800);
 }
 
 // ═══ SESSION LOG ═══
@@ -4604,6 +4886,39 @@ function migrate(s){
     }
   }
 
+  // ══ VERSION GATE: savedVer < 10 — canonical L3 character sync (2026-06-14) ══
+  if(savedVer<10){
+    const _patch=function(id,upd){const pc=(s.pcs||[]).find(p=>p.id===id);if(!pc)return;Object.keys(upd).forEach(k=>{pc[k]=upd[k];});};
+    _patch('slasher',{
+      class:'Fighter (Battle Master)',subclass:'Battle Master',level:3,hp:39,hp_max:39,levelReady:false,
+      features:'GREAT WEAPON FIGHTING (Style): When rolling damage for an attack with a two-handed weapon, reroll any 1 or 2 — must use new roll.\nSECOND WIND (Bonus Action, 1/Short Rest): Regain 1d10+3 HP as a bonus action.\nACTION SURGE (1/Short Rest): Take one additional action on your turn.\nACID BREATH (Action, Recharge 5-6): 5x30ft line, all creatures make DC 13 CON save or take 2d6 acid damage (half on success).\nACID RESISTANCE: Resistance to acid damage.\nHEAVY ARMOR PROFICIENCY: Wearing chain mail (AC 16). Disadvantage on Stealth checks.\nGREATSWORD: 2d6 slashing, heavy, two-handed. Primary weapon.\nSMITH\'S TOOLS: Proficient. Handles all equipment maintenance and repairs.\nGUILD MEMBERSHIP: Can call on the Smith\'s Guild for support, lodging, and contacts.\nHONEST TO A FAULT: Cannot deceive. Genuinely baffled by Tinkle and Pebble\'s methods.\nPROTECTOR: Sworn to keep Tinkle and Pebble safe.\nCOMBAT SUPERIORITY: 4 Superiority Dice (d8s) per short rest.\nMANEUVERS: Bait & Switch (swap with ally, add d8 to roll for AC), Precision Attack (add d8 to hit after roll), Trip Attack (add d8 damage, target makes DC 13 STR save or falls prone).',
+      magic:'None.',conditions:[],slots:[],
+      resources:[
+        {name:'Second Wind',max:1,used:0,restore:'short',desc:'Bonus action, heal 1d10+3 HP'},
+        {name:'Action Surge',max:1,used:0,restore:'short',desc:'One additional action on your turn'},
+        {name:'Superiority Dice (d8)',max:4,used:0,restore:'short',desc:'Spend to trigger Battle Master maneuvers'}
+      ]
+    });
+    _patch('tinkle',{
+      class:'Rogue (Arcane Trickster)',subclass:'Arcane Trickster',level:3,hp:27,hp_max:27,levelReady:false,
+      features:'NATURAL ARMOR: AC 17 flat. Cannot wear armor. Shields allowed.\nSHELL DEFENSE (Reaction or Hide Action): Withdraw into shell. Gain +4 AC (AC 21), become prone and incapacitated. Emerge using Bonus Action.\nSNEAK ATTACK (2d6): Once per turn when attacking with advantage OR when an ally is adjacent to target.\nCUNNING ACTION: Dash, Disengage, or Hide as a Bonus Action each turn.\nTHIEVES CANT: Secret underworld language.\nEXPERTISE: Deception and Investigation at double proficiency.\nHOLD BREATH: Up to 1 hour.\nCLAWS: 1d4 slashing natural weapon.\nBLOWGUN: 1d1 piercing, range 25/100ft. Loaded with Torpor Poison (DC 15 CON save or incapacitated for 4d6 hours).\nMAGE HAND LEGERDEMAIN: Mage Hand is invisible, can pick pockets, disarm traps, or stow objects remotely.\nTHE MASTERMIND: Manufactures the tonics, runs the operation, writes the labels.',
+      magic:'Spellcasting: Intelligence | Save DC: 13 | Attack Bonus: +5\nCantrips: Mage Hand, Message, Prestidigitation\nLevel 1 Spells: Disguise Self, Find Familiar (Rat), Sleep',
+      conditions:[],slots:[{max:2,used:0}],resources:[]
+    });
+    _patch('pebble',{
+      class:'Bard (College of Lore)',subclass:'College of Lore',level:3,hp:30,hp_max:30,passive_perception:12,levelReady:false,
+      skills:'Persuasion +7 (Expertise), Deception +7 (Expertise), Performance +5, Insight +2, Perception +2, Arcana +3, Sleight of Hand +4',
+      features:'LITTLE GIANT: Counts as Large size for carrying capacity (240 lb) and push/drag/lift (480 lb).\nSTONES ENDURANCE (2/Long Rest): Reaction to reduce damage by 1d12+2. If reduced to 0, active concentration is automatically protected.\nLUCKY FEAT (3 Points/Long Rest): Spend 1 point to gain Advantage on a d20 Test OR impose Disadvantage on an attack against you.\nBARDIC INSPIRATION (3/Long Rest): Bonus Action, give a d6 die to a target within 60ft. They may add it to one d20 Test within 10 minutes, after seeing the roll.\nJACK OF ALL TRADES: Add +1 (half proficiency) to any ability check not already including proficiency.\nSONG OF REST: Allies who spend Hit Dice during a Short Rest regain an extra 1d6 HP.\nCOLLEGE OF LORE — BONUS PROFICIENCIES: Gained Perception, Arcana, and Sleight of Hand.\nCOLLEGE OF LORE — CUTTING WORDS: Use a Bardic Inspiration die as a Reaction to subtract the roll from an enemy\'s attack, ability check, or damage roll — declared before outcome.\nTHE PITCHMAN: Public face of Tinkle Tonics. High CHA is the product.',
+      magic:'Spellcasting: Charisma | Save DC: 13 | Attack Bonus: +5\nCantrips: Friends, Vicious Mockery\n1st-Level Spells: Charm Person, Healing Word, Sleep\n2nd-Level Spells: Lesser Restoration, Suggestion',
+      conditions:[],slots:[{max:4,used:0},{max:2,used:0}],
+      resources:[
+        {name:'Bardic Inspiration',max:3,used:0,restore:'long',desc:'d6 bonus die for allies; Cutting Words also expends a use'},
+        {name:"Stone's Endurance",max:2,used:0,restore:'long',desc:'Reaction, 1d12+2 damage reduction; 0 dmg = concentration protected'},
+        {name:'Lucky Points',max:3,used:0,restore:'long',desc:'Advantage on d20 test or force enemy disadvantage'}
+      ]
+    });
+  }
+
   // ══ CANONICAL QA COMPLETENESS — always run to pick up QAs added in current version ══
   const validTabs=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dm'];
   const hasValidActions=s.quickActions.some(qa=>(qa.context||[]).some(c=>validTabs.includes(c)));
@@ -4702,6 +5017,7 @@ function migrate(s){
     if(!pc.concentrating)pc.concentrating='';
     if(!pc.hp_max||pc.hp_max<1)pc.hp_max=10;
     if(pc.hp===undefined||pc.hp===null)pc.hp=pc.hp_max;
+    if(pc.levelReady===undefined)pc.levelReady=false;
   });
 }
 // ═══ PERSISTENCE ═══
@@ -5176,7 +5492,7 @@ function parseMechanics(responseText){
       else if(key==='xp'){
         val.split(',').forEach(part=>{
           const m=part.trim().match(/^([^+]+)\+(\d+)$/);
-          if(m){const pc=findPC(m[1].trim());if(pc){const amt=parseInt(m[2]);pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});const nxt=XP_T[Math.min(pc.level||1,19)];if(pc.xp>=nxt&&(pc.level||1)<20)changes.push({text:'⚠ '+pc.name+' can level up!'});}}
+          if(m){const pc=findPC(m[1].trim());if(pc){const amt=parseInt(m[2]);pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});checkLevelUp(pc);}}
         });
       }else if(key==='module_episode'){
         const pts=val.split(',').map(p=>p.trim());
@@ -7286,6 +7602,15 @@ function renderSuperpowers(){
 <div class="qa-menu" id="qa-menu">
   <div class="qa-menu-title" id="qa-menu-title">Quick Actions</div>
   <div id="qa-menu-items"></div>
+</div>
+
+<!-- LEVEL UP MODAL (bottom sheet) -->
+<div class="qa-modal" id="levelup-modal">
+  <div class="qa-sheet" style="max-width:560px">
+    <div class="qa-sheet-title" id="lu-title" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">⬆ Level Up</div>
+    <div id="lu-body" style="min-height:120px;padding-top:4px"></div>
+    <div id="lu-actions" style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"></div>
+  </div>
 </div>
 
 <!-- FLAG MODAL (bottom sheet) -->

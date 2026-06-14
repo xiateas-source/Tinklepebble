@@ -272,6 +272,7 @@ Open questions (answer before Drop 6):
 - `state.storyThread` — ELIMINATED 2026-06-14 (DR-2 ✅)
 - ⋮ overflow menu clipping — FIXED 2026-06-14. `#tab-overflow-menu` changed to `position:fixed`; `toggleTabOverflow()` uses `getBoundingClientRect()` (was clipped by `main-tabs { overflow-x:auto }`)
 - Header menu stuck-open on mobile — FIXED 2026-06-14. Added `onclick="if(event.target===this)closeHeaderMenu()"` so tapping menu background closes it on Android/iOS
+- Flag context blind spot — FIXED 2026-06-14. `_buildFlagUIContext()` auto-detects active tab, chat channel, and visible sub-panel at flag creation time; stored as `uiCtx` on each flag; displayed as 📍 gold label in flag cards. Old flags fall back to tab name.
 
 
 ## Critical User Rule
