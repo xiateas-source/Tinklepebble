@@ -15,7 +15,7 @@ Routine UI, copy, CSS, patch notes, roadmap updates, and dead code removal can p
 - Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` object persisted to `localStorage('tt_v1')` and Firebase
 - Three stacked `:root` CSS blocks — LAST one wins (Block 3 at line 971). Block 1 (line 13) and Block 2 (line 341) are dead weight pending cleanup (see Architectural Refactor Plan)
-- `SAVE_VERSION=8`; `migrate(s)` patches loaded state — currently unconditional (no version gates); refactor to gated engine is in the plan
+- `migrate()` — DR-1 ✅ DONE 2026-06-14. Version-gated engine: structural guards → `if(savedVer<8)` gate → always-run canonical QA → always-run core defaults. Future gates add at `savedVer<9`, etc.
 - `renderAll()` is central render; `renderChat()` renders narrative chat
 - `callAI()` — AbortController + 25s timeout added (QW-8 ✅); full retry/fallback in Deep Refactor #4
 - AI contracts read from DOM via `document.getElementById()?.value` — fragile (contracts-to-state migration planned)
@@ -72,10 +72,10 @@ These are correct, battle-tested, and carry high regression risk if touched:
 
 ### Deep Refactors (structural — execute in this order)
 
-**1. Version-gated `migrate()` — prerequisite for everything else**
-- Current: all patches run unconditionally. Refactor to `if(savedVer < N)` sequential gates.
-- Skeleton: `if(savedVer < 7){...all current patches...}` → `if(savedVer < 8){storyChapters init}` → `if(savedVer < 9){delete storyThread, seed aiContracts}`
-- Test against actual v5/v6/v7 save exports before shipping.
+**1. Version-gated `migrate()` — DONE 2026-06-14** ✅
+- Three-section structure: STRUCTURAL GUARDS (always-run idempotent) → `if(savedVer<8){...}` gate → CANONICAL QA COMPLETENESS (always-run) → CORE STRUCTURAL DEFAULTS (always-run)
+- Gate < 8: moduleProgress init, dev errorLog flags, qa_22 rename, tab ID remaps, canonicalContexts merge, qa_13/qa_23 additions, Shell Defense stale clear, storyChapters seed from storyThread
+- Commented future gate skeleton: `// if(savedVer<9){ delete s.storyThread; if(!s.aiContracts)s.aiContracts={}; }`
 - `[Severity: High] [Complexity: Hours] [Risk: Low]`
 
 **2. `storyThread` complete elimination (v9 gate)**

@@ -4504,137 +4504,109 @@ function launchCampaign(){
 }
 function migrate(s){
   if(!s||typeof s!=='object')return;
-  // Top-level arrays
+  const savedVer=s.saveVersion||0;
+
+  // ══ STRUCTURAL GUARDS — run every load (idempotent null/array protection) ══
   if(!Array.isArray(s.chatHistory))s.chatHistory=[];
   if(!Array.isArray(s.logs))s.logs=[];
   if(!Array.isArray(s.chkHistory))s.chkHistory=[];
   if(!Array.isArray(s.scenes))s.scenes=[];
   if(!Array.isArray(s.snippets))s.snippets=[];
-  if(!Array.isArray(s.moduleProgress))s.moduleProgress=[
-    {name:'Episode 1 — Greenest in Flames',status:'pending',notes:''},
-    {name:'Episode 2 — Raiders\' Camp',status:'pending',notes:''},
-    {name:'Episode 3 — Dragon Hatchery',status:'pending',notes:''},
-    {name:'Episode 4 — On the Road',status:'pending',notes:''},
-    {name:'Episode 5 — Construction Ahead',status:'pending',notes:''},
-    {name:'Episode 6 — Castle Naerytar',status:'pending',notes:''},
-    {name:'Episode 7 — Hunting Lodge',status:'pending',notes:''},
-    {name:'Episode 8 — Castle in the Clouds',status:'pending',notes:''},
-  ];
   if(!Array.isArray(s.encounterPresets))s.encounterPresets=[];
   if(!Array.isArray(s.rewindStack))s.rewindStack=[];
   if(!Array.isArray(s.partyInventory))s.partyInventory=[];
-  // Deduplicate PC inventories by name+ts
-  if(Array.isArray(s.pcs))s.pcs.forEach(function(pc){
-    if(!Array.isArray(pc.inventory))return;
-    var seen=new Set();
-    pc.inventory=pc.inventory.filter(function(item){
-      if(!item.name||item.name.trim()==='')return false;
-      var key=(item.name+':'+(item.ts||'')).toLowerCase();
-      if(seen.has(key))return false;
-      seen.add(key);return true;
-    });
-  });
   if(!Array.isArray(s.npcs))s.npcs=[];
-  s.npcs.forEach(function(n){if(n.hp===undefined)n.hp=0;});
   if(!Array.isArray(s.quests))s.quests=[];
-  s.quests.forEach(function(q){if(!q.status){q.status=q.done?'done':'active';}if(q.hidden===undefined)q.hidden=false;});
-  // Deduplicate quests by text
-  if(s.quests.length>0){
-    const seen=new Set();
-    s.quests=s.quests.filter(function(q){
-      if(!q.text||q.text.trim()==='none'||q.text.trim()==='')return false;
-      const key=q.text.split('|')[0].trim().toLowerCase();
-      if(seen.has(key))return false;
-      seen.add(key);return true;
-    });
-  }
   if(!Array.isArray(s.relationships))s.relationships=[];
   if(!Array.isArray(s.quickActions))s.quickActions=[];
   if(!Array.isArray(s.errorLog))s.errorLog=[];
-  if(!s.errorLog.find(f=>f.id==='dev_visual_redesign')){
-    s.errorLog.unshift({id:'dev_visual_redesign',category:'infra',sectionCtx:'Dev Plan',location:'Visual Redesign',gameTs:'',ts:'',verdict:null,resolved:false,
-      note:'VISUAL REDESIGN — Steampunk Fantasy (reference: screenshots shared 2026-06-13)\n\nPALETTE: body #1a0f00→#2a1a05 radial; surface #2d1f0a/#3a2812/#4a3520; gold #c8a850/#e8c870; text #d4b896/#a08060\n\nTEXTURES (pure CSS, no images): body repeating-linear-gradient noise over dark radial; panels inset box-shadow + subtle gradient; borders 1px gold-dim + outer glow; corner accents ::before/::after clip-path triangles\n\nCOMPONENT ORDER (one session):\n1. CSS variables + body (30m)\n2. Header + tab bar with icons (30m)\n3. Character cards + circular portrait frames (45m)\n4. Panel borders + corner ornaments (30m)\n5. Chat UI + badges (20m)\n6. Buttons + inputs (20m)\n\nTAB ICONS: Party=⚔ World=🌍 Wagon=🛞 Combat=💀 Session=📜 AI Tools=🔮 AI DM=🧙 Dev=⚙ Setup=🏛\n\nPORTRAIT FRAMES: circular clip-path colored div using pc.color, class initial or emoji as icon. No images needed.\n\nNOTE: Single CSS pass only. No external fonts, no images. All texture via CSS gradient patterns.'
-    });
-  }
-  if(!s.errorLog.find(f=>f.id==='dev_vtt_roadmap')){
-    s.errorLog.unshift({id:'dev_vtt_roadmap',category:'infra',sectionCtx:'Dev Plan',location:'VTT Roadmap',gameTs:'',ts:'',verdict:null,resolved:false,
-      note:'VTT ROADMAP — Drops 4-7 (logged 2026-06-13)\n\nDROP 4 — Zone-Based Combat Map\nReplace flat initiative list with 6 spatial zones: Frontline/Backline/Left/Right/Air/Rear. Characters assigned to zones, DM moves them via UI, ledger reports positions. No grid — phone-friendly. REPLACES entire Combat tab initiative tracker.\n⚠ Do NOT refactor Combat tab before Drop 4 — it gets rebuilt.\n\nDROP 5 — Shared Dice Roll Feed\nFirebase broadcasts every roll to all connected devices in real time. Players see each other\'s rolls without DM narrating. Covers "did that hit?" gap.\n⚠ Move dice roller to globally accessible location before Drop 5 (currently buried in Combat tab).\n\nDROP 6 — Player View Mode\nSimplified Firebase-synced screen for second phone. Shows: HP bars, conditions, current scene, quest status, chat feed. No DM secrets, no config panels.\n⚠ Requires buildPlayerView() + state visibility split (see dev_state_visibility flag) BEFORE building this.\n\nDROP 7 — Handout / Image Cards\nStore URLs or base64 thumbnails on Firebase. DM taps "Show players" → appears on player view. Additive to Drop 6.'
-    });
-  }
-  if(!s.errorLog.find(f=>f.id==='dev_state_visibility')){
-    s.errorLog.unshift({id:'dev_state_visibility',category:'infra',sectionCtx:'Dev Plan',location:'State Visibility Audit',gameTs:'',ts:'',verdict:null,resolved:false,
-      note:'STATE VISIBILITY AUDIT — Player View Foundation (logged 2026-06-13)\n\nAPPROACH: buildPlayerView() function — non-disruptive, additive only.\nComputes safe snapshot from existing state. Writes to Firebase /session/playerView on every save(). Player View (Drop 6) reads ONLY from /session/playerView.\n\nPUBLIC (player-visible):\n- pcs[*]: name, color, hp, hp_max, ac, conditions (NOT backstory_secret)\n- worldData: time, season, weather, location, scene_title, travelLog, premise, primaryMission\n- quests: all WHERE hidden !== true (needs hidden:false default added to quest model)\n- chatHistory: full narrative feed\n- combat.list: initiative + HP during combat\n- treasuryData: gp/pp/sp/cp/ep\n\nDM-ONLY (never in player view):\n- worldData.secrets, worldData.plot, worldData.timers, worldData.campaignSecrets\n- dmSecrets\n- pcs[*].backstory_secret\n- businessProfile.realStock, businessProfile.snakeOil\n- npcs[*].trueMotivation (if field added later)\n\nOPEN DESIGN QUESTIONS (answer before Drop 6):\n1. Town reputation — player-visible? (they\'d know their own rep in a town)\n2. Income log — player-visible? (they know what they sold)\n3. NPC dispositions — show to players or DM-only meta?\n4. Hidden quests — add hidden:false default to quest model for DM-planted objectives?\n\nIMPLEMENTATION CHECKLIST:\n[ ] Answer 4 open questions above\n[ ] Add hidden:false default to new quest objects\n[ ] Write buildPlayerView() function\n[ ] Call buildPlayerView() inside save() → write to Firebase /session/playerView\n[ ] Build Player View screen (Drop 6)'
-    });
-  }
-  // Migrate qa_22 from duplicate Context Refresh to Module Check-in
-  const qa22=s.quickActions.find(a=>a.id==='qa_22');
-  if(qa22&&qa22.type==='context_refresh_btn'){qa22.label='Module Check-in';qa22.type='module_checkin';qa22.context=['tab-dm','tab-session'];}
-  // Auto-resolve dev flags that are now captured in roadmap
-  ['dev_vtt_roadmap','dev_state_visibility'].forEach(id=>{
-    const f=s.errorLog.find(f=>f.id===id);
-    if(f&&!f.resolved)f.resolved=true;
-  });
   if(!Array.isArray(s.oocHistory))s.oocHistory=[];
   if(!Array.isArray(s.partyChat))s.partyChat=[];
-  // Remap old tab IDs from before consolidation
-  const tabRemap={'tab-log':'tab-session','tab-module':'tab-session','tab-ledger':'tab-ait','tab-chk':'tab-ait'};
-  // Canonical context arrays — always sync these from defaults
-  const canonicalContexts={
-    'qa_1':['tab-party','tab-combat','tab-dm'],
-    'qa_2':['tab-party','tab-combat','tab-dm'],
-    'qa_3':['tab-party','tab-combat','tab-dm'],
-    'qa_4':['tab-party','tab-combat','tab-dm'],
-    'qa_5':['tab-wagon','tab-world','tab-dm'],
-    'qa_6':['tab-wagon','tab-dm'],
-    'qa_7':['tab-world','tab-dm','tab-session'],
-    'qa_8':['tab-party','tab-world','tab-wagon','tab-combat','tab-dm','tab-session','tab-ait'],
-    'qa_9':['tab-combat','tab-dm'],
-    'qa_10':['tab-session','tab-dm'],
-    'qa_11':['tab-dm','tab-ait','tab-party'],
-    'qa_12':['tab-world','tab-dm'],
-    'qa_13':['tab-party','tab-combat','tab-dm','tab-world'],
-    'qa_14':['tab-party','tab-dm','tab-wagon','tab-world','tab-session'],
-    'qa_16':['tab-dm','tab-party','tab-world'],
-    'qa_17':['tab-dm','tab-party','tab-combat'],
-    'qa_18':['tab-dm','tab-world','tab-wagon'],
-    'qa_19':['tab-dm','tab-world'],
-    'qa_20':['tab-dm','tab-party'],
-    'qa_21':['tab-dm','tab-session'],
-    'qa_22':['tab-dm','tab-session'],
-    'qa_23':['tab-party','tab-combat','tab-dm'],
-    'qa_15':['tab-dm','tab-party']
-  };
-  s.quickActions.forEach(qa=>{
-    if(!Array.isArray(qa.context))qa.context=[];
-    // Remap old tab IDs
-    qa.context=qa.context.map(c=>tabRemap[c]||c);
-    // Merge with canonical context if this is a default action
-    if(canonicalContexts[qa.id]){
-      const merged=new Set([...qa.context,...canonicalContexts[qa.id]]);
-      qa.context=[...merged];
-    }
-    qa.context=[...new Set(qa.context)];
+  if(!Array.isArray(s.storyChapters))s.storyChapters=[];
+  // Normalize NPCs, quests
+  s.npcs.forEach(n=>{if(n.hp===undefined)n.hp=0;});
+  s.quests.forEach(q=>{if(!q.status){q.status=q.done?'done':'active';}if(q.hidden===undefined)q.hidden=false;});
+  if(s.quests.length>0){
+    const seen=new Set();
+    s.quests=s.quests.filter(q=>{
+      if(!q.text||q.text.trim()==='none'||q.text.trim()==='')return false;
+      const key=q.text.split('|')[0].trim().toLowerCase();
+      if(seen.has(key))return false;seen.add(key);return true;
+    });
+  }
+  if(Array.isArray(s.pcs))s.pcs.forEach(pc=>{
+    if(!Array.isArray(pc.inventory))return;
+    const seen=new Set();
+    pc.inventory=pc.inventory.filter(item=>{
+      if(!item.name||item.name.trim()==='')return false;
+      const key=(item.name+':'+(item.ts||'')).toLowerCase();
+      if(seen.has(key))return false;seen.add(key);return true;
+    });
   });
-  // Add qa_13 (Roll & Submit) if missing
-  if(!s.quickActions.find(qa=>qa.id==='qa_13')){
-    s.quickActions.push({id:'qa_13',label:'Roll & Submit',type:'roll_submit',params:{},context:['tab-party','tab-combat','tab-dm','tab-world']});
+
+  // ══ VERSION GATE: savedVer < 8 — one-time migrations introduced up to SAVE_VERSION 8 ══
+  if(savedVer<8){
+    if(!Array.isArray(s.moduleProgress))s.moduleProgress=[
+      {name:'Episode 1 — Greenest in Flames',status:'pending',notes:''},
+      {name:'Episode 2 — Raiders\' Camp',status:'pending',notes:''},
+      {name:'Episode 3 — Dragon Hatchery',status:'pending',notes:''},
+      {name:'Episode 4 — On the Road',status:'pending',notes:''},
+      {name:'Episode 5 — Construction Ahead',status:'pending',notes:''},
+      {name:'Episode 6 — Castle Naerytar',status:'pending',notes:''},
+      {name:'Episode 7 — Hunting Lodge',status:'pending',notes:''},
+      {name:'Episode 8 — Castle in the Clouds',status:'pending',notes:''},
+    ];
+    if(!s.errorLog.find(f=>f.id==='dev_visual_redesign')){
+      s.errorLog.unshift({id:'dev_visual_redesign',category:'infra',sectionCtx:'Dev Plan',location:'Visual Redesign',gameTs:'',ts:'',verdict:null,resolved:false,
+        note:'VISUAL REDESIGN — Steampunk Fantasy (reference: screenshots shared 2026-06-13)\n\nPALETTE: body #1a0f00→#2a1a05 radial; surface #2d1f0a/#3a2812/#4a3520; gold #c8a850/#e8c870; text #d4b896/#a08060\n\nTEXTURES (pure CSS, no images): body repeating-linear-gradient noise over dark radial; panels inset box-shadow + subtle gradient; borders 1px gold-dim + outer glow; corner accents ::before/::after clip-path triangles\n\nCOMPONENT ORDER (one session):\n1. CSS variables + body (30m)\n2. Header + tab bar with icons (30m)\n3. Character cards + circular portrait frames (45m)\n4. Panel borders + corner ornaments (30m)\n5. Chat UI + badges (20m)\n6. Buttons + inputs (20m)\n\nTAB ICONS: Party=⚔ World=🌍 Wagon=🛞 Combat=💀 Session=📜 AI Tools=🔮 AI DM=🧙 Dev=⚙ Setup=🏛\n\nPORTRAIT FRAMES: circular clip-path colored div using pc.color, class initial or emoji as icon. No images needed.\n\nNOTE: Single CSS pass only. No external fonts, no images. All texture via CSS gradient patterns.'
+      });
+    }
+    if(!s.errorLog.find(f=>f.id==='dev_vtt_roadmap')){
+      s.errorLog.unshift({id:'dev_vtt_roadmap',category:'infra',sectionCtx:'Dev Plan',location:'VTT Roadmap',gameTs:'',ts:'',verdict:null,resolved:false,
+        note:'VTT ROADMAP — Drops 4-7 (logged 2026-06-13)\n\nDROP 4 — Zone-Based Combat Map\nReplace flat initiative list with 6 spatial zones: Frontline/Backline/Left/Right/Air/Rear. Characters assigned to zones, DM moves them via UI, ledger reports positions. No grid — phone-friendly. REPLACES entire Combat tab initiative tracker.\n⚠ Do NOT refactor Combat tab before Drop 4 — it gets rebuilt.\n\nDROP 5 — Shared Dice Roll Feed\nFirebase broadcasts every roll to all connected devices in real time. Players see each other\'s rolls without DM narrating. Covers "did that hit?" gap.\n⚠ Move dice roller to globally accessible location before Drop 5 (currently buried in Combat tab).\n\nDROP 6 — Player View Mode\nSimplified Firebase-synced screen for second phone. Shows: HP bars, conditions, current scene, quest status, chat feed. No DM secrets, no config panels.\n⚠ Requires buildPlayerView() + state visibility split (see dev_state_visibility flag) BEFORE building this.\n\nDROP 7 — Handout / Image Cards\nStore URLs or base64 thumbnails on Firebase. DM taps "Show players" → appears on player view. Additive to Drop 6.'
+      });
+    }
+    if(!s.errorLog.find(f=>f.id==='dev_state_visibility')){
+      s.errorLog.unshift({id:'dev_state_visibility',category:'infra',sectionCtx:'Dev Plan',location:'State Visibility Audit',gameTs:'',ts:'',verdict:null,resolved:false,
+        note:'STATE VISIBILITY AUDIT — Player View Foundation (logged 2026-06-13)\n\nAPPROACH: buildPlayerView() function — non-disruptive, additive only.\nComputes safe snapshot from existing state. Writes to Firebase /session/playerView on every save(). Player View (Drop 6) reads ONLY from /session/playerView.\n\nPUBLIC (player-visible):\n- pcs[*]: name, color, hp, hp_max, ac, conditions (NOT backstory_secret)\n- worldData: time, season, weather, location, scene_title, travelLog, premise, primaryMission\n- quests: all WHERE hidden !== true (needs hidden:false default added to quest model)\n- chatHistory: full narrative feed\n- combat.list: initiative + HP during combat\n- treasuryData: gp/pp/sp/cp/ep\n\nDM-ONLY (never in player view):\n- worldData.secrets, worldData.plot, worldData.timers, worldData.campaignSecrets\n- dmSecrets\n- pcs[*].backstory_secret\n- businessProfile.realStock, businessProfile.snakeOil\n- npcs[*].trueMotivation (if field added later)\n\nOPEN DESIGN QUESTIONS (answer before Drop 6):\n1. Town reputation — player-visible? (they\'d know their own rep in a town)\n2. Income log — player-visible? (they know what they sold)\n3. NPC dispositions — show to players or DM-only meta?\n4. Hidden quests — add hidden:false default to quest model for DM-planted objectives?\n\nIMPLEMENTATION CHECKLIST:\n[ ] Answer 4 open questions above\n[ ] Add hidden:false default to new quest objects\n[ ] Write buildPlayerView() function\n[ ] Call buildPlayerView() inside save() → write to Firebase /session/playerView\n[ ] Build Player View screen (Drop 6)'
+      });
+    }
+    // qa_22: rename from Context Refresh duplicate to Module Check-in
+    const qa22=s.quickActions.find(a=>a.id==='qa_22');
+    if(qa22&&qa22.type==='context_refresh_btn'){qa22.label='Module Check-in';qa22.type='module_checkin';qa22.context=['tab-dm','tab-session'];}
+    // Auto-resolve dev flags captured in roadmap
+    ['dev_vtt_roadmap','dev_state_visibility'].forEach(id=>{
+      const f=s.errorLog.find(f=>f.id===id);if(f&&!f.resolved)f.resolved=true;
+    });
+    // Remap old tab IDs + merge canonical contexts
+    const tabRemap={'tab-log':'tab-session','tab-module':'tab-session','tab-ledger':'tab-ait','tab-chk':'tab-ait'};
+    const canonicalContexts={'qa_1':['tab-party','tab-combat','tab-dm'],'qa_2':['tab-party','tab-combat','tab-dm'],'qa_3':['tab-party','tab-combat','tab-dm'],'qa_4':['tab-party','tab-combat','tab-dm'],'qa_5':['tab-wagon','tab-world','tab-dm'],'qa_6':['tab-wagon','tab-dm'],'qa_7':['tab-world','tab-dm','tab-session'],'qa_8':['tab-party','tab-world','tab-wagon','tab-combat','tab-dm','tab-session','tab-ait'],'qa_9':['tab-combat','tab-dm'],'qa_10':['tab-session','tab-dm'],'qa_11':['tab-dm','tab-ait','tab-party'],'qa_12':['tab-world','tab-dm'],'qa_13':['tab-party','tab-combat','tab-dm','tab-world'],'qa_14':['tab-party','tab-dm','tab-wagon','tab-world','tab-session'],'qa_15':['tab-dm','tab-party'],'qa_16':['tab-dm','tab-party','tab-world'],'qa_17':['tab-dm','tab-party','tab-combat'],'qa_18':['tab-dm','tab-world','tab-wagon'],'qa_19':['tab-dm','tab-world'],'qa_20':['tab-dm','tab-party'],'qa_21':['tab-dm','tab-session'],'qa_22':['tab-dm','tab-session'],'qa_23':['tab-party','tab-combat','tab-dm']};
+    s.quickActions.forEach(qa=>{
+      if(!Array.isArray(qa.context))qa.context=[];
+      qa.context=qa.context.map(c=>tabRemap[c]||c);
+      if(canonicalContexts[qa.id]){const merged=new Set([...qa.context,...canonicalContexts[qa.id]]);qa.context=[...merged];}
+      qa.context=[...new Set(qa.context)];
+    });
+    if(!s.quickActions.find(qa=>qa.id==='qa_13'))s.quickActions.push({id:'qa_13',label:'Roll & Submit',type:'roll_submit',params:{},context:['tab-party','tab-combat','tab-dm','tab-world']});
+    if(!s.quickActions.find(qa=>qa.id==='qa_23'))s.quickActions.push({id:'qa_23',label:'Shell Defense',type:'shell_defense_toggle',params:{},context:['tab-party','tab-combat','tab-dm']});
+    // Clear stale Shell Defense conditions stuck between sessions
+    const tPc=Array.isArray(s.pcs)?s.pcs.find(p=>p.name==='Tinkle'):null;
+    if(tPc&&Array.isArray(tPc.conditions)&&tPc.conditions.includes('Shell Defense')){
+      ['Shell Defense','Prone','Incapacitated'].forEach(c=>{const i=tPc.conditions.indexOf(c);if(i>-1)tPc.conditions.splice(i,1);});
+    }
+    // v8: seed storyChapters from legacy storyThread string
+    if(s.storyThread&&!s.storyChapters.length){
+      s.storyChapters=[{id:Date.now(),title:'Prologue',content:s.storyThread,date:(s.worldData&&s.worldData.time)||'Day 1'}];
+    }
+    // Future gate example:
+    // if(savedVer<9){ delete s.storyThread; if(!s.aiContracts)s.aiContracts={}; }
   }
-  // Add qa_23 (Shell Defense toggle) if missing
-  if(!s.quickActions.find(qa=>qa.id==='qa_23')){
-    s.quickActions.push({id:'qa_23',label:'Shell Defense',type:'shell_defense_toggle',params:{},context:['tab-party','tab-combat','tab-dm']});
-  }
-  // Clear stale Shell Defense conditions if stuck between sessions
-  const tinklePc=s.pcs.find(p=>p.name==='Tinkle');
-  if(tinklePc&&tinklePc.conditions&&tinklePc.conditions.includes('Shell Defense')){
-    ['Shell Defense','Prone','Incapacitated'].forEach(c=>{const i=tinklePc.conditions.indexOf(c);if(i>-1)tinklePc.conditions.splice(i,1);});
-  }
-  // If still empty, reset to defaults
+
+  // ══ CANONICAL QA COMPLETENESS — always run to pick up QAs added in current version ══
   const validTabs=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dm'];
   const hasValidActions=s.quickActions.some(qa=>(qa.context||[]).some(c=>validTabs.includes(c)));
   if(!hasValidActions)s.quickActions=[];
-  // If still empty after remap, populate with defaults
-  // Always ensure all canonical QA actions exist — add missing ones
-  var canonicalQA=[
+  const canonicalQA=[
     {id:'qa_1',label:'Adjust HP',type:'hp',params:{},context:['tab-party','tab-combat','tab-dm']},
     {id:'qa_2',label:'Add Condition',type:'condition_add',params:{},context:['tab-party','tab-combat','tab-dm']},
     {id:'qa_3',label:'Clear Conditions',type:'condition_clear',params:{},context:['tab-party','tab-combat']},
@@ -4658,22 +4630,14 @@ function migrate(s){
     {id:'qa_21',label:'Send Active Scene',type:'send_scene',params:{},context:['tab-dm','tab-session']},
     {id:'qa_22',label:'Module Check-in',type:'module_checkin',params:{},context:['tab-dm','tab-session']}
   ];
-  if(!s.quickActions||!s.quickActions.length){s.quickActions=canonicalQA;}
-  else{
-    // Add any missing canonical actions by id
-    canonicalQA.forEach(function(cqa){
-      if(!s.quickActions.find(function(a){return a.id===cqa.id;})){
-        s.quickActions.push(cqa);
-      }
-    });
-  }
+  if(!s.quickActions.length){s.quickActions=canonicalQA;}
+  else{canonicalQA.forEach(cqa=>{if(!s.quickActions.find(a=>a.id===cqa.id))s.quickActions.push(cqa);});}
 
+  // ══ CORE STRUCTURAL DEFAULTS — sub-objects, scalars, PC fields ══
   if(!Array.isArray(s.pcs)||s.pcs.length===0)return;
-  // Deduplicate PCs by id
   const seenIds=new Set();
   s.pcs=s.pcs.filter(pc=>{if(!pc||!pc.id)return false;if(seenIds.has(pc.id))return false;seenIds.add(pc.id);return true;});
   if(s.pcs.length===0)return;
-  // Scalar fields
   if(typeof s.logSummary!=='string')s.logSummary='';
   if(typeof s.dmSecrets!=='string')s.dmSecrets='';
   if(s.activeSceneIdx===undefined||s.activeSceneIdx===null)s.activeSceneIdx=-1;
@@ -4685,11 +4649,8 @@ function migrate(s){
   if(s.msgsSinceChk===undefined)s.msgsSinceChk=0;
   if(!s.autoChkInterval)s.autoChkInterval=8;
   if(!s.storyThread)s.storyThread='';
-  if(!Array.isArray(s.storyChapters))s.storyChapters=[];
-  if(s.storyThread&&!s.storyChapters.length){s.storyChapters=[{id:Date.now(),title:'Prologue',content:s.storyThread,date:s.worldData?.time||'Day 1'}];}
   if(!s.sessionNotes)s.sessionNotes='';
   if(!s.wagonFilter)s.wagonFilter='all';
-  // worldData
   if(!s.worldData||typeof s.worldData!=='object')s.worldData={};
   if(!Array.isArray(s.worldData.travelLog))s.worldData.travelLog=[];
   if(!Array.isArray(s.worldData.townReputation))s.worldData.townReputation=[];
@@ -4699,10 +4660,8 @@ function migrate(s){
   if(!s.worldData.primaryMission)s.worldData.primaryMission='';
   if(!s.worldData.time)s.worldData.time='Day 1';
   if(!s.worldData.location)s.worldData.location='Unknown';
-  // treasuryData
   if(!s.treasuryData||typeof s.treasuryData!=='object')s.treasuryData={pp:0,gp:0,ep:0,sp:0,cp:0,lifestyle:'',incomeLog:[]};
   if(!Array.isArray(s.treasuryData.incomeLog))s.treasuryData.incomeLog=[];
-  // wagon
   if(!s.wagon||typeof s.wagon!=='object')s.wagon={};
   if(!s.wagon.ox||typeof s.wagon.ox!=='object')s.wagon.ox={name:'Grit',hp:15,hp_max:15,ac:11,conditions:'None',feed:'fed',backstory:'',personality:'',bonds:{},quirks:[],experimentLog:''};
   if(!s.wagon.ox.name)s.wagon.ox.name='Grit';
@@ -4718,14 +4677,12 @@ function migrate(s){
   if(!s.wagon.ac)s.wagon.ac=11;
   if(!s.wagon.conditions)s.wagon.conditions='';
   if(!s.wagon.wagonName)s.wagon.wagonName='The Shelled Alchemist';
-  // combat
   if(!s.combat||typeof s.combat!=='object')s.combat={active:false,round:1,currentIdx:0,list:[]};
   if(!Array.isArray(s.combat.list))s.combat.list=[];
   s.combat.list.forEach(c=>{if(!c.conditions)c.conditions=[];if(!c.concentrating)c.concentrating='';});
   if(s.combat.active===undefined)s.combat.active=false;
   if(!s.combat.round)s.combat.round=1;
   if(s.combat.currentIdx===undefined)s.combat.currentIdx=0;
-  // PCs
   s.pcs.forEach(pc=>{
     if(!pc||typeof pc!=='object')return;
     if(!pc.backstory_origin)pc.backstory_origin='';
