@@ -277,7 +277,8 @@ Open questions (answer before Drop 6):
 - ⋮ overflow menu clipping — FIXED 2026-06-14. `#tab-overflow-menu` changed to `position:fixed`; `toggleTabOverflow()` uses `getBoundingClientRect()` (was clipped by `main-tabs { overflow-x:auto }`)
 - Header menu stuck-open on mobile — FIXED 2026-06-14. Added `onclick="if(event.target===this)closeHeaderMenu()"` so tapping menu background closes it on Android/iOS
 - Flag context blind spot — FIXED 2026-06-14. `_buildFlagUIContext()` auto-detects active tab, chat channel, and visible sub-panel at flag creation time; stored as `uiCtx` on each flag; displayed as 📍 gold label in flag cards. Old flags fall back to tab name.
-- Canonical L3 character sync — DONE 2026-06-14. SAVE_VERSION 10 migration patches all three PCs to their true Level 3 state. Contract 2 REST RESOURCES updated with accurate Short/Long Rest resource lists, Tinkle's Arcane Trickster spell list, Slasher's Battle Master maneuvers, and corrected Passive Perception (Slasher 11, Tinkle 10, Pebble 12).
+- Canonical L3 character sync — DONE 2026-06-14. SAVE_VERSION 10→11 migrations patch all three PCs to true Level 3 state. Contract 2 REST RESOURCES updated with accurate Short/Long Rest resource lists, Tinkle's Arcane Trickster spell list, Slasher's Battle Master maneuvers, and corrected Passive Perception (Slasher 11, Tinkle 10, Pebble 12).
+- SHEET_FIELDS double-clobber — FIXED 2026-06-14. `loadState()` AND `fbStartListening()` both had `hp_max`, `class`, `features`, `magic`, `skills`, `slots`, `resources`, `concentrating` in SHEET_FIELDS. Both called `getCanonicalPCs()` (reads from `state.pcs` — pre-migration in loadState, Level-1 demo in fbStartListening on a fresh device) and overwrote correct Level-3 migrated values. Fixed both to static-only SHEET_FIELDS. ⚠ RULE: never add level-dependent fields to SHEET_FIELDS in either function — migrate() owns them.
 
 
 ## Critical User Rule
