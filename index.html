@@ -3214,7 +3214,7 @@ function renderCards(){
     card.className='pc-card';card.style.borderColor=pc.color||'var(--border)';
     card.innerHTML=`
       <div class="pc-card-header" style="background:linear-gradient(135deg,var(--surface2),var(--surface3))">
-        <div><div class="pc-name" style="color:${pc.color||'var(--gold-bright)'}">${esc(pc.name)}</div><div class="pc-class">Lv ${lvl} ${esc(pc.race)} ${esc(pc.class)}</div></div>
+        <div><div class="pc-name" style="color:${pc.color||'var(--gold-bright)'}">${esc(pc.name)}</div><div class="pc-class">Lv ${lvl} ${esc(pc.race)} ${esc(pc.class)}${pc.subclass?'<div style="font-size:10px;color:var(--gold-dim);margin-top:1px">'+esc(pc.subclass)+'</div>':''}</div></div>
         <div style="text-align:right">${badge}<div style="font-size:10px;color:var(--text-dim)">XP ${pc.xp||0}/${nxp}</div><div class="xp-bar-wrap" style="width:60px"><div class="xp-bar-fill" style="width:${xpPct}%"></div></div></div>
       </div>
       <div class="pc-card-body">
@@ -3275,11 +3275,13 @@ function renderSheets(){
       <div class="fg"><label class="field-label">Name</label><input type="text" value="${esc(pc.name)}" onchange="upd(${idx},'name',this.value);renderCharTabs()"></div>
       <div class="fg"><label class="field-label">Race</label><input type="text" value="${esc(pc.race||'')}" onchange="upd(${idx},'race',this.value)"></div>
       <div class="fg"><label class="field-label">Class</label><input type="text" value="${esc(pc.class||'')}" onchange="upd(${idx},'class',this.value)"></div>
-      <div style="width:60px"><label class="field-label">Level</label><input type="number" value="${pc.level||1}" onchange="upd(${idx},'level',parseInt(this.value)||1)"></div>
+      <div class="fg"><label class="field-label">Subclass</label><input type="text" value="${esc(pc.subclass||'')}" onchange="upd(${idx},'subclass',this.value)" placeholder="e.g. Battle Master"></div>
+      <div style="width:55px"><label class="field-label">Level</label><input type="number" value="${pc.level||1}" onchange="upd(${idx},'level',parseInt(this.value)||1)"></div>
     </div>
     <div class="form-row">
       <div class="fg"><label class="field-label">Background</label><input type="text" value="${esc(pc.background||'')}" onchange="upd(${idx},'background',this.value)"></div>
       <div class="fg"><label class="field-label">Alignment</label><input type="text" value="${esc(pc.alignment||'')}" onchange="upd(${idx},'alignment',this.value)"></div>
+      <div style="width:60px"><label class="field-label">HP</label><input type="number" value="${pc.hp}" onchange="upd(${idx},'hp',parseInt(this.value)||0)"></div>
       <div style="width:68px"><label class="field-label">Max HP</label><input type="number" value="${pc.hp_max}" onchange="upd(${idx},'hp_max',parseInt(this.value)||1)"></div>
       <div style="width:55px"><label class="field-label">AC</label><input type="number" value="${pc.ac}" onchange="upd(${idx},'ac',parseInt(this.value)||10)"></div>
       <div style="width:65px"><label class="field-label">Initiative</label><input type="number" value="${pc.initiative||0}" onchange="upd(${idx},'initiative',parseInt(this.value)||0)"></div>
@@ -5073,10 +5075,12 @@ function loadState(){
     if(savedVer<SAVE_VERSION){
       // Merge canonical PC data — preserve player-added fields (inventory, xp, hp, conditions, resources)
       // but overwrite structural/sheet fields from the canonical defaults
-      const SHEET_FIELDS=['name','race','class','background','alignment','ac','speed',
+      // Only merge truly static fields — migrate() owns level-dependent fields
+      // (class, hp_max, slots, resources, features, magic, skills are patched by version gates)
+      const SHEET_FIELDS=['name','race','background','alignment','ac','speed',
         'passive_perception','passive_insight','str','dex','con','int','wis','cha',
-        'skills','features','magic','backstory_origin','backstory_motivation','backstory_secret',
-        'color','hp_max','initiative','slots','resources','concentrating'];
+        'backstory_origin','backstory_motivation','backstory_secret','color','initiative'];
+      p._ts=Date.now();
       getCanonicalPCs().forEach(canonical=>{
         const saved=p.pcs.find(pc=>pc.id===canonical.id);
         if(saved){
