@@ -1749,94 +1749,106 @@ button.fab{
 
 <!-- WORLD TAB -->
 <div id="tab-world" class="tab-section">
-  <div class="panel accent" style="margin-bottom:12px">
-    <div class="panel-title">🎬 Active Scene
-      <select id="w_scene_threat" onchange="sw('scene_threat',this.value)" style="margin-left:auto;width:120px;font-size:11px;padding:3px 6px;border-color:var(--gold)">
-        <option value="">— Tone —</option>
-        <option value="Calm">🟢 Calm</option>
-        <option value="Tense">🟡 Tense</option>
-        <option value="Combat">🔴 Combat</option>
-        <option value="Critical">💀 Critical</option>
-      </select>
+  <div style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border);">
+    <button class="main-tab active" id="world-btn-state" onclick="showWorldTab('state')" style="font-size:11px;padding:8px 12px">World State</button>
+    <button class="main-tab" id="world-btn-ops" onclick="showWorldTab('ops')" style="font-size:11px;padding:8px 12px">Operations</button>
+  </div>
+
+  <!-- ── WORLD STATE ── -->
+  <div id="world-state-panel">
+    <div class="panel accent" style="margin-bottom:12px">
+      <div class="panel-title">🎬 Active Scene
+        <select id="w_scene_threat" onchange="sw('scene_threat',this.value)" style="margin-left:auto;width:120px;font-size:11px;padding:3px 6px;border-color:var(--gold)">
+          <option value="">— Tone —</option>
+          <option value="Calm">🟢 Calm</option>
+          <option value="Tense">🟡 Tense</option>
+          <option value="Combat">🔴 Combat</option>
+          <option value="Critical">💀 Critical</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="field-label">Scene Title</label><input type="text" id="w_scene_title" placeholder="e.g. Ambush at Duskwall Bridge" oninput="sw('scene_title',this.value)"></div>
+        <div class="fg"><label class="field-label">Active Conditions</label><input type="text" id="w_scene_cond" placeholder="Darkness, Difficult terrain, Poisoned..." oninput="sw('scene_cond',this.value)"></div>
+      </div>
     </div>
-    <div class="form-row">
-      <div class="fg"><label class="field-label">Scene Title</label><input type="text" id="w_scene_title" placeholder="e.g. Ambush at Duskwall Bridge" oninput="sw('scene_title',this.value)"></div>
-      <div class="fg"><label class="field-label">Active Conditions</label><input type="text" id="w_scene_cond" placeholder="Darkness, Difficult terrain, Poisoned..." oninput="sw('scene_cond',this.value)"></div>
+    <div class="grid-2">
+      <div class="col">
+        <div class="panel">
+          <div class="panel-title">Environment</div>
+          <div class="form-row"><div class="fg"><label class="field-label">Time</label><input type="text" id="w_time" oninput="sw('time',this.value)"></div><div class="fg"><label class="field-label">Season</label><input type="text" id="w_season" oninput="sw('season',this.value)"></div></div>
+          <div class="form-row"><div class="fg"><label class="field-label">Weather</label><input type="text" id="w_weather" oninput="sw('weather',this.value)"></div><div class="fg"><label class="field-label">Illumination</label><input type="text" id="w_illum" oninput="sw('illum',this.value)"></div></div>
+          <div class="form-group"><label class="field-label">Current Location</label><input type="text" id="w_location" oninput="sw('location',this.value)"></div>
+          <div class="form-group"><label class="field-label">Location Description</label><textarea id="w_loc_desc" oninput="sw('loc_desc',this.value)"></textarea></div>
+          <div class="form-group"><label class="field-label">Campaign Setting / World Notes</label><textarea id="w_setting" style="min-height:60px" oninput="sw('setting',this.value)" placeholder="Unknown — discovering as we play..."></textarea></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Treasury</div>
+          <div class="form-row">
+            <div class="fg"><label class="field-label">PP</label><input type="number" id="t_pp" oninput="st('pp',this.value)"></div>
+            <div class="fg"><label class="field-label">GP</label><input type="number" id="t_gp" oninput="st('gp',this.value)"></div>
+            <div class="fg"><label class="field-label">EP</label><input type="number" id="t_ep" oninput="st('ep',this.value)"></div>
+            <div class="fg"><label class="field-label">SP</label><input type="number" id="t_sp" oninput="st('sp',this.value)"></div>
+            <div class="fg"><label class="field-label">CP</label><input type="number" id="t_cp" oninput="st('cp',this.value)"></div>
+          </div>
+          <div class="form-group"><label class="field-label">Lifestyle</label><input type="text" id="t_lifestyle" oninput="st('lifestyle',this.value)"></div>
+          <div class="panel-title" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;margin-bottom:6px">Income / Expense Log</div>
+          <div id="income-log" style="max-height:160px;overflow-y:auto;margin-bottom:8px;"></div>
+          <div class="form-row" style="align-items:flex-end">
+            <div class="fg"><label class="field-label">Description</label><input type="text" id="inc-desc" placeholder="Sold mushrooms..."></div>
+            <div style="width:70px"><label class="field-label">GP</label><input type="number" id="inc-amt" placeholder="5"></div>
+            <select id="inc-type" style="width:90px;padding:6px"><option value="in">Income</option><option value="out">Expense</option></select>
+            <button class="btn sm green" onclick="addIncome()">Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="panel"><div class="panel-title">NPCs <button class="btn sm" style="margin-left:auto" onclick="addNPC()">+ Add</button></div><div id="npc-list"></div></div>
+        <div class="panel">
+          <div class="panel-title">Quest Log</div>
+          <div class="form-group"><label class="field-label">Main Quest</label><input type="text" id="q_primary" placeholder="Main quest objective..." oninput="state.worldData.primaryMission=this.value;save()"></div>
+          <hr class="divider">
+          <div class="sec-label">Objectives</div>
+          <div id="quest-list"></div>
+          <button class="btn sm" onclick="addQuest()" style="margin-top:6px">+ Add Objective</button>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="grid-2">
-    <div class="col">
-      <div class="panel">
-        <div class="panel-title">Environment</div>
-        <div class="form-row"><div class="fg"><label class="field-label">Time</label><input type="text" id="w_time" oninput="sw('time',this.value)"></div><div class="fg"><label class="field-label">Season</label><input type="text" id="w_season" oninput="sw('season',this.value)"></div></div>
-        <div class="form-row"><div class="fg"><label class="field-label">Weather</label><input type="text" id="w_weather" oninput="sw('weather',this.value)"></div><div class="fg"><label class="field-label">Illumination</label><input type="text" id="w_illum" oninput="sw('illum',this.value)"></div></div>
-        <div class="form-group"><label class="field-label">Current Location</label><input type="text" id="w_location" oninput="sw('location',this.value)"></div>
-        <div class="form-group"><label class="field-label">Location Description</label><textarea id="w_loc_desc" oninput="sw('loc_desc',this.value)"></textarea></div>
-        <div class="form-group"><label class="field-label">Campaign Setting / World Notes</label><textarea id="w_setting" style="min-height:60px" oninput="sw('setting',this.value)" placeholder="Unknown — discovering as we play..."></textarea></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Treasury</div>
-        <div class="form-row">
-          <div class="fg"><label class="field-label">PP</label><input type="number" id="t_pp" oninput="st('pp',this.value)"></div>
-          <div class="fg"><label class="field-label">GP</label><input type="number" id="t_gp" oninput="st('gp',this.value)"></div>
-          <div class="fg"><label class="field-label">EP</label><input type="number" id="t_ep" oninput="st('ep',this.value)"></div>
-          <div class="fg"><label class="field-label">SP</label><input type="number" id="t_sp" oninput="st('sp',this.value)"></div>
-          <div class="fg"><label class="field-label">CP</label><input type="number" id="t_cp" oninput="st('cp',this.value)"></div>
-        </div>
-        <div class="form-group"><label class="field-label">Lifestyle</label><input type="text" id="t_lifestyle" oninput="st('lifestyle',this.value)"></div>
-        <div class="panel-title" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;margin-bottom:6px">Income / Expense Log</div>
-        <div id="income-log" style="max-height:160px;overflow-y:auto;margin-bottom:8px;"></div>
-        <div class="form-row" style="align-items:flex-end">
-          <div class="fg"><label class="field-label">Description</label><input type="text" id="inc-desc" placeholder="Sold mushrooms..."></div>
-          <div style="width:70px"><label class="field-label">GP</label><input type="number" id="inc-amt" placeholder="5"></div>
-          <select id="inc-type" style="width:90px;padding:6px"><option value="in">Income</option><option value="out">Expense</option></select>
-          <button class="btn sm green" onclick="addIncome()">Add</button>
-        </div>
-      </div>
+
+  <!-- ── OPERATIONS ── -->
+  <div id="world-ops-panel" style="display:none">
+    <div class="panel accent" style="margin-top:12px">
+      <div class="panel-title">Campaign Premise <button class="lock-btn unlocked" id="premise-btn" onclick="togglePremise()" style="margin-left:auto">🔓 Unlocked</button></div>
+      <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Lock when ready. Locked premise is a fixed AI contract.</p>
+      <textarea id="w_premise" class="premise-ta" style="min-height:100px" oninput="sw('premise',this.value)" placeholder="Tinkle's Tinctures — an independent operation..."></textarea>
     </div>
-    <div class="col">
-      <div class="panel"><div class="panel-title">NPCs <button class="btn sm" style="margin-left:auto" onclick="addNPC()">+ Add</button></div><div id="npc-list"></div></div>
-      <div class="panel">
-        <div class="panel-title">Quest Log</div>
-        <div class="form-group"><label class="field-label">Main Quest</label><input type="text" id="q_primary" placeholder="Main quest objective..." oninput="state.worldData.primaryMission=this.value;save()"></div>
-        <hr class="divider">
-        <div class="sec-label">Objectives</div>
-        <div id="quest-list"></div>
-        <button class="btn sm" onclick="addQuest()" style="margin-top:6px">+ Add Objective</button>
+    <div class="panel">
+      <div class="panel-title">Plot &amp; Lore</div>
+      <div class="form-group"><label class="field-label">Active Plot Threads</label><textarea id="w_plot" style="min-height:100px" oninput="sw('plot',this.value)"></textarea></div>
+      <div class="form-group"><label class="field-label">Pending Timers</label><textarea id="w_timers" style="min-height:70px" oninput="sw('timers',this.value)"></textarea></div>
+    </div>
+    <div class="panel accent">
+      <div class="panel-title">Campaign Secrets
+        <button class="btn sm green" style="margin-left:auto" onclick="addCampaignSecret()">+ Add</button>
       </div>
-      <div class="panel accent">
-        <div class="panel-title">Campaign Premise <button class="lock-btn unlocked" id="premise-btn" onclick="togglePremise()" style="margin-left:auto">🔓 Unlocked</button></div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Lock when ready. Locked premise is a fixed AI contract.</p>
-        <textarea id="w_premise" class="premise-ta" style="min-height:80px" oninput="sw('premise',this.value)" placeholder="Tinkle's Tinctures — an independent operation..."></textarea>
+      <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">DM-only plot threads. The AI references these for character moments and story hooks.</p>
+      <div id="campaign-secrets-list"></div>
+    </div>
+    <div class="panel green">
+      <div class="panel-title">Town Reputation Log
+        <button class="btn sm green" style="margin-left:auto" onclick="addTownRep()">+ Add Town</button>
       </div>
-      <div class="panel">
-        <div class="panel-title">Plot &amp; Lore</div>
-        <div class="form-group"><label class="field-label">Active Plot Threads</label><textarea id="w_plot" style="min-height:70px" oninput="sw('plot',this.value)"></textarea></div>
-        <div class="form-group"><label class="field-label">Pending Timers</label><textarea id="w_timers" style="min-height:50px" oninput="sw('timers',this.value)"></textarea></div>
-      </div>
-      <div class="panel accent">
-        <div class="panel-title">Campaign Secrets
-          <button class="btn sm green" style="margin-left:auto" onclick="addCampaignSecret()">+ Add</button>
-        </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Active plot threads the players are aware of. The AI references these for character moments and story hooks.</p>
-        <div id="campaign-secrets-list"></div>
-      </div>
-      <div class="panel green">
-        <div class="panel-title">Town Reputation Log
-          <button class="btn sm green" style="margin-left:auto" onclick="addTownRep()">+ Add Town</button>
-        </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Track which towns have been visited and whether it's safe to return. The AI will not suggest returning to burned towns.</p>
-        <div id="town-rep-list"></div>
-      </div>
-      <div class="panel purple">
-        <div class="panel-title">Business Profile — Tinkle's Tinctures</div>
-        <div class="form-group"><label class="field-label">Wagon Name</label><input type="text" id="bp_wagonName" oninput="saveBP('wagaonName',this.value)" placeholder="The Shelled Alchemist"></div>
-        <div class="form-group"><label class="field-label">Real Stock (functional products)</label><textarea id="bp_realStock" style="min-height:50px" oninput="saveBP('realStock',this.value)" placeholder="Genuine healing potions, quality reagents..."></textarea></div>
-        <div class="form-group"><label class="field-label">Snake Oil (the main product line)</label><textarea id="bp_snakeOil" style="min-height:50px" oninput="saveBP('snakeOil',this.value)" placeholder="Miracle cures, vitality tonics, cure-alls..."></textarea></div>
-        <div class="form-group"><label class="field-label">Reagents (sold to apothecaries)</label><textarea id="bp_reagents" style="min-height:40px" oninput="saveBP('reagents',this.value)"></textarea></div>
-        <div class="form-group"><label class="field-label">Current Reputation</label><input type="text" id="bp_reputation" oninput="saveBP('reputation',this.value)" placeholder="Unknown — new operation"></div>
-        <div class="form-group"><label class="field-label">Notes</label><textarea id="bp_notes" style="min-height:40px" oninput="saveBP('notes',this.value)"></textarea></div>
-      </div>
+      <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Track which towns have been visited and whether it's safe to return. The AI will not suggest returning to burned towns.</p>
+      <div id="town-rep-list"></div>
+    </div>
+    <div class="panel purple">
+      <div class="panel-title">Business Profile — Tinkle's Tinctures</div>
+      <div class="form-group"><label class="field-label">Wagon Name</label><input type="text" id="bp_wagonName" oninput="saveBP('wagaonName',this.value)" placeholder="The Shelled Alchemist"></div>
+      <div class="form-group"><label class="field-label">Real Stock (functional products)</label><textarea id="bp_realStock" style="min-height:50px" oninput="saveBP('realStock',this.value)" placeholder="Genuine healing potions, quality reagents..."></textarea></div>
+      <div class="form-group"><label class="field-label">Snake Oil (the main product line)</label><textarea id="bp_snakeOil" style="min-height:50px" oninput="saveBP('snakeOil',this.value)" placeholder="Miracle cures, vitality tonics, cure-alls..."></textarea></div>
+      <div class="form-group"><label class="field-label">Reagents (sold to apothecaries)</label><textarea id="bp_reagents" style="min-height:40px" oninput="saveBP('reagents',this.value)"></textarea></div>
+      <div class="form-group"><label class="field-label">Current Reputation</label><input type="text" id="bp_reputation" oninput="saveBP('reputation',this.value)" placeholder="Unknown — new operation"></div>
+      <div class="form-group"><label class="field-label">Notes</label><textarea id="bp_notes" style="min-height:40px" oninput="saveBP('notes',this.value)"></textarea></div>
     </div>
   </div>
 </div>
@@ -2005,6 +2017,16 @@ button.fab{
   </div>
 
   <div id="sess-module-panel" style="display:none">
+    <div class="panel accent" style="margin-top:12px">
+      <div class="panel-title">Campaign Progress
+        <button class="btn sm green" style="margin-left:auto" onclick="addModuleEpisode()">+ Episode</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px" id="module-campaign-name"></div>
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);overflow:hidden;height:8px;margin-bottom:10px">
+        <div id="module-progress-bar" style="height:100%;background:var(--gold);width:0%;transition:width .3s"></div>
+      </div>
+      <div id="module-episode-list"></div>
+    </div>
     <div class="grid-1">
       <div class="col">
         <div class="panel">
@@ -2920,6 +2942,12 @@ function showTab(id){
     if(logPanel)logPanel.style.cssText='display:block';
   }
 }
+function showWorldTab(tab){
+  document.getElementById('world-state-panel').style.display=tab==='state'?'':'none';
+  document.getElementById('world-ops-panel').style.display=tab==='ops'?'':'none';
+  document.getElementById('world-btn-state').classList.toggle('active',tab==='state');
+  document.getElementById('world-btn-ops').classList.toggle('active',tab==='ops');
+}
 function showSessionMode(mode){
   const playPanel=document.getElementById('sess-play-panel');
   const prepPanel=document.getElementById('sess-prep-panel');
@@ -2981,8 +3009,8 @@ function showSessionTab(which){
 function renderAll(){
   renderCharTabs();renderCards();renderSheets();renderStatusMini();
   renderNPCs();renderQuests();renderCombat();renderPresets();
-  renderLogs();renderChat();renderRollDD();renderTurnCtr();
-  renderChkHist();renderRewind();renderScenes();renderSnips();
+  renderLogs();renderChat();renderTurnCtr();
+  renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();
   renderWagon();renderIncome();renderPartyInv();syncWorld();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
   renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();
@@ -3270,6 +3298,10 @@ function syncWorld(){
   const ds=document.getElementById('dm-secrets');if(ds)ds.value=state.dmSecrets||'';
   const qp=document.getElementById('q_primary');if(qp)qp.value=state.worldData.primaryMission||'';
   const tl=document.getElementById('w_travel_log');if(tl)tl.value=(state.worldData.travelLog||[]).join('\n');
+  // Keep Setup fields in sync with World tab (same state keys, two UIs)
+  const spr=document.getElementById('setup-premise');if(spr)spr.value=state.worldData.premise||'';
+  const sst=document.getElementById('setup-setting');if(sst)sst.value=state.worldData.setting||'';
+  const smq=document.getElementById('setup-mission');if(smq)smq.value=state.worldData.primaryMission||'';
   syncBP();syncOxProfile();
   updatePremiseUI();
   const ox=state.wagon.ox;
@@ -3596,6 +3628,51 @@ async function buildAISummary(){
   }catch(e){toast('Error: '+e.message);}
 }
 
+
+// ═══ MODULE TRACKER ═══
+function renderModuleTracker(){
+  const list=document.getElementById('module-episode-list');if(!list)return;
+  const namEl=document.getElementById('module-campaign-name');
+  const bar=document.getElementById('module-progress-bar');
+  if(!Array.isArray(state.moduleProgress))state.moduleProgress=[];
+  const eps=state.moduleProgress;
+  const done=eps.filter(e=>e.status==='complete').length;
+  const pct=eps.length?Math.round(done/eps.length*100):0;
+  if(bar)bar.style.width=pct+'%';
+  if(namEl){
+    const setting=state.worldData?.setting||'';
+    namEl.textContent=(setting?setting.split('\n')[0]:'Campaign Module')+' — '+pct+'% complete ('+done+'/'+eps.length+' episodes)';
+  }
+  list.innerHTML='';
+  eps.forEach((ep,i)=>{
+    const col=ep.status==='complete'?'var(--green)':ep.status==='active'?'var(--gold)':'var(--text-dim)';
+    const icon=ep.status==='complete'?'✓':ep.status==='active'?'▶':'○';
+    const d=document.createElement('div');
+    d.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)';
+    d.innerHTML=`<span style="color:${col};font-size:14px;flex-shrink:0;width:18px">${icon}</span>`+
+      `<input type="text" value="${esc(ep.name)}" style="flex:1;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;font-size:12px;color:var(--text)" onchange="updModuleEp(${i},'name',this.value)">`+
+      `<select style="font-size:11px;padding:3px 5px;width:90px;color:${col}" onchange="updModuleEp(${i},'status',this.value)">`+
+        `<option value="pending"${ep.status==='pending'?' selected':''}>Pending</option>`+
+        `<option value="active"${ep.status==='active'?' selected':''}>▶ Active</option>`+
+        `<option value="complete"${ep.status==='complete'?' selected':''}>✓ Done</option>`+
+      `</select>`+
+      `<button class="btn sm red" onclick="remModuleEp(${i})">✕</button>`;
+    list.appendChild(d);
+    if(ep.notes||ep.status==='active'){
+      const nd=document.createElement('div');
+      nd.style.cssText='padding:4px 26px 8px;';
+      nd.innerHTML=`<textarea style="width:100%;min-height:40px;font-size:11px;background:transparent;border-color:var(--border)" placeholder="Notes..." onchange="updModuleEp(${i},'notes',this.value)">${esc(ep.notes||'')}</textarea>`;
+      list.appendChild(nd);
+    }
+  });
+}
+function addModuleEpisode(){
+  if(!Array.isArray(state.moduleProgress))state.moduleProgress=[];
+  state.moduleProgress.push({name:'New Episode',status:'pending',notes:''});
+  save();renderModuleTracker();
+}
+function updModuleEp(i,k,v){state.moduleProgress[i][k]=v;save();renderModuleTracker();}
+function remModuleEp(i){state.moduleProgress.splice(i,1);save();renderModuleTracker();}
 
 // ═══ MODULE SCENES ═══
 function renderScenes(){
@@ -4192,6 +4269,16 @@ function migrate(s){
   if(!Array.isArray(s.chkHistory))s.chkHistory=[];
   if(!Array.isArray(s.scenes))s.scenes=[];
   if(!Array.isArray(s.snippets))s.snippets=[];
+  if(!Array.isArray(s.moduleProgress))s.moduleProgress=[
+    {name:'Episode 1 — Greenest in Flames',status:'pending',notes:''},
+    {name:'Episode 2 — Raiders\' Camp',status:'pending',notes:''},
+    {name:'Episode 3 — Dragon Hatchery',status:'pending',notes:''},
+    {name:'Episode 4 — On the Road',status:'pending',notes:''},
+    {name:'Episode 5 — Construction Ahead',status:'pending',notes:''},
+    {name:'Episode 6 — Castle Naerytar',status:'pending',notes:''},
+    {name:'Episode 7 — Hunting Lodge',status:'pending',notes:''},
+    {name:'Episode 8 — Castle in the Clouds',status:'pending',notes:''},
+  ];
   if(!Array.isArray(s.encounterPresets))s.encounterPresets=[];
   if(!Array.isArray(s.rewindStack))s.rewindStack=[];
   if(!Array.isArray(s.partyInventory))s.partyInventory=[];
@@ -4842,7 +4929,7 @@ function parseMechanics(responseText){
   if(changes.length>0){
     save();
     renderCharTabs();renderCards();renderStatusMini();renderSheets();
-    renderNPCs();renderQuests();renderCombat();renderWagon();renderRollDD();syncWorld();
+    renderNPCs();renderQuests();renderCombat();renderWagon();syncWorld();
   }
   return changes.length>0?changes:null;
 }
@@ -5599,6 +5686,9 @@ function syncBP(){
   ['wagonName','realStock','snakeOil','reagents','reputation','notes'].forEach(k=>{
     const el=document.getElementById('bp_'+k);if(el&&bp[k]!==undefined)el.value=bp[k]||'';
   });
+  // Keep Setup step 3 fields in sync
+  const sr=document.getElementById('setup-real');if(sr)sr.value=bp.realStock||'';
+  const sn=document.getElementById('setup-snake');if(sn)sn.value=bp.snakeOil||'';
 }
 
 // ═══ OX PROFILE SYNC ═══
