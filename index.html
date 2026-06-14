@@ -1988,6 +1988,8 @@ button.fab{
     <div id="sess-play-panel">
       <div class="panel">
         <div class="panel-title">Story Thread
+          <button class="btn sm" onclick="document.getElementById('story-thread').scrollTop=0" title="Scroll to top">↑ Top</button>
+          <button class="btn sm" onclick="const e=document.getElementById('story-thread');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
           <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Update</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Running story record. Updated manually or via AI.</p>
@@ -2436,6 +2438,10 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party')">🗨️ OOC</button>
         </div>
         <div id="chat-pane-narrative">
+        <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
+          <button class="btn sm" onclick="document.getElementById('chat-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
+          <button class="btn sm" onclick="const e=document.getElementById('chat-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
+        </div>
         <div id="chat-msgs" class="chat-msgs-wrap" onscroll="handleChatScroll(this)"></div>
         <button id="scroll-top-btn" onclick="scrollChatToTop()" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:5px 16px;font-size:11px;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.5);white-space:nowrap">↑ Back to Top</button>
         <div class="typing-ind" id="typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
