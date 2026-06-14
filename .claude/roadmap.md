@@ -1,7 +1,13 @@
 # Tinkle's Tinctures — Dev Roadmap
 
 ## Critical User Rule
-**Always ask for confirmation before implementing.** Present the plan, wait for go-ahead.
+**Ask for confirmation before implementing** changes that:
+- Touch Firebase config, STATE_KEYS, SAVE_VERSION, or save() structure
+- Change the data model in a breaking way
+- Are large refactors (50+ lines changed)
+- Could corrupt existing save data
+
+Routine UI, copy, CSS, patch notes, roadmap updates, and dead code removal can proceed without asking.
 
 ## App Architecture Notes
 - Single HTML file (`index.html`) — all CSS, JS, HTML inline
@@ -44,7 +50,7 @@
 - [x] Scroll controls: ↑ Top / ↓ Bottom on Narrative, Story Thread, OOC, Party — all standardized
 - [x] Story Thread read mode: 📖 toggle renders ebook view with collapsible TOC + chapter sections
 - [ ] Story Thread Option B: structured chapter objects {title, content, date}, AI mechanic to add/update chapters, full data model upgrade (do after Option A is stable)
-- [ ] Quest model: hidden:false default field for player-visible quests
+- [x] Quest model: hidden:false default — backfilled in migrate(), addQuest(), quest_add mechanic, demo state
 
 ## Context Refresh / Re-sync Protocol — DONE 2026-06-14
 **Architecture (implemented):**
@@ -96,7 +102,7 @@ Open questions (answer before Drop 6):
 8. **Quest "Primary Goal" rename** — Should be "Main Quest". Story-driven, set by the campaign itself, not manually entered.
 9. **Travel Log location** — Should move to Wagon tab (already planned in merge).
 10. **Session Summary readability** — DONE 2026-06-14. min-height 300px, font-size 13px.
-11. **Story Thread readability** — Partially done 2026-06-14 (min-height 380px, font-size 13px). Still needs: session/chapter dividers, scroll controls.
+11. **Story Thread readability** — DONE 2026-06-14. Enlarged text/height, scroll controls, ebook 📖 Read mode with collapsible TOC and chapter sections (replaces session divider request).
 12. **AI DM scroll buttons** — DONE 2026-06-14. ↑ Top / ↓ Bottom row added above Narrative chat, matching OOC/Party style.
 13. **Story Thread scroll buttons** — DONE 2026-06-14. ↑ Top / ↓ Bottom in panel title bar.
 14. **Travel Log full rework** — Needs: visual map layer, day-progress pushable bar, higher placement in tab hierarchy. This is a significant feature (log as a separate note for Drop 4+).
@@ -162,7 +168,5 @@ Party=⚔ World=🌍 Wagon=🛞 Combat=💀 Session=📜 AI Tools=🔮 AI DM=�
 
 **Constraint:** Single CSS pass only. No external fonts, no images. All texture via CSS gradient patterns.
 
-## Dead Code (safe to remove anytime)
-- Theme editor functions: `THEME_VARS`, `DEFAULT_THEME`, `THEME_PRESETS`, `applyTheme()`,
-  `setThemeVar()`, `syncThemeColor()`, `applyThemePreset()`, `resetTheme()`,
-  `toggleThemeEditor()`, `renderThemeEditor()`, `copyThemeCSS()` — not called anywhere
+## Dead Code
+- Theme editor block — REMOVED 2026-06-14 (63 lines deleted): `THEME_VARS`, `DEFAULT_THEME`, `THEME_PRESETS`, `applyTheme()`, `setThemeVar()`, `syncThemeColor()`, `applyThemePreset()`, `resetTheme()`, `toggleThemeEditor()`, `renderThemeEditor()`, `copyThemeCSS()`
