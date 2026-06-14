@@ -78,9 +78,11 @@ These are correct, battle-tested, and carry high regression risk if touched:
 - Commented future gate skeleton: `// if(savedVer<9){ delete s.storyThread; if(!s.aiContracts)s.aiContracts={}; }`
 - `[Severity: High] [Complexity: Hours] [Risk: Low]`
 
-**2. `storyThread` complete elimination (v9 gate)**
-- Depends on: #1 (version-gated migrate)
-- Steps: v9 migrate gate deletes field → remove from STATE_KEYS → remove renderSheets() line 3390 → remove renderStoryRead() fallback → remove from reset + demo state
+**2. `storyThread` complete elimination — DONE 2026-06-14** ✅
+- `delete s.storyThread` added after v8 gate (purges field from every loaded save)
+- Removed from demo state, resetState(), migrate() structural guard, STATE_KEYS comment
+- renderStoryRead() storyThread fallback removed; renderAll() now calls renderStoryRead() directly
+- Story Chronicle panel: edit mode + mode toggle removed; always shows chapter read view
 - `[Severity: Medium] [Complexity: Hours] [Risk: Low]`
 
 **3. Setup Wizard lock (`campaignLaunched` flag)**
@@ -261,7 +263,7 @@ Open questions (answer before Drop 6):
 - Theme editor block — REMOVED 2026-06-14 (63 lines deleted)
 - CSS Block 1 (lines 13–33) — REMOVED 2026-06-14 (QW-2 ✅)
 - CSS Block 2 (lines 341–345) — REMOVED 2026-06-14 (QW-1 ✅)
-- `state.storyThread` — orphaned string field; pending v9 migrate gate deletion (Deep Refactor #2)
+- `state.storyThread` — ELIMINATED 2026-06-14 (DR-2 ✅)
 
 
 ## Critical User Rule

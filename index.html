@@ -2000,15 +2000,13 @@ button.fab{
   <div id="sess-log-panel">
     <div id="sess-play-panel">
       <div class="panel">
-        <div class="panel-title">Story Thread
+        <div class="panel-title">Story Chronicle
           <button class="btn sm" onclick="scrollStoryTop()" title="Scroll to top">↑ Top</button>
           <button class="btn sm" onclick="scrollStoryBottom()" title="Scroll to bottom">↓ Bottom</button>
-          <button class="btn sm" id="story-mode-btn" onclick="toggleStoryMode()" title="Toggle read/edit mode">📖 Read</button>
           <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Chapter</button>
         </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">AI-managed story chronicle. Tap ✨ Chapter to generate a new chapter from recent events. Edit mode for manual notes.</p>
-        <textarea id="story-thread" style="min-height:380px;font-size:13px;line-height:1.7;border-color:var(--purple);" oninput="state.storyThread=this.value;save()" placeholder="No story thread yet. Tap ✨ Update to have the AI extract key plot moments."></textarea>
-        <div id="story-thread-read" style="display:none;overflow-y:auto;max-height:520px;padding:16px 4px;font-size:14px;line-height:1.85;color:var(--text)"></div>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">AI-managed story chronicle. Tap ✨ Chapter to generate a new chapter from recent events.</p>
+        <div id="story-thread-read" style="overflow-y:auto;max-height:520px;padding:16px 4px;font-size:14px;line-height:1.85;color:var(--text)"></div>
       </div>
       <div class="panel">
         <div class="panel-title">Quick Log Entry</div>
@@ -2910,7 +2908,6 @@ let state={
   errorLog:[],
   oocHistory:[],
   partyChat:[],
-  storyThread:'',
   storyChapters:[],
   sessionNotes:'',
   quickActions:[
@@ -3085,7 +3082,7 @@ function renderAll(){
   renderCharTabs();renderCards();renderSheets();renderStatusMini();
   renderNPCs();renderQuests();renderCombat();renderPresets();
   renderLogs();renderChat();renderTurnCtr();
-  renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();
+  renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();renderStoryRead();
   renderWagon();renderIncome();renderPartyInv();syncWorld();renderTreasuryTotal();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
   renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();
@@ -3369,7 +3366,6 @@ function syncWorld(){
   ['pp','gp','ep','sp','cp','lifestyle'].forEach(k=>{const el=document.getElementById('t_'+k);if(el)el.value=state.treasuryData[k]||0;});
   const sl=document.getElementById('log-summary');if(sl)sl.value=state.logSummary||'';
   const sn=document.getElementById('session-notes');if(sn)sn.value=state.sessionNotes||'';
-  const st2=document.getElementById('story-thread');if(st2)st2.value=state.storyThread||'';
   const ds=document.getElementById('dm-secrets');if(ds)ds.value=state.dmSecrets||'';
   const qp=document.getElementById('q_primary');if(qp)qp.value=state.worldData.primaryMission||'';
   const tl=document.getElementById('w_travel_log');if(tl)tl.value=(state.worldData.travelLog||[]).join('\n');
@@ -3779,44 +3775,13 @@ function buildRawSummary(){
   const out=state.logs.map(l=>'['+l.type.toUpperCase()+'] '+l.body).join('\n');
   if(el)el.value=out;state.logSummary=out;save();toast('Summary built.');
 }
-let _storyMode='edit';
-function scrollStoryTop(){
-  const el=document.getElementById(_storyMode==='read'?'story-thread-read':'story-thread');
-  if(el)el.scrollTop=0;
-}
-function scrollStoryBottom(){
-  const el=document.getElementById(_storyMode==='read'?'story-thread-read':'story-thread');
-  if(el)el.scrollTop=el.scrollHeight;
-}
-function toggleStoryMode(){
-  _storyMode=_storyMode==='edit'?'read':'edit';
-  const ta=document.getElementById('story-thread');
-  const rd=document.getElementById('story-thread-read');
-  const btn=document.getElementById('story-mode-btn');
-  if(_storyMode==='read'){
-    renderStoryRead();
-    if(ta)ta.style.display='none';
-    if(rd)rd.style.display='';
-    if(btn)btn.textContent='✏️ Edit';
-  } else {
-    if(ta)ta.style.display='';
-    if(rd)rd.style.display='none';
-    if(btn)btn.textContent='📖 Read';
-  }
-}
+function scrollStoryTop(){const el=document.getElementById('story-thread-read');if(el)el.scrollTop=0;}
+function scrollStoryBottom(){const el=document.getElementById('story-thread-read');if(el)el.scrollTop=el.scrollHeight;}
 function renderStoryRead(){
   const rd=document.getElementById('story-thread-read');if(!rd)return;
   const fmt=t=>esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>');
-  let chapters=[];
-  if(Array.isArray(state.storyChapters)&&state.storyChapters.length){
-    chapters=state.storyChapters.map(ch=>({title:ch.title,content:ch.content,date:ch.date||''}));
-  }else{
-    const raw=state.storyThread||'';
-    if(!raw.trim()){rd.innerHTML='<p style="color:var(--text-dim);font-style:italic">No story yet. Tap ✨ Chapter to have the AI chronicle recent events.</p>';return;}
-    const segs=raw.split(/\n*---[^\n]*---\n*/);
-    chapters=segs.map((s,i)=>({title:i===0?'Prologue':'Session '+i,content:s.trim(),date:''})).filter(ch=>ch.content);
-  }
-  if(!chapters.length){rd.innerHTML='<p style="color:var(--text-dim)">Nothing to display.</p>';return;}
+  const chapters=(state.storyChapters||[]).map(ch=>({title:ch.title,content:ch.content,date:ch.date||''}));
+  if(!chapters.length){rd.innerHTML='<p style="color:var(--text-dim);font-style:italic">No chapters yet. Tap ✨ Chapter to have the AI chronicle recent events.</p>';return;}
   const toc=chapters.map((ch,i)=>`<a href="#st-ch-${i}" style="display:block;padding:3px 0;color:var(--gold);font-size:12px;text-decoration:none" onclick="event.preventDefault();document.getElementById('st-ch-${i}').scrollIntoView({behavior:'smooth'})">${esc(ch.title)}${ch.date?'<span style="color:var(--text-dim);margin-left:6px;font-size:10px">'+esc(ch.date)+'</span>':''}</a>`).join('');
   const body=chapters.map((ch,i)=>{
     const paras=ch.content.split(/\n\n+/).map(p=>`<p style="margin:0 0 12px">${fmt(p.replace(/\n/g,'<br>'))}</p>`).join('');
@@ -3841,7 +3806,6 @@ async function updateStoryThread(){
       if(m){const sep=m[1].indexOf('|');const t=sep>-1?m[1].slice(0,sep).trim():m[1].trim();const c=sep>-1?m[1].slice(sep+1).trim():'';if(t&&c){if(!state.storyChapters)state.storyChapters=[];state.storyChapters.push({id:Date.now(),title:t,content:c,date:state.worldData.time||''});save();}}
     }
     renderStoryRead();
-    if(_storyMode==='edit')toggleStoryMode();
     toast('✓ Chapter added!');
   }catch(e){toast('Error: '+e.message);}
 }
@@ -4187,7 +4151,6 @@ function resetState(mode, startingGold){
   state.chatHistory=[];
   state.logs=[{ts:'Day 1, 9:00 AM',type:'dm',body:"Tinkle's Tinctures — "+(mode==='full'?'Full Reset':'New Campaign')+". Party is ready. Set your starting location and run Session Zero to begin."}];
   state.logSummary='';
-  state.storyThread='';
   state.storyChapters=[];
   state.combat={active:false,round:1,currentIdx:0,list:[]};
   state.chkHistory=[];
@@ -4598,9 +4561,9 @@ function migrate(s){
     if(s.storyThread&&!s.storyChapters.length){
       s.storyChapters=[{id:Date.now(),title:'Prologue',content:s.storyThread,date:(s.worldData&&s.worldData.time)||'Day 1'}];
     }
-    // Future gate example:
-    // if(savedVer<9){ delete s.storyThread; if(!s.aiContracts)s.aiContracts={}; }
   }
+  // DR-2: storyThread eliminated — purge from any loaded save (v8 gate above already migrated content)
+  delete s.storyThread;
 
   // ══ CANONICAL QA COMPLETENESS — always run to pick up QAs added in current version ══
   const validTabs=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dm'];
@@ -4648,7 +4611,6 @@ function migrate(s){
   if(!s.chkMode)s.chkMode='exploration';
   if(s.msgsSinceChk===undefined)s.msgsSinceChk=0;
   if(!s.autoChkInterval)s.autoChkInterval=8;
-  if(!s.storyThread)s.storyThread='';
   if(!s.sessionNotes)s.sessionNotes='';
   if(!s.wagonFilter)s.wagonFilter='all';
   if(!s.worldData||typeof s.worldData!=='object')s.worldData={};
@@ -4712,7 +4674,6 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
   'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters'];
-// Note: storyThread intentionally excluded — orphaned legacy field, pending deletion in v9 migrate gate
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -6824,6 +6785,12 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.8',date:'June 2026',notes:[
+      'Story Chronicle panel: storyThread field eliminated — canonical structure is now storyChapters[] only',
+      'Edit mode and mode toggle removed — panel always shows the ebook-style chapter read view',
+      'Existing storyThread auto-migrates to Prologue chapter on first load (SAVE_VERSION 8 gate)',
+      'storyThread purged from all loaded saves via migrate() — no longer stored in localStorage',
+    ]},
     {ver:'v1.7',date:'June 2026',notes:[
       'Tab bar reordered: AI DM first, play tabs visible without scrolling; AI Tools/Dev/Setup in ⋮ overflow menu',
       '❓ Rules channel (renamed from ⚙ Systems) — clearer purpose label',
