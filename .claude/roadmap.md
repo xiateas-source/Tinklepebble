@@ -15,7 +15,8 @@ Routine UI, copy, CSS, patch notes, roadmap updates, and dead code removal can p
 - Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` object persisted to `localStorage('tt_v1')` and Firebase
 - Three stacked `:root` CSS blocks — LAST one wins (Block 3 at line 971). Block 1 (line 13) and Block 2 (line 341) are dead weight pending cleanup (see Architectural Refactor Plan)
-- `migrate()` — DR-1 ✅ DONE 2026-06-14. Version-gated engine: structural guards → `if(savedVer<8)` gate → always-run canonical QA → always-run core defaults. Future gates add at `savedVer<9`, etc.
+- `migrate()` — DR-1 ✅ DONE 2026-06-14. Version-gated engine: structural guards → `if(savedVer<8)` gate → `if(savedVer<9)` gate → always-run canonical QA → always-run core defaults.
+- `SAVE_VERSION=9` — DR-3 ✅. loadState() inventory wipe gated at savedVer<8 (won't re-run on future bumps).
 - `renderAll()` is central render; `renderChat()` renders narrative chat
 - `callAI()` — AbortController + 25s timeout added (QW-8 ✅); full retry/fallback in Deep Refactor #4
 - AI contracts read from DOM via `document.getElementById()?.value` — fragile (contracts-to-state migration planned)
@@ -85,9 +86,12 @@ These are correct, battle-tested, and carry high regression risk if touched:
 - Story Chronicle panel: edit mode + mode toggle removed; always shows chapter read view
 - `[Severity: Medium] [Complexity: Hours] [Risk: Low]`
 
-**3. Setup Wizard lock (`campaignLaunched` flag)**
-- Depends on: #1 (to backfill `campaignLaunched: false` for existing saves)
-- Add `state.campaignLaunched`; post-launch: Setup shows read-only view + deep-link buttons to World/Wagon tabs; gated "Re-open Setup" escape hatch
+**3. Setup Wizard lock (`campaignLaunched` flag) — DONE 2026-06-14** ✅
+- SAVE_VERSION bumped to 9; loadState() inventory wipe now gated at `savedVer<8` (safe future bumps)
+- v9 gate: smart backfill — `campaignLaunched=true` if chatHistory.length>0, else false
+- Structural guard: `if(s.campaignLaunched===undefined)s.campaignLaunched=false`
+- `launchCampaign()` sets `state.campaignLaunched=true`; resetState() resets to false
+- Setup tab: `#setup-lock-banner` div + `renderSetupLock()` — locked banner with → World, → Wagon deep-links + ⚙ Edit escape hatch; `_setupUnlocked` local toggle (not persisted)
 - `[Severity: Low] [Complexity: Hours] [Risk: Low]`
 
 **4. `callAI()` retry + provider fallback wrapper**

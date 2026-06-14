@@ -2116,6 +2116,7 @@ button.fab{
     <button class="main-tab" id="setup-btn-3" onclick="showSetupStep(3)" style="font-size:11px;padding:8px 10px">3 Operation</button>
     <button class="main-tab" id="setup-btn-4" onclick="showSetupStep(4)" style="font-size:11px;padding:8px 10px;color:var(--purple-bright)">Plugins</button>
   </div>
+  <div id="setup-lock-banner" style="margin-top:12px"></div>
 
   <!-- STEP 0: Session Zero -->
   <div id="setup-step-0">
@@ -2562,7 +2563,7 @@ const MAX_LB=1080;
 const ITYPES=['supply','foraged','ingredient','trade','loot','hoard','misc','key'];
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
-const SAVE_VERSION=8;
+const SAVE_VERSION=9;
 
 // ═══ FIREBASE DROP 2 ═══
 let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false;
@@ -2909,6 +2910,7 @@ let state={
   oocHistory:[],
   partyChat:[],
   storyChapters:[],
+  campaignLaunched:false,
   sessionNotes:'',
   quickActions:[
     {id:'qa_1',label:'Adjust HP',type:'hp',params:{pc:'',amount:'',mode:'damage'},context:['tab-party','tab-combat','tab-dm']},
@@ -3085,7 +3087,7 @@ function renderAll(){
   renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();renderStoryRead();
   renderWagon();renderIncome();renderPartyInv();syncWorld();renderTreasuryTotal();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
-  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();
+  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();renderSetupLock();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
     if(document.getElementById('sess-module-panel')?.style.display==='block'){
@@ -4152,6 +4154,7 @@ function resetState(mode, startingGold){
   state.logs=[{ts:'Day 1, 9:00 AM',type:'dm',body:"Tinkle's Tinctures — "+(mode==='full'?'Full Reset':'New Campaign')+". Party is ready. Set your starting location and run Session Zero to begin."}];
   state.logSummary='';
   state.storyChapters=[];
+  state.campaignLaunched=false;
   state.combat={active:false,round:1,currentIdx:0,list:[]};
   state.chkHistory=[];
   state.rewindStack=[];
@@ -4439,6 +4442,30 @@ function saveSetupPC(idx){
   saveRefresh();
   toast('✓ '+pc.name+' saved.');
 }
+let _setupUnlocked=false;
+function renderSetupLock(){
+  const banner=document.getElementById('setup-lock-banner');if(!banner)return;
+  if(state.campaignLaunched&&!_setupUnlocked){
+    banner.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--gold-dim);border-radius:var(--radius);padding:12px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+      <div style="flex:1;min-width:160px">
+        <div style="font-size:12px;font-weight:600;color:var(--gold-bright);margin-bottom:3px">⚔ Campaign Active</div>
+        <div style="font-size:11px;color:var(--text-dim)">Setup is view-only during an active campaign. Use the main tabs for in-session changes.</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn sm" onclick="showTab('tab-world')">→ World</button>
+        <button class="btn sm" onclick="showTab('tab-wagon')">→ Wagon</button>
+        <button class="btn sm gold" onclick="_setupUnlocked=true;renderSetupLock()">⚙ Edit</button>
+      </div>
+    </div>`;
+  }else if(state.campaignLaunched&&_setupUnlocked){
+    banner.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--gold);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:11px;color:var(--gold);flex:1">⚙ Setup unlocked — changes apply immediately to the active campaign.</div>
+      <button class="btn sm red" onclick="_setupUnlocked=false;renderSetupLock()">🔒 Lock</button>
+    </div>`;
+  }else{
+    banner.innerHTML='';
+  }
+}
 function lockPremise(){
   state.worldData.premiseLocked=true;
   const el=document.getElementById('setup-premise');
@@ -4459,6 +4486,7 @@ function launchCampaign(){
   state.worldData.plot=g('setup-factions');
   state.worldData.secrets=g('setup-secrets');
   state.treasuryData.gp=parseInt(g('setup-gold'))||15;
+  state.campaignLaunched=true;
   save();
   // Open Session Zero modal
   generateSessionZero();openModal('s0-modal');
@@ -4565,6 +4593,14 @@ function migrate(s){
   // DR-2: storyThread eliminated — purge from any loaded save (v8 gate above already migrated content)
   delete s.storyThread;
 
+  // ══ VERSION GATE: savedVer < 9 — migrations introduced in SAVE_VERSION 9 ══
+  if(savedVer<9){
+    // DR-3: backfill campaignLaunched — true if campaign has been played (has chat history)
+    if(s.campaignLaunched===undefined){
+      s.campaignLaunched=!!(Array.isArray(s.chatHistory)&&s.chatHistory.length>0);
+    }
+  }
+
   // ══ CANONICAL QA COMPLETENESS — always run to pick up QAs added in current version ══
   const validTabs=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dm'];
   const hasValidActions=s.quickActions.some(qa=>(qa.context||[]).some(c=>validTabs.includes(c)));
@@ -4611,6 +4647,7 @@ function migrate(s){
   if(!s.chkMode)s.chkMode='exploration';
   if(s.msgsSinceChk===undefined)s.msgsSinceChk=0;
   if(!s.autoChkInterval)s.autoChkInterval=8;
+  if(s.campaignLaunched===undefined)s.campaignLaunched=false;
   if(!s.sessionNotes)s.sessionNotes='';
   if(!s.wagonFilter)s.wagonFilter='all';
   if(!s.worldData||typeof s.worldData!=='object')s.worldData={};
@@ -4724,8 +4761,8 @@ function loadState(){
         const saved=p.pcs.find(pc=>pc.id===canonical.id);
         if(saved){
           SHEET_FIELDS.forEach(f=>{if(canonical[f]!==undefined)saved[f]=canonical[f];});
-          // v7: always reset to canonical starting inventory (clears stale test-session gear)
-          if(canonical.inventory&&canonical.inventory.length>0){
+          // v7 one-time: reset to canonical starting inventory (clears stale test-session gear)
+          if(savedVer<8&&canonical.inventory&&canonical.inventory.length>0){
             saved.inventory=JSON.parse(JSON.stringify(canonical.inventory));
           }
           if(canonical.resources&&canonical.resources.length)saved.resources=canonical.resources;
@@ -4735,8 +4772,8 @@ function loadState(){
       state.pcs.forEach(canonical=>{
         if(!p.pcs.find(pc=>pc.id===canonical.id))p.pcs.push({...canonical});
       });
-      // v7: fix stale premise text (old saves may reference wrong race)
-      if(p.worldData&&p.worldData.premise){
+      // v7 one-time: fix stale premise text (old saves may reference wrong race)
+      if(savedVer<8&&p.worldData&&p.worldData.premise){
         p.worldData.premise=p.worldData.premise.replace(/Slasher the Halfling/gi,'Slasher the Black Dragonborn');
       }
       p.saveVersion=SAVE_VERSION;
@@ -6785,6 +6822,11 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.9',date:'June 2026',notes:[
+      'Campaign lock: Setup tab shows read-only banner after launch; ⚙ Edit to unlock, 🔒 to re-lock',
+      'Deep links in Setup lock banner: → World and → Wagon jump directly to play tabs',
+      'SAVE_VERSION 9: existing campaigns auto-detected as launched (via chat history); v8→v9 upgrade skips inventory wipe',
+    ]},
     {ver:'v1.8',date:'June 2026',notes:[
       'Story Chronicle panel: storyThread field eliminated — canonical structure is now storyChapters[] only',
       'Edit mode and mode toggle removed — panel always shows the ebook-style chapter read view',
