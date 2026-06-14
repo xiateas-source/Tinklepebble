@@ -6461,6 +6461,22 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.6',date:'June 2026',notes:[
+      '🎲 Roll & Submit button in header — one-tap from any tab',
+      'World tab split into World State | Operations sub-tabs',
+      'OOC and party chat: live game state ledger injected on every send (fixes context drift)',
+      'Context Refresh: queues scene snapshot silently for next AI DM message — no longer routes to OOC',
+      'Re-sync AI State: injects full ledger + triggers visible confirmation in main chat — no longer routes to OOC',
+      'Module tracker: Campaign Progress panel in Session tab — 8 Hoard of the Dragon Queen episodes',
+      'AI can advance/complete episodes via module_episode: mechanic command',
+      'Quest dedup: quest_add skips near-identical quests',
+      'NPC dedup: npc_add updates existing NPC instead of creating duplicate',
+      'primary_mission: mechanic — AI can now set/update the main quest',
+      'quest_fail: mechanic added',
+      'Income / NPC / Quest tracking contracts rewritten with strict no-exceptions enforcement',
+      'AI Tools: Context Refresh vs Re-sync guidance panel added',
+      'Flag list: dev plan flags captured in roadmap now auto-resolve on load',
+    ]},
     {ver:'v1.5',date:'June 2026',notes:[
       'Dev tab: Dev Notes, Flag Review, and Ops Debrief in dedicated Dev tab (last before Setup)',
       'Header: autosave dot only; 💰 gold delta and ⏱ session timer now live in the status bar',
