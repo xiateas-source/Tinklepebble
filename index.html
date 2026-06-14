@@ -2233,7 +2233,7 @@ You may apply any standard D&D 5e RAW rule confidently. Only pause when genuinel
 - REST RESOURCES: Short Rest restores — Second Wind (Slasher), Stone's Endurance (Pebble), Bardic Inspiration (Pebble). Long Rest restores — Lucky Points (Pebble), spell slots (Pebble). NEVER restore Long Rest resources from a Short Rest
 - PASSIVE PERCEPTION: Slasher 11, Tinkle 10, Pebble 11. Hidden threats/traps only revealed automatically if their DC is at or below the relevant PC's Passive Perception. Above that threshold: call for active WIS (Perception) check. Never reveal hidden things without either passive perception succeeding or an active check
 - ADVANTAGE/DISADVANTAGE: Always state reasoning before every roll. Advantage: attacking prone enemy within 5ft, attacking while hidden, Help action from ally. Disadvantage: attacking prone enemy beyond 5ft, ranged attack with adjacent enemy, attacking while prone. Never silently apply or ignore these
-- SHELL DEFENSE (Tinkle): Costs a Reaction to enter. While in shell: Prone, cannot take Actions or Reactions except to emerge. AC becomes 21. Must be stated explicitly when relevant
+- SHELL DEFENSE (Tinkle): Costs a Reaction to enter. While in shell: Prone, Incapacitated, cannot take Actions or Reactions except to emerge (Bonus Action to exit). AC becomes 21. When Tinkle enters shell: output shell_defense: tinkle=on in the mechanics block. When Tinkle emerges: output shell_defense: tinkle=off — this clears Prone, Incapacitated, and Shell Defense automatically. NEVER leave shell_defense conditions active between scenes or sessions.
 - HALFLING LUCKY (Slasher racial): automatic reroll when rolling a 1. Not luck points. Happens automatically. NOTE: Slasher is now a Black Dragonborn — this no longer applies. Remove from memory
 - LUCKY FEAT (Pebble): 3 luck points per long rest. Spend to gain advantage on own d20 OR impose disadvantage on attack vs Pebble. These are different features — never confuse them
 - Tinkle and Pebble prefer non-violence. Always narrate non-violent options before combat escalates. Slasher will try to help but follow the party's lead
@@ -2267,6 +2267,7 @@ The operation moves from town to town. Track which towns have been visited and t
 Update time in every mechanics block where time passes. Travel: wagon ~2 mph on roads. Short rest: 1 hour. Long rest: 8 hours. Combat: 1-3 minutes.
 
 QUEST TRACKING (strict):
+- BEFORE referencing any quest in narrative prose, check your quest log first. If it is already tracked, reference it by its existing name — do NOT re-introduce it as a new revelation.
 - BEFORE adding a quest_add, check if an existing quest covers the same objective. If it does, use quest_done or quest_fail on the old one instead of creating a duplicate.
 - When an objective is clearly completed in the narrative, output quest_done IMMEDIATELY in that same mechanics block. Do not leave completed quests as active.
 - quest_done: partial name match — use a unique word from the quest title (e.g. quest_done: Rescue Pebble)
@@ -2274,7 +2275,7 @@ QUEST TRACKING (strict):
 - primary_mission: [text] — set or update the party's main driving objective when it becomes clear through play. Do not leave it as PENDING once the story has established direction.
 - quest_add: Quest Name|description — only for genuinely new objectives not already tracked
 
-NPC TRACKING: When a named NPC is formally introduced, ALWAYS output npc_add immediately — even if they only appear briefly. Re-encountering a known NPC: use npc_mood to update disposition, do NOT add them again. When an NPC's disposition toward the party changes, output npc_mood. Do not batch these for later.
+NPC TRACKING: BEFORE introducing any NPC in narrative prose, check your NPC log first. If they are already logged, reference them naturally — do NOT re-introduce them as if new. When a named NPC is formally introduced for the first time, ALWAYS output npc_add immediately — even if they only appear briefly. Re-encountering a known NPC: use npc_mood to update disposition, do NOT add them again. When an NPC's disposition toward the party changes, output npc_mood. Do not batch these for later.
 
 INCOME TRACKING (strict): Every gold transaction MUST have a mechanics line. No exceptions.
 - income: amount, category, description (categories: real_stock / snake_oil / reagents / reward / found)
@@ -2894,7 +2895,8 @@ let state={
     {id:'qa_19',label:'Roleplay NPC',type:'roleplay_npc',params:{},context:['tab-dm','tab-world']},
     {id:'qa_20',label:'Character Moment',type:'char_moment',params:{},context:['tab-dm','tab-party']},
     {id:'qa_21',label:'Send Active Scene',type:'send_scene',params:{},context:['tab-dm','tab-session']},
-    {id:'qa_22',label:'Context Refresh',type:'context_refresh_btn',params:{},context:['tab-dm','tab-ait']}
+    {id:'qa_22',label:'Context Refresh',type:'context_refresh_btn',params:{},context:['tab-dm','tab-ait']},
+    {id:'qa_23',label:'Shell Defense',type:'shell_defense_toggle',params:{},context:['tab-party','tab-combat','tab-dm']}
   ]
 };
 
@@ -4044,7 +4046,8 @@ function exportConfig(){
     const json=JSON.stringify(state,null,2);
     const blob=new Blob([json],{type:'application/json'});
     const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='tinkles_save_'+Date.now()+'.json';
+    const loc=(state.worldData?.location||'unknown').replace(/[^a-z0-9]/gi,'_').toLowerCase().slice(0,24);
+    const a=document.createElement('a');a.href=url;a.download='tinkles_save_'+loc+'.json';
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),2000);
     toast('✓ Full save exported to Downloads.');
@@ -4439,6 +4442,7 @@ function migrate(s){
     'qa_20':['tab-dm','tab-party'],
     'qa_21':['tab-dm','tab-session'],
     'qa_22':['tab-dm','tab-session'],
+    'qa_23':['tab-party','tab-combat','tab-dm'],
     'qa_15':['tab-dm','tab-party']
   };
   s.quickActions.forEach(qa=>{
@@ -4455,6 +4459,15 @@ function migrate(s){
   // Add qa_13 (Roll & Submit) if missing
   if(!s.quickActions.find(qa=>qa.id==='qa_13')){
     s.quickActions.push({id:'qa_13',label:'Roll & Submit',type:'roll_submit',params:{},context:['tab-party','tab-combat','tab-dm','tab-world']});
+  }
+  // Add qa_23 (Shell Defense toggle) if missing
+  if(!s.quickActions.find(qa=>qa.id==='qa_23')){
+    s.quickActions.push({id:'qa_23',label:'Shell Defense',type:'shell_defense_toggle',params:{},context:['tab-party','tab-combat','tab-dm']});
+  }
+  // Clear stale Shell Defense conditions if stuck between sessions
+  const tinklePc=s.pcs.find(p=>p.name==='Tinkle');
+  if(tinklePc&&tinklePc.conditions&&tinklePc.conditions.includes('Shell Defense')){
+    ['Shell Defense','Prone','Incapacitated'].forEach(c=>{const i=tinklePc.conditions.indexOf(c);if(i>-1)tinklePc.conditions.splice(i,1);});
   }
   // If still empty, reset to defaults
   const validTabs=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dm'];
@@ -5872,7 +5885,7 @@ function renderQAMenu(){
   if(!actions.length){menu.innerHTML='<div style="padding:10px 12px;font-size:11px;color:var(--text-dim)">No actions for this tab.<br>Add some in AI Tools → Quick Actions.</div>';return;}
   actions.forEach(action=>{
     const d=document.createElement('div');d.className='qa-item';
-    const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'⚡',roleplay_npc:'🗣',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',custom:'⚙'};
+    const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'⚡',roleplay_npc:'🗣',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',custom:'⚙'};
     d.innerHTML=`<span class="qa-item-icon">${icons[action.type]||'⚡'}</span><span>${esc(action.label)}</span>`;
     d.onclick=()=>{closeQAMenu();executeQA(action);};
     menu.appendChild(d);
@@ -5990,6 +6003,14 @@ function executeQA(action){
     case 'send_scene': sendSceneToDM(); break;
     case 'context_refresh_btn': sendContextRefresh(); break;
     case 'module_checkin': qa('Check the Campaign Progress tracker. Confirm which episode we\'re currently on, what\'s been completed, and what the next key objective is. Update any episode statuses that need changing via module_episode: mechanic.'); break;
+    case 'shell_defense_toggle':{
+      const tinklePC=state.pcs.find(p=>p.name==='Tinkle');
+      if(!tinklePC){toast('Tinkle not found.');break;}
+      const inShell=tinklePC.conditions.includes('Shell Defense');
+      if(inShell){['Shell Defense','Prone','Incapacitated'].forEach(c=>{const i=tinklePC.conditions.indexOf(c);if(i>-1)tinklePC.conditions.splice(i,1);});}
+      else{['Shell Defense','Prone','Incapacitated'].forEach(c=>{if(!tinklePC.conditions.includes(c))tinklePC.conditions.push(c);});}
+      saveRefresh();toast(inShell?'🐢 Tinkle emerged from shell (conditions cleared)':'🛡 Tinkle entered Shell Defense (AC 21, Prone, Incapacitated)');
+      break;}
     case 'state_fix': openStateFix(); break;
     case 'resync_ai': resyncAI(); break;
     default:
@@ -6535,6 +6556,14 @@ function renderChangelog(){
       '↑ Top / ↓ Bottom scroll buttons on Narrative chat and Story Thread',
       'Quest hidden:false default field added — foundation for player-visible quest filtering (Drop 6)',
       'ElevenLabs TTS: updated to eleven_turbo_v2_5, readable error messages, ✓ Verify key button',
+      '🐢 Shell Defense quick action — toggles Tinkle in/out of shell (Prone, Incapacitated, AC 21)',
+      'Shell Defense AI contract: AI must now output shell_defense: tinkle=on/off in mechanics block',
+      'Stale Shell Defense conditions auto-cleared from Tinkle on load via migrate()',
+      'NPC tracking contract: AI must check NPC log before introducing any NPC in narrative prose',
+      'Quest tracking contract: BEFORE adding quest_add, check existing quests for same objective',
+      'Save export filename now uses current location instead of timestamp',
+      '⚙ Systems + 🗨️ OOC channels: OOC contract added — rules accuracy, character separation, Slasher secret protection',
+      'Party Ask DM: fixed multi-question context drift — now sends proper alternating conversation history',
     ]},
     {ver:'v1.5',date:'June 2026',notes:[
       'Dev tab: Dev Notes, Flag Review, and Ops Debrief in dedicated Dev tab (last before Setup)',
