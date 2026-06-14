@@ -392,6 +392,12 @@ Open questions (answer before Drop 6):
 18. **Module tracker** — DONE 2026-06-14. Campaign: "Hoard of the Dragon Queen" (Baur & Winter). Session → Module tab. 8 episodes pre-filled, status toggles, % bar, per-episode notes, AI updates via module_episode: mechanic.
 19. **Context Refresh / Re-sync routing** — FIXED 2026-06-14. Context Refresh queues a scene snapshot via _ctxInject, appended silently to next sendMsg() system prompt. Re-sync injects full ledger same way + fires forced acknowledgment message in main chat.
 20. **Live save export diagnosis (2026-06-14)** — Confirmed from state export: 21 quests all active (0 completed), income log had 2 entries despite significant play, primary mission still PENDING, Myrna added twice. Fixes applied: quest/NPC dedup, primary_mission mechanic, income contract enforcement.
+21. **Inventory UX overhaul (flagged 2026-06-14, player feedback)** — Three interlocked problems:
+    - **Name truncation**: Item names cut off in both party inventory and individual PC inventory — need full-width or wrap display.
+    - **No subcategories / grouping**: All items stack in one flat list regardless of type. Need visual grouping by ITYPE (supply, foraged, ingredient, trade, loot, key, misc) with collapsible sections or at minimum category headers.
+    - **Duplicate detection gap**: AI doesn't cross-reference existing items before adding. Player example: "Sedative Bolt" and "Tranquilizer Darts" were added as separate items — semantically the same, should be one entry. Need fuzzy/semantic dedup at `item_add:` parse time (similar to existing NPC dedup) and ideally a confirm-chip when a near-match exists.
+    - **Scope**: Affects `#wagon-cargo`, `#wagon-hoard`, `#party-inv`, and PC `inventory[]` arrays. Also affects how `item_remove:` and `item_add:` reference items by name — fuzzy matching would reduce "item not found" misses.
+    - **Related**: Wagon cargo already has type filter tabs (all/supply/foraged/ingredient/trade/loot) — party inventory has nothing equivalent.
 
 ## Recurring AI Failure Patterns (2026-06-14 debrief)
 **Pattern 1 — State Drift:** AI narrates events (NPC introduced, item found, gold earned) but does NOT emit the matching mechanics line. Income log, NPC log, and quest log all stayed empty despite active gameplay.
