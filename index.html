@@ -1988,12 +1988,14 @@ button.fab{
     <div id="sess-play-panel">
       <div class="panel">
         <div class="panel-title">Story Thread
-          <button class="btn sm" onclick="document.getElementById('story-thread').scrollTop=0" title="Scroll to top">↑ Top</button>
-          <button class="btn sm" onclick="const e=document.getElementById('story-thread');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
+          <button class="btn sm" onclick="scrollStoryTop()" title="Scroll to top">↑ Top</button>
+          <button class="btn sm" onclick="scrollStoryBottom()" title="Scroll to bottom">↓ Bottom</button>
+          <button class="btn sm" id="story-mode-btn" onclick="toggleStoryMode()" title="Toggle read/edit mode">📖 Read</button>
           <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Update</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Running story record. Updated manually or via AI.</p>
         <textarea id="story-thread" style="min-height:380px;font-size:13px;line-height:1.7;border-color:var(--purple);" oninput="state.storyThread=this.value;save()" placeholder="No story thread yet. Tap ✨ Update to have the AI extract key plot moments."></textarea>
+        <div id="story-thread-read" style="display:none;overflow-y:auto;max-height:520px;padding:16px 4px;font-size:14px;line-height:1.85;color:var(--text)"></div>
       </div>
       <div class="panel">
         <div class="panel-title">Quick Log Entry</div>
@@ -3628,6 +3630,48 @@ function buildRawSummary(){
   if(!(state.logs||[]).length){if(el)el.value='No entries yet.';return;}
   const out=state.logs.map(l=>'['+l.type.toUpperCase()+'] '+l.body).join('\n');
   if(el)el.value=out;state.logSummary=out;save();toast('Summary built.');
+}
+let _storyMode='edit';
+function scrollStoryTop(){
+  const el=document.getElementById(_storyMode==='read'?'story-thread-read':'story-thread');
+  if(el)el.scrollTop=0;
+}
+function scrollStoryBottom(){
+  const el=document.getElementById(_storyMode==='read'?'story-thread-read':'story-thread');
+  if(el)el.scrollTop=el.scrollHeight;
+}
+function toggleStoryMode(){
+  _storyMode=_storyMode==='edit'?'read':'edit';
+  const ta=document.getElementById('story-thread');
+  const rd=document.getElementById('story-thread-read');
+  const btn=document.getElementById('story-mode-btn');
+  if(_storyMode==='read'){
+    renderStoryRead();
+    if(ta)ta.style.display='none';
+    if(rd)rd.style.display='';
+    if(btn)btn.textContent='✏️ Edit';
+  } else {
+    if(ta)ta.style.display='';
+    if(rd)rd.style.display='none';
+    if(btn)btn.textContent='📖 Read';
+  }
+}
+function renderStoryRead(){
+  const rd=document.getElementById('story-thread-read');if(!rd)return;
+  const raw=state.storyThread||'';
+  if(!raw.trim()){rd.innerHTML='<p style="color:var(--text-dim);font-style:italic">No story thread yet. Switch to Edit mode and tap ✨ Update.</p>';return;}
+  const fmt=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>');
+  const segs=raw.split(/\n*---[^\n]*---\n*/);
+  const chapters=segs.map((s,i)=>({title:i===0&&s.trim()?'Prologue':'Session '+(i===0?1:i),content:s.trim()})).filter(ch=>ch.content);
+  if(!chapters.length){rd.innerHTML='<p style="color:var(--text-dim)">Nothing to display.</p>';return;}
+  const toc=chapters.map((ch,i)=>`<a href="#st-ch-${i}" style="display:block;padding:3px 0;color:var(--gold);font-size:12px;text-decoration:none" onclick="event.preventDefault();document.getElementById('st-ch-${i}').scrollIntoView({behavior:'smooth'})">${ch.title}</a>`).join('');
+  const body=chapters.map((ch,i)=>{
+    const paras=ch.content.split(/\n\n+/).map(p=>`<p style="margin:0 0 12px">${fmt(p.replace(/\n/g,'<br>'))}</p>`).join('');
+    return `<section id="st-ch-${i}" style="margin-bottom:28px"><h3 style="font-family:var(--display);color:var(--gold-bright);font-size:15px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">${ch.title}</h3>${paras}</section>`;
+  }).join('');
+  rd.innerHTML=`<details style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px"><summary style="cursor:pointer;font-size:12px;color:var(--gold);font-weight:600;letter-spacing:.5px">📖 CONTENTS (${chapters.length})</summary><div style="margin-top:8px;padding-left:4px">${toc}</div></details>${body}`;
 }
 async function updateStoryThread(){
   const key=getKey();if(!key){toast('Set an API key first.');return;}

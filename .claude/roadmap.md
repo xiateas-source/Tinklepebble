@@ -42,7 +42,8 @@
 - [x] module_episode: mechanic — AI advances/completes episodes, UI updates live
 - [ ] Travel Log full rework (see Gameplay Issues #14) + merge with Town Reputation
 - [x] Scroll controls: ↑ Top / ↓ Bottom on Narrative, Story Thread, OOC, Party — all standardized
-- [ ] Session dividers / chapter markers in Story Thread
+- [x] Story Thread read mode: 📖 toggle renders ebook view with collapsible TOC + chapter sections
+- [ ] Story Thread Option B: structured chapter objects {title, content, date}, AI mechanic to add/update chapters, full data model upgrade (do after Option A is stable)
 - [ ] Quest model: hidden:false default field for player-visible quests
 
 ## Context Refresh / Re-sync Protocol — DONE 2026-06-14
