@@ -63,7 +63,7 @@
 **Estimated effort:** 20-30 min. Do before next session if possible.
 
 ## Phase 1 — Pre-Drop 4
-- [ ] Context Refresh / Re-sync protocol rework (see above — currently broken)
+- [x] Context Refresh / Re-sync protocol rework — DONE 2026-06-14. Both now route to main narrative chat via _ctxInject system prompt injection.
 - [ ] Vite migration (single file → component structure before Drop 4 adds complexity)
 
 ## VTT Drops
@@ -110,7 +110,7 @@ Open questions (answer before Drop 6):
 16. **Message lock on new prompt** — Reading a message while someone else prompts closes out the open message. Must stay open until explicitly closed.
 17. **OOC "Ask DM" context drift** — FIXED 2026-06-14. Root cause: OOC was only sending last 10 OOC messages, no live ledger. AI answered from stale snapshot (last resync at Greenest, party had moved to Cleft of Sighs). Fix: live ledger now injected into OOC + party chat system prompt on every send.
 18. **Module tracker** — DONE 2026-06-14. Campaign: "Hoard of the Dragon Queen" (Baur & Winter). Session → Module tab. 8 episodes pre-filled, status toggles, % bar, per-episode notes, AI updates via module_episode: mechanic.
-19. **Context Refresh / Re-sync routing** — Both currently send to OOC, main narrative AI never sees them. See "Context Refresh / Re-sync Protocol" section above for rework plan.
+19. **Context Refresh / Re-sync routing** — FIXED 2026-06-14. Context Refresh queues a scene snapshot via _ctxInject, appended silently to next sendMsg() system prompt. Re-sync injects full ledger same way + fires forced acknowledgment message in main chat.
 20. **Live save export diagnosis (2026-06-14)** — Confirmed from state export: 21 quests all active (0 completed), income log had 2 entries despite significant play, primary mission still PENDING, Myrna added twice. Fixes applied: quest/NPC dedup, primary_mission mechanic, income contract enforcement.
 
 ## Recurring AI Failure Patterns (2026-06-14 debrief)
