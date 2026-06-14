@@ -3272,6 +3272,8 @@ function renderPcInv(idx){
 }
 
 // ═══ EDIT SHEETS ═══
+var _pcSheetTab=0;
+function setSheetTab(n){_pcSheetTab=n;renderSheets();}
 function renderSheets(){
   const c=document.getElementById('edit-sheets');if(!c)return;c.innerHTML='';
   const idx=state.activeEditTab||0;const pc=state.pcs[idx];if(!pc)return;
@@ -3306,15 +3308,25 @@ function renderSheets(){
     <div class="stat-mini-row" style="margin-bottom:12px">
       ${['str','dex','con','int','wis','cha'].map(s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);const ms=(m>=0?'+':'')+m;return`<div style="text-align:center"><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${n}" onchange="upd(${idx},'${s}',parseInt(this.value)||10)" style="text-align:center;font-size:15px;font-weight:600"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-top:3px;letter-spacing:.5px">${ms}</div></div>`;}).join('')}
     </div>
-    <div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label><textarea id="sheet-skills-${idx}" onchange="upd(${idx},'skills',this.value)" style="min-height:60px"></textarea></div>
-    <div class="form-group"><label class="field-label">Features, Feats &amp; Class Resources</label><textarea id="sheet-features-${idx}" onchange="upd(${idx},'features',this.value)" style="min-height:60px"></textarea></div>
-    <div class="form-group"><label class="field-label">Spellcasting</label><textarea id="sheet-magic-${idx}" onchange="upd(${idx},'magic',this.value)" style="min-height:60px"></textarea></div>
-    <div class="form-group"><label class="field-label">Spell Slots <button class="slot-add-btn" onclick="addSlotLvl(${idx})">+ Add Level</button></label><div id="slot-ed-${idx}"></div></div>
-    <details class="bs" style="margin-top:8px">
+    <div style="display:flex;gap:0;margin:14px 0 10px;border-bottom:1px solid var(--border)">
+      ${['Skills','Features','Spells','Gear'].map((t,i)=>`<button onclick="setSheetTab(${i})" style="flex:1;padding:8px 4px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;border:none;border-bottom:2px solid ${i===_pcSheetTab?'var(--gold)':'transparent'};background:none;color:${i===_pcSheetTab?'var(--gold)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans);min-height:36px;transition:color .15s">${t}</button>`).join('')}
+    </div>
+    ${_pcSheetTab===0?`
+    <div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label><textarea id="sheet-skills-${idx}" onchange="upd(${idx},'skills',this.value)" style="min-height:120px"></textarea></div>
+    `:''}
+    ${_pcSheetTab===1?`
+    <div class="form-group"><label class="field-label">Features, Feats &amp; Class Resources</label><textarea id="sheet-features-${idx}" onchange="upd(${idx},'features',this.value)" style="min-height:120px"></textarea></div>
+    <details class="bs" style="margin-top:8px" open>
       <summary>⚡ Resources &amp; Abilities <button class="slot-add-btn" onclick="event.stopPropagation();addResource(${idx})">+ Add</button></summary>
       <div class="bs-body" id="res-ed-${idx}"></div>
     </details>
-    <details class="bs" style="margin-top:8px">
+    `:''}
+    ${_pcSheetTab===2?`
+    <div class="form-group"><label class="field-label">Spellcasting</label><textarea id="sheet-magic-${idx}" onchange="upd(${idx},'magic',this.value)" style="min-height:100px"></textarea></div>
+    <div class="form-group"><label class="field-label">Spell Slots <button class="slot-add-btn" onclick="addSlotLvl(${idx})">+ Add Level</button></label><div id="slot-ed-${idx}"></div></div>
+    `:''}
+    ${_pcSheetTab===3?`
+    <details class="bs" open>
       <summary>🎒 Inventory <button class="slot-add-btn" onclick="event.stopPropagation();addPcItem(${idx})">+ Add Item</button></summary>
       <div class="bs-body" id="inv-ed-${idx}"></div>
     </details>
@@ -3322,14 +3334,16 @@ function renderSheets(){
       <summary>🔗 Relationships</summary>
       <div class="bs-body" id="rel-editor-${idx}"></div>
     </details>
-    <details class="bs">
+    <details class="bs" style="margin-top:8px">
       <summary>📖 Backstory &amp; Roleplay Hooks</summary>
       <div class="bs-body">
         <div class="form-group"><label class="field-label">Origin</label><textarea id="sheet-origin-${idx}" onchange="upd(${idx},'backstory_origin',this.value)" style="min-height:50px"></textarea></div>
         <div class="form-group"><label class="field-label">Motivation</label><textarea id="sheet-motiv-${idx}" onchange="upd(${idx},'backstory_motivation',this.value)" style="min-height:50px;border-color:var(--gold-dim)"></textarea></div>
         <div class="form-group"><label class="field-label">Secret / Flaw</label><textarea id="sheet-secret-${idx}" onchange="upd(${idx},'backstory_secret',this.value)" style="min-height:50px;border-color:var(--red-dim)"></textarea></div>
       </div>
-    </details>`;
+    </details>
+    `:''}
+    `;
   renderSlotEditor(idx);
   renderResourceEditor(idx);
   renderPcInvEditor(idx);
