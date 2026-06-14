@@ -2679,11 +2679,12 @@ function fbStartListening(){
       if(remoteTs<=localTs)return;
       delete remote._ts;delete remote._device;
       migrate(remote);
-      // Always apply canonical sheet fields — ensures stats/class never drift from Firebase old data
-      var SHEET_FIELDS=['name','race','class','background','alignment','ac','speed',
+      // Only merge static identity fields — migrate() owns all level-dependent fields.
+      // getCanonicalPCs() reads from current state.pcs which may be demo/Level-1 data on a
+      // fresh device, so including hp_max/slots/features/etc here causes them to be clobbered.
+      var SHEET_FIELDS=['name','race','background','alignment','ac','speed',
         'passive_perception','passive_insight','str','dex','con','int','wis','cha',
-        'skills','features','magic','backstory_origin','backstory_motivation','backstory_secret',
-        'color','hp_max','initiative','slots','resources','concentrating'];
+        'backstory_origin','backstory_motivation','backstory_secret','color','initiative'];
       getCanonicalPCs().forEach(function(canonical){
         var saved=remote.pcs?remote.pcs.find(function(pc){return pc.id===canonical.id;}):null;
         if(saved){SHEET_FIELDS.forEach(function(f){if(canonical[f]!==undefined)saved[f]=canonical[f];});
