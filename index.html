@@ -2444,8 +2444,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button class="btn sm" onclick="document.getElementById('chat-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
           <button class="btn sm" onclick="const e=document.getElementById('chat-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
         </div>
-        <div id="chat-msgs" class="chat-msgs-wrap" onscroll="handleChatScroll(this)"></div>
-        <button id="scroll-top-btn" onclick="scrollChatToTop()" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:5px 16px;font-size:11px;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.5);white-space:nowrap">↑ Back to Top</button>
+        <div id="chat-msgs" class="chat-msgs-wrap"></div>
         <div class="typing-ind" id="typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
         <div class="offline-banner" id="offline-banner">📴 Offline — showing cached response</div>
         <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
@@ -2487,7 +2486,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
             <div style="flex:1"><textarea id="ooc-input" style="min-height:52px;resize:none;margin:0;width:100%;padding:8px" placeholder="Ask OOC — rules questions, context checks (Enter to send)" onkeydown="oocKey(event)"></textarea></div>
             <button class="btn gold" id="ooc-send-btn" onclick="sendOOCMsg()" style="min-height:52px;padding:0 16px">Ask</button>
           </div>
-          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Context refresh &amp; AI resync route here automatically.</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Rules questions, context checks, lore lookups. 1-3 sentence answers only.</div>
         </div><!-- end chat-pane-ooc -->
         <div id="chat-pane-party" style="display:none">
           <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
@@ -4405,6 +4404,9 @@ function migrate(s){
       note:'STATE VISIBILITY AUDIT — Player View Foundation (logged 2026-06-13)\n\nAPPROACH: buildPlayerView() function — non-disruptive, additive only.\nComputes safe snapshot from existing state. Writes to Firebase /session/playerView on every save(). Player View (Drop 6) reads ONLY from /session/playerView.\n\nPUBLIC (player-visible):\n- pcs[*]: name, color, hp, hp_max, ac, conditions (NOT backstory_secret)\n- worldData: time, season, weather, location, scene_title, travelLog, premise, primaryMission\n- quests: all WHERE hidden !== true (needs hidden:false default added to quest model)\n- chatHistory: full narrative feed\n- combat.list: initiative + HP during combat\n- treasuryData: gp/pp/sp/cp/ep\n\nDM-ONLY (never in player view):\n- worldData.secrets, worldData.plot, worldData.timers, worldData.campaignSecrets\n- dmSecrets\n- pcs[*].backstory_secret\n- businessProfile.realStock, businessProfile.snakeOil\n- npcs[*].trueMotivation (if field added later)\n\nOPEN DESIGN QUESTIONS (answer before Drop 6):\n1. Town reputation — player-visible? (they\'d know their own rep in a town)\n2. Income log — player-visible? (they know what they sold)\n3. NPC dispositions — show to players or DM-only meta?\n4. Hidden quests — add hidden:false default to quest model for DM-planted objectives?\n\nIMPLEMENTATION CHECKLIST:\n[ ] Answer 4 open questions above\n[ ] Add hidden:false default to new quest objects\n[ ] Write buildPlayerView() function\n[ ] Call buildPlayerView() inside save() → write to Firebase /session/playerView\n[ ] Build Player View screen (Drop 6)'
     });
   }
+  // Migrate qa_22 from duplicate Context Refresh to Module Check-in
+  const qa22=s.quickActions.find(a=>a.id==='qa_22');
+  if(qa22&&qa22.type==='context_refresh_btn'){qa22.label='Module Check-in';qa22.type='module_checkin';qa22.context=['tab-dm','tab-session'];}
   // Auto-resolve dev flags that are now captured in roadmap
   ['dev_vtt_roadmap','dev_state_visibility'].forEach(id=>{
     const f=s.errorLog.find(f=>f.id===id);
@@ -4436,7 +4438,7 @@ function migrate(s){
     'qa_19':['tab-dm','tab-world'],
     'qa_20':['tab-dm','tab-party'],
     'qa_21':['tab-dm','tab-session'],
-    'qa_22':['tab-dm','tab-ait'],
+    'qa_22':['tab-dm','tab-session'],
     'qa_15':['tab-dm','tab-party']
   };
   s.quickActions.forEach(qa=>{
@@ -4482,7 +4484,7 @@ function migrate(s){
     {id:'qa_19',label:'Roleplay NPC',type:'roleplay_npc',params:{},context:['tab-dm','tab-world']},
     {id:'qa_20',label:'Character Moment',type:'char_moment',params:{},context:['tab-dm','tab-party']},
     {id:'qa_21',label:'Send Active Scene',type:'send_scene',params:{},context:['tab-dm','tab-session']},
-    {id:'qa_22',label:'Context Refresh',type:'context_refresh_btn',params:{},context:['tab-dm','tab-ait']}
+    {id:'qa_22',label:'Module Check-in',type:'module_checkin',params:{},context:['tab-dm','tab-session']}
   ];
   if(!s.quickActions||!s.quickActions.length){s.quickActions=canonicalQA;}
   else{
@@ -5092,14 +5094,9 @@ function renderChat(){
     d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${ttsBtn}${copyBtn}${flagBtn}${delBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong?' msg-collapsed':''}">${text}</div>${isLong?'<span class="read-more" onclick="this.previousElementSibling.classList.remove(\'msg-collapsed\');this.remove()">Read more ▼</span>':''}${mechBadge}`;
     c.appendChild(d);
   });
-  // Only auto-scroll if user is near bottom — don't interrupt reading
+  // Auto-scroll if user is near bottom — don't interrupt reading
   const distFromBottom=c.scrollHeight-c.scrollTop-c.clientHeight;
   if(distFromBottom<150)c.scrollTop=c.scrollHeight;
-  else{
-    // Show new message indicator
-    const btn=document.getElementById('scroll-top-btn');
-    if(btn){btn.textContent='↓ New message';btn.style.display='block';btn.onclick=()=>{c.scrollTop=c.scrollHeight;btn.style.display='none';btn.textContent='↑ Back to Top';btn.onclick=()=>scrollChatToTop();}; }
-  }
 }
 
 function deleteChatMsg(idx){
@@ -5989,6 +5986,7 @@ function executeQA(action){
     case 'char_moment': qaMotive(); break;
     case 'send_scene': sendSceneToDM(); break;
     case 'context_refresh_btn': sendContextRefresh(); break;
+    case 'module_checkin': qa('Check the Campaign Progress tracker. Confirm which episode we\'re currently on, what\'s been completed, and what the next key objective is. Update any episode statuses that need changing via module_episode: mechanic.'); break;
     case 'state_fix': openStateFix(); break;
     case 'resync_ai': resyncAI(); break;
     default:
@@ -6227,28 +6225,6 @@ function resyncAI(){
   if(inp)inp.value='[STATE RESYNC] Confirm in one sentence: current location, all PC HP values, and what the party is doing right now.';
   sendMsg();
   showTab('tab-dm');
-}
-
-// ═══ SCROLL TO TOP ═══
-function handleChatScroll(el){
-  const btn=document.getElementById('scroll-top-btn');
-  if(!btn)return;
-  const atBottom=el.scrollTop+el.clientHeight>=el.scrollHeight-50;
-  if(atBottom){btn.style.display='none';return;}
-  if(el.scrollTop<100){
-    btn.textContent='↓ Bottom';
-    btn.onclick=()=>{el.scrollTop=el.scrollHeight;btn.style.display='none';};
-  } else {
-    btn.textContent='↑ Top';
-    btn.onclick=()=>{el.scrollTop=0;};
-  }
-  btn.style.display='block';
-}
-function scrollChatToTop(){
-  const c=document.getElementById('chat-msgs');
-  if(c)c.scrollTop=0;
-  const btn=document.getElementById('scroll-top-btn');
-  if(btn)btn.style.display='none';
 }
 
 // ═══ HEADER MENU ═══
