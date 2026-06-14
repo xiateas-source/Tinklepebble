@@ -1943,8 +1943,7 @@ button.fab{
       </div>
       <div class="panel">
         <div class="panel-title">Travel Log</div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Auto-updated when location changes.</p>
-        <textarea id="w_travel_log" style="min-height:80px;color:var(--text-dim)" readonly placeholder="Auto-updated when location changes..."></textarea>
+        <div id="travel-log-visual" style="padding:4px 0;max-height:280px;overflow-y:auto"></div>
       </div>
     </div>
   </div>
@@ -2298,6 +2297,7 @@ The wagon is the party's livelihood and home. Always consider its location, carg
 The operation moves from town to town. Track which towns have been visited and their reputation status. Do not suggest the party return to a town marked as burned or fled.
 
 Update time in every mechanics block where time passes. Travel: wagon ~2 mph on roads. Short rest: 1 hour. Long rest: 8 hours. Combat: 1-3 minutes.
+- travel_note: [brief leg description] — annotate the current travel leg with a notable event, condition, or hazard. Use when something meaningful happens during travel (weather change, ambush, discovery). One sentence max.
 
 QUEST TRACKING (strict):
 - BEFORE referencing any quest in narrative prose, check your quest log first. If it is already tracked, reference it by its existing name — do NOT re-introduce it as a new revelation.
@@ -2471,7 +2471,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div class="chat-tab-row">
           <button class="chat-tab-btn active" id="chat-tab-narrative" onclick="showChatTab('narrative')">📖 Narrative</button>
           <button class="chat-tab-btn" id="chat-tab-ooc" onclick="showChatTab('ooc')">⚙ Systems</button>
-          <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party')">🗨️ OOC</button>
+          <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party');clearPartyBadge()">🗨️ OOC <span id="party-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
         </div>
         <div id="chat-pane-narrative">
         <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
@@ -2524,9 +2524,12 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Rules questions, context checks, lore lookups. 1-3 sentence answers only.</div>
         </div><!-- end chat-pane-ooc -->
         <div id="chat-pane-party" style="display:none">
-          <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
-            <button class="btn sm" onclick="document.getElementById('party-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
-            <button class="btn sm" onclick="const e=document.getElementById('party-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:4px">
+            <button class="btn sm" onclick="requestNotifPermission()" title="Get phone notifications when the other player messages" style="font-size:10px">🔔 Notify me</button>
+            <div style="display:flex;gap:5px">
+              <button class="btn sm" onclick="document.getElementById('party-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
+              <button class="btn sm" onclick="const e=document.getElementById('party-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
+            </div>
           </div>
           <div id="party-msgs" class="chat-msgs-wrap" style="min-height:300px;max-height:440px"></div>
           <div class="typing-ind" id="party-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
@@ -2659,6 +2662,22 @@ function fbStartListening(){
       remote.saveVersion=SAVE_VERSION;
       state=remote;state._ts=remoteTs;
       renderAll();genLedger();autosaveDot();
+      // Notify on new party messages from others
+      const newLen=(state.partyChat||[]).length;
+      if(newLen>_lastPartyChatLen){
+        const curP=localStorage.getItem('tt_pchar')||'';
+        (state.partyChat||[]).slice(_lastPartyChatLen).forEach(function(m){
+          if(m.playerName&&m.playerName!==curP){
+            _unreadParty++;updatePartyBadge();
+            toast('🗨️ '+m.playerName+': '+String(m.content||'').slice(0,60));
+            if(currentTab!=='tab-dm')flashTab('tab-dm');
+            if(localStorage.getItem('tt_notif')==='granted'){
+              try{new Notification('🗨️ '+m.playerName,{body:String(m.content||'').slice(0,80)});}catch(e){}
+            }
+          }
+        });
+        _lastPartyChatLen=newLen;
+      }
       var lbl=document.getElementById('as-lbl');
       if(lbl){lbl.innerText='Synced \u21BA';setTimeout(function(){lbl.innerText='Saved';},2000);}
     }catch(e){console.error('FB sync:',e);}
@@ -2936,6 +2955,7 @@ let state={
 
 let playerName='',playerChar='',provider='openrouter';
 let sessionLogIdx=0;
+let _lastPartyChatLen=0,_unreadParty=0;
 let sessionStart=Date.now(),sessionStartGP=0;
 // Message content lookup — avoids JSON.stringify in onclick attributes
 const msgMap={};
@@ -2949,6 +2969,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   fbLoadConfig();
   sessionStartGP=parseFloat(state.treasuryData.gp)||0;
   sessionLogIdx=(state.treasuryData.incomeLog||[]).length;
+  _lastPartyChatLen=(state.partyChat||[]).length;
   populateVoices();
   if(typeof speechSynthesis!=='undefined'&&speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=populateVoices;
   renderAll();genLedger();
@@ -3364,6 +3385,7 @@ function syncWorld(){
   const ds=document.getElementById('dm-secrets');if(ds)ds.value=state.dmSecrets||'';
   const qp=document.getElementById('q_primary');if(qp)qp.value=state.worldData.primaryMission||'';
   const tl=document.getElementById('w_travel_log');if(tl)tl.value=(state.worldData.travelLog||[]).join('\n');
+  renderTravelLog();
   // Keep Setup fields in sync with World tab (same state keys, two UIs)
   const spr=document.getElementById('setup-premise');if(spr)spr.value=state.worldData.premise||'';
   const sst=document.getElementById('setup-setting');if(sst)sst.value=state.worldData.setting||'';
@@ -3521,6 +3543,37 @@ function addIncome(){
 }
 
 // ═══ WAGON ═══
+function renderTravelLog(){
+  const c=document.getElementById('travel-log-visual');if(!c)return;
+  const log=state.worldData.travelLog||[];
+  if(!log.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;font-style:italic">No travel recorded yet.</div>';return;}
+  c.innerHTML=log.map((entry,i)=>{
+    const isLast=i===log.length-1;
+    // Format: "Day 1, 9:00 AM: Greenest → Cleft of Sighs | optional note"
+    const colIdx=entry.indexOf(':');
+    let ts='',rest=entry;
+    if(colIdx>-1&&colIdx<30){ts=entry.slice(0,colIdx).trim();rest=entry.slice(colIdx+1).trim();}
+    const arrowIdx=rest.indexOf('→');
+    const from=arrowIdx>-1?rest.slice(0,arrowIdx).trim():'';
+    const afterArrow=arrowIdx>-1?rest.slice(arrowIdx+1).trim():rest;
+    const pipeIdx=afterArrow.indexOf(' | ');
+    const dest=pipeIdx>-1?afterArrow.slice(0,pipeIdx).trim():afterArrow;
+    const note=pipeIdx>-1?afterArrow.slice(pipeIdx+3).trim():'';
+    const label=isLast?(from?dest:dest)+' ← now':dest||from;
+    return `<div style="display:flex;gap:8px;min-height:${isLast?'32':'42'}px">
+      <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:14px;padding-top:2px">
+        <div style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:${isLast?'var(--gold)':'var(--surface3)'};border:2px solid ${isLast?'var(--gold-bright)':'var(--border-bright)'}"></div>
+        ${!isLast?`<div style="width:1px;flex:1;background:var(--border);margin:3px 0"></div>`:''}
+      </div>
+      <div style="padding-bottom:${isLast?'0':'10'}px;min-width:0">
+        ${ts?`<div style="font-size:9px;color:var(--text-dim);letter-spacing:.3px;margin-bottom:1px">${esc(ts)}</div>`:''}
+        <div style="font-size:12px;font-weight:${isLast?'600':'400'};color:${isLast?'var(--gold-bright)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(label)}</div>
+        ${note?`<div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-top:2px">${esc(note)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  c.scrollTop=c.scrollHeight;
+}
 function renderWagon(){renderCapacity();renderCells();renderCargo();renderHoard();const wfBtn=document.getElementById('wf-'+(state.wagonFilter||'all'));if(wfBtn)wfBtn.classList.add('gold');}
 function calcWeight(){
   let w=0;
@@ -4993,6 +5046,7 @@ function parseMechanics(responseText){
         if(val&&val!==state.worldData.location){const old=state.worldData.location;state.worldData.location=val;if(!state.worldData.travelLog)state.worldData.travelLog=[];state.worldData.travelLog.push(state.worldData.time+': '+old+' → '+val);changes.push({text:'Location → '+val});}
       }else if(key==='time'){if(val){state.worldData.time=val;changes.push({text:'Time → '+val});}}
       else if(key==='weather'){if(val){state.worldData.weather=val;changes.push({text:'Weather → '+val});}}
+      else if(key==='travel_note'){if(val&&(state.worldData.travelLog||[]).length>0){const li=state.worldData.travelLog.length-1;state.worldData.travelLog[li]+=' | '+val;changes.push({text:'Travel note added'});}}
       else if(['gp','sp','cp','ep','pp'].includes(key)){
         const td=state.treasuryData;
         if(key==='gp'){
@@ -5314,6 +5368,20 @@ function clearChat(){if(confirm('Clear narrative chat and OOC channel? Log unaff
 
 // ═══ CHAT TABS ═══
 let _activeTab='narrative';
+function updatePartyBadge(){
+  const b=document.getElementById('party-badge');
+  if(!b)return;
+  if(_unreadParty>0){b.textContent=_unreadParty;b.style.display='inline';}
+  else{b.style.display='none';}
+}
+function clearPartyBadge(){_unreadParty=0;updatePartyBadge();}
+function requestNotifPermission(){
+  if(!('Notification' in window)){toast('Notifications not supported on this device.');return;}
+  Notification.requestPermission().then(function(p){
+    localStorage.setItem('tt_notif',p);
+    toast(p==='granted'?'✓ Notifications enabled — you\'ll be alerted when the other player sends a message.':'Notification permission '+p+'.');
+  });
+}
 function showChatTab(tab){
   _activeTab=tab;
   ['narrative','ooc','party'].forEach(t=>{
