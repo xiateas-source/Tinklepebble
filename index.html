@@ -1656,7 +1656,7 @@ button.fab{
     </div>
     <div id="tts-panel-elevenlabs" style="display:none">
       <div class="form-group"><label class="field-label">ElevenLabs API Key</label>
-        <div style="display:flex;gap:6px"><input type="password" id="el-key" placeholder="sk_..." oninput="saveElKey()" onpaste="setTimeout(saveElKey,50)"><button class="btn sm" onclick="toggleVis('el-key')">👁</button></div>
+        <div style="display:flex;gap:6px"><input type="password" id="el-key" placeholder="sk_..." oninput="saveElKey()" onpaste="setTimeout(saveElKey,50)"><button class="btn sm" onclick="toggleVis('el-key')">👁</button><button class="btn sm" onclick="verifyElKey()">✓ Verify</button></div>
       </div>
       <div class="form-group"><label class="field-label">Voice</label>
         <select id="el-voice" onchange="saveTts()">
@@ -5635,6 +5635,19 @@ function saveElKey(){
   const k=document.getElementById('el-key')?.value||'';
   localStorage.setItem('tt_el_key',k);
 }
+async function verifyElKey(){
+  const key=localStorage.getItem('tt_el_key')||document.getElementById('el-key')?.value||'';
+  if(!key){toast('Enter your API key first.');return;}
+  toast('Checking key…');
+  try{
+    const r=await fetch('https://api.elevenlabs.io/v1/user',{headers:{'xi-api-key':key}});
+    if(!r.ok){const b=await r.text();let m='';try{m=JSON.parse(b)?.detail?.message||b;}catch{m=b;}toast('✗ Invalid key: '+String(m).slice(0,60));return;}
+    const u=await r.json();
+    const used=u?.subscription?.character_count||0;
+    const limit=u?.subscription?.character_limit||0;
+    toast('✓ Key valid — '+used.toLocaleString()+' / '+limit.toLocaleString()+' chars used');
+  }catch(e){toast('Network error: '+e.message);}
+}
 function loadElSettings(){
   const k=localStorage.getItem('tt_el_key')||'';
   const el=document.getElementById('el-key');if(el)el.value=k;
@@ -5658,9 +5671,15 @@ async function speakElevenLabs(text,btnEl){
     const resp=await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+voiceId,{
       method:'POST',
       headers:{'Content-Type':'application/json','xi-api-key':key},
-      body:JSON.stringify({text:clean,model_id:'eleven_monolingual_v1',voice_settings:{stability,similarity_boost:0.75}})
+      body:JSON.stringify({text:clean,model_id:'eleven_turbo_v2_5',voice_settings:{stability,similarity_boost:0.75}})
     });
-    if(!resp.ok){const err=await resp.text();toast('ElevenLabs error: '+resp.status);if(btnEl)btnEl.textContent='🔊';return;}
+    if(!resp.ok){
+      const errBody=await resp.text();
+      let msg='';
+      try{const j=JSON.parse(errBody);msg=j?.detail?.message||j?.detail||errBody;}catch{msg=errBody;}
+      toast('ElevenLabs '+resp.status+': '+String(msg).slice(0,80));
+      if(btnEl)btnEl.textContent='🔊';return;
+    }
     const blob=await resp.blob();
     const url=URL.createObjectURL(blob);
     const audio=new Audio(url);
