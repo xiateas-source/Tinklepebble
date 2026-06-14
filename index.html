@@ -2912,6 +2912,7 @@ let state={
   partyChat:[],
   storyChapters:[],
   campaignLaunched:false,
+  prevSessionSummary:'',
   sessionNotes:'',
   quickActions:[
     {id:'qa_1',label:'Adjust HP',type:'hp',params:{pc:'',amount:'',mode:'damage'},context:['tab-party','tab-combat','tab-dm']},
@@ -4156,6 +4157,7 @@ function resetState(mode, startingGold){
   state.logSummary='';
   state.storyChapters=[];
   state.campaignLaunched=false;
+  state.prevSessionSummary='';
   state.combat={active:false,round:1,currentIdx:0,list:[]};
   state.chkHistory=[];
   state.rewindStack=[];
@@ -4649,6 +4651,7 @@ function migrate(s){
   if(s.msgsSinceChk===undefined)s.msgsSinceChk=0;
   if(!s.autoChkInterval)s.autoChkInterval=8;
   if(s.campaignLaunched===undefined)s.campaignLaunched=false;
+  if(s.prevSessionSummary===undefined)s.prevSessionSummary='';
   if(!s.sessionNotes)s.sessionNotes='';
   if(!s.wagonFilter)s.wagonFilter='all';
   if(!s.worldData||typeof s.worldData!=='object')s.worldData={};
@@ -4711,7 +4714,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -4997,7 +5000,8 @@ Rules:
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
   const secretsSection=state.dmSecrets?'\nCONTRACT 7 — SECRET DM NOTES (NEVER reveal to players):\n'+state.dmSecrets+'\n':'';
   const snipsSection=activeSnips?'\nCONTRACT 8 — REFERENCE MATERIAL:\n'+activeSnips+'\n':'';
-  return g('ai-persona')+'\n'+premiseSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+secretsSection+snipsSection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
+  const summarySection=state.prevSessionSummary?'\nCAMPAIGN HISTORY (auto-archived):\n'+state.prevSessionSummary+'\n':'';
+  return g('ai-persona')+'\n'+premiseSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
 }
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
@@ -5381,6 +5385,24 @@ function deleteChatMsg(idx){
   save();renderChat();
 }
 function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+async function summarizeAndPrune(){
+  if(!Array.isArray(state.chatHistory)||state.chatHistory.length<75)return;
+  const toSummarize=state.chatHistory.slice(0,30).filter(m=>m.role!=='system');
+  if(toSummarize.length<5)return;
+  const sysProm='You are a campaign narrator. In 2-3 sentences, summarize the key events, decisions, and outcomes from these messages. Include character names, locations, and major turning points. Write in past tense starting with "Previously:"';
+  const msgs=toSummarize.map(m=>({role:m.role==='assistant'?'assistant':'user',content:m.content.slice(0,800)}));
+  try{
+    const summary=await callAI(msgs,sysProm,350);
+    if(!summary||summary.trim().length<30)return; // reject empty/malformed summaries
+    state.prevSessionSummary=(state.prevSessionSummary?state.prevSessionSummary+'\n\n':'')+summary.trim();
+    state.chatHistory.splice(0,30);
+    save();
+    toast('✓ Chat archived — oldest 30 messages summarized.');
+  }catch(e){
+    // Silent failure is correct — never prune without a confirmed summary
+    console.warn('DR-7 summarize failed — messages preserved:',e.message);
+  }
+}
 function clearChat(){if(confirm('Clear narrative chat and Rules channel? Log unaffected.')){state.chatHistory=[];state.oocHistory=[];showChatTab('narrative');saveRefresh();}}
 
 // ═══ CHAT TABS ═══
@@ -5640,6 +5662,8 @@ async function sendMsg(){
     }
     if(document.getElementById('chat-log')?.checked)state.logs.push({ts,type:'dm',body:displayText});
     saveRefresh();
+    // DR-7: background summary + prune when chat exceeds 75 messages
+    if(state.chatHistory.length>=75)setTimeout(summarizeAndPrune,2000);
   }catch(err){
     console.error('AI error:',err);
     const cached=getCached();
@@ -6848,6 +6872,12 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.11',date:'June 2026',notes:[
+      'DR-7: Rolling AI summary — at 75 messages, oldest 30 are auto-summarized in background and pruned',
+      'Summary stored as prevSessionSummary and injected into every AI system prompt as "CAMPAIGN HISTORY"',
+      'Prune is never performed unless summary succeeds — messages preserved on any API failure',
+      'prevSessionSummary synced to Firebase (STATE_KEYS) so all devices share continuity',
+    ]},
     {ver:'v1.10',date:'June 2026',notes:[
       'DR-4: callAI() retry + provider fallback — 2 auto-retries on 5xx/network errors (1.2s, 2.4s backoff)',
       'Fallback: if Google fails all retries and OpenRouter key is set, silently retries on free Llama model',

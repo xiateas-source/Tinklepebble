@@ -119,11 +119,11 @@ These are correct, battle-tested, and carry high regression risk if touched:
 - Rollback: revert `buildPrompt()` to `g()` DOM reads; state.aiContracts stays as backup
 - `[Severity: Critical] [Complexity: Days] [Risk: Medium — bidirectional sync must debounce; Firebase listener must not overwrite in-flight edit]`
 
-**7. Rolling AI summary (non-destructive chat archive)**
-- Depends on: #4 (callAI resilience — summary call must be fail-safe; never prune if summary fails)
-- At 75 messages: fire background `callAI()` for 2-3 sentence "Previously on…" summary → store as `state.prevSessionSummary` → inject into `buildPrompt()` → prune oldest 30 messages ONLY after successful summary
-- If summary call fails: do NOT prune; retry on next save cycle
-- `state.prevSessionSummary` added to STATE_KEYS; injected before ledger in buildPrompt()
+**7. Rolling AI summary (non-destructive chat archive) — DONE 2026-06-14** ✅
+- `summarizeAndPrune()`: fires 2s after sendMsg() when chatHistory.length≥75; summarizes oldest 30 messages via callAI() (lean 350-token prompt); prunes ONLY on confirmed summary (length≥30 chars); silent failure preserves all messages
+- Summary appended to `state.prevSessionSummary` (accumulates across sessions)
+- `buildPrompt()` injects summarySection as "CAMPAIGN HISTORY (auto-archived)" before ledger
+- `prevSessionSummary` added to STATE_KEYS (Firebase sync), demo state, resetState(), migrate structural guard
 - Addresses Gameplay Issue #5 (chat log archive)
 - `[Severity: High] [Complexity: Days] [Risk: Medium — must never prune without confirmed summary]`
 
