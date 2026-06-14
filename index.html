@@ -59,6 +59,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .tab-section.active{display:block;overflow:hidden;animation:tabFade .16s ease-out;}
 @keyframes tabFade{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.tab-section.active{animation:none}}
+@keyframes tabFlash{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 2px var(--gold),0 0 10px 1px rgba(200,160,106,.35)}}
+.tab-flash{animation:tabFlash .9s ease 2;}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
 .grid-1-2{display:grid;grid-template-columns:1fr 2fr;gap:14px;}
@@ -1817,6 +1819,10 @@ button.fab{
             <div class="fg"><label class="field-label">SP</label><input type="number" id="t_sp" oninput="st('sp',this.value)"></div>
             <div class="fg"><label class="field-label">CP</label><input type="number" id="t_cp" oninput="st('cp',this.value)"></div>
           </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 2px;font-size:11px">
+            <span id="treasury-total" style="color:var(--gold);font-weight:600"></span>
+            <span id="session-pl" style="color:var(--text-dim)"></span>
+          </div>
           <div class="form-group"><label class="field-label">Lifestyle</label><input type="text" id="t_lifestyle" oninput="st('lifestyle',this.value)"></div>
           <div class="panel-title" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;margin-bottom:6px">Income / Expense Log</div>
           <div id="income-log" style="max-height:160px;overflow-y:auto;margin-bottom:8px;"></div>
@@ -2929,6 +2935,7 @@ let state={
 };
 
 let playerName='',playerChar='',provider='openrouter';
+let sessionLogIdx=0;
 let sessionStart=Date.now(),sessionStartGP=0;
 // Message content lookup — avoids JSON.stringify in onclick attributes
 const msgMap={};
@@ -2941,6 +2948,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   window.INITIAL_PCS=JSON.parse(JSON.stringify(state.pcs));
   fbLoadConfig();
   sessionStartGP=parseFloat(state.treasuryData.gp)||0;
+  sessionLogIdx=(state.treasuryData.incomeLog||[]).length;
   populateVoices();
   if(typeof speechSynthesis!=='undefined'&&speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=populateVoices;
   renderAll();genLedger();
@@ -3069,7 +3077,7 @@ function renderAll(){
   renderNPCs();renderQuests();renderCombat();renderPresets();
   renderLogs();renderChat();renderTurnCtr();
   renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();
-  renderWagon();renderIncome();renderPartyInv();syncWorld();
+  renderWagon();renderIncome();renderPartyInv();syncWorld();renderTreasuryTotal();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
   renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();
   // Ensure session sub-panels are in correct state
@@ -3367,7 +3375,69 @@ function syncWorld(){
   Object.entries(om).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&ox[k]!==undefined)el.value=ox[k];});
 }
 function sw(k,v){state.worldData[k]=v;save();}
-function st(k,v){state.treasuryData[k]=isNaN(v)?v:(parseFloat(v)||0);save();}
+// Flash a tab button to signal AI-triggered state change on that tab
+function flashTab(tabId){
+  if(tabId===currentTab)return; // already looking at it
+  const btn=Array.from(document.querySelectorAll('.main-tab')).find(b=>b.getAttribute('onclick')?.includes("'"+tabId+"'"));
+  if(!btn)return;
+  btn.classList.remove('tab-flash');
+  void btn.offsetWidth; // force reflow so re-adding the class restarts animation
+  btn.classList.add('tab-flash');
+  setTimeout(()=>btn.classList.remove('tab-flash'),1800);
+}
+function quickSellItem(idx){
+  const item=state.wagon.cargo[idx];if(!item)return;
+  const catMap={real_stock:'real_stock',potion:'real_stock',snake_oil:'snake_oil',foraged:'reagents',ingredient:'reagents',reagent:'reagents'};
+  const cat=catMap[item.type]||'misc';
+  openQASheet('💰 Sell: '+item.name,`
+    <div class="form-group"><label class="field-label">Item</label><div style="font-size:13px;font-weight:bold;color:var(--text-bright)">${esc(item.name)} <span style="font-size:11px;color:var(--text-dim)">(${item.qty} in stock)</span></div></div>
+    <div class="form-row">
+      <div class="fg"><label class="field-label">Price (gp)</label><input type="number" id="qs-price" value="1" min="0.01" step="0.01"></div>
+      <div class="fg"><label class="field-label">Qty sold</label><input type="number" id="qs-qty" value="1" min="1" max="${item.qty}"></div>
+    </div>
+    <div class="form-group"><label class="field-label">Category</label>
+      <select id="qs-cat">
+        <option value="real_stock" ${cat==='real_stock'?'selected':''}>Real Stock</option>
+        <option value="snake_oil" ${cat==='snake_oil'?'selected':''}>Snake Oil</option>
+        <option value="reagents" ${cat==='reagents'?'selected':''}>Reagents</option>
+        <option value="misc" ${cat==='misc'?'selected':''}>Misc</option>
+      </select>
+    </div>`,
+    ()=>{
+      const price=parseFloat(document.getElementById('qs-price').value)||0;
+      const qty=parseInt(document.getElementById('qs-qty').value)||1;
+      const selCat=document.getElementById('qs-cat').value;
+      const total=Math.round(price*qty*100)/100;
+      if(!total){toast('Enter a price.');return;}
+      // Decrement stock
+      item.qty-=qty;
+      if(item.qty<=0)state.wagon.cargo.splice(idx,1);
+      // Log income
+      if(!Array.isArray(state.treasuryData.incomeLog))state.treasuryData.incomeLog=[];
+      state.treasuryData.incomeLog.push({desc:'Sold '+qty+'× '+item.name,amt:total,type:'in',category:selCat,ts:state.worldData.time});
+      state.treasuryData.gp=(parseFloat(state.treasuryData.gp)||0)+total;
+      const gEl=document.getElementById('t_gp');if(gEl)gEl.value=state.treasuryData.gp;
+      saveRefresh();renderIncome();renderTreasuryTotal();
+      closeQAModal();toast('💰 Sold '+qty+'× '+item.name+' for '+total+' gp');
+    });
+}
+function st(k,v){state.treasuryData[k]=isNaN(v)?v:(parseFloat(v)||0);save();renderTreasuryTotal();}
+function renderTreasuryTotal(){
+  const td=state.treasuryData;
+  const total=(parseFloat(td.pp)||0)*10+(parseFloat(td.gp)||0)+(parseFloat(td.ep)||0)*0.5+(parseFloat(td.sp)||0)*0.1+(parseFloat(td.cp)||0)*0.01;
+  const el=document.getElementById('treasury-total');
+  if(el)el.textContent=total>0?'≈ '+total.toFixed(total%1===0?0:1)+' gp total':'';
+  renderSessionPL();
+}
+function renderSessionPL(){
+  const log=(state.treasuryData.incomeLog||[]).slice(sessionLogIdx);
+  if(!log.length){const el=document.getElementById('session-pl');if(el)el.textContent='';return;}
+  const earned=log.filter(e=>e.type==='in').reduce((s,e)=>s+(parseFloat(e.amt)||0),0);
+  const spent=log.filter(e=>e.type==='out').reduce((s,e)=>s+(parseFloat(e.amt)||0),0);
+  const net=earned-spent;
+  const el=document.getElementById('session-pl');
+  if(el)el.textContent='session ▲'+earned.toFixed(0)+' ▼'+spent.toFixed(0)+' = '+(net>=0?'+':'')+net.toFixed(0)+' gp';
+}
 function togglePremise(){
   state.worldData.premiseLocked=!state.worldData.premiseLocked;save();updatePremiseUI();
   toast(state.worldData.premiseLocked?'🔒 Premise locked!':'🔓 Premise unlocked.');
@@ -3447,7 +3517,7 @@ function addIncome(){
   state.treasuryData.gp=type==='in'?cur+amt:Math.max(0,cur-amt);
   document.getElementById('inc-desc').value='';document.getElementById('inc-amt').value='';
   document.getElementById('t_gp').value=state.treasuryData.gp;
-  save();renderIncome();toast('✓ Entry logged.');
+  save();renderIncome();renderTreasuryTotal();toast('✓ Entry logged.');
 }
 
 // ═══ WAGON ═══
@@ -3509,7 +3579,8 @@ function renderHoard(){
 function renderInvRow(container,item,idx,listType){
   const d=document.createElement('div');d.className='inv-item';
   const tag=item.type?`<span class="inv-tag ${item.type}">${item.type}</span>`:'';
-  d.innerHTML=`<input type="text" value="${esc(item.name||'')}" style="flex:2;min-width:70px;font-size:11px" placeholder="Item" onchange="updWItem('${listType}',${idx},'name',this.value)">${tag}<input type="number" value="${item.qty||1}" style="width:42px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><input type="number" value="${item.weight||0}" style="width:50px;font-size:11px" placeholder="lb" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><select style="width:85px;font-size:11px;padding:3px" onchange="updWItem('${listType}',${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:50px;font-size:11px" placeholder="Notes" onchange="updWItem('${listType}',${idx},'notes',this.value)"><button class="btn sm red icon-btn" onclick="remWItem('${listType}',${idx})">&times;</button>`;
+  const sellBtn=listType==='cargo'?`<button class="btn sm gold" onclick="quickSellItem(${idx})" style="font-size:10px;padding:2px 6px" title="Quick sell">💰</button>`:'';
+  d.innerHTML=`<input type="text" value="${esc(item.name||'')}" style="flex:2;min-width:70px;font-size:11px" placeholder="Item" onchange="updWItem('${listType}',${idx},'name',this.value)">${tag}<input type="number" value="${item.qty||1}" style="width:42px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><input type="number" value="${item.weight||0}" style="width:50px;font-size:11px" placeholder="lb" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><select style="width:85px;font-size:11px;padding:3px" onchange="updWItem('${listType}',${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:50px;font-size:11px" placeholder="Notes" onchange="updWItem('${listType}',${idx},'notes',this.value)">${sellBtn}<button class="btn sm red icon-btn" onclick="remWItem('${listType}',${idx})">&times;</button>`;
   container.appendChild(d);
 }
 function addWagonItem(list,type){
@@ -5090,6 +5161,18 @@ function parseMechanics(responseText){
 // State changelog — surfaces parsed mechanics as a stacking "ledger ink" feed
 function mechToast(changes){
   if(!changes||!changes.length)return;
+  // Flash affected tabs (only if not currently visible)
+  const tabsToFlash=new Set();
+  changes.forEach(ch=>{
+    const t=ch.text||'';
+    if(/\bHP\b|MaxHP|Prone|Incap|Condition|Shell|Sneak|concentrat/i.test(t))tabsToFlash.add('tab-party');
+    if(/Quest|Main Quest|Episode/i.test(t))tabsToFlash.add('tab-session');
+    if(/NPC|New NPC|→ \w|disposition/i.test(t))tabsToFlash.add('tab-world');
+    if(/Income|Expense|gp|GP→/i.test(t))tabsToFlash.add('tab-world');
+    if(/Added.*wagon|Added.*cargo|Added.*hoard/i.test(t))tabsToFlash.add('tab-wagon');
+    if(/Location →/i.test(t))tabsToFlash.add('tab-world');
+  });
+  tabsToFlash.forEach(flashTab);
   let c=document.getElementById('mech-toast');
   if(!c){
     c=document.createElement('div');c.id='mech-toast';
@@ -5154,7 +5237,7 @@ function confirmLedgerChip(amt,dir){
     state.treasuryData.incomeLog.push({desc:(dir==='out'?'Spent (confirmed)':'Earned (confirmed)'),amt,type:dir,category:dir==='out'?'expense':'misc',ts:state.worldData.time});
     const cur=parseFloat(state.treasuryData.gp)||0;
     state.treasuryData.gp=dir==='in'?cur+amt:Math.max(0,cur-amt);
-    save();renderIncome();const tg=document.getElementById('t_gp');if(tg)tg.value=state.treasuryData.gp;
+    save();renderIncome();renderTreasuryTotal();const tg=document.getElementById('t_gp');if(tg)tg.value=state.treasuryData.gp;
     if(navigator.vibrate)try{navigator.vibrate(12);}catch(e){}
     txt.textContent='✓ '+amt+' gp '+verb+' logged';chip.style.borderColor='var(--green)';chip.style.borderLeftColor='var(--green)';
     yes.remove();no.remove();
@@ -6705,6 +6788,10 @@ function renderChangelog(){
       '♿ Honors prefers-reduced-motion — all new motion disabled for users who opt out',
       '💰 Ledger confirm chip: when the AI narrates gold but forgets to log it, a one-tap "Log X gp?" chip appears — no tab-switch, no retyping',
       '🕯 Night mode: third theme for low-light reading — deep sepia bg (#100d0a), warm amber text, 17px body font, larger chat messages. Cycle: Dark → Light → Night → Dark via ☀ header button',
+      '⚡ Tab flash: when AI mechanics fire, the affected tab pulses gold — Party (HP/conditions), World (gold/NPC/quest), Wagon (cargo), Session (episodes)',
+      '💰 Quick-sell button on cargo items — tap 💰, set price + qty, one confirm logs income and decrements stock',
+      '≈ Treasury total strip — live gp-equivalent total computed from all coins (pp×10, ep×0.5, sp×0.1, cp×0.01)',
+      '📊 Session P&L strip — shows earned / spent / net gp for this session next to the treasury total',
     ]},
     {ver:'v1.5',date:'June 2026',notes:[
       'Dev tab: Dev Notes, Flag Review, and Ops Debrief in dedicated Dev tab (last before Setup)',
