@@ -97,8 +97,8 @@ Open questions (answer before Drop 6):
 ## Gameplay Issues (from 2026-06-14 debrief)
 4. **Tab navigation on state change** — When AI adds item to wagon/logs income, should auto-navigate or flash the relevant tab so DM knows something happened.
 5. **Chat log archive/export** — Need auto-archive for old chat logs. Long sessions overflow. Consider chapter-based auto-archiving.
-6. **Income/Expense Log silent** — Not populating from gameplay. AI narrates transactions but doesn't call log functions. Root cause: AI compliance gap or missing function calls in system prompt.
-7. **NPC log silent** — Same pattern. AI introduces NPCs in narrative but doesn't call state-update functions to persist them.
+6. **Income/Expense Log silent** — PARTIALLY ADDRESSED 2026-06-14. CORRECTED DIAGNOSIS: the parser is NOT the problem. `parseMechanics()` has working `income:`/`expense:`/`gp:+X` handlers that log to incomeLog AND adjust GP correctly. Root cause is purely an AI compliance gap: the AI narrates "you earn 8 gold" in prose but omits the `income:` line. Fix shipped: `detectUnloggedGold()` scans AI prose for gold amounts with no matching mechanic and surfaces a one-tap "💰 Log X gp?" confirm chip in the changelog feed (reuses mechToast container, calls existing income plumbing). No new parser needed. NOTE: this supersedes the "[STATE] block" proposal in Pattern 1 below — that was aimed at the wrong layer.
+7. **NPC log silent** — Same compliance pattern (AI introduces NPC in prose, forgets npc_add). Parser works; npc_add handler is functional. Confirm-chip approach from #6 could extend to NPCs, but prose→NPC detection is noisier than gold (any proper noun could be an NPC), so deferred until gold chip proves the pattern in play. Contract addition (check NPC log before introducing) already shipped 2026-06-14.
 8. **Quest "Primary Goal" rename** — Should be "Main Quest". Story-driven, set by the campaign itself, not manually entered.
 9. **Travel Log location** — Should move to Wagon tab (already planned in merge).
 10. **Session Summary readability** — DONE 2026-06-14. min-height 300px, font-size 13px.
@@ -114,7 +114,11 @@ Open questions (answer before Drop 6):
 20. **Live save export diagnosis (2026-06-14)** — Confirmed from state export: 21 quests all active (0 completed), income log had 2 entries despite significant play, primary mission still PENDING, Myrna added twice. Fixes applied: quest/NPC dedup, primary_mission mechanic, income contract enforcement.
 
 ## Recurring AI Failure Patterns (2026-06-14 debrief)
-**Pattern 1 — State Drift:** AI narrates events (NPC introduced, item found, gold earned) but does NOT call state-update functions. Income log, NPC log, and quest log all stayed empty despite active gameplay. Fix: Add explicit "State Enforcement" section to system prompt. After EVERY NPC interaction → addNPC(). After EVERY item obtained → update wagon. After EVERY gold transaction → log income. Consider a structured "State Changes:" block in AI output that the app parses.
+**Pattern 1 — State Drift:** AI narrates events (NPC introduced, item found, gold earned) but does NOT emit the matching mechanics line. Income log, NPC log, and quest log all stayed empty despite active gameplay.
+⚠ DIAGNOSIS CORRECTED 2026-06-14: The parser is fine — `income:`, `expense:`, `gp:`, `item_add:`, `npc_add:` all work end to end. This is an AI *compliance* gap, not a parsing gap. The "[STATE] block the app parses" idea below was aimed at the wrong layer and is SUPERSEDED.
+✅ Actual fix (shipped): a confirm-chip layer that catches the miss at the moment it happens. `detectUnloggedGold()` compares AI prose against what was logged and offers a one-tap confirm. Same approach can extend to items/NPCs later. The lever is the moment-of-miss UX, plus contract reminders — not new parse infrastructure.
+
+~~Original proposal (kept for history, do NOT build):~~ Add a structured "State Changes:" block in AI output that the app parses. — Redundant; the mechanics block already is that, and it already parses.
 
 **Pattern 2 — Navigation Blindness:** Modifications made via chat (item added to wagon) don't surface to the DM visually. DM has to know to go check another tab. Fix: After AI-triggered state updates, auto-navigate or flash indicator to the affected tab.
 

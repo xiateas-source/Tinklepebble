@@ -5092,6 +5092,56 @@ function mechToast(changes){
     setTimeout(()=>{line.style.opacity='0';line.style.transform='translateX(14px)';setTimeout(()=>line.remove(),320);},2700+70*i);
   });
 }
+// Catch gold the AI narrated in prose but forgot to log via income:/expense:/gp:
+// Surfaces a one-tap confirm chip instead of forcing a tab-switch + manual entry.
+function detectUnloggedGold(prose,changes){
+  if(!prose)return;
+  // If a gold mechanic already fired this turn, the AI did its job — stay quiet.
+  const logged=(changes||[]).some(c=>/income:|expense:|GP\s*→|gp→/i.test(c.text||''));
+  if(logged)return;
+  // Transaction-shaped mention: a number bound directly to a gold-currency word.
+  const m=prose.match(/(\d{1,5})\s*(?:gp|gold pieces?|gold coins?|gold)\b/i);
+  if(!m)return;
+  const amt=parseInt(m[1]);
+  if(!amt)return;
+  const ctx=prose.slice(Math.max(0,m.index-44),m.index+44).toLowerCase();
+  const spent=/\b(pay|paid|pays|spend|spent|spends|cost|costs?|owe|owes|fee|buy|bought|buys|purchase|purchased)\b/.test(ctx);
+  confirmLedgerChip(amt,spent?'out':'in');
+}
+function confirmLedgerChip(amt,dir){
+  let c=document.getElementById('mech-toast');
+  if(!c){
+    c=document.createElement('div');c.id='mech-toast';
+    c.style.cssText='position:fixed;right:12px;bottom:96px;z-index:9998;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none;max-width:80vw';
+    document.body.appendChild(c);
+  }
+  const verb=dir==='out'?'spent':'earned';
+  const chip=document.createElement('div');
+  chip.style.cssText='pointer-events:auto;display:flex;align-items:center;gap:8px;font-size:12px;background:var(--surface2);color:var(--text-bright);border:1px solid var(--gold);border-left:3px solid var(--gold);border-radius:3px;padding:6px 8px 6px 10px;box-shadow:0 2px 10px rgba(0,0,0,.5);opacity:0;transform:translateX(14px);transition:opacity .25s ease,transform .25s ease';
+  const txt=document.createElement('span');txt.textContent='💰 Log '+amt+' gp '+verb+'?';
+  const yes=document.createElement('button');yes.textContent='✓';
+  yes.style.cssText='cursor:pointer;border:none;border-radius:3px;background:var(--gold);color:var(--bg);font-weight:bold;padding:2px 9px;font-size:13px';
+  const no=document.createElement('button');no.textContent='✕';
+  no.style.cssText='cursor:pointer;border:1px solid var(--border);border-radius:3px;background:transparent;color:var(--text-dim);padding:2px 8px;font-size:13px';
+  const close=()=>{chip.style.opacity='0';chip.style.transform='translateX(14px)';setTimeout(()=>chip.remove(),300);};
+  yes.onclick=()=>{
+    if(!Array.isArray(state.treasuryData.incomeLog))state.treasuryData.incomeLog=[];
+    state.treasuryData.incomeLog.push({desc:(dir==='out'?'Spent (confirmed)':'Earned (confirmed)'),amt,type:dir,category:dir==='out'?'expense':'misc',ts:state.worldData.time});
+    const cur=parseFloat(state.treasuryData.gp)||0;
+    state.treasuryData.gp=dir==='in'?cur+amt:Math.max(0,cur-amt);
+    save();renderIncome();const tg=document.getElementById('t_gp');if(tg)tg.value=state.treasuryData.gp;
+    if(navigator.vibrate)try{navigator.vibrate(12);}catch(e){}
+    txt.textContent='✓ '+amt+' gp '+verb+' logged';chip.style.borderColor='var(--green)';chip.style.borderLeftColor='var(--green)';
+    yes.remove();no.remove();
+    setTimeout(close,1400);
+  };
+  no.onclick=close;
+  chip.appendChild(txt);chip.appendChild(yes);chip.appendChild(no);
+  c.appendChild(chip);
+  setTimeout(()=>{chip.style.opacity='1';chip.style.transform='translateX(0)';},40);
+  // Auto-dismiss if ignored — never nags forever.
+  setTimeout(()=>{if(chip.isConnected)close();},12000);
+}
 function findPC(name){if(!name)return null;return state.pcs.find(p=>p.id===name||p.name.toLowerCase()===name.toLowerCase());}
 
 // ═══ OFFLINE CACHE ═══
@@ -5403,6 +5453,7 @@ async function sendMsg(){
     .replace(/---MECHANICS---[\s\S]*$/,'')
     .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
     .trim();
+    detectUnloggedGold(displayText,mechanics);
     cacheResp(text,displayText);
     if(localStorage.getItem('tt_tts_auto')==='1'&&typeof speechSynthesis!=='undefined')speak(displayText);
     state.chatHistory.push({role:'assistant',content:displayText,mechanics,ts,realTs:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
@@ -6627,6 +6678,7 @@ function renderChangelog(){
       '🎲 Dice roll flourish: slot-machine flicker + color cue (gold nat-max, red nat-1), button press feedback, haptic on landing',
       '📖 Soft tab transitions — gentle fade-up when switching tabs',
       '♿ Honors prefers-reduced-motion — all new motion disabled for users who opt out',
+      '💰 Ledger confirm chip: when the AI narrates gold but forgets to log it, a one-tap "Log X gp?" chip appears — no tab-switch, no retyping',
     ]},
     {ver:'v1.5',date:'June 2026',notes:[
       'Dev tab: Dev Notes, Flag Review, and Ops Debrief in dedicated Dev tab (last before Setup)',
