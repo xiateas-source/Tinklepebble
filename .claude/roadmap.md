@@ -85,6 +85,7 @@ Open questions (answer before Drop 6):
 14. **Travel Log full rework** — Needs: visual map layer, day-progress pushable bar, higher placement in tab hierarchy. This is a significant feature (log as a separate note for Drop 4+).
 15. **Party chat → narrative ping** — When player sends message in party chat, ping/notify the AI DM narrative.
 16. **Message lock on new prompt** — Reading a message while someone else prompts closes out the open message. Must stay open until explicitly closed.
+17. **OOC chat malfunction** — Reported 2026-06-14, behavior TBD (under active testing). Fill in details after session.
 
 ## Recurring AI Failure Patterns (2026-06-14 debrief)
 **Pattern 1 — State Drift:** AI narrates events (NPC introduced, item found, gold earned) but does NOT call state-update functions. Income log, NPC log, and quest log all stayed empty despite active gameplay. Fix: Add explicit "State Enforcement" section to system prompt. After EVERY NPC interaction → addNPC(). After EVERY item obtained → update wagon. After EVERY gold transaction → log income. Consider a structured "State Changes:" block in AI output that the app parses.
