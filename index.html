@@ -3378,7 +3378,7 @@ function renderQuests(){
     c.appendChild(d);
   });
 }
-function addQuest(){state.quests.push({text:'',status:'active'});saveRefresh();}
+function addQuest(){state.quests.push({text:'',status:'active',hidden:false});saveRefresh();}
 function updQ(i,k,v){state.quests[i][k]=v;saveRefresh();}
 function remQ(i){state.quests.splice(i,1);saveRefresh();}
 
@@ -4010,8 +4010,8 @@ function resetState(mode, startingGold){
   state.wagon=cleanWagon;
   state.npcs=[];
   state.quests=[
-    {text:'PENDING — Primary quest to be established through play.',done:false,pending:true},
-    {text:'PENDING — Secondary objectives to be established through play.',done:false,pending:true}
+    {text:'PENDING — Primary quest to be established through play.',done:false,pending:true,status:'active',hidden:false},
+    {text:'PENDING — Secondary objectives to be established through play.',done:false,pending:true,status:'active',hidden:false}
   ];
   state.treasuryData={pp:0,gp:startingGold,ep:0,sp:0,cp:0,
     lifestyle:'Modest (wagon life, 1 gp/day shared)',
@@ -4376,7 +4376,7 @@ function migrate(s){
   if(!Array.isArray(s.npcs))s.npcs=[];
   s.npcs.forEach(function(n){if(n.hp===undefined)n.hp=0;});
   if(!Array.isArray(s.quests))s.quests=[];
-  s.quests.forEach(function(q){if(!q.status){q.status=q.done?'done':'active';}});
+  s.quests.forEach(function(q){if(!q.status){q.status=q.done?'done':'active';}if(q.hidden===undefined)q.hidden=false;});
   // Deduplicate quests by text
   if(s.quests.length>0){
     const seen=new Set();
@@ -5012,7 +5012,7 @@ function parseMechanics(responseText){
         // Dedup: skip if a quest with near-identical text already exists
         const norm=val.split('|')[0].toLowerCase().trim().slice(0,30);
         const dup=state.quests.find(qu=>qu.text.toLowerCase().slice(0,30)===norm);
-        if(!dup){state.quests.push({text:val,status:'active'});changes.push({text:'New quest: '+val.slice(0,30)});}
+        if(!dup){state.quests.push({text:val,status:'active',hidden:false});changes.push({text:'New quest: '+val.slice(0,30)});}
         else{changes.push({text:'Quest exists (skipped): '+norm});}
       }
       else if(key==='npc_mood'){const pts=val.split('=');const npc=state.npcs.find(n=>n.name.toLowerCase()===pts[0]?.trim().toLowerCase());if(npc&&pts[1]){npc.disposition=pts[1].trim();changes.push({text:npc.name+' → '+npc.disposition});}}
