@@ -1691,7 +1691,6 @@ button.fab{
       <span id="fb-status-mini" style="margin-left:3px"></span>
     </div>
   </div>
-  <div id="party-status-mini" style="display:none"></div>
   <span id="hdr-chk-mini" class="chk-status-msg ok" style="display:none"></span>
   <button onclick="openRollSheet()" title="Roll & Submit" class="btn sm">🎲</button>
   <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Light/dark" class="btn sm">☀</button>
@@ -1946,25 +1945,6 @@ button.fab{
       </div>
     </div>
     <div class="col">
-      <div class="panel">
-        <div class="panel-title">Dice Roller</div>
-        <div class="dice-row">
-          <button class="dice-btn" onclick="rollDie(4)">d4</button>
-          <button class="dice-btn" onclick="rollDie(6)">d6</button>
-          <button class="dice-btn" onclick="rollDie(8)">d8</button>
-          <button class="dice-btn" onclick="rollDie(10)">d10</button>
-          <button class="dice-btn" onclick="rollDie(12)">d12</button>
-          <button class="dice-btn" onclick="rollDie(20)">d20</button>
-          <button class="dice-btn" onclick="rollDie(100)">d%</button>
-        </div>
-        <div class="form-row" style="align-items:flex-end">
-          <div style="width:50px"><label class="field-label">Count</label><input type="number" id="dice-cnt" value="1" min="1"></div>
-          <div class="fg"><label class="field-label">Modifier</label><input type="number" id="dice-mod" value="0"></div>
-          <div class="fg"><label class="field-label">Label</label><input type="text" id="dice-lbl" placeholder="Attack..."></div>
-        </div>
-        <div class="dice-result-area" id="dice-result">— Roll a die —</div>
-        <div class="roll-history" id="roll-hist"></div>
-      </div>
       <div class="panel">
         <div class="panel-title">Conditions Reference</div>
         <div style="font-size:11px;color:var(--text-dim);line-height:1.8">
@@ -3616,21 +3596,6 @@ async function buildAISummary(){
   }catch(e){toast('Error: '+e.message);}
 }
 
-// ═══ DICE ═══
-function rollDie(die){
-  const cnt=parseInt(document.getElementById('dice-cnt').value)||1;
-  const mod=parseInt(document.getElementById('dice-mod').value)||0;
-  const lbl=document.getElementById('dice-lbl').value;
-  let rolls=[],total=0;
-  for(let i=0;i<cnt;i++){const r=Math.floor(Math.random()*die)+1;rolls.push(r);total+=r;}
-  total+=mod;
-  const ms=mod>=0?'+'+mod:''+mod;
-  document.getElementById('dice-result').innerHTML=`Result: <strong style="color:var(--gold);font-size:16px">${total}</strong> (${cnt}d${die}${ms})<br><small style="color:var(--text-dim)">Rolls: [${rolls.join(', ')}]${lbl?' for '+esc(lbl):''}</small>`;
-  const h=document.getElementById('roll-hist');
-  const ri=document.createElement('div');ri.className='roll-item';
-  ri.innerHTML=`<span class="roll-val">${total}</span> ← ${cnt}d${die}${ms}${lbl?' ['+esc(lbl)+']':''}`;
-  h.insertBefore(ri,h.firstChild);
-}
 
 // ═══ MODULE SCENES ═══
 function renderScenes(){
@@ -5287,9 +5252,6 @@ function updateRollMod(){
   // Auto-set formula
   if(ROLL_FORMULAS[rt]&&formulaEl)formulaEl.value=ROLL_FORMULAS[rt];
 }
-function rollAndSubmit(){openRollSheet();}
-// Keep renderRollDD for compatibility
-function renderRollDD(){const sel=document.getElementById('roll-pc');if(sel)sel.innerHTML=state.pcs.map(pc=>'<option value="'+esc(pc.id)+'">'+esc(pc.name)+'</option>').join('');}
 function sendContextRefresh(){
   genLedger();const ledger=document.getElementById('ledger-out')?.value||'';
   if(!state.oocHistory)state.oocHistory=[];
