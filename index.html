@@ -1991,7 +1991,7 @@ button.fab{
           <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Update</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Running story record. Updated manually or via AI.</p>
-        <textarea id="story-thread" style="min-height:240px;border-color:var(--purple);" oninput="state.storyThread=this.value;save()" placeholder="No story thread yet. Tap ✨ Update to have the AI extract key plot moments."></textarea>
+        <textarea id="story-thread" style="min-height:380px;font-size:13px;line-height:1.7;border-color:var(--purple);" oninput="state.storyThread=this.value;save()" placeholder="No story thread yet. Tap ✨ Update to have the AI extract key plot moments."></textarea>
       </div>
       <div class="panel">
         <div class="panel-title">Quick Log Entry</div>
@@ -2007,7 +2007,7 @@ button.fab{
       </div>
       <div class="panel">
         <div class="panel-title">Session Summary</div>
-        <div class="form-group"><textarea id="log-summary" style="min-height:180px" oninput="state.logSummary=this.value;save()" placeholder="Session summary..."></textarea></div>
+        <div class="form-group"><textarea id="log-summary" style="min-height:300px;font-size:13px;line-height:1.7" oninput="state.logSummary=this.value;save()" placeholder="Session summary..."></textarea></div>
         <div class="btn-row">
           <button class="btn full" onclick="buildRawSummary()">↑ Build Raw</button>
           <button class="btn purple full" onclick="buildAISummary()">✨ AI Narrative</button>

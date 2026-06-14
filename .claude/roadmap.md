@@ -27,18 +27,23 @@
 - [x] 🎲 Roll & Submit button in header (one-tap from any tab)
 - [x] Remove simple Dice Roller panel from Combat tab (rollDie() deleted)
 - [x] Remove #party-status-mini from header (cleaner utility toolbar)
-- [ ] Redundancy fix: Premise/Setting — Setup deep-links to World tab fields
-- [ ] Redundancy fix: Business Profile — Setup step 3 redirects to World tab bp panel
+- [x] Redundancy fix: syncWorld() + syncBP() keep Setup fields in sync with World tab
+- [x] World tab: World State | Operations sub-tabs (showWorldTab() JS function)
+- [x] Quest dedup: quest_add skips if near-identical quest already exists
+- [x] NPC dedup: npc_add updates existing NPC instead of creating duplicate
+- [x] primary_mission: mechanic command added — AI can now set main quest
+- [x] quest_fail: mechanic command added
+- [x] Income/NPC/Quest drift: contracts rewritten with strict no-exceptions rules
+- [x] OOC + party chat: now inject live ledger on every send (was using stale history)
+- [x] AI Sync panel: Context Refresh vs Re-sync guidance added to AI Tools tab
+- [x] Session Summary: min-height 300px, font-size 13px
+- [x] Story Thread: min-height 380px, font-size 13px
+- [x] Module tracker: Campaign Progress panel in Session → Module
+- [x] module_episode: mechanic — AI advances/completes episodes, UI updates live
 - [ ] Travel Log full rework (see Gameplay Issues #14) + merge with Town Reputation
-- [ ] World tab: split into "World State" | "Operations" sub-tabs
-      - World State: time, season, weather, illumination, location, description, scene title/threat/condition
-      - Operations: plot threads, timers, DM secrets, session notes, story thread
-- [ ] Quest + Plot + Timers: tabbed panel (Quests | Plot | Timers)
-- [ ] Quest model: rename "Primary Goal" → "Main Quest"; add hidden:false default field
-- [ ] Session Summary + Story Thread: larger boxes, better readability, chapter/session dividers
 - [ ] Scroll controls: standardize top/bottom buttons across AI DM, Story Thread, OOC, system chats
-- [ ] Income/Expense Log: diagnose why not auto-populating from gameplay
-- [ ] NPC log: diagnose why not auto-updating from gameplay
+- [ ] Session dividers / chapter markers in Story Thread
+- [ ] Quest model: hidden:false default field for player-visible quests
 
 ## Phase 1 — Pre-Drop 4
 - [ ] Vite migration (single file → component structure before Drop 4 adds complexity)
