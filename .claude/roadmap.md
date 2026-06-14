@@ -15,8 +15,8 @@ Routine UI, copy, CSS, patch notes, roadmap updates, and dead code removal can p
 - Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` object persisted to `localStorage('tt_v1')` and Firebase
 - Three stacked `:root` CSS blocks — LAST one wins (Block 3 at line 971). Block 1 (line 13) and Block 2 (line 341) are dead weight pending cleanup (see Architectural Refactor Plan)
-- `migrate()` — DR-1 ✅ DONE 2026-06-14. Version-gated engine: structural guards → `if(savedVer<8)` gate → `if(savedVer<9)` gate → always-run canonical QA → always-run core defaults.
-- `SAVE_VERSION=9` — DR-3 ✅. loadState() inventory wipe gated at savedVer<8 (won't re-run on future bumps).
+- `migrate()` — DR-1 ✅ DONE 2026-06-14. Version-gated engine: structural guards → `if(savedVer<8)` gate → `if(savedVer<9)` gate → `if(savedVer<10)` gate → always-run canonical QA → always-run core defaults.
+- `SAVE_VERSION=10` — v10 gate: canonical L3 character sync (_patch() helper patches Slasher, Tinkle, Pebble to Level 3 with correct HP/features/spells/resources/slots). v9 gate: campaignLaunched backfill. v8 gate: storyChapters seed, module init, qa renames.
 - `renderAll()` is central render; `renderChat()` renders narrative chat
 - `callAI()` — DR-4 ✅ DONE 2026-06-14. `_fetchGoogle()` + `_fetchOR()` extracted; 2-retry loop (1.2s/2.4s backoff, 5xx only); OpenRouter free-model fallback; `setAIStatus()` status display
 - `summarizeAndPrune()` — DR-7 ✅ DONE 2026-06-14. Fires at 75 messages; summarizes oldest 30 via callAI(); prunes only on confirmed summary; `prevSessionSummary` in STATE_KEYS + buildPrompt()
@@ -75,9 +75,10 @@ These are correct, battle-tested, and carry high regression risk if touched:
 ### Deep Refactors (structural — execute in this order)
 
 **1. Version-gated `migrate()` — DONE 2026-06-14** ✅
-- Three-section structure: STRUCTURAL GUARDS (always-run idempotent) → `if(savedVer<8){...}` gate → CANONICAL QA COMPLETENESS (always-run) → CORE STRUCTURAL DEFAULTS (always-run)
+- Three-section structure: STRUCTURAL GUARDS (always-run idempotent) → `if(savedVer<8){...}` gate → `if(savedVer<9)` gate → `if(savedVer<10)` gate → CANONICAL QA COMPLETENESS (always-run) → CORE STRUCTURAL DEFAULTS (always-run)
 - Gate < 8: moduleProgress init, dev errorLog flags, qa_22 rename, tab ID remaps, canonicalContexts merge, qa_13/qa_23 additions, Shell Defense stale clear, storyChapters seed from storyThread
-- Commented future gate skeleton: `// if(savedVer<9){ delete s.storyThread; if(!s.aiContracts)s.aiContracts={}; }`
+- Gate < 9: campaignLaunched backfill (true if chatHistory.length > 0)
+- Gate < 10: canonical L3 character sync — `_patch()` helper; fixes Slasher (Fighter/Battle Master, HP 39, Action Surge, 4 Superiority Dice d8, maneuvers), Tinkle (Rogue/Arcane Trickster, HP 27, Cunning Action, Mage Hand Legerdemain, 2 L1 slots), Pebble (Bard/College of Lore, HP 30, 4+2 slots, Cutting Words, corrected Bardic Inspiration+Stone's Endurance as Long Rest)
 - `[Severity: High] [Complexity: Hours] [Risk: Low]`
 
 **2. `storyThread` complete elimination — DONE 2026-06-14** ✅
@@ -171,6 +172,9 @@ These are correct, battle-tested, and carry high regression risk if touched:
 - [x] Story Thread read mode: 📖 toggle renders ebook view with collapsible TOC + chapter sections
 - [x] Story Thread Option B: structured chapter objects {title, content, date}, AI mechanic to add/update chapters — DONE 2026-06-14 (SAVE_VERSION 8, storyChapters[], chapter_add/chapter_update mechanics, ✨ Chapter button, legacy migration)
 - [x] Quest model: hidden:false default — backfilled in migrate(), addQuest(), quest_add mechanic, demo state
+- [x] Level-up wizard — DONE 2026-06-14. `LEVEL_UP_DATA` constant (Fighter/Rogue/Bard L2–L5), `BARD_SPELLS` curated spell lists. `checkLevelUp(pc)` fires after XP award; sets `pc.levelReady`, toasts, injects AI warning. `openLevelUpWizard(idx)` multi-step modal: HP roll (roll/reroll), auto-features, subclass/ASI/spell choices, confirm. `applyLevelUp()` writes all fields + fires AI notification + triggers checkpoint. `doLongRest()` auto-opens wizard if any PC is levelReady. `renderCards()` shows ⬆ LVL gold badge + banner.
+- [x] Canonical L3 character sync — DONE 2026-06-14. SAVE_VERSION 10 migration patches all three PCs to true Level 3 state.
+- [x] Contract 2 (ai-never) updated — DONE 2026-06-14. REST RESOURCES section now lists accurate Short/Long Rest resources per PC, Tinkle's Arcane Trickster spell list, Slasher's Battle Master maneuvers, and corrected Passive Perception values.
 
 ## Context Refresh / Re-sync Protocol — DONE 2026-06-14
 **Architecture (implemented):**
@@ -273,6 +277,7 @@ Open questions (answer before Drop 6):
 - ⋮ overflow menu clipping — FIXED 2026-06-14. `#tab-overflow-menu` changed to `position:fixed`; `toggleTabOverflow()` uses `getBoundingClientRect()` (was clipped by `main-tabs { overflow-x:auto }`)
 - Header menu stuck-open on mobile — FIXED 2026-06-14. Added `onclick="if(event.target===this)closeHeaderMenu()"` so tapping menu background closes it on Android/iOS
 - Flag context blind spot — FIXED 2026-06-14. `_buildFlagUIContext()` auto-detects active tab, chat channel, and visible sub-panel at flag creation time; stored as `uiCtx` on each flag; displayed as 📍 gold label in flag cards. Old flags fall back to tab name.
+- Canonical L3 character sync — DONE 2026-06-14. SAVE_VERSION 10 migration patches all three PCs to their true Level 3 state. Contract 2 REST RESOURCES updated with accurate Short/Long Rest resource lists, Tinkle's Arcane Trickster spell list, Slasher's Battle Master maneuvers, and corrected Passive Perception (Slasher 11, Tinkle 10, Pebble 12).
 
 
 ## Critical User Rule

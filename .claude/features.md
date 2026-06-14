@@ -203,6 +203,12 @@ state = {
   // uiCtx: auto-built human-readable "where" string e.g. "AI DM → Narrative", "World → World State"
   plugins: [{id, name, version, manifest}],
 
+  // PC level-up state (per-PC field)
+  // pc.levelReady: bool — set by checkLevelUp() when XP >= XP_T[level]; cleared by applyLevelUp()
+
+  // Wizard state (module-level, not persisted)
+  // _luWiz: {pcIdx, toLevel, hd, conMod, steps:[], stepIdx, hp:null, subclass:null, asi:{}, spells:[]}
+
   // Checkpoint & turn tracking
   turnCount, turnsSince, chkCount, chkMode, msgsSinceChk, autoChkInterval,
   chkHistory: [{ts, reason, snapshot}],
@@ -213,7 +219,7 @@ state = {
   wagonFilter: "all"|"supply"|"foraged"|"ingredient"|"trade"|"loot",
 
   quickActions: [{id, label, type, params, context: [tab list]}],
-  saveVersion: 9  // current; bump + migrate() gate for every structural change
+  saveVersion: 10  // current; bump + migrate() gate for every structural change
 }
 ```
 
@@ -229,12 +235,13 @@ Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model sele
 
 ## SAVE_VERSION & migrate()
 
-**Current Version:** `SAVE_VERSION = 9`
+**Current Version:** `SAVE_VERSION = 10`
 
 `migrate(s)` is version-gated (DR-1 ✅):
-- **Always-run structural guards** — null/array protection for all fields
+- **Always-run structural guards** — null/array protection for all fields; includes `pc.levelReady = false` guard
 - **`if(savedVer<8)` gate** — moduleProgress init, dev flags, qa renames, tab ID remaps, storyChapters seed from storyThread, canonical contexts merge
 - **`if(savedVer<9)` gate** — campaignLaunched backfill (true if chatHistory exists)
+- **`if(savedVer<10)` gate** — canonical L3 character sync via `_patch(id, updates)` helper: Slasher→Fighter (Battle Master) L3 HP 39 with Action Surge+Superiority Dice resources; Tinkle→Rogue (Arcane Trickster) L3 HP 27 with 2 L1 slots; Pebble→Bard (College of Lore) L3 HP 30 with 4+2 slots + Cutting Words + corrected resources
 - **Always-run canonical QA** — ensures all 23 QA actions present
 - **Always-run core defaults** — structural defaults for all new fields including prevSessionSummary, campaignLaunched
 
@@ -246,6 +253,8 @@ Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model sele
 - **ALL_CONDS**: Blinded, Charmed, Deafened, Exhausted, Frightened, Grappled, Incapacitated, Invisible, Paralyzed, Petrified, Poisoned, Prone, Restrained, Stunned, Unconscious
 - **ITYPES**: supply, foraged, ingredient, trade, loot, hoard, misc, key
 - **XP_T**: [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000]
+- **LEVEL_UP_DATA**: Class feature data for Fighter/Rogue/Bard levels 2–5. Each entry: `{hit_die, levels:{N:{auto:[strings], choose:[{type, prompt, options?, count?, tier?, cantrip?}]}}}`. Bard also has `slots:` array.
+- **BARD_SPELLS**: Curated spell lists by tier — `{0:[cantrips], 1:[L1 spells], 2:[L2 spells], 3:[L3 spells]}`
 
 ---
 
@@ -254,7 +263,7 @@ Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model sele
 ### Render
 - `renderAll()` — Master render: calls all individual renders
 - `renderChat()` — Populate #chat-msgs with message history
-- `renderPartyCards()` / `renderCards()` — Character card grid
+- `renderPartyCards()` / `renderCards()` — Character card grid; shows ⬆ LVL gold badge + full-width gold banner when pc.levelReady===true
 - `renderCharTabs()` — Character edit sheet tabs
 - `renderSheets()` — Character stat & inventory edit forms
 - `renderPartyInv()` — Party-shared inventory
@@ -339,6 +348,19 @@ Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model sele
 - `toggleThemeMode()` — Cycle through dark/light/night
 - `_applyTheme(mode)` — Apply theme by name
 - `initThemeMode()` — Load theme from localStorage on startup
+
+### Level-Up Wizard
+- `checkLevelUp(pc)` — Compare pc.xp vs XP_T[pc.level]; sets pc.levelReady=true, toasts "⬆ [Name] can level up!", injects AI warning via _ctxInject
+- `openLevelUpWizard(idx)` — Build steps array [{type:'hp'}, {type:'auto'}, {type:'choice',...}, {type:'confirm'}] from LEVEL_UP_DATA; open #levelup-modal
+- `closeLevelUpModal()` — Close wizard, clear _luWiz
+- `_renderLevelUpStep()` — Render current step into #lu-body + #lu-actions; handles hp/auto/choice/confirm types
+- `_luRollHP(hd, conMod)` / `_luSetHP(hp)` — Roll or manually set HP gain for the level
+- `_luNext()` — Advance to next step; calls applyLevelUp() at confirm
+- `_luSelectSubclass(name)` — Toggle subclass selection (single-select)
+- `_luToggleSpell(name)` — Toggle spell in selection (respects count limit)
+- `_luUpdateASI()` — Read ASI +1/+2 inputs and store in _luWiz.asi
+- `_getBardSpells(ch)` — Return BARD_SPELLS[ch] tier spell array
+- `applyLevelUp()` — Write hp_max, level, features, subclass, ASI stats, spells, Bard spell slots to pc; clear levelReady; fire AI notification via _ctxInject; call triggerChk('level-up')
 
 ### Flags & Dev
 - `flagIt(cat, sect, loc, note)` — Capture error flag
@@ -546,7 +568,7 @@ Each is a permanent AI instruction in every system prompt:
 
 **UI/Utility:** `#toast`, `#mech-toast`, `#story-thread`, `#story-thread-read`, `#ledger-out`, `#error-log-list`, `#plugin-terminal`, `#fb-config-input`
 
-**Modals:** `#setup-modal`, `#s0-modal`, `#chk-modal`, `#tts-modal`, `#provider-modal`, `#reset-modal`, `#paste-modal`, `#dice-picker-panel`
+**Modals:** `#setup-modal`, `#s0-modal`, `#chk-modal`, `#tts-modal`, `#provider-modal`, `#reset-modal`, `#paste-modal`, `#dice-picker-panel`, `#levelup-modal` (with `#lu-title`, `#lu-body`, `#lu-actions`)
 
 ---
 
