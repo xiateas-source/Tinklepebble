@@ -194,7 +194,9 @@ state = {
 
   logSummary: string,
   logs: [{ts, type (dm/player/combat/loot/rest), body}],
-  storyThread: string,
+  storyChapters: [{id, title, content, date}],
+  prevSessionSummary: string,   // DR-7: rolling AI archive; injected into buildPrompt() as CAMPAIGN HISTORY
+  campaignLaunched: bool,       // DR-3: true after launchCampaign(); locks Setup tab UI
   sessionNotes: string,
 
   errorLog: [{id, category, sectionCtx, location, gameTs, ts, verdict, resolved, note}],
@@ -210,7 +212,7 @@ state = {
   wagonFilter: "all"|"supply"|"foraged"|"ingredient"|"trade"|"loot",
 
   quickActions: [{id, label, type, params, context: [tab list]}],
-  saveVersion: 7
+  saveVersion: 9  // current; bump + migrate() gate for every structural change
 }
 ```
 
@@ -218,7 +220,7 @@ state = {
 
 ## STATE_KEYS (Firebase sync)
 
-Synced: `pcs`, `worldData`, `npcs`, `quests`, `treasuryData`, `partyInventory`, `wagon`, `combat`, `encounterPresets`, `scenes`, `activeSceneIdx`, `snippets`, `dmSecrets`, `logSummary`, `logs`, `activeEditTab`, `turnCount`, `turnsSince`, `chkCount`, `chkMode`, `chkHistory`, `rewindStack`, `wagonFilter`, `chatHistory`, `oocHistory`, `partyChat`, `plugins`, `errorLog`, `sessionNotes`
+Synced: `pcs`, `worldData`, `npcs`, `quests`, `treasuryData`, `partyInventory`, `wagon`, `combat`, `encounterPresets`, `scenes`, `activeSceneIdx`, `snippets`, `dmSecrets`, `logSummary`, `logs`, `activeEditTab`, `turnCount`, `turnsSince`, `chkCount`, `chkMode`, `chkHistory`, `rewindStack`, `wagonFilter`, `chatHistory`, `oocHistory`, `partyChat`, `plugins`, `errorLog`, `sessionNotes`, `storyChapters`, `prevSessionSummary`
 
 Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model selections, TTS settings, player name/character, offline cache.
 
@@ -226,15 +228,14 @@ Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model sele
 
 ## SAVE_VERSION & migrate()
 
-**Current Version:** `SAVE_VERSION = 7`
+**Current Version:** `SAVE_VERSION = 9`
 
-`migrate(s)` patches loaded state unconditionally (all cases apply based on field existence):
-- Ensures all arrays/subfields exist
-- Deduplicates NPCs, quests, inventories
-- Merges canonical PC data from defaults while preserving player progress
-- Fixes stale premise text and auto-resolves dev flags
-- Remaps old tab IDs
-- Ensures all 23 canonical quick actions exist
+`migrate(s)` is version-gated (DR-1 ✅):
+- **Always-run structural guards** — null/array protection for all fields
+- **`if(savedVer<8)` gate** — moduleProgress init, dev flags, qa renames, tab ID remaps, storyChapters seed from storyThread, canonical contexts merge
+- **`if(savedVer<9)` gate** — campaignLaunched backfill (true if chatHistory exists)
+- **Always-run canonical QA** — ensures all 23 QA actions present
+- **Always-run core defaults** — structural defaults for all new fields including prevSessionSummary, campaignLaunched
 
 ---
 
@@ -297,7 +298,11 @@ Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model sele
 - `buildPrompt(ledger)` — Construct system prompt with all contracts
 - `genLedger()` — Compile current state ledger
 - `parseMechanics(responseText)` — Parse AI mechanics block & apply changes
-- `callAI(messages, sysProm, maxTok)` — Make API call (Google/OpenRouter)
+- `callAI(messages, sysProm, maxTok)` — DR-4: retry wrapper (2 retries, 1.2s/2.4s backoff, 5xx only; OpenRouter free-model fallback); calls `_fetchGoogle()` or `_fetchOR()`
+- `_fetchGoogle(messages, sysProm, maxTok, key, signal)` — raw Google AI fetch
+- `_fetchOR(messages, sysProm, maxTok, key, signal, modelOverride)` — raw OpenRouter fetch
+- `setAIStatus(msg)` — updates `#ai-retry-status` div below send button
+- `summarizeAndPrune()` — DR-7: background summary at 75 messages; prunes oldest 30 only on confirmed summary
 - `speakIdx(msgIdx)` — TTS a chat message
 - `detectUnloggedGold(prose, changes)` — Find prose mentions of gold without matching mechanic
 - `confirmLedgerChip(amt, dir)` — One-tap gold logging UI
