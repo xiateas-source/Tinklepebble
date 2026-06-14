@@ -1001,6 +1001,31 @@ body.light-mode body{background-image:none;}
 body.light-mode .btn{background:var(--surface2);border-color:var(--border-bright);}
 body.light-mode .btn:hover{background:var(--surface3);border-color:var(--gold);}
 
+/* ── Night Mode — deep sepia, warm amber, easy on dark-adapted eyes ── */
+body.night-mode{
+  --bg:#100d0a;--surface:#1a1410;--surface2:#22180f;--surface3:#2b1f14;
+  --border:#302418;--border-bright:#403020;
+  --gold:#a07840;--gold-dim:#6a5028;--gold-bright:#b89050;
+  --red:#7a3830;--red-dim:#5a2820;
+  --green:#3a5838;--green-bright:#486848;
+  --blue:#285058;--blue-bright:#386068;
+  --purple:#483458;--purple-bright:#584868;
+  --text:#9a7850;--text-dim:#685040;--text-bright:#b88e5a;--cream:#b88e5a;
+}
+body.night-mode{font-size:17px;line-height:1.76;}
+body.night-mode .app-header{background:var(--surface);box-shadow:0 1px 0 var(--border);}
+body.night-mode .main-tabs{background:var(--surface);border-bottom-color:var(--border);}
+body.night-mode .chat-msgs-wrap{background:var(--bg);}
+body.night-mode .chat-msg{font-size:16px;line-height:1.72;}
+body.night-mode .chat-msg.dm{font-size:17px;line-height:1.82;}
+body.night-mode .chat-msg.sys{font-size:13px;}
+body.night-mode .chat-msg.chk-msg{font-size:13px;}
+body.night-mode .panel{box-shadow:inset 0 1px 0 rgba(255,200,120,.03),0 2px 12px rgba(0,0,0,.6);}
+body.night-mode .panel-title{text-shadow:none;background:linear-gradient(90deg,rgba(160,120,64,.12) 0%,transparent 70%);}
+body.night-mode .modal-overlay{background:rgba(8,6,4,.82);}
+body.night-mode .modal-box{background:var(--surface);box-shadow:0 8px 40px rgba(0,0,0,.7);}
+body.night-mode input,body.night-mode textarea,body.night-mode select{font-size:16px;}
+
 /* ── Base ── */
 body{
   background:var(--bg);
@@ -1695,7 +1720,7 @@ button.fab{
   </div>
   <span id="hdr-chk-mini" class="chk-status-msg ok" style="display:none"></span>
   <button onclick="openRollSheet()" title="Roll & Submit" class="btn sm">🎲</button>
-  <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Light/dark" class="btn sm">☀</button>
+  <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Cycle theme" class="btn sm">☀</button>
   <button id="hdr-menu-btn" onclick="toggleHeaderMenu()" class="btn sm">☰</button>
 </header>
 <div id="header-menu" style="display:none;position:fixed;top:66px;right:0;left:0;background:var(--surface);border-bottom:1px solid var(--border-bright);z-index:99;padding:14px 16px 12px;box-shadow:0 8px 32px rgba(0,0,0,.7);">
@@ -6679,6 +6704,7 @@ function renderChangelog(){
       '📖 Soft tab transitions — gentle fade-up when switching tabs',
       '♿ Honors prefers-reduced-motion — all new motion disabled for users who opt out',
       '💰 Ledger confirm chip: when the AI narrates gold but forgets to log it, a one-tap "Log X gp?" chip appears — no tab-switch, no retyping',
+      '🕯 Night mode: third theme for low-light reading — deep sepia bg (#100d0a), warm amber text, 17px body font, larger chat messages. Cycle: Dark → Light → Night → Dark via ☀ header button',
     ]},
     {ver:'v1.5',date:'June 2026',notes:[
       'Dev tab: Dev Notes, Flag Review, and Ops Debrief in dedicated Dev tab (last before Setup)',
@@ -6735,15 +6761,26 @@ function renderChangelog(){
 function renderFlagReview(){}
 
 // ═══ THEME TOGGLE ═══
-function toggleThemeMode(){
-  const light=document.body.classList.toggle('light-mode');
-  localStorage.setItem('tt_theme_mode',light?'light':'dark');
+function _applyTheme(mode){
+  document.body.classList.remove('light-mode','night-mode');
+  if(mode==='light')document.body.classList.add('light-mode');
+  else if(mode==='night')document.body.classList.add('night-mode');
+  // icon shows NEXT mode so user knows what tap will do
+  const icons={dark:'☀',light:'🕯',night:'🌙'};
+  const tips={dark:'Dark → Light',light:'Light → Night',night:'Night → Dark'};
   const btn=document.getElementById('theme-toggle-btn');
-  if(btn)btn.textContent=light?'🌙':'☀';
+  if(btn){btn.textContent=icons[mode]||'☀';btn.title=tips[mode]||'Cycle theme';}
+}
+function toggleThemeMode(){
+  const cycle=['dark','light','night'];
+  const cur=localStorage.getItem('tt_theme_mode')||'dark';
+  const next=cycle[(cycle.indexOf(cur)+1)%cycle.length];
+  localStorage.setItem('tt_theme_mode',next);
+  _applyTheme(next);
 }
 function initThemeMode(){
   const mode=localStorage.getItem('tt_theme_mode')||'dark';
-  if(mode==='light'){document.body.classList.add('light-mode');const btn=document.getElementById('theme-toggle-btn');if(btn)btn.textContent='🌙';}
+  _applyTheme(mode);
 }
 
 function sessionRecap(){
