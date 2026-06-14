@@ -45,7 +45,25 @@
 - [ ] Session dividers / chapter markers in Story Thread
 - [ ] Quest model: hidden:false default field for player-visible quests
 
+## Context Refresh / Re-sync Protocol — NEEDS REWORK
+**Current broken behavior:**
+- Context Refresh sends to OOC channel — main narrative AI never sees it
+- Re-sync AI State also sends to OOC — same problem
+- Main chat AI is only updated via checkpoints, not by these tools
+
+**Correct architecture:**
+- Context Refresh → prepends current scene silently to next main chat API call system prompt (invisible nudge)
+- Re-sync AI State → posts visible [STATE RESYNC] into main chat, forces AI response confirming what it knows
+- OOC questions → OOC channel (already fixed — has live ledger on every send)
+
+**Definitions (preserve in UI):**
+- Context Refresh = tap the DM on the shoulder. AI forgot what room you're in, wrong weather, wrong name once. Light nudge, use first.
+- Re-sync AI State = hand the DM all their notes. Wrong HP, starting new session, major drift. Full ledger, escalate only.
+
+**Estimated effort:** 20-30 min. Do before next session if possible.
+
 ## Phase 1 — Pre-Drop 4
+- [ ] Context Refresh / Re-sync protocol rework (see above — currently broken)
 - [ ] Vite migration (single file → component structure before Drop 4 adds complexity)
 
 ## VTT Drops
@@ -90,8 +108,10 @@ Open questions (answer before Drop 6):
 14. **Travel Log full rework** — Needs: visual map layer, day-progress pushable bar, higher placement in tab hierarchy. This is a significant feature (log as a separate note for Drop 4+).
 15. **Party chat → narrative ping** — When player sends message in party chat, ping/notify the AI DM narrative.
 16. **Message lock on new prompt** — Reading a message while someone else prompts closes out the open message. Must stay open until explicitly closed.
-17. **OOC chat malfunction** — Reported 2026-06-14, behavior TBD (under active testing). Fill in details after session.
-18. **Module tracker** — Campaign: "Hoard of the Dragon Queen" (Baur & Winter). Tracker in Session → Module sub-tab. Episodes as chapter markers, status per episode (Not Started / In Progress / Complete), % progress bar, DM notes per episode, active episode wired to Main Quest display. Lives in state.moduleProgress[]. No book text reproduced — episode names only.
+17. **OOC "Ask DM" context drift** — FIXED 2026-06-14. Root cause: OOC was only sending last 10 OOC messages, no live ledger. AI answered from stale snapshot (last resync at Greenest, party had moved to Cleft of Sighs). Fix: live ledger now injected into OOC + party chat system prompt on every send.
+18. **Module tracker** — DONE 2026-06-14. Campaign: "Hoard of the Dragon Queen" (Baur & Winter). Session → Module tab. 8 episodes pre-filled, status toggles, % bar, per-episode notes, AI updates via module_episode: mechanic.
+19. **Context Refresh / Re-sync routing** — Both currently send to OOC, main narrative AI never sees them. See "Context Refresh / Re-sync Protocol" section above for rework plan.
+20. **Live save export diagnosis (2026-06-14)** — Confirmed from state export: 21 quests all active (0 completed), income log had 2 entries despite significant play, primary mission still PENDING, Myrna added twice. Fixes applied: quest/NPC dedup, primary_mission mechanic, income contract enforcement.
 
 ## Recurring AI Failure Patterns (2026-06-14 debrief)
 **Pattern 1 — State Drift:** AI narrates events (NPC introduced, item found, gold earned) but does NOT call state-update functions. Income log, NPC log, and quest log all stayed empty despite active gameplay. Fix: Add explicit "State Enforcement" section to system prompt. After EVERY NPC interaction → addNPC(). After EVERY item obtained → update wagon. After EVERY gold transaction → log income. Consider a structured "State Changes:" block in AI output that the app parses.
