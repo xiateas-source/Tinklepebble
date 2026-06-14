@@ -6,9 +6,10 @@
 
 ## Session Start Protocol
 1. Read `.claude/roadmap.md` — source of truth for architecture, active palette, pending work, completed items
-2. Read `.claude/prime-directive.md` when asked — project philosophy, character canon, AI contract history, VTT drops plan
-3. Resume from where the last session left off
-4. Work on branch `claude/plugins-installation-gikz6l` (never push to main without explicit instruction)
+2. Read `.claude/features.md` — comprehensive map of every tab, function, state field, mechanic, QA type, and element ID
+3. Read `.claude/prime-directive.md` when asked — project philosophy, character canon, AI contract history, VTT drops plan
+4. Resume from where the last session left off
+5. Work on branch `claude/plugins-installation-gikz6l` (never push to main without explicit instruction)
 
 ## Architecture
 - Single HTML file: `index.html` — all CSS, JS, HTML inline (~6900 lines)

@@ -2023,9 +2023,9 @@ button.fab{
           <button class="btn sm" onclick="scrollStoryTop()" title="Scroll to top">↑ Top</button>
           <button class="btn sm" onclick="scrollStoryBottom()" title="Scroll to bottom">↓ Bottom</button>
           <button class="btn sm" id="story-mode-btn" onclick="toggleStoryMode()" title="Toggle read/edit mode">📖 Read</button>
-          <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Update</button>
+          <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Chapter</button>
         </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Running story record. Updated manually or via AI.</p>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">AI-managed story chronicle. Tap ✨ Chapter to generate a new chapter from recent events. Edit mode for manual notes.</p>
         <textarea id="story-thread" style="min-height:380px;font-size:13px;line-height:1.7;border-color:var(--purple);" oninput="state.storyThread=this.value;save()" placeholder="No story thread yet. Tap ✨ Update to have the AI extract key plot moments."></textarea>
         <div id="story-thread-read" style="display:none;overflow-y:auto;max-height:520px;padding:16px 4px;font-size:14px;line-height:1.85;color:var(--text)"></div>
       </div>
@@ -2322,7 +2322,12 @@ CON OPERATION MECHANICS: Every sale must be tracked with:
 - What the customer believes they bought
 - Insight DC to detect the deception (typically 12-16 depending on how good the pitch was)
 - Consequence if detected: angry customer, town reputation damage, potential pursuit
-Sales are NOT automatic successes. Tinkle's Deception check vs NPC's Passive Insight. Pebble's Persuasion helps but does not guarantee. Track whether the con succeeded or partially failed. NPCs talk to each other — a burned customer in one town affects reputation in nearby towns.</textarea></div>
+Sales are NOT automatic successes. Tinkle's Deception check vs NPC's Passive Insight. Pebble's Persuasion helps but does not guarantee. Track whether the con succeeded or partially failed. NPCs talk to each other — a burned customer in one town affects reputation in nearby towns.
+
+STORY CHRONICLE: The app maintains a structured chapter-based story chronicle. You may add a chapter at major narrative milestones (end of a pivotal scene, significant revelation, arc turning point). Format:
+- chapter_add: Chapter N: Title | [3-6 sentence narrative prose, past tense, third person]
+- chapter_update: partial title | [revised content]
+Reserve for story-significant moments only. The DM controls this with ✨ Chapter — only add chapters autonomously when a clearly major arc milestone is reached.</textarea></div>
         <div class="form-group"><label class="field-label">Contract 5 — Multi-Player Awareness</label><textarea id="ai-multi" style="min-height:50px">CRITICAL — MULTI-PLAYER ADDRESSING:
 NEVER use "you" as a catch-all for the party. This is a multi-player game.
 Always address each character by name: Tinkle, Pebble, Slasher.
@@ -2578,7 +2583,7 @@ const MAX_LB=1080;
 const ITYPES=['supply','foraged','ingredient','trade','loot','hoard','misc','key'];
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
-const SAVE_VERSION=7;
+const SAVE_VERSION=8;
 
 // ═══ FIREBASE DROP 2 ═══
 let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false;
@@ -2925,6 +2930,7 @@ let state={
   oocHistory:[],
   partyChat:[],
   storyThread:'',
+  storyChapters:[],
   sessionNotes:'',
   quickActions:[
     {id:'qa_1',label:'Adjust HP',type:'hp',params:{pc:'',amount:'',mode:'damage'},context:['tab-party','tab-combat','tab-dm']},
@@ -3811,33 +3817,43 @@ function toggleStoryMode(){
 }
 function renderStoryRead(){
   const rd=document.getElementById('story-thread-read');if(!rd)return;
-  const raw=state.storyThread||'';
-  if(!raw.trim()){rd.innerHTML='<p style="color:var(--text-dim);font-style:italic">No story thread yet. Switch to Edit mode and tap ✨ Update.</p>';return;}
-  const fmt=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g,'<em>$1</em>');
-  const segs=raw.split(/\n*---[^\n]*---\n*/);
-  const chapters=segs.map((s,i)=>({title:i===0&&s.trim()?'Prologue':'Session '+(i===0?1:i),content:s.trim()})).filter(ch=>ch.content);
+  const fmt=t=>esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>');
+  let chapters=[];
+  if(Array.isArray(state.storyChapters)&&state.storyChapters.length){
+    chapters=state.storyChapters.map(ch=>({title:ch.title,content:ch.content,date:ch.date||''}));
+  }else{
+    const raw=state.storyThread||'';
+    if(!raw.trim()){rd.innerHTML='<p style="color:var(--text-dim);font-style:italic">No story yet. Tap ✨ Chapter to have the AI chronicle recent events.</p>';return;}
+    const segs=raw.split(/\n*---[^\n]*---\n*/);
+    chapters=segs.map((s,i)=>({title:i===0?'Prologue':'Session '+i,content:s.trim(),date:''})).filter(ch=>ch.content);
+  }
   if(!chapters.length){rd.innerHTML='<p style="color:var(--text-dim)">Nothing to display.</p>';return;}
-  const toc=chapters.map((ch,i)=>`<a href="#st-ch-${i}" style="display:block;padding:3px 0;color:var(--gold);font-size:12px;text-decoration:none" onclick="event.preventDefault();document.getElementById('st-ch-${i}').scrollIntoView({behavior:'smooth'})">${ch.title}</a>`).join('');
+  const toc=chapters.map((ch,i)=>`<a href="#st-ch-${i}" style="display:block;padding:3px 0;color:var(--gold);font-size:12px;text-decoration:none" onclick="event.preventDefault();document.getElementById('st-ch-${i}').scrollIntoView({behavior:'smooth'})">${esc(ch.title)}${ch.date?'<span style="color:var(--text-dim);margin-left:6px;font-size:10px">'+esc(ch.date)+'</span>':''}</a>`).join('');
   const body=chapters.map((ch,i)=>{
     const paras=ch.content.split(/\n\n+/).map(p=>`<p style="margin:0 0 12px">${fmt(p.replace(/\n/g,'<br>'))}</p>`).join('');
-    return `<section id="st-ch-${i}" style="margin-bottom:28px"><h3 style="font-family:var(--display);color:var(--gold-bright);font-size:15px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">${ch.title}</h3>${paras}</section>`;
+    return `<section id="st-ch-${i}" style="margin-bottom:28px"><h3 style="font-family:var(--display);color:var(--gold-bright);font-size:15px;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">${esc(ch.title)}${ch.date?'<span style="font-size:11px;color:var(--text-dim);font-family:var(--mono);margin-left:8px;font-weight:400">'+esc(ch.date)+'</span>':''}</h3>${paras}</section>`;
   }).join('');
-  rd.innerHTML=`<details style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px"><summary style="cursor:pointer;font-size:12px;color:var(--gold);font-weight:600;letter-spacing:.5px">📖 CONTENTS (${chapters.length})</summary><div style="margin-top:8px;padding-left:4px">${toc}</div></details>${body}`;
+  rd.innerHTML=`<details style="margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px" open><summary style="cursor:pointer;font-size:12px;color:var(--gold);font-weight:600;letter-spacing:.5px">📖 CONTENTS (${chapters.length})</summary><div style="margin-top:8px;padding-left:4px">${toc}</div></details>${body}`;
 }
 async function updateStoryThread(){
   const key=getKey();if(!key){toast('Set an API key first.');return;}
   if(!state.logs.length&&!state.logSummary){toast('No session data yet.');return;}
-  toast('📖 Extracting story thread...');
+  toast('📖 Generating story chapter...');
   const logText=state.logs.slice(-50).map(l=>'['+l.type.toUpperCase()+'] '+l.body).join('\n');
-  const existing=state.storyThread||'';
+  const existing=(state.storyChapters||[]).map((ch,i)=>ch.title+(ch.date?' ('+ch.date+')':'')+': '+ch.content.slice(0,120)+'…').join('\n');
+  const chNum=(state.storyChapters||[]).length+1;
+  const prompt='Write a new story chapter for this D&D campaign chronicle.\n\nEXISTING CHAPTERS:\n'+(existing||'None yet')+'\n\nRECENT SESSION LOG:\n'+logText+'\n\nOutput ONLY in this exact format (no other text):\n---MECHANICS---\nchapter_add: Chapter '+chNum+': [evocative title] | [3-6 sentences of narrative prose, past tense, third person. Focus on decisions, discoveries, consequences. Skip filler.]\n---END---';
   try{
-    const res=await callAI([{role:'user',content:'Extract ONLY the plot-significant moments from this session log. Write in past tense, 3-8 bullet points. Focus on: decisions made, things discovered, relationships changed, consequences that will carry forward. Ignore atmospheric description and filler.\n\nEXISTING THREAD:\n'+existing+'\n\nSESSION LOG:\n'+logText}],'You are a D&D campaign chronicler. Be concise and specific. Only include moments that matter to the ongoing story.',600);
-    const el=document.getElementById('story-thread');
-    if(el)el.value=(existing?existing+'\n\n--- Session ---\n':'')+res;
-    state.storyThread=(existing?existing+'\n\n--- Session ---\n':'')+res;
-    save();toast('✓ Story thread updated!');
+    const res=await callAI([{role:'user',content:prompt}],'You are a D&D campaign chronicler. Output only the mechanics block.',400);
+    const before=(state.storyChapters||[]).length;
+    parseMechanics(res);
+    if((state.storyChapters||[]).length===before){
+      const m=res.match(/chapter_add:\s*(.+)/);
+      if(m){const sep=m[1].indexOf('|');const t=sep>-1?m[1].slice(0,sep).trim():m[1].trim();const c=sep>-1?m[1].slice(sep+1).trim():'';if(t&&c){if(!state.storyChapters)state.storyChapters=[];state.storyChapters.push({id:Date.now(),title:t,content:c,date:state.worldData.time||''});save();}}
+    }
+    renderStoryRead();
+    if(_storyMode==='edit')toggleStoryMode();
+    toast('✓ Chapter added!');
   }catch(e){toast('Error: '+e.message);}
 }
 async function buildAISummary(){
@@ -4018,6 +4034,7 @@ function genLedger(){
     if(state.worldData.plot)l+="\n━━━ PLOT ━━━\n"+state.worldData.plot+'\n';
     if(state.worldData.timers)l+="Timers: "+state.worldData.timers+'\n';
     if(state.logSummary)l+="\n━━━ SESSION SUMMARY ━━━\n"+state.logSummary+'\n';
+    if(Array.isArray(state.storyChapters)&&state.storyChapters.length){l+="\n━━━ STORY CHAPTERS ━━━\n";state.storyChapters.forEach((ch,i)=>l+='Chapter '+(i+1)+': '+ch.title+(ch.date?' ('+ch.date+')':'')+'\n');}
   }
   if(state.combat.active){l+="\n━━━ ACTIVE COMBAT — ROUND "+state.combat.round+" ━━━\n";state.combat.list.forEach((c,i)=>l+=(i===state.combat.currentIdx?'>>> ':'')+c.val+' '+c.name+' HP:'+c.hp+' AC:'+c.ac+'\n');}
   const as=state.scenes?.[state.activeSceneIdx];if(as)l+="\n━━━ ACTIVE SCENE: "+as.name+" ━━━\n"+as.text+'\n';
@@ -4182,6 +4199,7 @@ function resetState(mode, startingGold){
   state.logs=[{ts:'Day 1, 9:00 AM',type:'dm',body:"Tinkle's Tinctures — "+(mode==='full'?'Full Reset':'New Campaign')+". Party is ready. Set your starting location and run Session Zero to begin."}];
   state.logSummary='';
   state.storyThread='';
+  state.storyChapters=[];
   state.combat={active:false,round:1,currentIdx:0,list:[]};
   state.chkHistory=[];
   state.rewindStack=[];
@@ -4678,6 +4696,8 @@ function migrate(s){
   if(s.msgsSinceChk===undefined)s.msgsSinceChk=0;
   if(!s.autoChkInterval)s.autoChkInterval=8;
   if(!s.storyThread)s.storyThread='';
+  if(!Array.isArray(s.storyChapters))s.storyChapters=[];
+  if(s.storyThread&&!s.storyChapters.length){s.storyChapters=[{id:Date.now(),title:'Prologue',content:s.storyThread,date:s.worldData?.time||'Day 1'}];}
   if(!s.sessionNotes)s.sessionNotes='';
   if(!s.wagonFilter)s.wagonFilter='all';
   // worldData
@@ -4745,7 +4765,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -5201,6 +5221,12 @@ function parseMechanics(responseText){
       }else if(key==='pc_delete'){
         const i=state.pcs.findIndex(p=>p.name.toLowerCase()===val.toLowerCase()||p.id===val);
         if(i>-1&&state.pcs.length>1){changes.push({text:'Removed: '+state.pcs[i].name});state.pcs.splice(i,1);state.activeEditTab=Math.min(state.activeEditTab||0,state.pcs.length-1);}
+      }else if(key==='chapter_add'){
+        const sep=val.indexOf('|');const ctitle=sep>-1?val.slice(0,sep).trim():val.trim();const ccontent=sep>-1?val.slice(sep+1).trim():'';
+        if(ctitle&&ccontent){if(!Array.isArray(state.storyChapters))state.storyChapters=[];state.storyChapters.push({id:Date.now(),title:ctitle,content:ccontent,date:state.worldData.time||''});changes.push({text:'Chapter added: '+ctitle});}
+      }else if(key==='chapter_update'){
+        const sep=val.indexOf('|');const cquery=sep>-1?val.slice(0,sep).trim():val.trim();const ccontent=sep>-1?val.slice(sep+1).trim():'';
+        if(cquery&&ccontent&&Array.isArray(state.storyChapters)){const ch=state.storyChapters.find(c=>c.title.toLowerCase().includes(cquery.toLowerCase()));if(ch){ch.content=ccontent;ch.date=state.worldData.time||ch.date;changes.push({text:'Chapter updated: '+ch.title});}}
       }
     }catch(e){changes.push({text:'Parse err: '+line.slice(0,30),error:true});console.warn('Mech parse err:',line,e);}
   });
@@ -5225,6 +5251,7 @@ function mechToast(changes){
     if(/Income|Expense|gp|GP→/i.test(t))tabsToFlash.add('tab-world');
     if(/Added.*wagon|Added.*cargo|Added.*hoard/i.test(t))tabsToFlash.add('tab-wagon');
     if(/Location →/i.test(t))tabsToFlash.add('tab-world');
+    if(/Chapter added|Chapter updated/i.test(t))tabsToFlash.add('tab-session');
   });
   tabsToFlash.forEach(flashTab);
   let c=document.getElementById('mech-toast');
@@ -6886,6 +6913,16 @@ function renderChangelog(){
       'Dev Notes clear button added',
       'Voice settings moved from ☰ menu into the 🔊 button (already in chat header)',
       'Ops Debrief: DM NOTES → DEV NOTES, UNREVIEWED → PENDING',
+    ]},
+    {ver:'v1.4',date:'June 2026',notes:[
+      'Story Chronicle: AI-managed chapter system (SAVE_VERSION 8)',
+      'chapter_add / chapter_update mechanics — AI or DM can write story chapters',
+      '✨ Chapter button generates a new chapter from recent session log via AI',
+      'Read mode renders from structured chapters with dates; falls back to legacy text',
+      'Existing storyThread auto-migrates to Prologue chapter on first load',
+      'Chapter titles listed in full ledger for AI context awareness',
+      'Session tab flashes when a chapter is added or updated',
+      'features.md added — comprehensive reference for all tabs, functions, and mechanics',
     ]},
     {ver:'v1.3',date:'June 2026',notes:[
       'Switch Player: tap your name in the DM chat bar to switch instantly',

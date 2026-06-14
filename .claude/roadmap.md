@@ -49,7 +49,7 @@ Routine UI, copy, CSS, patch notes, roadmap updates, and dead code removal can p
 - [ ] Travel Log full rework (see Gameplay Issues #14) + merge with Town Reputation
 - [x] Scroll controls: ↑ Top / ↓ Bottom on Narrative, Story Thread, OOC, Party — all standardized
 - [x] Story Thread read mode: 📖 toggle renders ebook view with collapsible TOC + chapter sections
-- [ ] Story Thread Option B: structured chapter objects {title, content, date}, AI mechanic to add/update chapters, full data model upgrade (do after Option A is stable)
+- [x] Story Thread Option B: structured chapter objects {title, content, date}, AI mechanic to add/update chapters, full data model upgrade — DONE 2026-06-14 (SAVE_VERSION 8, storyChapters[], chapter_add/chapter_update mechanics, ✨ Chapter button, legacy migration)
 - [x] Quest model: hidden:false default — backfilled in migrate(), addQuest(), quest_add mechanic, demo state
 
 ## Context Refresh / Re-sync Protocol — DONE 2026-06-14
