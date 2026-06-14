@@ -2262,10 +2262,20 @@ The operation moves from town to town. Track which towns have been visited and t
 
 Update time in every mechanics block where time passes. Travel: wagon ~2 mph on roads. Short rest: 1 hour. Long rest: 8 hours. Combat: 1-3 minutes.
 
-QUEST TRACKING: When a new objective is established through play (a request made, a threat discovered, a deal struck), ALWAYS output quest_add in the mechanics block immediately. Do not wait to be asked. Format: quest_add: Quest Name|description
-Example: quest_add: Find the Elder|Locate the Elder at the Cleft of Sighs to negotiate passage through the High Pass.
+QUEST TRACKING (strict):
+- BEFORE adding a quest_add, check if an existing quest covers the same objective. If it does, use quest_done or quest_fail on the old one instead of creating a duplicate.
+- When an objective is clearly completed in the narrative, output quest_done IMMEDIATELY in that same mechanics block. Do not leave completed quests as active.
+- quest_done: partial name match — use a unique word from the quest title (e.g. quest_done: Rescue Pebble)
+- quest_fail: same format — use when an objective is failed or abandoned
+- primary_mission: [text] — set or update the party's main driving objective when it becomes clear through play. Do not leave it as PENDING once the story has established direction.
+- quest_add: Quest Name|description — only for genuinely new objectives not already tracked
 
-NPC TRACKING: When a named NPC is formally introduced, ALWAYS output npc_add immediately — even if they only appear briefly. When an NPC's disposition toward the party changes, output npc_mood. Do not batch these for later.
+NPC TRACKING: When a named NPC is formally introduced, ALWAYS output npc_add immediately — even if they only appear briefly. Re-encountering a known NPC: use npc_mood to update disposition, do NOT add them again. When an NPC's disposition toward the party changes, output npc_mood. Do not batch these for later.
+
+INCOME TRACKING (strict): Every gold transaction MUST have a mechanics line. No exceptions.
+- income: amount, category, description (categories: real_stock / snake_oil / reagents / reward / found)
+- expense: amount, description
+- If the party receives any gold, items of value, or payment — even as a reward — output income: immediately.
 
 PRODUCT AWARENESS: Know whether a tonic being sold is real stock (functional) or snake oil (flavored water/sedative). NPCs who discover they were sold fake product will react accordingly. The reputation log matters.
 
@@ -4730,6 +4740,8 @@ Rules:
 - town_rep: [town name], [good/neutral/burned/fled], [brief notes] — updates town reputation log
 - income: [amount], [category], [description] — logs business income (category: real_stock/snake_oil/reagents/overhead/emergency)
 - If a numeric value is estimated, append (est) — e.g. wagon_cell_add: Cave Bear, Large, hostile, DC18, 400 (est)
+- primary_mission: [text] — set or update the party's main quest objective
+- quest_fail: [partial name] — mark a quest as failed/abandoned
 - module_episode: N, active|complete — when the party enters a new story episode or completes one. N is the episode number. Auto-marks prior episodes complete when advancing. Output this whenever a major story chapter begins or ends
 - EVERY item found, foraged, bought, stolen, or acquired MUST have an item_add: line. No exceptions. If the player forages mushrooms, the mechanics block must include item_add even if you mentioned them in prose
 - NEVER generate JSON for the players to paste. ALL state updates go through the mechanics block only. Generating paste JSON will corrupt the game state
@@ -4927,10 +4939,23 @@ function parseMechanics(responseText){
           if(epStatus==='active'){for(let j=0;j<epIdx;j++){if(state.moduleProgress[j].status==='pending')state.moduleProgress[j].status='complete';}}
           changes.push({text:'Episode '+(epIdx+1)+' → '+epStatus});
         }
-      }else if(key==='quest_done'){const q=state.quests.find(qu=>qu.text.toLowerCase().includes(val.toLowerCase()));if(q&&q.status!=='done'){q.status='done';changes.push({text:'Quest ✓: '+q.text.slice(0,30)});}}
-      else if(key==='quest_add'){state.quests.push({text:val,done:false});changes.push({text:'New quest: '+val.slice(0,30)});}
+      }else if(key==='primary_mission'){if(val){state.worldData.primaryMission=val;changes.push({text:'Main Quest → '+val.slice(0,40)});}}
+      else if(key==='quest_done'){const q=state.quests.find(qu=>qu.text.toLowerCase().includes(val.toLowerCase()));if(q&&q.status!=='done'){q.status='done';changes.push({text:'Quest ✓: '+q.text.slice(0,30)});}}
+      else if(key==='quest_fail'){const q=state.quests.find(qu=>qu.text.toLowerCase().includes(val.toLowerCase()));if(q){q.status='failed';changes.push({text:'Quest ✗: '+q.text.slice(0,30)});}}
+      else if(key==='quest_add'){
+        // Dedup: skip if a quest with near-identical text already exists
+        const norm=val.split('|')[0].toLowerCase().trim().slice(0,30);
+        const dup=state.quests.find(qu=>qu.text.toLowerCase().slice(0,30)===norm);
+        if(!dup){state.quests.push({text:val,status:'active'});changes.push({text:'New quest: '+val.slice(0,30)});}
+        else{changes.push({text:'Quest exists (skipped): '+norm});}
+      }
       else if(key==='npc_mood'){const pts=val.split('=');const npc=state.npcs.find(n=>n.name.toLowerCase()===pts[0]?.trim().toLowerCase());if(npc&&pts[1]){npc.disposition=pts[1].trim();changes.push({text:npc.name+' → '+npc.disposition});}}
-      else if(key==='npc_add'){const pts=val.split(',').map(p=>p.trim());state.npcs.push({name:pts[0]||'NPC',disposition:pts[1]||'Neutral',details:pts[2]||'',status:'active',hp:0,lastSeen:state.worldData.location});changes.push({text:'New NPC: '+pts[0]});}
+      else if(key==='npc_add'){
+        const pts=val.split(',').map(p=>p.trim());const nname=pts[0]||'NPC';
+        const existing=state.npcs.find(n=>n.name.toLowerCase()===nname.toLowerCase());
+        if(existing){existing.disposition=pts[1]||existing.disposition;existing.lastSeen=state.worldData.location;changes.push({text:'NPC updated: '+nname});}
+        else{state.npcs.push({name:nname,disposition:pts[1]||'Neutral',details:pts[2]||'',status:'active',hp:0,lastSeen:state.worldData.location});changes.push({text:'New NPC: '+nname});}
+      }
       else if(key==='pc_update'){
         const pts=val.split(',').map(p=>p.trim());const pc=findPC(pts[0]);const field=pts[1];const nv=pts.slice(2).join(',');
         const fields=['name','race','class','level','background','alignment','initiative','speed','passive_perception','passive_insight','xp','str','dex','con','int','wis','cha','skills','features','magic','backstory_origin','backstory_motivation','backstory_secret','ac','hp_max'];
