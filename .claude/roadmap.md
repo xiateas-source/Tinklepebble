@@ -18,7 +18,8 @@ Routine UI, copy, CSS, patch notes, roadmap updates, and dead code removal can p
 - `migrate()` — DR-1 ✅ DONE 2026-06-14. Version-gated engine: structural guards → `if(savedVer<8)` gate → `if(savedVer<9)` gate → always-run canonical QA → always-run core defaults.
 - `SAVE_VERSION=9` — DR-3 ✅. loadState() inventory wipe gated at savedVer<8 (won't re-run on future bumps).
 - `renderAll()` is central render; `renderChat()` renders narrative chat
-- `callAI()` — AbortController + 25s timeout added (QW-8 ✅); full retry/fallback in Deep Refactor #4
+- `callAI()` — DR-4 ✅ DONE 2026-06-14. `_fetchGoogle()` + `_fetchOR()` extracted; 2-retry loop (1.2s/2.4s backoff, 5xx only); OpenRouter free-model fallback; `setAIStatus()` status display
+- `summarizeAndPrune()` — DR-7 ✅ DONE 2026-06-14. Fires at 75 messages; summarizes oldest 30 via callAI(); prunes only on confirmed summary; `prevSessionSummary` in STATE_KEYS + buildPrompt()
 - AI contracts read from DOM via `document.getElementById()?.value` — fragile (contracts-to-state migration planned)
 
 ## Active Palette (dark, final :root block ~line 971)
@@ -264,11 +265,13 @@ Open questions (answer before Drop 6):
 *(from dev_visual_redesign flag, logged 2026-06-13)*
 *(user: "remove, don't mention again unless i do")*
 
-## Dead Code
+## Dead Code / Bug Fixes
 - Theme editor block — REMOVED 2026-06-14 (63 lines deleted)
 - CSS Block 1 (lines 13–33) — REMOVED 2026-06-14 (QW-2 ✅)
 - CSS Block 2 (lines 341–345) — REMOVED 2026-06-14 (QW-1 ✅)
 - `state.storyThread` — ELIMINATED 2026-06-14 (DR-2 ✅)
+- ⋮ overflow menu clipping — FIXED 2026-06-14. `#tab-overflow-menu` changed to `position:fixed`; `toggleTabOverflow()` uses `getBoundingClientRect()` (was clipped by `main-tabs { overflow-x:auto }`)
+- Header menu stuck-open on mobile — FIXED 2026-06-14. Added `onclick="if(event.target===this)closeHeaderMenu()"` so tapping menu background closes it on Android/iOS
 
 
 ## Critical User Rule
