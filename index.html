@@ -56,7 +56,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 
 /* ── LAYOUT ── */
 .tab-section{display:none;padding:14px;padding-bottom:90px;}.tab-section.module-active{padding-top:0;}
-.tab-section.active{display:block;overflow:hidden;}
+.tab-section.active{display:block;overflow:hidden;animation:pageFlip .22s ease-out;}
+@keyframes pageFlip{0%{opacity:0;transform:perspective(1200px) rotateY(-6deg) translateX(-7px);transform-origin:left center}100%{opacity:1;transform:perspective(1200px) rotateY(0) translateX(0);transform-origin:left center}}
+@media(prefers-reduced-motion:reduce){.tab-section.active{animation:none}}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
 .grid-1-2{display:grid;grid-template-columns:1fr 2fr;gap:14px;}
@@ -2468,6 +2470,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
             <button class="btn sm gold" onclick="quickRoll(100)" style="min-width:40px">d100</button>
             <input type="number" id="dice-mod-quick" placeholder="+0" style="width:48px;padding:4px;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px" title="Modifier">
           </div>
+          <div id="dice-result" style="width:100%;text-align:center;font-family:var(--mono,monospace);font-size:18px;font-weight:bold;min-height:24px;margin-top:6px;letter-spacing:1px;color:var(--text-bright)"></div>
         </div>
         <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;flex-wrap:wrap;align-items:center">
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-log" checked> Log</label>
@@ -5055,8 +5058,39 @@ function parseMechanics(responseText){
     save();
     renderCharTabs();renderCards();renderStatusMini();renderSheets();
     renderNPCs();renderQuests();renderCombat();renderWagon();syncWorld();renderModuleTracker();
+    mechToast(changes);
   }
   return changes.length>0?changes:null;
+}
+// State changelog — surfaces parsed mechanics as a stacking "ledger ink" feed
+function mechToast(changes){
+  if(!changes||!changes.length)return;
+  let c=document.getElementById('mech-toast');
+  if(!c){
+    c=document.createElement('div');c.id='mech-toast';
+    c.style.cssText='position:fixed;right:12px;bottom:96px;z-index:9998;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none;max-width:80vw';
+    document.body.appendChild(c);
+  }
+  changes.forEach((ch,i)=>{
+    const txt=ch.text||'';
+    let icon='✦';
+    if(/Main Quest/i.test(txt))icon='🎯';
+    else if(/Quest/i.test(txt))icon='📜';
+    else if(/HP\b|MaxHP/i.test(txt))icon='⚔';
+    else if(/NPC|→ \w/i.test(txt))icon='🗣';
+    else if(/Episode/i.test(txt))icon='📖';
+    else if(/xp\b|level up/i.test(txt))icon='⭐';
+    else if(/[+−]\w|rest|shell|emerged|retreated/i.test(txt))icon='✨';
+    else if(/Added:|New |Removed:/i.test(txt))icon='🎒';
+    const danger=ch.error;
+    const line=document.createElement('div');
+    line.style.cssText='pointer-events:auto;cursor:pointer;font-size:12px;font-family:var(--mono,monospace);background:var(--surface2);color:'+(danger?'var(--red)':'var(--text-bright)')+';border:1px solid '+(danger?'var(--red)':'var(--gold-dim)')+';border-left:3px solid '+(danger?'var(--red)':'var(--gold)')+';border-radius:3px;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.45);opacity:0;transform:translateX(14px);transition:opacity .25s ease,transform .25s ease';
+    line.textContent=icon+' '+txt;
+    line.onclick=()=>line.remove();
+    c.appendChild(line);
+    setTimeout(()=>{line.style.opacity='1';line.style.transform='translateX(0)';},70*i+30);
+    setTimeout(()=>{line.style.opacity='0';line.style.transform='translateX(14px)';setTimeout(()=>line.remove(),320);},2700+70*i);
+  });
 }
 function findPC(name){if(!name)return null;return state.pcs.find(p=>p.id===name||p.name.toLowerCase()===name.toLowerCase());}
 
@@ -5274,6 +5308,31 @@ function quickRoll(sides){
   const nat=roll===sides?'NAT '+sides+'!':(roll===1?'NAT 1!':'');
   const modStr=mod!==0?(mod>0?' + '+mod+' = '+total:' - '+Math.abs(mod)+' = '+total):'';
   const result='🎲 d'+sides+': '+roll+modStr+(nat?' ('+nat+')':'');
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  // haptic on the landing
+  if(navigator.vibrate)try{navigator.vibrate(roll===sides||roll===1?[10,30,10]:[8,24]);}catch(e){}
+  // tactile button press
+  const btn=document.querySelector('#dice-picker-panel button[onclick="quickRoll('+sides+')"]');
+  if(btn&&!reduce){btn.style.transition='transform .12s ease';btn.style.transform='scale(1.18)';setTimeout(()=>{btn.style.transform='scale(1)';},120);}
+  // slot-machine flicker, then settle on the real number with a color cue
+  const disp=document.getElementById('dice-result');
+  if(disp){
+    const col=roll===sides?'var(--gold-bright)':(roll===1?'var(--red)':'var(--text-bright)');
+    const settle=()=>{
+      disp.style.color=col;
+      disp.textContent=(nat?'✦ ':'')+'d'+sides+': '+roll+modStr+(nat?' ✦':'');
+      if(!reduce){disp.style.transition='none';disp.style.transform='scale(1.18)';requestAnimationFrame(()=>{disp.style.transition='transform .18s ease';disp.style.transform='scale(1)';});}
+    };
+    if(reduce){settle();}
+    else{
+      let ticks=0;
+      const iv=setInterval(()=>{
+        disp.style.color='var(--text-dim)';
+        disp.textContent='d'+sides+': '+(Math.floor(Math.random()*sides)+1);
+        if(++ticks>=4){clearInterval(iv);settle();}
+      },55);
+    }
+  }
   const ts=state.worldData&&state.worldData.time?state.worldData.time:'';
   if(!Array.isArray(state.chatHistory))state.chatHistory=[];
   state.chatHistory.push({role:'system',content:result,ts});
@@ -6564,6 +6623,10 @@ function renderChangelog(){
       'Save export filename now uses current location instead of timestamp',
       '⚙ Systems + 🗨️ OOC channels: OOC contract added — rules accuracy, character separation, Slasher secret protection',
       'Party Ask DM: fixed multi-question context drift — now sends proper alternating conversation history',
+      '✨ State changelog: parsed mechanics now surface as a stacking ledger feed (HP, quests, NPCs, conditions) — tap to dismiss',
+      '🎲 Dice roll flourish: slot-machine flicker + color cue (gold nat-max, red nat-1), button press feedback, haptic on landing',
+      '📖 Page-turn tab transitions — subtle 3D lift when switching tabs',
+      '♿ Honors prefers-reduced-motion — all new motion disabled for users who opt out',
     ]},
     {ver:'v1.5',date:'June 2026',notes:[
       'Dev tab: Dev Notes, Flag Review, and Ops Debrief in dedicated Dev tab (last before Setup)',
