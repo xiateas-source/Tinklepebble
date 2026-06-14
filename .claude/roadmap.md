@@ -45,22 +45,15 @@
 - [ ] Session dividers / chapter markers in Story Thread
 - [ ] Quest model: hidden:false default field for player-visible quests
 
-## Context Refresh / Re-sync Protocol — NEEDS REWORK
-**Current broken behavior:**
-- Context Refresh sends to OOC channel — main narrative AI never sees it
-- Re-sync AI State also sends to OOC — same problem
-- Main chat AI is only updated via checkpoints, not by these tools
+## Context Refresh / Re-sync Protocol — DONE 2026-06-14
+**Architecture (implemented):**
+- Context Refresh → queues scene snapshot in _ctxInject, appended silently to next sendMsg() system prompt
+- Re-sync AI State → injects full ledger via _ctxInject + fires [STATE RESYNC] confirmation message in main chat
+- OOC questions → OOC channel (live ledger injected on every send)
 
-**Correct architecture:**
-- Context Refresh → prepends current scene silently to next main chat API call system prompt (invisible nudge)
-- Re-sync AI State → posts visible [STATE RESYNC] into main chat, forces AI response confirming what it knows
-- OOC questions → OOC channel (already fixed — has live ledger on every send)
-
-**Definitions (preserve in UI):**
+**Definitions (in UI):**
 - Context Refresh = tap the DM on the shoulder. AI forgot what room you're in, wrong weather, wrong name once. Light nudge, use first.
 - Re-sync AI State = hand the DM all their notes. Wrong HP, starting new session, major drift. Full ledger, escalate only.
-
-**Estimated effort:** 20-30 min. Do before next session if possible.
 
 ## Phase 1 — Pre-Drop 4
 - [x] Context Refresh / Re-sync protocol rework — DONE 2026-06-14. Both now route to main narrative chat via _ctxInject system prompt injection.
@@ -101,8 +94,8 @@ Open questions (answer before Drop 6):
 7. **NPC log silent** — Same pattern. AI introduces NPCs in narrative but doesn't call state-update functions to persist them.
 8. **Quest "Primary Goal" rename** — Should be "Main Quest". Story-driven, set by the campaign itself, not manually entered.
 9. **Travel Log location** — Should move to Wagon tab (already planned in merge).
-10. **Session Summary readability** — Boxes too small. Needs larger textarea, better font sizing.
-11. **Story Thread readability** — Needs session/chapter dividers, larger text, scroll controls.
+10. **Session Summary readability** — DONE 2026-06-14. min-height 300px, font-size 13px.
+11. **Story Thread readability** — Partially done 2026-06-14 (min-height 380px, font-size 13px). Still needs: session/chapter dividers, scroll controls.
 12. **AI DM scroll buttons** — Need to match OOC and system chat scroll-to-top/bottom style.
 13. **Story Thread scroll buttons** — Add scroll to top/bottom.
 14. **Travel Log full rework** — Needs: visual map layer, day-progress pushable bar, higher placement in tab hierarchy. This is a significant feature (log as a separate note for Drop 4+).
