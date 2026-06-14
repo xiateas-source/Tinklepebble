@@ -2378,9 +2378,20 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div id="fb-error" style="display:none;color:var(--red);font-size:11px;padding:6px;background:rgba(192,74,58,.1);border:1px solid var(--red);border-radius:2px;margin-top:8px"></div>
       </div>
       <div class="panel">
-        <div class="panel-title">Context Refresh</div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Resend full ledger to AI when responses start drifting.</p>
-        <button class="btn gold full" onclick="sendContextRefresh()">Send Context Refresh to Chat</button>
+        <div class="panel-title">AI Sync</div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:3px">🔔 Context Refresh — use first</div>
+          <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Sends the current scene to the AI — location, conditions, who's present. Use when the AI loses the thread or contradicts something recent. Think: tap the DM on the shoulder.</p>
+          <p style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Use when: AI forgot what room you're in · AI described wrong weather · AI called a character by wrong name once</p>
+          <button class="btn gold full" onclick="sendContextRefresh()">🔔 Context Refresh</button>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:10px 0">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--purple-bright);margin-bottom:3px">⚡ Re-sync AI State — escalate only</div>
+          <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Sends the full compiled ledger — every PC stat, quest, NPC, inventory, treasury. Use when the AI is meaningfully wrong about persistent state or at session start. Think: hand the DM all their notes.</p>
+          <p style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Use when: AI has wrong HP · Starting a new session · AI drifted significantly from reality</p>
+          <button class="btn purple full" onclick="resyncAI()">⚡ Re-sync AI State</button>
+        </div>
       </div>
       <div class="panel accent">
         <div class="panel-title">Quick Actions Editor
