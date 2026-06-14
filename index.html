@@ -653,7 +653,7 @@ body{
 }
 .pc-card-header{
   background:
-    linear-gradient(135deg,rgba(200,120,64,.1) 0%,transparent 55%),
+    linear-gradient(135deg,rgba(176,88,48,.12) 0%,transparent 55%),
     linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);
 }
 .pc-name{font-size:18px;}
@@ -687,9 +687,9 @@ body{
 /* Spell slot pips — arcane orbs */
 .slot-pip{
   width:18px;height:18px;border-radius:50%;
-  border:2px solid var(--blue-bright);
-  background:radial-gradient(circle at 35% 35%,rgba(106,152,176,.55) 0%,rgba(58,104,128,.22) 100%);
-  box-shadow:0 0 8px rgba(90,152,184,.32),inset 0 1px 0 rgba(255,255,255,.18);
+  border:2px solid var(--purple-bright);
+  background:radial-gradient(circle at 35% 35%,rgba(138,94,106,.55) 0%,rgba(88,52,62,.22) 100%);
+  box-shadow:0 0 8px rgba(138,94,106,.38),inset 0 1px 0 rgba(255,255,255,.18);
 }
 .slot-pip.used{
   background:radial-gradient(circle at 35% 35%,var(--surface3) 0%,var(--surface2) 100%);
@@ -706,8 +706,10 @@ body{
   box-shadow:0 2px 0 rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04);
 }
 .cond-chip.active{
-  background:linear-gradient(180deg,rgba(192,72,40,.28) 0%,rgba(192,72,40,.14) 100%);
-  box-shadow:0 0 12px rgba(192,72,40,.32),0 2px 0 rgba(0,0,0,.45);
+  background:linear-gradient(180deg,rgba(139,58,42,.32) 0%,rgba(139,58,42,.16) 100%);
+  border-color:var(--red);
+  color:var(--text-bright);
+  box-shadow:0 0 12px rgba(139,58,42,.38),0 2px 0 rgba(0,0,0,.45);
 }
 
 /* Combat tracker */
@@ -717,9 +719,9 @@ body{
   box-shadow:0 2px 6px rgba(0,0,0,.38);
 }
 .init-row.current{
-  background:linear-gradient(90deg,rgba(200,120,64,.14) 0%,var(--surface3) 60%);
+  background:linear-gradient(90deg,rgba(176,88,48,.16) 0%,var(--surface3) 60%);
   border-left:3px solid var(--gold);
-  box-shadow:0 0 26px rgba(200,120,64,.34),0 2px 6px rgba(0,0,0,.4);
+  box-shadow:0 0 26px rgba(176,88,48,.34),0 2px 6px rgba(0,0,0,.4);
 }
 .init-badge{font-family:var(--display);font-size:20px;font-weight:700;}
 .round-counter{
@@ -954,10 +956,10 @@ body{background-image:none;}
   --red:#8b3a2a;--red-dim:#5c2415;
   /* Status: sage grey */
   --green:#788a73;--green-bright:#9aab95;
-  /* Player messages: muted sage-teal */
-  --blue:#608278;--blue-bright:#7a9e93;
-  /* Magic / concentration */
-  --purple:#7a6870;--purple-bright:#9a8890;
+  /* Player messages: warm olive-teal (Soft Autumn cool accent) */
+  --blue:#4a7068;--blue-bright:#628a7a;
+  /* Magic / concentration: dusty rose-plum (Soft Autumn) */
+  --purple:#8a5e6a;--purple-bright:#a87888;
   /* Text: champagne + warm beige family */
   --text:#c4a88a;--text-dim:#8a6b50;--text-bright:#e8d9c4;--cream:#e8d9c4;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
