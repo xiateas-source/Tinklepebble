@@ -5119,7 +5119,8 @@ async function askDMFromParty(){
   if(typingEl)typingEl.classList.add('on');
   if(dmBtn)dmBtn.disabled=true;
   const recentMsgs=(state.partyChat||[]).filter(m=>m.role==='player').slice(-6).map(m=>'['+esc(m.playerName||'Player')+']: '+m.content).join('\n');
-  const partySys='You are the Dungeon Master for Tinkle\'s Tinctures. The players are discussing strategy out-of-character. Read their discussion and respond helpfully — answer questions, offer hints about what their characters might reasonably know, or clarify rules. Keep it to 3-5 sentences. No mechanics block. No in-character narration unless specifically asked.';
+  const partyLedger=genLedger();
+  const partySys='You are the Dungeon Master for Tinkle\'s Tinctures. The players are discussing strategy out-of-character. Answer questions, offer hints about what their characters might reasonably know, or clarify rules. Keep it to 3-5 sentences. No mechanics block. No in-character narration unless specifically asked.\n\nCURRENT GAME STATE:\n'+partyLedger;
   const msgs=[{role:'user',content:'Party discussion:\n'+recentMsgs+'\n\nWe\'d like your input.'}];
   if(!state.partyChat)state.partyChat=[];
   try{
@@ -5153,7 +5154,8 @@ async function _oocCallAI(userMsg){
   const typingEl=document.getElementById('ooc-typing-ind');
   if(typingEl)typingEl.classList.add('on');
   if(oocBtn)oocBtn.disabled=true;
-  const oocSys='You are the Dungeon Master for Tinkle\'s Tinctures. This is the OUT-OF-CHARACTER channel. Rules: answer in 1-3 sentences only. No narrative prose. No mechanics block. For state refresh/sync: confirm what you now know in one sentence. For rules questions: state the rule directly. The story continues in the main narrative channel only.';
+  const oocLedger=genLedger();
+  const oocSys='You are the Dungeon Master for Tinkle\'s Tinctures. This is the OUT-OF-CHARACTER channel. Rules: answer in 1-3 sentences only. No narrative prose. No mechanics block. For rules questions: state the rule directly. The story continues in the main narrative channel only.\n\nCURRENT GAME STATE:\n'+oocLedger;
   const histForAI=(state.oocHistory||[]).filter(m=>m.role==='user'||m.role==='assistant').slice(-10).map(m=>({role:m.role,content:m.content}));
   try{
     const response=await callAI(histForAI,oocSys,300);
