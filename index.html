@@ -1701,7 +1701,7 @@ button.fab{
   <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Cycle theme" class="btn sm">☀</button>
   <button id="hdr-menu-btn" onclick="toggleHeaderMenu()" class="btn sm">☰</button>
 </header>
-<div id="header-menu" style="display:none;position:fixed;top:66px;right:0;left:0;background:var(--surface);border-bottom:1px solid var(--border-bright);z-index:99;padding:14px 16px 12px;box-shadow:0 8px 32px rgba(0,0,0,.7);">
+<div id="header-menu" style="display:none;position:fixed;top:66px;right:0;left:0;background:var(--surface);border-bottom:1px solid var(--border-bright);z-index:99;padding:14px 16px 12px;box-shadow:0 8px 32px rgba(0,0,0,.7);" onclick="if(event.target===this)closeHeaderMenu()">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
     <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
     <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
@@ -1730,7 +1730,7 @@ button.fab{
   <button class="main-tab" onclick="showTab('tab-session')">Session <span id="session-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
   <div class="tab-overflow-wrap">
     <button class="main-tab" id="tab-overflow-btn" onclick="toggleTabOverflow()">⋮</button>
-    <div id="tab-overflow-menu">
+    <div id="tab-overflow-menu" onclick="if(event.target===this)closeTabOverflow()">
       <button class="main-tab" id="tab-btn-ait" onclick="showTab('tab-ait');closeTabOverflow()">AI Tools</button>
       <button class="main-tab" onclick="showTab('tab-dev');closeTabOverflow()" style="border-bottom-color:var(--gold);color:var(--gold)">Dev</button>
       <button class="main-tab" onclick="showTab('tab-setup');closeTabOverflow()" style="border-bottom-color:var(--purple-bright);color:var(--purple-bright)">Setup</button>
@@ -6824,7 +6824,7 @@ function renderChangelog(){
   const versions=[
     {ver:'v1.9',date:'June 2026',notes:[
       'Campaign lock: Setup tab shows read-only banner after launch; ⚙ Edit to unlock, 🔒 to re-lock',
-      'Deep links in Setup lock banner: → World and → Wagon jump directly to play tabs',
+      'Deep links in Setup lock banner: World and Wagon tabs linked directly from lock banner',
       'SAVE_VERSION 9: existing campaigns auto-detected as launched (via chat history); v8→v9 upgrade skips inventory wipe',
     ]},
     {ver:'v1.8',date:'June 2026',notes:[
