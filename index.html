@@ -5238,7 +5238,8 @@ async function sendMsg(){
     const useLedger=document.getElementById('chat-ledger')?.checked;
     if(useLedger)genLedger();
     const ledger=useLedger?(document.getElementById('ledger-out')?.value||''):'';
-    const sysProm=buildPrompt(ledger);
+    const _inject=_ctxInject;_ctxInject=null;
+    const sysProm=buildPrompt(ledger)+(_inject?'\n\n'+_inject:'');
     const histForApi=state.chatHistory.filter(m=>m.role!=='system').map(m=>({
       role:m.role==='assistant'?'assistant':'user',
       content:(m.playerName&&m.role!=='assistant'?'['+m.playerName+' playing '+m.playerChar+']: ':'')+m.content
@@ -5396,16 +5397,23 @@ function updateRollMod(){
   // Auto-set formula
   if(ROLL_FORMULAS[rt]&&formulaEl)formulaEl.value=ROLL_FORMULAS[rt];
 }
+// Pending context injection — appended to system prompt on next sendMsg(), then cleared
+let _ctxInject=null;
 function sendContextRefresh(){
-  genLedger();const ledger=document.getElementById('ledger-out')?.value||'';
-  if(!state.oocHistory)state.oocHistory=[];
-  const oocId='ooc_'+Date.now();
-  const content='[CONTEXT REFRESH] Full state update. Confirm what you now know in one sentence — do not narrate it in the main channel.\n\n'+ledger;
-  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:'System',id:oocId});
-  state.chatHistory.push({role:'ooc_echo',content:'System: Context refresh sent to OOC',echoTarget:oocId,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
-  save();showChatTab('ooc');renderOOC();renderChat();
-  _oocCallAI(content);
-  toast('↺ Context refresh sent to OOC channel');
+  const w=state.worldData;
+  _ctxInject=[
+    '[CONTEXT REFRESH — re-read this before your next response]',
+    'Location: '+(w.location||'unknown'),
+    'Time: '+(w.time||'unknown'),
+    'Scene: '+(w.scene_title||'none')+' — tone: '+(w.scene_threat||'calm'),
+    'Active conditions: '+(w.scene_cond||'none'),
+    'Weather: '+(w.weather||'unknown'),
+    'Combat: '+(state.combat.active?'ACTIVE round '+state.combat.round:'not active'),
+  ].join('\n');
+  const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  state.chatHistory.push({role:'system',content:'↺ Context refreshed — will apply on your next message.',ts,realTs:ts});
+  save();renderChat();showTab('tab-dm');
+  toast('↺ Context refresh queued — send your next message to apply.');
 }
 
 // ═══ SESSION ZERO ═══
@@ -6134,14 +6142,11 @@ function rollInitiativeToChat(){
 function resyncAI(){
   genLedger();
   const ledger=document.getElementById('ledger-out')?.value||'';
-  if(!state.oocHistory)state.oocHistory=[];
-  const oocId='ooc_'+Date.now();
-  const content='[STATE RESYNC] Confirm what you now know: HP, inventory, location, active quests, NPCs met.\n\n'+ledger;
-  state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),playerName:'System',id:oocId});
-  state.chatHistory.push({role:'ooc_echo',content:'System: AI resync sent to OOC',echoTarget:oocId,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
-  save();showChatTab('ooc');renderOOC();renderChat();
-  _oocCallAI(content);
-  toast('↺ Re-syncing AI in OOC channel...');
+  _ctxInject='[FULL STATE RESYNC — read everything below before responding]\n'+ledger;
+  const inp=document.getElementById('chat-input');
+  if(inp)inp.value='[STATE RESYNC] Confirm in one sentence: current location, all PC HP values, and what the party is doing right now.';
+  sendMsg();
+  showTab('tab-dm');
 }
 
 // ═══ SCROLL TO TOP ═══
