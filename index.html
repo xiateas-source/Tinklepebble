@@ -5183,14 +5183,15 @@ function sendPartyMsg(){
 }
 async function askDMFromParty(){
   const key=getKey();if(!key){toast('Set an API key first.');return;}
+  const lastPlayerMsg=(state.partyChat||[]).filter(m=>m.role==='player').slice(-1)[0];
+  if(!lastPlayerMsg){toast('Type a message first, then tap Ask DM.');return;}
   const dmBtn=document.getElementById('party-dm-btn');
   const typingEl=document.getElementById('party-typing-ind');
   if(typingEl)typingEl.classList.add('on');
   if(dmBtn)dmBtn.disabled=true;
-  const recentMsgs=(state.partyChat||[]).filter(m=>m.role==='player').slice(-6).map(m=>'['+esc(m.playerName||'Player')+']: '+m.content).join('\n');
   const partyLedger=genLedger();
-  const partySys='You are the Dungeon Master for Tinkle\'s Tinctures. The players are discussing strategy out-of-character. Answer questions, offer hints about what their characters might reasonably know, or clarify rules. Keep it to 3-5 sentences. No mechanics block. No in-character narration unless specifically asked.\n\nCURRENT GAME STATE:\n'+partyLedger;
-  const msgs=[{role:'user',content:'Party discussion:\n'+recentMsgs+'\n\nWe\'d like your input.'}];
+  const partySys='You are the Dungeon Master for Tinkle\'s Tinctures. A player has a question out-of-character. Answer only their most recent question. Keep it to 3-5 sentences. No mechanics block. No in-character narration unless asked.\n\nCURRENT GAME STATE:\n'+partyLedger;
+  const msgs=(state.partyChat||[]).filter(m=>m.role==='player'||m.role==='dm').slice(-6).map(m=>({role:m.role==='dm'?'assistant':'user',content:(m.playerName?'['+m.playerName+']: ':'')+m.content}));
   if(!state.partyChat)state.partyChat=[];
   try{
     const response=await callAI(msgs,partySys,500);
