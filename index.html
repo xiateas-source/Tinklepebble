@@ -883,6 +883,9 @@ body{background-image:none;}
 .flag-cat-btn.selected{border-color:var(--gold);background:rgba(192,128,64,.12);color:var(--gold);}
 .flag-cat-btn .cat-icon{font-size:20px;line-height:1;}
 .flag-context-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.6;}
+.lu-option{padding:10px 14px;background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;font-size:13px;transition:border-color .15s,background .15s;}
+.lu-option:hover{border-color:var(--gold-dim);}
+.lu-option.selected{border-color:var(--gold);background:rgba(200,160,106,.1);color:var(--gold-bright);}
 .flag-context-box strong{color:var(--text);}
 .err-log-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;}
 .err-log-item.verdicted-pass{border-color:var(--green);}
@@ -2563,6 +2566,47 @@ const XP_T=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,12000
 const CP_INT={exploration:6,combat:3,roleplay:8,custom:6};
 const MAX_LB=1080;
 const ITYPES=['supply','foraged','ingredient','trade','loot','hoard','misc','key'];
+
+// ── Level-Up Data (Fighter/Rogue/Bard L2–L5) ──
+const LEVEL_UP_DATA={
+  fighter:{hit_die:10,levels:{
+    2:{auto:['Action Surge (1/Short Rest): Take one additional action on your turn.'],choose:[]},
+    3:{auto:[],choose:[{type:'subclass',prompt:'Choose Martial Archetype',options:['Champion','Battle Master','Eldritch Knight']}]},
+    4:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]},
+    5:{auto:['Extra Attack: Attack twice when you take the Attack action.'],choose:[]}
+  }},
+  rogue:{hit_die:8,levels:{
+    2:{auto:['Cunning Action: Dash, Disengage, or Hide as a Bonus Action each turn.'],choose:[]},
+    3:{auto:['Sneak Attack increases to 2d6.'],choose:[{type:'subclass',prompt:'Choose Roguish Archetype',options:['Arcane Trickster','Assassin','Thief','Mastermind','Swashbuckler']}]},
+    4:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]},
+    5:{auto:['Uncanny Dodge: Use Reaction to halve damage from an attacker you can see.','Sneak Attack increases to 3d6.'],choose:[]}
+  }},
+  bard:{hit_die:8,
+    slots:{1:[2],2:[3],3:[4,2],4:[4,3],5:[4,3,2]},
+    levels:{
+      2:{auto:["Jack of All Trades: Add half your proficiency bonus (rounded down) to ability checks you aren't proficient in.",'Song of Rest (d6): Allies regain extra 1d6 HP when spending Hit Dice during a Short Rest.'],
+        choose:[{type:'spell',prompt:'Choose 1 new Bard spell (1st level)',count:1,tier:1}]},
+      3:{auto:['Expertise: Choose 2 more skills to double your proficiency bonus on them.'],
+        choose:[
+          {type:'subclass',prompt:'Choose Bard College',options:['College of Lore','College of Valor','College of Glamour','College of Whispers','College of Creation']},
+          {type:'spell',prompt:'Choose 1 new Bard spell (up to 2nd level)',count:1,tier:2}
+        ]},
+      4:{auto:[],choose:[
+        {type:'asi',prompt:'Ability Score Improvement'},
+        {type:'spell',prompt:'Choose 1 new Bard spell or cantrip',count:1,tier:1,cantrip:true}
+      ]},
+      5:{auto:['Bardic Inspiration die upgrades to d8 (was d6).','Font of Inspiration: Regain all Bardic Inspiration uses on a Short Rest.'],
+        choose:[{type:'spell',prompt:'Choose 1 new Bard spell (up to 3rd level)',count:1,tier:3}]}
+    }
+  }
+};
+const BARD_SPELLS={
+  0:['Dancing Lights','Friends','Light','Mage Hand','Mending','Message','Minor Illusion','Prestidigitation','True Strike','Vicious Mockery'],
+  1:['Animal Friendship','Bane','Charm Person','Comprehend Languages','Cure Wounds','Detect Magic','Disguise Self','Faerie Fire','Feather Fall','Healing Word','Heroism','Identify','Illusory Script','Longstrider','Silent Image','Sleep','Speak with Animals','Thunderwave','Unseen Servant'],
+  2:['Animal Messenger','Blindness/Deafness','Calm Emotions','Cloud of Daggers','Crown of Madness','Detect Thoughts','Enhance Ability','Enthrall','Heat Metal','Hold Person','Invisibility','Knock','Lesser Restoration','Locate Object','Magic Mouth','Phantasmal Force','See Invisibility','Shatter','Silence','Suggestion','Zone of Truth'],
+  3:['Bestow Curse','Clairvoyance','Dispel Magic','Fear','Hypnotic Pattern','Major Image','Nondetection','Plant Growth','Sending','Slow','Speak with Dead','Stinking Cloud','Tongues']
+};
+
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
 const SAVE_VERSION=9;
@@ -3143,6 +3187,7 @@ function renderCards(){
     let badge='<span class="status-badge ok">OK</span>';
     if(pc.hp<=0)badge='<span class="status-badge dead">DOWN</span>';
     else if(pct<50||(pc.conditions||[]).length>0)badge='<span class="status-badge warn">HURT</span>';
+    else if(pc.levelReady)badge='<span class="status-badge" style="background:var(--gold);color:var(--bg);font-weight:700;cursor:pointer" onclick="openLevelUpWizard('+idx+')" title="Ready to level up!">⬆ LVL</span>';
     // Resource pips
     let resourceHtml='';
     if((pc.resources||[]).length){
@@ -3176,6 +3221,7 @@ function renderCards(){
           <div style="display:flex;gap:4px"><input type="number" id="hpamt-${idx}" style="width:55px;text-align:center;padding:4px" placeholder="Amt"><button class="btn sm green" onclick="adjHP(${idx},true)">+</button><button class="btn sm red" onclick="adjHP(${idx},false)">−</button></div>
         </div>
         <div class="hp-bar-wrap"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
+        ${pc.levelReady?'<div onclick="openLevelUpWizard('+idx+')" style="font-size:11px;font-weight:700;color:var(--bg);background:var(--gold);border-radius:var(--radius-sm);padding:5px 10px;margin-bottom:6px;cursor:pointer;text-align:center">⬆ Ready for Level '+(lvl+1)+'! Tap to level up (after Long Rest)</div>':''}
         <div class="stat-mini-row">
           <div class="stat-mini"><span class="s-name">STR</span><span class="s-val">${(pc.str||'').split(' ')[0]}</span></div>
           <div class="stat-mini"><span class="s-name">DEX</span><span class="s-val">${(pc.dex||'').split(' ')[0]}</span></div>
@@ -3332,14 +3378,7 @@ function awardXP(idx){
   const amt=parseInt(prompt('Award XP to '+state.pcs[idx].name+'?','50'));
   if(isNaN(amt)||amt<=0)return;
   state.pcs[idx].xp=(state.pcs[idx].xp||0)+amt;
-  const lvl=state.pcs[idx].level||1;
-  if(state.pcs[idx].xp>=XP_T[Math.min(lvl,19)]&&lvl<20){
-    if(confirm(state.pcs[idx].name+' can level up to '+(lvl+1)+'! Level up now?')){
-      state.pcs[idx].level=lvl+1;
-      if(document.getElementById('auto-lvl')?.checked)triggerChk('Level Up: '+state.pcs[idx].name);
-      toast('🎉 '+state.pcs[idx].name+' is Level '+(lvl+1)+'!');
-    }
-  }
+  checkLevelUp(state.pcs[idx]);
   saveRefresh();
 }
 
@@ -3749,6 +3788,246 @@ function doLongRest(){
   saveRefresh();
   if(document.getElementById('auto-rest')?.checked)triggerChk('Long Rest');
   toast('🌙 Long Rest — all HP and slots restored!');
+  const readyIdx=state.pcs.findIndex(pc=>pc.levelReady);
+  if(readyIdx>=0)setTimeout(()=>openLevelUpWizard(readyIdx),800);
+}
+
+// ═══ LEVEL UP WIZARD ═══
+let _luWiz=null;
+
+function checkLevelUp(pc){
+  const lvl=pc.level||1;if(lvl>=20||pc.levelReady)return;
+  if((pc.xp||0)>=XP_T[Math.min(lvl,19)]){
+    pc.levelReady=true;
+    toast('⬆ '+pc.name+' ready for Level '+(lvl+1)+'! Take a Long Rest to advance.');
+    _ctxInject='[LEVEL UP PENDING] '+pc.name+' has earned enough XP to reach Level '+(lvl+1)+'. They need a Long Rest first. Do not grant any new abilities yet.';
+  }
+}
+
+function openLevelUpWizard(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  const newLvl=(pc.level||1)+1;
+  const clsKey=Object.keys(LEVEL_UP_DATA).find(k=>(pc.class||'').toLowerCase().includes(k))||null;
+  const data=clsKey?LEVEL_UP_DATA[clsKey]:null;
+  const lvlData=(data&&data.levels[newLvl])||{auto:[],choose:[]};
+  const hitDie=data?data.hit_die:8;
+  const steps=[{type:'hp',hitDie}];
+  if((lvlData.auto||[]).length)steps.push({type:'auto',features:lvlData.auto});
+  (lvlData.choose||[]).forEach(c=>steps.push({type:'choice',choice:c}));
+  steps.push({type:'confirm'});
+  _luWiz={idx,pc,newLvl,clsKey,data,lvlData,steps,stepIdx:0,
+    choices:{hp:0,autoFeatures:lvlData.auto||[],subclass:'',spells:[],asi:''}};
+  document.getElementById('levelup-modal').classList.add('open');
+  _renderLevelUpStep();
+}
+
+function closeLevelUpModal(){
+  document.getElementById('levelup-modal').classList.remove('open');
+  _luWiz=null;
+}
+
+function _luNext(){
+  if(!_luWiz)return;
+  _luWiz.stepIdx++;
+  _renderLevelUpStep();
+}
+
+function _luRollHP(hd,conMod){
+  if(!_luWiz)return;
+  const roll=Math.ceil(Math.random()*hd);
+  const total=Math.max(1,roll+conMod);
+  _luWiz.choices.hp=total;
+  const r=document.getElementById('lu-hp-roll');if(r)r.textContent=roll;
+  const res=document.getElementById('lu-hp-result');
+  if(res)res.textContent='Rolled '+roll+' + '+(conMod>=0?'+':'')+conMod+' = +'+total+' HP';
+  const nb=document.getElementById('lu-next-btn');if(nb){nb.disabled=false;nb.textContent='→ Next';}
+}
+
+function _luSetHP(hp){
+  if(!_luWiz)return;
+  _luWiz.choices.hp=hp;
+  const r=document.getElementById('lu-hp-roll');if(r)r.textContent='avg';
+  const res=document.getElementById('lu-hp-result');if(res)res.textContent='Average taken: +'+hp+' HP';
+  const nb=document.getElementById('lu-next-btn');if(nb){nb.disabled=false;nb.textContent='→ Next';}
+}
+
+function _luSelectSubclass(name){
+  if(!_luWiz)return;
+  _luWiz.choices.subclass=name;
+  document.querySelectorAll('.lu-option').forEach(el=>{el.style.borderColor='var(--border)';el.classList.remove('selected');});
+  const sid='luopt_'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  const el=document.getElementById(sid);
+  if(el){el.style.borderColor='var(--gold)';el.classList.add('selected');}
+  const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=false;
+}
+
+function _luToggleSpell(name){
+  if(!_luWiz)return;
+  const step=_luWiz.steps[_luWiz.stepIdx];
+  const max=(step&&step.choice)?step.choice.count:1;
+  const arr=_luWiz.choices.spells;
+  const i=arr.indexOf(name);
+  if(i>=0){arr.splice(i,1);}
+  else if(arr.length<max){arr.push(name);}
+  else{
+    const old=arr.shift();arr.push(name);
+    document.querySelectorAll('#lu-spell-list input[type=checkbox]').forEach(cb=>{if(cb.value===old)cb.checked=false;});
+  }
+  const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=(arr.length<max);
+}
+
+function _luUpdateASI(){
+  if(!_luWiz)return;
+  const s1=(document.getElementById('lu-asi-1')||{}).value||'';
+  const s2=(document.getElementById('lu-asi-2')||{}).value||'';
+  let asi='';let preview='';
+  if(s1&&s2&&s1!==s2){asi=s1.toLowerCase()+'+1,'+s2.toLowerCase()+'+1';preview=s1+' +1 & '+s2+' +1';}
+  else if(s1){asi=s1.toLowerCase()+'+2';preview=s1+' +2';}
+  _luWiz.choices.asi=asi;
+  const pv=document.getElementById('lu-asi-preview');if(pv)pv.textContent=preview?'→ '+preview:'';
+  const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=!s1;
+}
+
+function _getBardSpells(ch){
+  const tier=ch.tier||1;
+  let pool=[];
+  if(ch.cantrip)(BARD_SPELLS[0]||[]).forEach(s=>pool.push('[Cantrip] '+s));
+  for(let t=1;t<=tier;t++){(BARD_SPELLS[t]||[]).forEach(s=>pool.push((t>1?'[L'+t+'] ':'')+s));}
+  const known=(_luWiz&&_luWiz.pc&&_luWiz.pc.magic)||'';
+  return pool.filter(s=>!known.includes(s.replace(/^\[[^\]]+\]\s*/,'')));
+}
+
+function _renderLevelUpStep(){
+  if(!_luWiz)return;
+  const {pc,newLvl,steps,stepIdx,choices,data,clsKey}=_luWiz;
+  const step=steps[stepIdx];
+  const titleEl=document.getElementById('lu-title');
+  const bodyEl=document.getElementById('lu-body');
+  const actEl=document.getElementById('lu-actions');
+  if(!titleEl||!bodyEl||!actEl)return;
+  const prog='<small style="opacity:.5;font-size:10px;font-weight:400;margin-left:6px">'+(stepIdx+1)+'/'+steps.length+'</small>';
+  const X='<button class="btn sm" onclick="closeLevelUpModal()" style="margin-left:auto">✕</button>';
+
+  if(step.type==='hp'){
+    const hd=step.hitDie||8;
+    const conMod=parseInt(((pc.con||'10 (+0)').match(/\(([^)]+)\)/)||['','0'])[1])||0;
+    const avg=Math.floor(hd/2)+1+conMod;
+    titleEl.innerHTML='⬆ '+esc(pc.name)+' → Level '+newLvl+prog+X;
+    bodyEl.innerHTML=
+      '<div style="font-size:13px;font-weight:600;margin-bottom:12px">Hit Points</div>'+
+      '<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px">'+
+        '<div id="lu-hp-roll" style="font-size:36px;font-weight:700;color:var(--gold);width:64px;height:64px;display:flex;align-items:center;justify-content:center;border:2px solid var(--gold-dim);border-radius:8px">d'+hd+'</div>'+
+        '<div style="font-size:12px;color:var(--text-dim);line-height:2">Hit Die: d'+hd+'<br>CON mod: '+(conMod>=0?'+':'')+conMod+'<br>Average: <strong>+'+avg+'</strong></div>'+
+      '</div>'+
+      '<div id="lu-hp-result" style="font-size:14px;color:var(--gold);font-weight:600;min-height:22px"></div>';
+    actEl.innerHTML=
+      '<button class="btn gold" onclick="_luRollHP('+hd+','+conMod+')">🎲 Roll d'+hd+'</button>'+
+      '<button class="btn" onclick="_luSetHP('+avg+')">Take Average (+'+avg+')</button>'+
+      '<button class="btn" id="lu-next-btn" disabled onclick="_luNext()" style="margin-left:auto">→ Next</button>';
+  }
+  else if(step.type==='auto'){
+    titleEl.innerHTML='⬆ New Features'+prog+X;
+    bodyEl.innerHTML=
+      '<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">'+esc(pc.name)+' gains at Level '+newLvl+':</div>'+
+      step.features.map(f=>'<div style="padding:10px 14px;background:var(--surface3);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--radius-sm);margin-bottom:8px;font-size:12px;line-height:1.6">'+esc(f)+'</div>').join('');
+    actEl.innerHTML='<button class="btn gold full" onclick="_luNext()">✓ Got It →</button>';
+  }
+  else if(step.type==='choice'){
+    const ch=step.choice;
+    titleEl.innerHTML='⬆ '+esc(ch.prompt||'Choose')+prog+X;
+    if(ch.type==='subclass'){
+      bodyEl.innerHTML='<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">This choice is permanent.</div>'+
+        ch.options.map(o=>'<div id="luopt_'+o.replace(/[^a-zA-Z0-9]/g,'_')+'" class="lu-option" onclick="_luSelectSubclass(\''+o.replace(/'/g,"\\'")+'\')">'+esc(o)+'</div>').join('');
+      actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
+    }
+    else if(ch.type==='spell'){
+      const spells=_getBardSpells(ch);
+      bodyEl.innerHTML='<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Select '+ch.count+':</div>'+
+        '<div id="lu-spell-list" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">'+
+        spells.map(s=>'<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border)">'+
+          '<input type="checkbox" value="'+esc(s.replace(/^\[[^\]]+\]\s*/,''))+'" onchange="_luToggleSpell(\''+s.replace(/^\[[^\]]+\]\s*/,'').replace(/'/g,"\\'")+'\')"> <span style="font-size:12px">'+esc(s)+'</span></label>').join('')+
+        '</div>';
+      actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
+    }
+    else if(ch.type==='asi'){
+      const stats=['STR','DEX','CON','INT','WIS','CHA'];
+      const opts=stats.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+      bodyEl.innerHTML='<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">+2 to one ability, or +1 to two different abilities. Max 20.</div>'+
+        '<div class="form-group"><label class="field-label">First Ability</label><select id="lu-asi-1" onchange="_luUpdateASI()"><option value="">— Choose —</option>'+opts+'</select></div>'+
+        '<div class="form-group"><label class="field-label">Second Ability (optional — split into +1/+1)</label><select id="lu-asi-2" onchange="_luUpdateASI()"><option value="">— None (first ability gets +2) —</option>'+opts+'</select></div>'+
+        '<div id="lu-asi-preview" style="font-size:13px;color:var(--gold);font-weight:600;margin-top:6px;min-height:18px"></div>';
+      actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
+    }
+  }
+  else if(step.type==='confirm'){
+    titleEl.innerHTML='⬆ Confirm Level Up'+X;
+    const rows=[];
+    rows.push('<div style="font-size:15px;font-weight:700;color:var(--gold-bright);margin-bottom:10px">'+esc(pc.name)+' → Level '+newLvl+'</div>');
+    rows.push('<div style="font-size:12px;line-height:2;color:var(--text-dim)">');
+    rows.push('HP Max: '+(pc.hp_max||0)+' → <strong style="color:var(--text)">'+(pc.hp_max+choices.hp)+'</strong> (+'+choices.hp+')<br>');
+    if(choices.autoFeatures&&choices.autoFeatures.length)rows.push('New Features: <strong style="color:var(--text)">'+esc(choices.autoFeatures.map(f=>f.split(':')[0]).join(', '))+'</strong><br>');
+    if(choices.subclass)rows.push('Archetype: <strong style="color:var(--text)">'+esc(choices.subclass)+'</strong><br>');
+    if(choices.spells&&choices.spells.length)rows.push('Spells Learned: <strong style="color:var(--text)">'+esc(choices.spells.join(', '))+'</strong><br>');
+    if(choices.asi)rows.push('Ability Improvement: <strong style="color:var(--text)">'+esc(choices.asi.replace(/,/g,' & ').replace(/([a-z]+)/g,s=>s.toUpperCase()).replace(/\+/g,' +'))+'</strong><br>');
+    if(clsKey==='bard'&&data&&data.slots&&data.slots[newLvl])rows.push('Spell Slots: <strong style="color:var(--text)">'+data.slots[newLvl].map((m,i)=>SPELL_LVLS[i]+': '+m).join(', ')+'</strong><br>');
+    rows.push('</div>');
+    bodyEl.innerHTML='<div style="padding:12px;background:var(--surface3);border-radius:var(--radius-sm)">'+rows.join('')+'</div>';
+    actEl.innerHTML='<button class="btn gold full" style="font-size:15px;padding:14px" onclick="applyLevelUp()">🎉 Level Up!</button>';
+  }
+}
+
+function applyLevelUp(){
+  if(!_luWiz)return;
+  const {idx,pc,newLvl,clsKey,data,choices}=_luWiz;
+  const p=state.pcs[idx];
+  // HP
+  p.hp_max=(p.hp_max||0)+choices.hp;
+  p.hp=Math.min((p.hp||0)+choices.hp,p.hp_max);
+  // Level
+  p.level=newLvl;
+  // Auto features
+  if(choices.autoFeatures&&choices.autoFeatures.length)
+    p.features=(p.features?p.features+'\n':'')+choices.autoFeatures.join('\n');
+  // Subclass
+  if(choices.subclass){
+    p.subclass=choices.subclass;
+    p.features=(p.features?p.features+'\n':'')+choices.subclass+' (Level '+newLvl+')';
+  }
+  // ASI
+  if(choices.asi){
+    choices.asi.split(',').forEach(part=>{
+      const m=part.match(/^([a-z]+)\+(\d)$/);
+      if(!m)return;
+      const cur=parseInt((p[m[1]]||'10').split(' ')[0]);
+      const nv=Math.min(20,cur+parseInt(m[2]));
+      const mod=Math.floor((nv-10)/2);
+      p[m[1]]=nv+' ('+(mod>=0?'+':'')+mod+')';
+    });
+  }
+  // Spells
+  if(choices.spells&&choices.spells.length)
+    p.magic=(p.magic?p.magic+'\n':'')+'[Level '+newLvl+'] '+choices.spells.join(', ');
+  // Bard spell slots
+  if(clsKey==='bard'&&data&&data.slots&&data.slots[newLvl]){
+    p.slots=data.slots[newLvl].map((max,i)=>({max,used:Math.min((p.slots&&p.slots[i]?p.slots[i].used:0),max)}));
+  }
+  // Clear levelReady
+  p.levelReady=false;
+  // AI notification
+  const parts=[pc.name+' advances to Level '+newLvl+'.'];
+  parts.push('New HP max: '+p.hp_max+'.');
+  if(choices.autoFeatures&&choices.autoFeatures.length)parts.push('New features: '+choices.autoFeatures.map(f=>f.split(':')[0]).join(', ')+'.');
+  if(choices.subclass)parts.push('Chosen archetype: '+choices.subclass+'.');
+  if(choices.spells&&choices.spells.length)parts.push('New spells: '+choices.spells.join(', ')+'.');
+  if(choices.asi)parts.push('Ability improvement: '+choices.asi+'.');
+  _ctxInject='[LEVEL UP COMPLETE] '+parts.join(' ')+' Update your full understanding of this character and narrate the advancement when prompted.';
+  triggerChk('Level Up: '+pc.name+' → Level '+newLvl);
+  saveRefresh();
+  closeLevelUpModal();
+  toast('🎉 '+pc.name+' is now Level '+newLvl+'!');
+  // Queue next ready PC
+  const nextIdx=state.pcs.findIndex((p2,i)=>i!==idx&&p2.levelReady);
+  if(nextIdx>=0)setTimeout(()=>openLevelUpWizard(nextIdx),800);
 }
 
 // ═══ SESSION LOG ═══
@@ -4703,6 +4982,7 @@ function migrate(s){
     if(!pc.concentrating)pc.concentrating='';
     if(!pc.hp_max||pc.hp_max<1)pc.hp_max=10;
     if(pc.hp===undefined||pc.hp===null)pc.hp=pc.hp_max;
+    if(pc.levelReady===undefined)pc.levelReady=false;
   });
 }
 // ═══ PERSISTENCE ═══
@@ -5177,7 +5457,7 @@ function parseMechanics(responseText){
       else if(key==='xp'){
         val.split(',').forEach(part=>{
           const m=part.trim().match(/^([^+]+)\+(\d+)$/);
-          if(m){const pc=findPC(m[1].trim());if(pc){const amt=parseInt(m[2]);pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});const nxt=XP_T[Math.min(pc.level||1,19)];if(pc.xp>=nxt&&(pc.level||1)<20)changes.push({text:'⚠ '+pc.name+' can level up!'});}}
+          if(m){const pc=findPC(m[1].trim());if(pc){const amt=parseInt(m[2]);pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});checkLevelUp(pc);}}
         });
       }else if(key==='module_episode'){
         const pts=val.split(',').map(p=>p.trim());
@@ -7287,6 +7567,15 @@ function renderSuperpowers(){
 <div class="qa-menu" id="qa-menu">
   <div class="qa-menu-title" id="qa-menu-title">Quick Actions</div>
   <div id="qa-menu-items"></div>
+</div>
+
+<!-- LEVEL UP MODAL (bottom sheet) -->
+<div class="qa-modal" id="levelup-modal">
+  <div class="qa-sheet" style="max-width:560px">
+    <div class="qa-sheet-title" id="lu-title" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">⬆ Level Up</div>
+    <div id="lu-body" style="min-height:120px;padding-top:4px"></div>
+    <div id="lu-actions" style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"></div>
+  </div>
 </div>
 
 <!-- FLAG MODAL (bottom sheet) -->
