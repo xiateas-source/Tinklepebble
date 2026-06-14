@@ -86,6 +86,7 @@ Open questions (answer before Drop 6):
 15. **Party chat → narrative ping** — When player sends message in party chat, ping/notify the AI DM narrative.
 16. **Message lock on new prompt** — Reading a message while someone else prompts closes out the open message. Must stay open until explicitly closed.
 17. **OOC chat malfunction** — Reported 2026-06-14, behavior TBD (under active testing). Fill in details after session.
+18. **Module tracker** — Campaign: "Hoard of the Dragon Queen" (Baur & Winter). Tracker in Session → Module sub-tab. Episodes as chapter markers, status per episode (Not Started / In Progress / Complete), % progress bar, DM notes per episode, active episode wired to Main Quest display. Lives in state.moduleProgress[]. No book text reproduced — episode names only.
 
 ## Recurring AI Failure Patterns (2026-06-14 debrief)
 **Pattern 1 — State Drift:** AI narrates events (NPC introduced, item found, gold earned) but does NOT call state-update functions. Income log, NPC log, and quest log all stayed empty despite active gameplay. Fix: Add explicit "State Enforcement" section to system prompt. After EVERY NPC interaction → addNPC(). After EVERY item obtained → update wagon. After EVERY gold transaction → log income. Consider a structured "State Changes:" block in AI output that the app parses.
