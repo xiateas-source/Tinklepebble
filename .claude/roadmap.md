@@ -17,7 +17,7 @@ Routine UI, copy, CSS, patch notes, roadmap updates, and dead code removal can p
 - Three stacked `:root` CSS blocks — LAST one wins (Block 3 at line 971). Block 1 (line 13) and Block 2 (line 341) are dead weight pending cleanup (see Architectural Refactor Plan)
 - `SAVE_VERSION=8`; `migrate(s)` patches loaded state — currently unconditional (no version gates); refactor to gated engine is in the plan
 - `renderAll()` is central render; `renderChat()` renders narrative chat
-- `callAI()` — no retry, no timeout, no abort (resilience refactor planned)
+- `callAI()` — AbortController + 25s timeout added (QW-8 ✅); full retry/fallback in Deep Refactor #4
 - AI contracts read from DOM via `document.getElementById()?.value` — fragile (contracts-to-state migration planned)
 
 ## Active Palette (dark, final :root block ~line 971)
@@ -55,20 +55,20 @@ These are correct, battle-tested, and carry high regression risk if touched:
 ## Architectural Refactor Plan (2026-06-14)
 *Full analysis performed by Claude acting as Principal Software Engineer/Systems Architect. Four phases: dead weight, resilience, performance, UI/UX.*
 
-### Quick Wins (high impact, low risk — no core engine changes)
+### Quick Wins (high impact, low risk — no core engine changes) — ALL DONE 2026-06-14
 
-| # | Change | Notes |
-|---|---|---|
-| QW-1 | Delete CSS Block 2 (lines 341–345) | Pure dead weight — 5 lines, zero risk |
-| QW-2 | Move `--sans`/`--mono`/`--serif` to Block 3, delete Block 1 (lines 13–33) | ⚠ Must move font vars BEFORE deleting Block 1 or UI breaks silently |
-| QW-3 | Make Compact the default ledger mode | Changes one select default — cuts per-turn token cost ~75% immediately |
-| QW-4 | Remove `storyThread` from `STATE_KEYS` | Stops wasteful Firebase sync of orphaned field |
-| QW-5 | Redirect `note:` QA action to append to `storyChapters[]` | ~10 lines; eliminates parallel write to dead field |
-| QW-6 | Group QA menu actions by category with dividers + pin top 3 | ~20 lines render-side; no architecture change |
-| QW-7 | Add count badge to World/Session/Wagon tabs (reuse party badge pattern) | ~20 lines; makes tab-flash quantitative |
-| QW-8 | Add `AbortController` + 25s timeout to `callAI()` | ~10 lines additive; eliminates infinite hang |
-| QW-9 | Rename `⚙ Systems` → `❓ Rules` and clean up OOC channel labels | ~5 lines copy change |
-| QW-10 | Reorder tab bar: AI DM first, move AI Tools/Dev/Setup to ⋮ menu | CSS reorder + menu items; play bar becomes 6 tabs |
+| # | Status | Change | Notes |
+|---|---|---|---|
+| QW-1 | ✅ | Delete CSS Block 2 (lines 341–345) | Pure dead weight — 5 lines, zero risk |
+| QW-2 | ✅ | Move `--sans`/`--mono`/`--serif` to Block 3, delete Block 1 (lines 13–33) | Font vars moved to Block 3 first, then Block 1 deleted |
+| QW-3 | ✅ | Make Compact the default ledger mode | select default + label text updated |
+| QW-4 | ✅ | `storyThread` confirmed never in STATE_KEYS; comment added | storyChapters already in its place |
+| QW-5 | ✅ | Redirect `note:` QA action to append to `storyChapters[]` "Field Notes" | eliminates parallel write to orphaned storyThread |
+| QW-6 | ✅ | QA menu grouped by category (Party & Combat / World & Story / AI & System) + ⭐ Pinned top 3 | pinned: Save Game, Roll & Submit, Context Refresh |
+| QW-7 | ✅ | Count badges on World/Session/Wagon tabs | `_tabBadgeCounts`, `flashTab()` increments, `showTab()` clears |
+| QW-8 | ✅ | `AbortController` + 25s timeout in `callAI()` | throws user-readable message on AbortError |
+| QW-9 | ✅ | `⚙ Systems` → `❓ Rules`; OOC channel labels updated | confirm dialog + placeholder text updated too |
+| QW-10 | ✅ | Tab bar reordered: AI DM first, AI Tools/Dev/Setup in ⋮ overflow menu | 6 play tabs always visible; overflow closes on outside-click |
 
 ### Deep Refactors (structural — execute in this order)
 
@@ -259,8 +259,9 @@ Open questions (answer before Drop 6):
 
 ## Dead Code
 - Theme editor block — REMOVED 2026-06-14 (63 lines deleted)
-- CSS Block 1 (lines 13–33) — dead palette, pending removal (QW-2, move font vars first)
-- CSS Block 2 (lines 341–345) — dead 5-line override, pending removal (QW-1)
+- CSS Block 1 (lines 13–33) — REMOVED 2026-06-14 (QW-2 ✅)
+- CSS Block 2 (lines 341–345) — REMOVED 2026-06-14 (QW-1 ✅)
+- `state.storyThread` — orphaned string field; pending v9 migrate gate deletion (Deep Refactor #2)
 
 
 ## Critical User Rule

@@ -10,27 +10,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  /* Autumn Corporate Steampunk palette */
-  --bg:#120d07;
-  --surface:#1c1510;
-  --surface2:#251b12;
-  --surface3:#2e2318;
-  --border:#3e2e1c;
-  --border-bright:#5c4430;
-  --gold:#b07030;--gold-dim:#6a3c12;--gold-bright:#c88038;
-  --red:#7a3220;--red-dim:#48180c;
-  --green:#425e48;--green-bright:#5e7e66;
-  --blue:#38586a;--blue-bright:#507282;
-  --purple:#524878;--purple-bright:#6e6892;
-  --text:#bfb09c;--text-dim:#726252;--text-bright:#ddd0b8;--cream:#ddd0b8;
-  --sans:'Inter','Segoe UI',system-ui,sans-serif;
-  --mono:'Share Tech Mono','Courier New',monospace;
-  --serif:'IM Fell English',Georgia,serif;
-  --display:'Cinzel',Georgia,serif;
-  --touch:52px;
-  --radius:6px;--radius-sm:4px;
-}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55;min-height:100vh;-webkit-text-size-adjust:100%;}
 ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:4px;}
@@ -61,6 +40,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 @media(prefers-reduced-motion:reduce){.tab-section.active{animation:none}}
 @keyframes tabFlash{0%,100%{box-shadow:none}40%{box-shadow:0 0 0 2px var(--gold),0 0 10px 1px rgba(200,160,106,.35)}}
 .tab-flash{animation:tabFlash .9s ease 2;}
+.tab-overflow-wrap{position:relative;margin-left:auto;flex-shrink:0;}
+#tab-overflow-menu{position:absolute;right:0;top:100%;background:var(--surface2);border:1px solid var(--border-bright);border-radius:var(--radius);z-index:300;min-width:130px;box-shadow:0 6px 24px rgba(0,0,0,.6);display:none;}
+#tab-overflow-menu .main-tab{display:block;width:100%;text-align:left;border-bottom:1px solid var(--border);border-radius:0;border-left:none;border-right:none;border-top:none;}
+#tab-overflow-menu .main-tab:last-child{border-bottom:none;}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;}
 .grid-1-2{display:grid;grid-template-columns:1fr 2fr;gap:14px;}
@@ -333,16 +316,6 @@ details.bs[open] summary::before{content:"\25BC  ";}
 .sp-charge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;}
 .sp-charge.ready{background:rgba(74,122,74,.2);color:var(--green-bright);border:1px solid var(--green);}
 .sp-charge.spent{background:rgba(192,74,58,.15);color:var(--red);border:1px solid var(--red-dim);}
-
-/* ══════════════════════════════════════════
-   AUTUMN CORPORATE STEAMPUNK — HAND-CRAFTED
-   ══════════════════════════════════════════ */
-
-:root{
-  --gold:#b07030;--gold-dim:#6a3c12;--gold-bright:#c88038;
-  --text-bright:#ddd0b8;
-  --display:'Cinzel',Georgia,serif;
-}
 
 body{font-size:16px;line-height:1.68;}
 
@@ -977,6 +950,9 @@ body{background-image:none;}
   --blue:#508070;--blue-bright:#6c8a80;
   --purple:#6a5870;--purple-bright:#8a7890;
   --text:#cbbba0;--text-dim:#8a7060;--text-bright:#f2efe9;--cream:#f2efe9;
+  --sans:'Inter','Segoe UI',system-ui,sans-serif;
+  --mono:'Share Tech Mono','Courier New',monospace;
+  --serif:'IM Fell English',Georgia,serif;
   --display:'Cinzel',Georgia,serif;
   --touch:52px;--radius:6px;--radius-sm:4px;
 }
@@ -1746,15 +1722,20 @@ button.fab{
 </div>
 
 <div class="main-tabs">
-  <button class="main-tab active" onclick="showTab('tab-party')">Party</button>
-  <button class="main-tab" onclick="showTab('tab-world')">World</button>
-  <button class="main-tab" onclick="showTab('tab-wagon')">Wagon</button>
-  <button class="main-tab" onclick="showTab('tab-combat')">Combat</button>
-  <button class="main-tab" onclick="showTab('tab-session')">Session</button>
-  <button class="main-tab" id="tab-btn-ait" onclick="showTab('tab-ait')">AI Tools</button>
   <button class="main-tab" onclick="showTab('tab-dm')">AI DM</button>
-  <button class="main-tab" onclick="showTab('tab-dev')" style="border-color:var(--gold);color:var(--gold)">Dev</button>
-  <button class="main-tab" onclick="showTab('tab-setup')" style="border-color:var(--purple-bright);color:var(--purple-bright)">Setup</button>
+  <button class="main-tab active" onclick="showTab('tab-party')">Party</button>
+  <button class="main-tab" onclick="showTab('tab-world')">World <span id="world-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
+  <button class="main-tab" onclick="showTab('tab-wagon')">Wagon <span id="wagon-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
+  <button class="main-tab" onclick="showTab('tab-combat')">Combat</button>
+  <button class="main-tab" onclick="showTab('tab-session')">Session <span id="session-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
+  <div class="tab-overflow-wrap">
+    <button class="main-tab" id="tab-overflow-btn" onclick="toggleTabOverflow()">⋮</button>
+    <div id="tab-overflow-menu">
+      <button class="main-tab" id="tab-btn-ait" onclick="showTab('tab-ait');closeTabOverflow()">AI Tools</button>
+      <button class="main-tab" onclick="showTab('tab-dev');closeTabOverflow()" style="border-bottom-color:var(--gold);color:var(--gold)">Dev</button>
+      <button class="main-tab" onclick="showTab('tab-setup');closeTabOverflow()" style="border-bottom-color:var(--purple-bright);color:var(--purple-bright)">Setup</button>
+    </div>
+  </div>
 </div>
 
 <!-- PARTY TAB -->
@@ -2345,11 +2326,11 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div class="panel-title">Ledger Settings</div>
         <div class="form-group"><label class="field-label">Context Format</label>
           <select id="ledger-fmt">
-            <option value="compact">Compact (~600 tokens) — recommended for mid-session</option>
-            <option value="full">Full (~2500 tokens) — use for Session Zero</option>
+            <option value="compact" selected>Compact (~600 tokens) — default for active play</option>
+            <option value="full">Full (~2500 tokens) — session start / resync only</option>
             <option value="combat">Combat Focus (~800 tokens)</option>
           </select>
-          <div style="font-size:10px;color:var(--text-dim);margin-top:3px">Compact: HP, conditions, resources, location, active combat only.</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:3px">Compact recommended during play. Switch to Full for Session Zero or major resync.</div>
         </div>
         <div class="form-group"><label class="field-label">Ledger Prefix</label><textarea id="ledger-prefix" style="min-height:50px">Before taking any action, confirm you have read this entire state ledger. Verify HP and active conditions for all PCs before proceeding.</textarea></div>
         <div class="btn-row" style="flex-direction:column;gap:6px">
@@ -2475,7 +2456,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         </div>
         <div class="chat-tab-row">
           <button class="chat-tab-btn active" id="chat-tab-narrative" onclick="showChatTab('narrative')">📖 Narrative</button>
-          <button class="chat-tab-btn" id="chat-tab-ooc" onclick="showChatTab('ooc')">⚙ Systems</button>
+          <button class="chat-tab-btn" id="chat-tab-ooc" onclick="showChatTab('ooc')">❓ Rules</button>
           <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party');clearPartyBadge()">🗨️ OOC <span id="party-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
         </div>
         <div id="chat-pane-narrative">
@@ -2526,7 +2507,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
             <div style="flex:1"><textarea id="ooc-input" style="min-height:52px;resize:none;margin:0;width:100%;padding:8px" placeholder="Ask OOC — rules questions, context checks (Enter to send)" onkeydown="oocKey(event)"></textarea></div>
             <button class="btn gold" id="ooc-send-btn" onclick="sendOOCMsg()" style="min-height:52px;padding:0 16px">Ask</button>
           </div>
-          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Rules questions, context checks, lore lookups. 1-3 sentence answers only.</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Rules questions, lore lookups, context checks. Brief answers only.</div>
         </div><!-- end chat-pane-ooc -->
         <div id="chat-pane-party" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:4px">
@@ -3023,6 +3004,7 @@ function showTab(id){
   document.getElementById(id)?.classList.add('active');
   const btn=Array.from(document.querySelectorAll('.main-tab')).find(b=>b.getAttribute('onclick')?.includes(id));
   if(btn)btn.classList.add('active');
+  clearTabBadge(id);
   renderQAMenu();
   // Reset session sub-tab state on every tab switch
   if(id==='tab-session'){
@@ -3404,14 +3386,21 @@ function syncWorld(){
 }
 function sw(k,v){state.worldData[k]=v;save();}
 // Flash a tab button to signal AI-triggered state change on that tab
+const _tabBadgeIds={'tab-world':'world-badge','tab-session':'session-badge','tab-wagon':'wagon-badge'};
+const _tabBadgeCounts={'tab-world':0,'tab-session':0,'tab-wagon':0};
 function flashTab(tabId){
-  if(tabId===currentTab)return; // already looking at it
+  if(tabId===currentTab)return;
   const btn=Array.from(document.querySelectorAll('.main-tab')).find(b=>b.getAttribute('onclick')?.includes("'"+tabId+"'"));
   if(!btn)return;
   btn.classList.remove('tab-flash');
-  void btn.offsetWidth; // force reflow so re-adding the class restarts animation
+  void btn.offsetWidth;
   btn.classList.add('tab-flash');
   setTimeout(()=>btn.classList.remove('tab-flash'),1800);
+  if(_tabBadgeIds[tabId]){_tabBadgeCounts[tabId]++;const b=document.getElementById(_tabBadgeIds[tabId]);if(b){b.textContent=_tabBadgeCounts[tabId];b.style.display='inline';}}
+}
+function clearTabBadge(tabId){
+  if(!_tabBadgeIds[tabId])return;
+  _tabBadgeCounts[tabId]=0;const b=document.getElementById(_tabBadgeIds[tabId]);if(b)b.style.display='none';
 }
 function quickSellItem(idx){
   const item=state.wagon.cargo[idx];if(!item)return;
@@ -4766,6 +4755,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
   'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters'];
+// Note: storyThread intentionally excluded — orphaned legacy field, pending deletion in v9 migrate gate
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -4917,11 +4907,14 @@ function toggleVis(id){const el=document.getElementById(id);if(el)el.type=el.typ
 // ═══ CORE AI CALL ═══
 async function callAI(messages,sysProm,maxTok=1400){
   const key=getKey();if(!key)throw new Error('No API key set.');
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),25000);
+  try{
   if(provider==='google'){
     const model=localStorage.getItem('tt_gm')||'gemini-2.5-flash-lite';
     const url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key;
     const body={system_instruction:{parts:[{text:sysProm}]},contents:messages.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]})),generationConfig:{maxOutputTokens:maxTok}};
-    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl.signal});
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error('Google AI '+res.status+': '+(e?.error?.message||res.statusText));}
     const data=await res.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text||'(No response)';
@@ -4931,12 +4924,17 @@ async function callAI(messages,sysProm,maxTok=1400){
     const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,'HTTP-Referer':window.location.href,'X-Title':"Tinkle's Tinctures"},
-      body:JSON.stringify({model,messages:[{role:'system',content:sysProm},...messages],max_tokens:maxTok})
+      body:JSON.stringify({model,messages:[{role:'system',content:sysProm},...messages],max_tokens:maxTok}),
+      signal:ctrl.signal
     });
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error('OpenRouter '+res.status+': '+(e?.error?.message||res.statusText));}
     const data=await res.json();
     return data.choices?.[0]?.message?.content||'(No response)';
   }
+  }catch(e){
+    if(e.name==='AbortError')throw new Error('AI request timed out after 25s. Check your connection and try again.');
+    throw e;
+  }finally{clearTimeout(timer);}
 }
 
 // ═══ SYSTEM PROMPT BUILDER ═══
@@ -5391,7 +5389,7 @@ function deleteChatMsg(idx){
   save();renderChat();
 }
 function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
-function clearChat(){if(confirm('Clear narrative chat and OOC channel? Log unaffected.')){state.chatHistory=[];state.oocHistory=[];showChatTab('narrative');saveRefresh();}}
+function clearChat(){if(confirm('Clear narrative chat and Rules channel? Log unaffected.')){state.chatHistory=[];state.oocHistory=[];showChatTab('narrative');saveRefresh();}}
 
 // ═══ CHAT TABS ═══
 let _activeTab='narrative';
@@ -5421,7 +5419,7 @@ function showChatTab(tab){
 function renderOOC(){
   const c=document.getElementById('ooc-msgs');if(!c)return;c.innerHTML='';
   if(!state.oocHistory||!state.oocHistory.length){
-    c.innerHTML='<div class="chat-msg sys"><div class="chat-msg-text" style="font-size:11px">OOC channel — rules questions, context checks, resync. Replies are 1-3 sentences only.</div></div>';
+    c.innerHTML='<div class="chat-msg sys"><div class="chat-msg-text" style="font-size:11px">❓ Rules — ask rules questions, check lore, or request a context resync. Brief answers only.</div></div>';
     return;
   }
   state.oocHistory.forEach(msg=>{
@@ -6196,13 +6194,22 @@ function renderQAMenu(){
   const actions=(state.quickActions||[]).filter(a=>(a.context||[]).includes(currentTab));
   menu.innerHTML='';
   if(!actions.length){menu.innerHTML='<div style="padding:10px 12px;font-size:11px;color:var(--text-dim)">No actions for this tab.<br>Add some in AI Tools → Quick Actions.</div>';return;}
-  actions.forEach(action=>{
-    const d=document.createElement('div');d.className='qa-item';
-    const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'⚡',roleplay_npc:'🗣',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',custom:'⚙'};
-    d.innerHTML=`<span class="qa-item-icon">${icons[action.type]||'⚡'}</span><span>${esc(action.label)}</span>`;
-    d.onclick=()=>{closeQAMenu();executeQA(action);};
-    menu.appendChild(d);
+  const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'⚡',roleplay_npc:'🗣',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',module_checkin:'📋',custom:'⚙'};
+  const PINNED=['qa_8','qa_13','qa_11'];
+  const CAT_MAP={'Party & Combat':['hp','condition_add','condition_clear','resource_use','shell_defense_toggle','combat_next','short_rest','roll_submit'],'World & Story':['time_advance','surroundings','town_rep','random_event','roleplay_npc','char_moment','send_scene','item_add_foraged','ox_feed','log_entry'],'AI & System':['context_refresh','context_refresh_btn','resync_ai','module_checkin','state_fix','save_game','custom']};
+  const mkItem=a=>{const d=document.createElement('div');d.className='qa-item';d.innerHTML=`<span class="qa-item-icon">${icons[a.type]||'⚡'}</span><span>${esc(a.label)}</span>`;d.onclick=()=>{closeQAMenu();executeQA(a);};return d;};
+  const mkDiv=lbl=>{const d=document.createElement('div');d.style.cssText='font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;padding:8px 14px 4px;background:var(--surface2)';d.textContent=lbl;return d;};
+  const pinned=actions.filter(a=>PINNED.includes(a.id));
+  const unpinned=actions.filter(a=>!PINNED.includes(a.id));
+  if(pinned.length){menu.appendChild(mkDiv('⭐ Pinned'));pinned.forEach(a=>menu.appendChild(mkItem(a)));}
+  const allCatTypes=Object.values(CAT_MAP).flat();
+  Object.entries(CAT_MAP).forEach(([cat,types])=>{
+    const grp=unpinned.filter(a=>types.includes(a.type));
+    if(!grp.length)return;
+    menu.appendChild(mkDiv(cat));grp.forEach(a=>menu.appendChild(mkItem(a)));
   });
+  const other=unpinned.filter(a=>!allCatTypes.includes(a.type));
+  if(other.length){menu.appendChild(mkDiv('Other'));other.forEach(a=>menu.appendChild(mkItem(a)));}
 }
 function executeQA(action){
   switch(action.type){
@@ -6499,9 +6506,12 @@ function applyStateFix(){
       saveRefresh();toast('✓ GP updated: '+td.gp);break;}
     case 'note':{
       const note=document.getElementById('sf-note')?.value;
-      if(note){state.storyThread=(state.storyThread||'')+(state.storyThread?'\n- ':'')+note;
-      const el=document.getElementById('story-thread');if(el)el.value=state.storyThread;
-      saveRefresh();toast('✓ Added to story thread');}break;}
+      if(note){
+        if(!Array.isArray(state.storyChapters))state.storyChapters=[];
+        const fieldNotes=state.storyChapters.find(c=>c.title==='Field Notes');
+        if(fieldNotes){fieldNotes.content+='\n- '+note;}
+        else{state.storyChapters.push({id:Date.now(),title:'Field Notes',content:'- '+note,date:state.worldData?.time||''});}
+        saveRefresh();toast('✓ Added to Field Notes');}break;}
   }
   closeQAModal();
 }
@@ -6588,7 +6598,15 @@ document.addEventListener('click',e=>{
   if(menu&&menu.style.display==='block'&&!menu.contains(e.target)&&e.target!==btn&&!btn?.contains(e.target)){
     menu.style.display='none';
   }
+  // Close tab overflow menu when tapping outside
+  const om=document.getElementById('tab-overflow-menu');
+  const ob=document.getElementById('tab-overflow-btn');
+  if(om&&om.style.display==='block'&&!om.contains(e.target)&&e.target!==ob&&!ob?.contains(e.target)){
+    om.style.display='none';
+  }
 });
+function toggleTabOverflow(){const m=document.getElementById('tab-overflow-menu');if(m)m.style.display=m.style.display==='block'?'none':'block';}
+function closeTabOverflow(){const m=document.getElementById('tab-overflow-menu');if(m)m.style.display='none';}
 
 // ═══ ERROR FLAGS ═══
 let _flagMsgIdx=-1;
@@ -6849,6 +6867,16 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.7',date:'June 2026',notes:[
+      'Tab bar reordered: AI DM first, play tabs visible without scrolling; AI Tools/Dev/Setup in ⋮ overflow menu',
+      '❓ Rules channel (renamed from ⚙ Systems) — clearer purpose label',
+      'QA menu grouped by category: Party & Combat / World & Story / AI & System; ⭐ Pinned: Save Game, Roll & Submit, Context Refresh',
+      'Count badges on World / Session / Wagon tabs — increments on each AI mechanic, clears on tab visit',
+      'Field Notes: Quick Log action now appends to storyChapters[] "Field Notes" chapter instead of orphaned storyThread',
+      'Story Chronicle chapter system (SAVE_VERSION 8): storyChapters[], chapter_add/chapter_update mechanics, ✨ Chapter button, legacy storyThread migration',
+      'AI request timeout: 25-second AbortController — no more infinite hangs; user-readable error on timeout',
+      'Ledger mode: Compact now default (~600 tokens); Full (~2500) for session start or resync only',
+    ]},
     {ver:'v1.6',date:'June 2026',notes:[
       '🎲 Roll & Submit button in header — one-tap from any tab',
       'World tab split into World State | Operations sub-tabs',
