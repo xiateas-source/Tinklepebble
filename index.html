@@ -3797,6 +3797,15 @@ function genLedger(){
   }
   if(state.combat.active){l+="\n━━━ ACTIVE COMBAT — ROUND "+state.combat.round+" ━━━\n";state.combat.list.forEach((c,i)=>l+=(i===state.combat.currentIdx?'>>> ':'')+c.val+' '+c.name+' HP:'+c.hp+' AC:'+c.ac+'\n');}
   const as=state.scenes?.[state.activeSceneIdx];if(as)l+="\n━━━ ACTIVE SCENE: "+as.name+" ━━━\n"+as.text+'\n';
+  if(Array.isArray(state.moduleProgress)&&state.moduleProgress.length){
+    const activeEp=state.moduleProgress.find(e=>e.status==='active');
+    const done=state.moduleProgress.filter(e=>e.status==='complete').length;
+    l+="\n━━━ CAMPAIGN PROGRESS ━━━\n";
+    l+="Module: "+(state.worldData.setting?.split('\n')[0]||'Hoard of the Dragon Queen')+"\n";
+    l+="Progress: "+done+"/"+state.moduleProgress.length+" episodes complete\n";
+    if(activeEp)l+="Current: "+activeEp.name+(activeEp.notes?' — '+activeEp.notes:'')+"\n";
+    state.moduleProgress.forEach((ep,i)=>{if(ep.status!=='pending')l+="  ["+(ep.status==='complete'?'✓':ep.status==='active'?'▶':' ')+"] Ep "+(i+1)+": "+ep.name+"\n";});
+  }
   l+="\n=== END LEDGER ===";
   // Extra sections: town rep, business profile, campaign secrets, relationships
   let extra='';
@@ -4721,6 +4730,7 @@ Rules:
 - town_rep: [town name], [good/neutral/burned/fled], [brief notes] — updates town reputation log
 - income: [amount], [category], [description] — logs business income (category: real_stock/snake_oil/reagents/overhead/emergency)
 - If a numeric value is estimated, append (est) — e.g. wagon_cell_add: Cave Bear, Large, hostile, DC18, 400 (est)
+- module_episode: N, active|complete — when the party enters a new story episode or completes one. N is the episode number. Auto-marks prior episodes complete when advancing. Output this whenever a major story chapter begins or ends
 - EVERY item found, foraged, bought, stolen, or acquired MUST have an item_add: line. No exceptions. If the player forages mushrooms, the mechanics block must include item_add even if you mentioned them in prose
 - NEVER generate JSON for the players to paste. ALL state updates go through the mechanics block only. Generating paste JSON will corrupt the game state
 - The ---END--- marker is REQUIRED. Every mechanics block must end with ---END--- on its own line. Without it the entire block is ignored and nothing saves
@@ -4908,6 +4918,15 @@ function parseMechanics(responseText){
           const m=part.trim().match(/^([^+]+)\+(\d+)$/);
           if(m){const pc=findPC(m[1].trim());if(pc){const amt=parseInt(m[2]);pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});const nxt=XP_T[Math.min(pc.level||1,19)];if(pc.xp>=nxt&&(pc.level||1)<20)changes.push({text:'⚠ '+pc.name+' can level up!'});}}
         });
+      }else if(key==='module_episode'){
+        const pts=val.split(',').map(p=>p.trim());
+        const epIdx=parseInt(pts[0])-1;const epStatus=(pts[1]||'active').toLowerCase();
+        if(!Array.isArray(state.moduleProgress))state.moduleProgress=[];
+        if(epIdx>=0&&epIdx<state.moduleProgress.length){
+          state.moduleProgress[epIdx].status=epStatus;
+          if(epStatus==='active'){for(let j=0;j<epIdx;j++){if(state.moduleProgress[j].status==='pending')state.moduleProgress[j].status='complete';}}
+          changes.push({text:'Episode '+(epIdx+1)+' → '+epStatus});
+        }
       }else if(key==='quest_done'){const q=state.quests.find(qu=>qu.text.toLowerCase().includes(val.toLowerCase()));if(q&&q.status!=='done'){q.status='done';changes.push({text:'Quest ✓: '+q.text.slice(0,30)});}}
       else if(key==='quest_add'){state.quests.push({text:val,done:false});changes.push({text:'New quest: '+val.slice(0,30)});}
       else if(key==='npc_mood'){const pts=val.split('=');const npc=state.npcs.find(n=>n.name.toLowerCase()===pts[0]?.trim().toLowerCase());if(npc&&pts[1]){npc.disposition=pts[1].trim();changes.push({text:npc.name+' → '+npc.disposition});}}
@@ -4929,7 +4948,7 @@ function parseMechanics(responseText){
   if(changes.length>0){
     save();
     renderCharTabs();renderCards();renderStatusMini();renderSheets();
-    renderNPCs();renderQuests();renderCombat();renderWagon();syncWorld();
+    renderNPCs();renderQuests();renderCombat();renderWagon();syncWorld();renderModuleTracker();
   }
   return changes.length>0?changes:null;
 }
