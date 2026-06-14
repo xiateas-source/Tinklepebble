@@ -2,11 +2,11 @@
 
 ## CSS Architecture
 
-**Root Palette:** Single `:root` block at line 12–32. **Dark steampunk palette active:**
-- Primary colors: `--gold:#b07030`, `--gold-dim:#6a3c12`, `--gold-bright:#c88038`
-- Surfaces: `--bg:#120d07`, `--surface:#1c1510`, `--surface2:#251b12`, `--surface3:#2e2318`
-- Text: `--text:#bfb09c`, `--text-dim:#726252`, `--text-bright:#ddd0b8`
-- Red: `#7a3220` (danger), Green: `#425e48`, Blue: `#38586a`, Purple: `#524878`
+**Root Palette:** Single `:root` block at line ~947. **Soft Autumn palette active (Visual Redesign v2, 2026-06-14):**
+- Cinnamon accent: `--gold:#b05830`, `--gold-dim:#70381a`, `--gold-bright:#d07845`
+- Surfaces: `--bg:#1a0c07`, `--surface:#2c1a10`, `--surface2:#3c2618`, `--surface3:#4c3222`
+- Text: `--text:#c4a88a`, `--text-dim:#8a6b50`, `--text-bright:#e8d9c4` (champagne beige)
+- Red: `#8b3a2a` (danger), Green/Sage: `#788a73`, Blue: `#608278`, Purple: `#7a6870`
 
 **Theme Mode Overrides:**
 - **Light Mode**: Body class `.light-mode` with warm beige palette (`--bg:#f0d3b6`)
@@ -133,10 +133,10 @@ Five steps via `showSetupStep()`:
 ```
 state = {
   pcs: [{
-    id, name, race, class, level, background, alignment,
+    id, name, race, class, subclass, level, background, alignment,
     hp, hp_max, ac, initiative, speed, passive_perception, passive_insight,
     xp, color (hex),
-    str, dex, con, int, wis, cha (all as "10 (+0)" format),
+    str, dex, con, int, wis, cha (stored as integer; modifier auto-computed in renderSheets()),
     skills, features, magic,
     resources: [{name, max, used, restore, desc}],
     conditions: [], slots: [{max, used}], inventory: [],
@@ -219,7 +219,7 @@ state = {
   wagonFilter: "all"|"supply"|"foraged"|"ingredient"|"trade"|"loot",
 
   quickActions: [{id, label, type, params, context: [tab list]}],
-  saveVersion: 10  // current; bump + migrate() gate for every structural change
+  saveVersion: 11  // current; bump + migrate() gate for every structural change
 }
 ```
 
@@ -235,15 +235,18 @@ Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model sele
 
 ## SAVE_VERSION & migrate()
 
-**Current Version:** `SAVE_VERSION = 10`
+**Current Version:** `SAVE_VERSION = 11`
 
 `migrate(s)` is version-gated (DR-1 ✅):
 - **Always-run structural guards** — null/array protection for all fields; includes `pc.levelReady = false` guard
 - **`if(savedVer<8)` gate** — moduleProgress init, dev flags, qa renames, tab ID remaps, storyChapters seed from storyThread, canonical contexts merge
 - **`if(savedVer<9)` gate** — campaignLaunched backfill (true if chatHistory exists)
-- **`if(savedVer<10)` gate** — canonical L3 character sync via `_patch(id, updates)` helper: Slasher→Fighter (Battle Master) L3 HP 39 with Action Surge+Superiority Dice resources; Tinkle→Rogue (Arcane Trickster) L3 HP 27 with 2 L1 slots; Pebble→Bard (College of Lore) L3 HP 30 with 4+2 slots + Cutting Words + corrected resources
+- **`if(savedVer<10)` gate** — canonical L3 character sync via `_patch(id, updates)` helper: Slasher→Fighter (Battle Master) L3 HP 39; Tinkle→Rogue (Arcane Trickster) L3 HP 27; Pebble→Bard (College of Lore) L3 HP 30
+- **`if(savedVer<11)` gate** — re-patches same L3 data clobbered by SHEET_FIELDS bug; does NOT reset current `hp` (preserves in-game damage); preserves slot `.used` counts
 - **Always-run canonical QA** — ensures all 23 QA actions present
 - **Always-run core defaults** — structural defaults for all new fields including prevSessionSummary, campaignLaunched
+
+**⚠ SHEET_FIELDS rule:** Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `resources`, `concentrating` to SHEET_FIELDS in `loadState()` or `fbStartListening()`. `migrate()` owns all level-dependent fields.
 
 ---
 

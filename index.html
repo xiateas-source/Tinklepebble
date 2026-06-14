@@ -945,14 +945,21 @@ body{background-image:none;}
    ════════════════════════════════════════════════════ */
 
 :root{
-  --bg:#2c1d1a;--surface:#3b2b24;--surface2:#4a3b39;--surface3:#5a4a46;
-  --border:#4a3530;--border-bright:#6a5048;
-  --gold:#c8a06a;--gold-dim:#8a6040;--gold-bright:#e8c898;
-  --red:#a85040;--red-dim:#6a3028;
-  --green:#5a7860;--green-bright:#8aa38b;
-  --blue:#508070;--blue-bright:#6c8a80;
-  --purple:#6a5870;--purple-bright:#8a7890;
-  --text:#cbbba0;--text-dim:#8a7060;--text-bright:#f2efe9;--cream:#f2efe9;
+  /* Soft Autumn — chocolate brown family, darkened for screens */
+  --bg:#1a0c07;--surface:#2c1a10;--surface2:#3c2618;--surface3:#4c3222;
+  --border:#4a2c1a;--border-bright:#6a4030;
+  /* Cinnamon accent (replaces gold) */
+  --gold:#b05830;--gold-dim:#70381a;--gold-bright:#d07845;
+  /* Danger: deep chocolate red */
+  --red:#8b3a2a;--red-dim:#5c2415;
+  /* Status: sage grey */
+  --green:#788a73;--green-bright:#9aab95;
+  /* Player messages: muted sage-teal */
+  --blue:#608278;--blue-bright:#7a9e93;
+  /* Magic / concentration */
+  --purple:#7a6870;--purple-bright:#9a8890;
+  /* Text: champagne + warm beige family */
+  --text:#c4a88a;--text-dim:#8a6b50;--text-bright:#e8d9c4;--cream:#e8d9c4;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
   --mono:'Share Tech Mono','Courier New',monospace;
   --serif:'IM Fell English',Georgia,serif;
@@ -3295,7 +3302,7 @@ function renderSheets(){
       <div class="fg"><label class="field-label">Pass. Insight</label><input type="number" value="${pc.passive_insight||10}" onchange="upd(${idx},'passive_insight',parseInt(this.value)||10)"></div>
     </div>
     <div class="stat-mini-row" style="margin-bottom:12px">
-      ${['str','dex','con','int','wis','cha'].map(s=>`<div><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${esc(pc[s]||'10 (+0)')}" onchange="upd(${idx},'${s}',this.value)"></div>`).join('')}
+      ${['str','dex','con','int','wis','cha'].map(s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);const ms=(m>=0?'+':'')+m;return`<div style="text-align:center"><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${n}" onchange="upd(${idx},'${s}',parseInt(this.value)||10)" style="text-align:center;font-size:15px;font-weight:600"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-top:3px;letter-spacing:.5px">${ms}</div></div>`;}).join('')}
     </div>
     <div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label><textarea id="sheet-skills-${idx}" onchange="upd(${idx},'skills',this.value)" style="min-height:60px"></textarea></div>
     <div class="form-group"><label class="field-label">Features, Feats &amp; Class Resources</label><textarea id="sheet-features-${idx}" onchange="upd(${idx},'features',this.value)" style="min-height:60px"></textarea></div>

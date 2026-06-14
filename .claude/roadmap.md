@@ -29,18 +29,22 @@ This fragment must survive every refactor. When contracts-to-state migration hap
 ## ⚠ SHEET_FIELDS Rule (permanent)
 Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `resources`, or `concentrating` to SHEET_FIELDS in `loadState()` or `fbStartListening()`. `migrate()` owns all level-dependent fields. `getCanonicalPCs()` reads from `state.pcs` which may be demo/Level-1 data on a fresh device.
 
-## Target Palette (Visual Redesign v2 — D&D Beyond / Demiplane)
+## Active Palette (Visual Redesign v2 — Soft Autumn, deployed 2026-06-14)
 ```
---bg-dark: #16100a        body
---bg-card: #231a10        panels / cards
---bg-card-light: #322619  nested surfaces
---accent-brass: #c19a6b   primary gold
---accent-copper: #b2533e  secondary / danger
---text-light: #f4ecd8
---text-muted: #a49683
---status-green: #5f8575
+--bg:#1a0c07        near-black chocolate
+--surface:#2c1a10   dark chocolate
+--surface2:#3c2618  medium chocolate
+--surface3:#4c3222  lighter chocolate
+--gold:#b05830      cinnamon — primary accent
+--gold-dim:#70381a
+--gold-bright:#d07845
+--red:#8b3a2a       deep chocolate red — danger
+--green:#788a73     sage grey — status / success
+--blue:#608278      muted sage-teal — player messages
+--text:#c4a88a      warm beige body text
+--text-bright:#e8d9c4  champagne beige — headings / bright text
 ```
-*(Current in-code palette is old dark theme — redesign in progress, see Visual Redesign v2 below)*
+*(Soft Autumn palette: chocolate bg + cinnamon accents + sage grey status + champagne text)*
 
 ---
 

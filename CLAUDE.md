@@ -24,18 +24,21 @@
 - `genLedger()` + `buildPrompt()` = build AI system prompt
 - `sendMsg()` = main chat send; `_ctxInject` = system prompt injection for next send only
 
-## Target Palette (Visual Redesign v2 — D&D Beyond / Demiplane style)
+## Active Palette (Visual Redesign v2 — Soft Autumn / D&D Beyond mobile)
 ```css
---bg-dark: #16100a;       /* body */
---bg-card: #231a10;       /* panels */
---bg-card-light: #322619; /* nested surfaces */
---accent-brass: #c19a6b;  /* primary gold */
---accent-copper: #b2533e; /* secondary / danger */
---text-light: #f4ecd8;
---text-muted: #a49683;
---status-green: #5f8575;
+--bg:#1a0c07;        /* near-black chocolate */
+--surface:#2c1a10;   /* dark chocolate */
+--surface2:#3c2618;  /* medium chocolate */
+--surface3:#4c3222;  /* lighter chocolate */
+--gold:#b05830;      /* cinnamon — primary accent */
+--gold-dim:#70381a;
+--gold-bright:#d07845;
+--red:#8b3a2a;       /* deep chocolate red — danger */
+--green:#788a73;     /* sage grey — status */
+--text:#c4a88a;      /* warm beige */
+--text-bright:#e8d9c4; /* champagne beige */
 ```
-*(Current in-code palette is old dark theme — redesign in progress)*
+*(Soft Autumn palette deployed 2026-06-14. Variable names unchanged — just values swapped.)*
 
 ## Architecture Warnings
 - Do NOT refactor Combat tab — Drop 4 replaces it entirely
