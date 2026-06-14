@@ -5,9 +5,10 @@
 - Ask for confirmation before: Firebase config changes, STATE_KEYS/SAVE_VERSION bumps, save() structure changes, breaking data model changes, refactors >50 lines
 
 ## Session Start Protocol
-1. Read `.claude/roadmap.md` — it is the source of truth for architecture, active palette, pending work, and completed items
-2. Resume from where the last session left off
-3. Work on branch `claude/plugins-installation-gikz6l` (never push to main without explicit instruction)
+1. Read `.claude/roadmap.md` — source of truth for architecture, active palette, pending work, completed items
+2. Read `.claude/prime-directive.md` when asked — project philosophy, character canon, AI contract history, VTT drops plan
+3. Resume from where the last session left off
+4. Work on branch `claude/plugins-installation-gikz6l` (never push to main without explicit instruction)
 
 ## Architecture
 - Single HTML file: `index.html` — all CSS, JS, HTML inline (~6900 lines)
