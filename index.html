@@ -6617,11 +6617,33 @@ function closeTabOverflow(){const m=document.getElementById('tab-overflow-menu')
 let _flagMsgIdx=-1;
 let _flagSelectedCat='';
 let _flagSectionCtx='';
+let _flagUICtx='';
+
+function _buildFlagUIContext(){
+  const TAB_NAMES={'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dm':'AI DM','tab-dev':'Dev','tab-setup':'Setup'};
+  const tab=typeof currentTab!=='undefined'?currentTab:'';
+  let label=TAB_NAMES[tab]||tab||'Unknown';
+  if(tab==='tab-dm'){
+    const ch=typeof _activeTab!=='undefined'?_activeTab:'narrative';
+    label+=' → '+({narrative:'Narrative',ooc:'Rules',party:'OOC chat'}[ch]||ch);
+  } else if(tab==='tab-world'){
+    const ops=document.getElementById('world-ops-panel');
+    label+=' → '+(ops&&ops.style.display!=='none'?'Operations':'World State');
+  } else if(tab==='tab-session'){
+    const mod=document.getElementById('sess-module-panel');
+    const prep=document.getElementById('sess-prep-panel');
+    if(mod&&mod.style.display!=='none')label+=' → Module';
+    else if(prep&&prep.style.display!=='none')label+=' → Between Sessions';
+    else label+=' → During Session';
+  }
+  return label;
+}
 
 function openFlagModal(msgIdx,sectionCtx){
   _flagMsgIdx=msgIdx;
   _flagSelectedCat='';
   _flagSectionCtx=sectionCtx||'';
+  _flagUICtx=_buildFlagUIContext();
   document.querySelectorAll('.flag-cat-btn').forEach(b=>b.classList.remove('selected'));
   const noteEl=document.getElementById('flag-note');
   if(noteEl)noteEl.value='';
@@ -6630,9 +6652,10 @@ function openFlagModal(msgIdx,sectionCtx){
     const loc=state.worldData?.location||'Unknown location';
     const time=state.worldData?.time||'';
     const inCombat=state.combat?.active;
-    let html='<strong>Location:</strong> '+esc(loc)+(time?' &nbsp;·&nbsp; <strong>Time:</strong> '+esc(time):'');
+    let html='<strong>Where:</strong> '+esc(_flagUICtx);
+    if(sectionCtx)html+=' · <em>'+esc(sectionCtx)+'</em>';
+    html+='<br><strong>Location:</strong> '+esc(loc)+(time?' &nbsp;·&nbsp; <strong>Time:</strong> '+esc(time):'');
     if(inCombat)html+=' &nbsp;·&nbsp; <strong>Combat:</strong> Round '+esc(String(state.combat.round||1));
-    if(sectionCtx)html+='<br><strong>Section:</strong> '+esc(sectionCtx);
     if(msgIdx>=0&&state.chatHistory[msgIdx]){
       const snippet=(state.chatHistory[msgIdx].content||'').slice(0,200);
       html+='<br><br><strong>Flagged message:</strong><br><em style="color:var(--text)">'+esc(snippet)+(snippet.length>=200?'…':'')+'</em>';
@@ -6663,6 +6686,7 @@ function submitFlag(){
     gameTs:state.worldData?.time||'',
     realTs:new Date().toISOString(),
     tab:typeof currentTab!=='undefined'?currentTab:'',
+    uiCtx:_flagUICtx||'',
     location:state.worldData?.location||'',
     sectionCtx:_flagSectionCtx||'',
     category:_flagSelectedCat,
@@ -6762,12 +6786,15 @@ function renderErrorLog(){
       '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin:4px 0;cursor:pointer" onclick="editFlagNote(\''+f.id+'\')" title="Tap to add note">Add note…</div>';
     const aiVerdictHtml=f.aiVerdict?
       '<div class="err-log-ai-verdict'+(verdict==='fail'?' fail-verdict':'')+'">🤖 '+esc(f.aiVerdict)+'</div>':'';
+    const whereLabel=f.uiCtx||(f.tab?({'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dm':'AI DM','tab-dev':'Dev','tab-setup':'Setup'}[f.tab]||f.tab):'');
+    const whereHtml=whereLabel?'<span style="font-size:10px;font-weight:600;color:var(--gold-dim);letter-spacing:.3px">📍 '+esc(whereLabel)+(f.sectionCtx?' · '+esc(f.sectionCtx):'')+'</span><br>':'';
+    const whenHtml=(f.location||f.gameTs||f.combatActive)?'<span style="font-size:10px;color:var(--text-dim)">'+esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+(f.combatActive?' · Combat R'+esc(String(f.combatRound||1)):'')+(!whereLabel&&f.sectionCtx?' · '+esc(f.sectionCtx):'')+'</span><br>':'';
     return '<div class="err-log-item '+vClass+'" id="flag-'+f.id+'">'+
       '<div class="err-log-header">'+
         '<span class="err-log-cat">'+cat.icon+'</span>'+
         '<div class="err-log-meta">'+
           '<strong style="color:var(--text)">'+cat.label+'</strong><br>'+
-          (f.sectionCtx?esc(f.sectionCtx)+' · ':'')+esc(f.location||'')+(f.gameTs?' · '+esc(f.gameTs):'')+(f.combatActive?' · Combat R'+esc(String(f.combatRound||1)):'')+
+          whereHtml+whenHtml+
         '</div>'+
         vBadge+
       '</div>'+
