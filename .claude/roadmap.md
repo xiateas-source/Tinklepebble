@@ -41,7 +41,7 @@
 - [x] Module tracker: Campaign Progress panel in Session → Module
 - [x] module_episode: mechanic — AI advances/completes episodes, UI updates live
 - [ ] Travel Log full rework (see Gameplay Issues #14) + merge with Town Reputation
-- [ ] Scroll controls: standardize top/bottom buttons across AI DM, Story Thread, OOC, system chats
+- [x] Scroll controls: ↑ Top / ↓ Bottom on Narrative, Story Thread, OOC, Party — all standardized
 - [ ] Session dividers / chapter markers in Story Thread
 - [ ] Quest model: hidden:false default field for player-visible quests
 
@@ -96,8 +96,8 @@ Open questions (answer before Drop 6):
 9. **Travel Log location** — Should move to Wagon tab (already planned in merge).
 10. **Session Summary readability** — DONE 2026-06-14. min-height 300px, font-size 13px.
 11. **Story Thread readability** — Partially done 2026-06-14 (min-height 380px, font-size 13px). Still needs: session/chapter dividers, scroll controls.
-12. **AI DM scroll buttons** — Need to match OOC and system chat scroll-to-top/bottom style.
-13. **Story Thread scroll buttons** — Add scroll to top/bottom.
+12. **AI DM scroll buttons** — DONE 2026-06-14. ↑ Top / ↓ Bottom row added above Narrative chat, matching OOC/Party style.
+13. **Story Thread scroll buttons** — DONE 2026-06-14. ↑ Top / ↓ Bottom in panel title bar.
 14. **Travel Log full rework** — Needs: visual map layer, day-progress pushable bar, higher placement in tab hierarchy. This is a significant feature (log as a separate note for Drop 4+).
 15. **Party chat → narrative ping** — When player sends message in party chat, ping/notify the AI DM narrative.
 16. **Message lock on new prompt** — Reading a message while someone else prompts closes out the open message. Must stay open until explicitly closed.
