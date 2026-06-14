@@ -188,7 +188,62 @@ These are correct, battle-tested, and carry high regression risk if touched:
 
 ## Phase 1 — Pre-Drop 4
 - [x] Context Refresh / Re-sync protocol rework — DONE 2026-06-14. Both now route to main narrative chat via _ctxInject system prompt injection.
+- [ ] Visual redesign — D&D Beyond / Demiplane mobile style (see Visual Redesign v2 below). CSS pass first, nav restructure second.
+- [ ] Character sheet swappable tabs (Attacks / Spells / Inventory / Features)
+- [ ] Auto-modifier calculation from ability scores
 - [ ] Vite migration (single file → component structure before Drop 4 adds complexity)
+
+## Visual Redesign v2 — D&D Beyond / Demiplane Mobile (2026-06-14)
+*Reference: ec66b7c1-Preview.html provided by user. Approach: CSS pass first, nav restructure second.*
+
+**Target Palette:**
+```
+--bg-dark: #16100a        (body background)
+--bg-card: #231a10        (cards / panels)
+--bg-card-light: #322619  (nested surfaces)
+--accent-brass: #c19a6b   (primary gold accent)
+--accent-copper: #b2533e  (secondary / danger)
+--text-light: #f4ecd8
+--text-muted: #a49683
+--status-green: #5f8575
+```
+
+**Key visual patterns:**
+- Cards: border-left 3px solid brass + border-radius 8px + drop shadow
+- Header: sticky, border-bottom 2px brass, HP vital badge + pulse-dot AI status
+- Bottom nav: 4 tabs replacing current 9-tab top bar
+- Chat bubbles: DM dark-left / player brass-right / roll result centered copper-dashed
+- Action pills: horizontal scroll row above chat input (replaces FAB menu)
+- D20 FAB: floating copper circle, right side, above bottom nav
+- Bottom sheets: border-top 3px brass, radius 16px 16px 0 0, slide-up animation
+
+**Tab mapping (9 → 4 bottom nav):**
+| Bottom Nav | Current tabs | Sub-nav preserved |
+|---|---|---|
+| Adventure | AI DM | Narrative / Rules / Party OOC |
+| Logistics | World + Wagon + Combat | World State / Ops / Wagon / Combat |
+| Sheet | Party | PC cards + edit sheets |
+| Systems | AI Tools + Session + Dev + Setup | existing sub-tabs |
+
+## Feature Backlog — Brainstorm (2026-06-14)
+*Inspired by D&D Beyond + Demiplane mobile UX. Prioritized by effort vs daily-use value.*
+
+### Near-term (fits current architecture)
+- **Sheet swappable tabs** — 4 internal tabs: Attacks, Spells, Inventory, Features. Replaces long scroll. Medium effort.
+- **Auto-modifier calculation** — Parse ability scores, compute saves/skill modifiers live. Low effort.
+- **Dice rolling in sheet** — Roll buttons on each stat/attack row, fires dice picker inline. Low effort.
+- **Chat term tooltips** — Underline D&D game terms in narrative (Prone, Sneak Attack, Concentration, etc.). Tap opens quick definition popup without leaving chat. ~200-term dictionary, regex pass on renderChat(), small popup. Medium effort. Unique feature not in any other VTT tool.
+- **Spell/inventory filter sliders** — Level, school, cost, type toggles. Extends wagon cargo filter pattern. Feeds Issue 21. Low-medium effort.
+
+### Medium-term (new systems)
+- **Character Builder wizard** — Guided: race → class → background → stats → skills → equipment. Reuses level-up wizard architecture. Medium effort.
+- **Offline Compendium snippets** — Curated rules in state.snippets (already exists), browseable + searchable. Conditions, spell descriptions, class features. Low-medium effort.
+
+### Long-term / Drop-level
+- **Maps** — Drop 4 (Zone combat map). Do NOT touch Combat tab until then.
+- **Full offline rulebook storage** — PDFs/epubs via IndexedDB + in-document search + tooltips. High effort; Drop 6-7.
+- **Full spell/item compendium** — Complete SRD with school/level/class/cost filtering. Needs data pipeline. High effort.
+
 
 ## VTT Drops
 - **Drop 4**: Zone combat map (replaces current Combat tab entirely — do NOT refactor Combat tab)
