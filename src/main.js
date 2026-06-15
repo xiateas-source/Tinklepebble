@@ -4515,29 +4515,31 @@ function closeQAMenu(){
   if(fab){fab.textContent=state.qaFabIcon||'⚡';fab.classList.remove('is-open');}
 }
 function renderQAMenu(){
-  const menu=document.getElementById('qa-menu-items');const title=document.getElementById('qa-menu-title');
-  if(!menu)return;
+  const body=document.getElementById('qa-menu-items');
+  const titleEl=document.getElementById('qa-menu-title');
+  if(!body)return;
   const tabLabels={'tab-party':'Party Actions','tab-world':'World Actions','tab-wagon':'Wagon Actions','tab-combat':'Combat Actions','tab-session':'Session Actions','tab-ait':'AI Tools Actions','tab-dm':'DM Actions'};
-  if(title)title.textContent=tabLabels[currentTab]||'Quick Actions';
+  if(titleEl)titleEl.textContent=tabLabels[currentTab]||'Quick Actions';
   const actions=(state.quickActions||[]).filter(a=>(a.context||[]).includes(currentTab));
-  menu.innerHTML='';
-  if(!actions.length){menu.innerHTML='<div style="padding:10px 12px;font-size:11px;color:var(--text-dim)">No actions for this tab.<br>Add some in AI Tools → Quick Actions.</div>';return;}
-  const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'⚡',roleplay_npc:'🗣',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',module_checkin:'📋',custom:'⚙'};
+  body.innerHTML='';
+  if(!actions.length){body.innerHTML='<div style="padding:20px;font-size:12px;color:var(--text-dim);text-align:center">No actions for this tab.<br><em style="font-size:11px">Add some in AI Tools → Quick Actions.</em></div>';return;}
+  const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘️',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'🎲',roleplay_npc:'🗣️',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',module_checkin:'📋',custom:'⚙️'};
   const PINNED=['qa_8','qa_13','qa_11'];
   const CAT_MAP={'Party & Combat':['hp','condition_add','condition_clear','resource_use','shell_defense_toggle','combat_next','short_rest','roll_submit'],'World & Story':['time_advance','surroundings','town_rep','random_event','roleplay_npc','char_moment','send_scene','item_add_foraged','ox_feed','log_entry'],'AI & System':['context_refresh','context_refresh_btn','resync_ai','module_checkin','state_fix','save_game','custom']};
-  const mkItem=a=>{const d=document.createElement('div');d.className='qa-item';d.innerHTML=`<span class="qa-item-icon">${icons[a.type]||'⚡'}</span><span>${esc(a.label)}</span>`;d.onclick=()=>{closeQAMenu();executeQA(a);};return d;};
-  const mkDiv=lbl=>{const d=document.createElement('div');d.style.cssText='font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;padding:8px 14px 4px;background:var(--surface2)';d.textContent=lbl;return d;};
+  const mkCard=a=>{const d=document.createElement('div');d.className='qa-card';d.innerHTML=`<span class="qa-card-icon">${icons[a.type]||'⚙️'}</span><span class="qa-card-label">${esc(a.label)}</span>`;d.onclick=()=>{closeQAMenu();executeQA(a);};return d;};
+  const mkCatLabel=lbl=>{const d=document.createElement('div');d.className='qa-cat-label';d.textContent=lbl;return d;};
+  const mkGrid=items=>{const g=document.createElement('div');g.className='qa-grid';items.forEach(a=>g.appendChild(mkCard(a)));return g;};
   const pinned=actions.filter(a=>PINNED.includes(a.id));
   const unpinned=actions.filter(a=>!PINNED.includes(a.id));
-  if(pinned.length){menu.appendChild(mkDiv('⭐ Pinned'));pinned.forEach(a=>menu.appendChild(mkItem(a)));}
+  if(pinned.length){body.appendChild(mkCatLabel('⭐ Pinned'));body.appendChild(mkGrid(pinned));}
   const allCatTypes=Object.values(CAT_MAP).flat();
   Object.entries(CAT_MAP).forEach(([cat,types])=>{
     const grp=unpinned.filter(a=>types.includes(a.type));
     if(!grp.length)return;
-    menu.appendChild(mkDiv(cat));grp.forEach(a=>menu.appendChild(mkItem(a)));
+    body.appendChild(mkCatLabel(cat));body.appendChild(mkGrid(grp));
   });
   const other=unpinned.filter(a=>!allCatTypes.includes(a.type));
-  if(other.length){menu.appendChild(mkDiv('Other'));other.forEach(a=>menu.appendChild(mkItem(a)));}
+  if(other.length){body.appendChild(mkCatLabel('Other'));body.appendChild(mkGrid(other));}
 }
 function executeQA(action){
   switch(action.type){
@@ -4707,6 +4709,8 @@ function closeQAModal(){document.getElementById('qa-modal').classList.remove('op
 // ═══ QUICK ACTIONS EDITOR (in AI Tools tab) ═══
 function renderQAEditor(){
   const c=document.getElementById('qa-editor-list');if(!c)return;
+  const fabInp=document.getElementById('qa-fab-icon-input');
+  if(fabInp)fabInp.value=state.qaFabIcon||'⚡';
   if(!(state.quickActions||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No quick actions defined.</div>';return;}
   const tabLabels={'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dm':'AI DM'};
   state.quickActions.forEach((action,i)=>{
@@ -4732,6 +4736,15 @@ function toggleQAContext(i,ctx,checked){
   save();
 }
 function remQA(i){state.quickActions.splice(i,1);save();renderQAEditor();}
+function updQAFabIcon(val){
+  state.qaFabIcon=val.trim()||'⚡';
+  save();
+  const fab=document.getElementById('qa-fab');
+  if(fab&&!fab.classList.contains('is-open'))fab.textContent=state.qaFabIcon;
+  const inp=document.getElementById('qa-fab-icon-input');
+  if(inp)inp.value=state.qaFabIcon;
+}
+function pickQAFabIcon(icon){updQAFabIcon(icon);}
 
 // ═══ LEDGER ADDITIONS — business profile, town rep, relationships ═══
 
@@ -6035,6 +6048,7 @@ Object.assign(window, {
   toggleSlot, toggleSuperpower, toggleTabOverflow, toggleThemeMode, toggleVis,
   triggerChk, uninstallPlugin, upd, updAtk, updCell, updCombHP, updFamiliar,
   updModuleEp, updNPC, updPI, updPcItem, updPreset, updQ, updQA, updRel,
+  updQAFabIcon, pickQAFabIcon,
   updResource, updScene, updSecret, updSlot, updSnip, updSpell, updTown,
   updWItem, updateCpMode, updateRollMod, updateStateFixForm, updateStoryThread,
   useResource, verifyElKey, renderSceneLabel, renderPartyPCList, toggleSkillProf,
