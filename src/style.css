@@ -1659,6 +1659,12 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
 .nav-btn-icon{font-size:18px;line-height:1;}
 .nav-btn-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
 .nav-btn.active{color:var(--gold);background:var(--surface2);}
+#drawer-subnav{display:none;flex-direction:row;background:var(--surface2);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+#drawer-subnav::-webkit-scrollbar{display:none;}
+.drawer-subnav-btn{flex:1;padding:9px 10px;font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;border:none;border-bottom:2px solid transparent;background:none;color:var(--text-dim);cursor:pointer;white-space:nowrap;min-height:36px;transition:color .15s,border-color .15s;font-family:var(--sans);margin-bottom:-1px;}
+.drawer-subnav-btn:hover{color:var(--text);}
+.drawer-subnav-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.nav-dot{position:absolute;top:6px;right:10px;width:6px;height:6px;border-radius:50%;background:var(--gold);display:none;}
 /* Step-target indicator in step bar */
 .step-target-label{font-size:10px;color:var(--text-dim);padding:3px 10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid var(--border);background:var(--surface2);}
 /* Condition picker select */

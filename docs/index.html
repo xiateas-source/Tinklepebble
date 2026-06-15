@@ -171,7 +171,7 @@
   </div>
 </div>
 
-<div class="main-tabs">
+<div class="main-tabs" style="display:none">
   <button class="main-tab" onclick="showTab('tab-dm')">AI DM</button>
   <button class="main-tab active" onclick="showTab('tab-party')">Party</button>
   <button class="main-tab" onclick="showTab('tab-world')">World <span id="world-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
@@ -1032,6 +1032,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
     <span class="drawer-hdr-title" id="drawer-title">Party</span>
     <button class="btn sm" onclick="closeDrawer()">✕ Close</button>
   </div>
+  <div id="drawer-subnav" style="display:none"></div>
   <div class="drawer-body" id="drawer-body"></div>
 </div>
 
@@ -1072,16 +1073,18 @@ When the party travels through wilderness, arrives at a new outdoor location, or
       <span class="nav-btn-lbl">AI DM</span>
     </button>
     <button class="nav-btn" id="nav-btn-party" onclick="navTo('party')">
-      <span class="nav-btn-icon">👥</span>
-      <span class="nav-btn-lbl">Party</span>
+      <span class="nav-btn-icon">📜</span>
+      <span class="nav-btn-lbl">Sheet</span>
     </button>
-    <button class="nav-btn" id="nav-btn-wagon" onclick="navTo('wagon')">
-      <span class="nav-btn-icon">🛒</span>
-      <span class="nav-btn-lbl">Wagon</span>
+    <button class="nav-btn" id="nav-btn-logistics" onclick="navTo('logistics')" style="position:relative">
+      <span class="nav-btn-icon">📦</span>
+      <span class="nav-btn-lbl">Logistics</span>
+      <span class="nav-dot" id="logistics-dot" style="display:none"></span>
     </button>
-    <button class="nav-btn" id="nav-btn-world" onclick="navTo('world')">
-      <span class="nav-btn-icon">🌍</span>
-      <span class="nav-btn-lbl">World</span>
+    <button class="nav-btn" id="nav-btn-systems" onclick="navTo('systems')" style="position:relative">
+      <span class="nav-btn-icon">⚙</span>
+      <span class="nav-btn-lbl">Systems</span>
+      <span class="nav-dot" id="systems-dot" style="display:none"></span>
     </button>
   </nav>
 </footer>
