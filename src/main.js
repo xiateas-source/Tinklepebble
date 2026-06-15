@@ -5381,6 +5381,28 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.12',date:'June 2026',notes:[
+      'Theme fix: --ivory variable was undefined, breaking stat values, dice results, and modal titles across all modes',
+      'Night mode readability overhaul — text, gold, and border values raised for legibility',
+      'Hybrid parchment light mode — warm #f5efe1 background with filigree panel borders',
+      'Flag export compact format — [category|verdict] note per line, drops emoji/location/labels (~70% shorter)',
+      'Bug fix: narrative chat scroll-freeze on tab switch — requestAnimationFrame scroll-to-bottom on showChatTab',
+      'Bug fix: QA FAB z-index raised so menu no longer appears behind the dock',
+      'Bug fix: QA menu stuck open — closeQAMenu() called on showTab() and openDrawer()',
+      'Bug fix: flag save button untappable — modal z-index 1600, iOS safe-area padding added',
+      'Cantrips sub-tab (Level 0) added to Spellbook filter',
+      'Quest entries expand/collapse inline via <details> — tap to reveal full detail',
+      'Cargo/inventory multi-category filter — comma-separated item types now match across tags',
+      'Dice picker buttons now open full Roll & Submit sheet (char select, modifier, send to chat)',
+      'Context strip above HP bar — shows location · scene title; swaps to combat round/combatant during fights',
+      'Spell descriptions added inline — tap row to expand full spell text',
+      'AI Contracts: Copy All button concatenates all 5 contract textareas to clipboard',
+      'Character sheet rework: 6-tab digital sheet (Core / Skills / Combat / Spells / Gear / Features)',
+      'Sheet lock/unlock — all fields read-only during play; deliberate unlock to edit; auto-locks on close',
+      'Hit Dice pip track — tap to spend (rolls die, heals, toasts result); tap spent pip to refund',
+      'Exhaustion 0–6 pip track, Temp HP field, Death Save hearts/skulls always interactive',
+      'Languages as tap chips with + Add in Features tab; Character Soul section (Personality/Ideals/Bonds/Flaws)',
+    ]},
     {ver:'v1.11',date:'June 2026',notes:[
       'DR-7: Rolling AI summary — at 75 messages, oldest 30 are auto-summarized in background and pruned',
       'Summary stored as prevSessionSummary and injected into every AI system prompt as "CAMPAIGN HISTORY"',
