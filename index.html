@@ -1616,7 +1616,7 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
 /* Drawer */
 .drawer-backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .22s;z-index:800;}
 .drawer-backdrop.is-open{opacity:1;pointer-events:auto;}
-.drawer-sheet{position:fixed;bottom:0;left:0;width:100vw;max-height:80vh;background:var(--surface);border-top:2px solid var(--gold-dim);border-radius:14px 14px 0 0;transform:translateY(100%);transition:transform .25s cubic-bezier(.1,.75,.55,1);z-index:900;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);}
+.drawer-sheet{position:fixed;bottom:0;left:0;width:100vw;max-height:90vh;background:var(--surface);border-top:2px solid var(--gold-dim);border-radius:14px 14px 0 0;transform:translateY(100%);transition:transform .25s cubic-bezier(.1,.75,.55,1);z-index:900;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);}
 .drawer-sheet.is-open{transform:translateY(0);}
 .drawer-handle{width:36px;height:4px;background:var(--border-bright);border-radius:2px;margin:10px auto 0;flex-shrink:0;}
 .drawer-hdr{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;gap:8px;}
@@ -1643,6 +1643,14 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
 .nav-btn.active{color:var(--gold);background:var(--surface2);}
 /* Step-target indicator in step bar */
 .step-target-label{font-size:10px;color:var(--text-dim);padding:3px 10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid var(--border);background:var(--surface2);}
+/* Condition picker select */
+.mini-select{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-size:10px;padding:2px 4px;height:26px;cursor:pointer;max-width:160px;}
+/* Collapsible panel (details used as panel wrapper) */
+details.panel>summary,details.panel.accent>summary,details.panel.green>summary,details.panel.purple>summary{list-style:none;cursor:pointer;display:flex;align-items:center;}
+details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-webkit-details-marker,details.panel.green>summary::-webkit-details-marker,details.panel.purple>summary::-webkit-details-marker{display:none;}
+/* HP display as tap target */
+.hp-tap{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.hp-tap:active{opacity:.75;}
 
 </style>
 </head>
@@ -1820,15 +1828,15 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
 <!-- PARTY TAB -->
 <div id="tab-party" class="tab-section active">
   <div class="party-grid" id="party-cards"></div>
-  <div class="panel">
-    <div class="panel-title">Character Editor <button class="btn sm green" style="margin-left:auto" onclick="addNewChar()">+ Add Character</button></div>
-    <div id="char-tabs" style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;"></div>
+  <details class="panel" id="char-editor-details" open>
+    <summary class="panel-title">Character Editor <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addNewChar()">+ Add</button></summary>
+    <div id="char-tabs" style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;margin-top:10px"></div>
     <div id="edit-sheets"></div>
-  </div>
-  <div class="panel" style="margin-top:12px">
-    <div class="panel-title">Party Shared Inventory <button class="btn sm green" style="margin-left:auto" onclick="addPartyItem()">+ Add Item</button></div>
-    <div id="party-inv"></div>
-  </div>
+  </details>
+  <details class="panel" style="margin-top:12px">
+    <summary class="panel-title">Party Shared Inventory <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addPartyItem()">+ Add</button></summary>
+    <div id="party-inv" style="margin-top:8px"></div>
+  </details>
   <div class="panel purple" id="superpowers-panel" style="display:none;margin-top:12px">
     <div class="panel-title" style="color:var(--purple-bright)">Superpowers <span style="font-size:9px;background:#1a0a2a;color:var(--purple);border:1px solid var(--purple);border-radius:8px;padding:2px 7px;margin-left:6px">superpowers@1.0.0</span></div>
     <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Each character's signature superpower — a class-defining combo move. Activate to mark as spent; reset on Short or Long Rest.</p>
@@ -1920,29 +1928,29 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
       <div class="form-group"><label class="field-label">Active Plot Threads</label><textarea id="w_plot" style="min-height:100px" oninput="sw('plot',this.value)"></textarea></div>
       <div class="form-group"><label class="field-label">Pending Timers</label><textarea id="w_timers" style="min-height:70px" oninput="sw('timers',this.value)"></textarea></div>
     </div>
-    <div class="panel accent">
-      <div class="panel-title">Campaign Secrets
-        <button class="btn sm green" style="margin-left:auto" onclick="addCampaignSecret()">+ Add</button>
-      </div>
-      <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">DM-only plot threads. The AI references these for character moments and story hooks.</p>
+    <details class="panel accent">
+      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Campaign Secrets
+        <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addCampaignSecret()">+ Add</button>
+      </summary>
+      <p style="font-size:11px;color:var(--text-dim);margin:8px 0">DM-only plot threads. The AI references these for character moments and story hooks.</p>
       <div id="campaign-secrets-list"></div>
-    </div>
-    <div class="panel green">
-      <div class="panel-title">Town Reputation Log
-        <button class="btn sm green" style="margin-left:auto" onclick="addTownRep()">+ Add Town</button>
-      </div>
-      <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Track which towns have been visited and whether it's safe to return. The AI will not suggest returning to burned towns.</p>
+    </details>
+    <details class="panel green">
+      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Town Reputation Log
+        <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addTownRep()">+ Add Town</button>
+      </summary>
+      <p style="font-size:11px;color:var(--text-dim);margin:8px 0">Track which towns have been visited and whether it's safe to return. The AI will not suggest returning to burned towns.</p>
       <div id="town-rep-list"></div>
-    </div>
-    <div class="panel purple">
-      <div class="panel-title">Business Profile — Tinkle's Tinctures</div>
+    </details>
+    <details class="panel purple">
+      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Business Profile — Tinkle's Tinctures</summary>
       <div class="form-group"><label class="field-label">Wagon Name</label><input type="text" id="bp_wagonName" oninput="saveBP('wagaonName',this.value)" placeholder="The Shelled Alchemist"></div>
       <div class="form-group"><label class="field-label">Real Stock (functional products)</label><textarea id="bp_realStock" style="min-height:50px" oninput="saveBP('realStock',this.value)" placeholder="Genuine healing potions, quality reagents..."></textarea></div>
       <div class="form-group"><label class="field-label">Snake Oil (the main product line)</label><textarea id="bp_snakeOil" style="min-height:50px" oninput="saveBP('snakeOil',this.value)" placeholder="Miracle cures, vitality tonics, cure-alls..."></textarea></div>
       <div class="form-group"><label class="field-label">Reagents (sold to apothecaries)</label><textarea id="bp_reagents" style="min-height:40px" oninput="saveBP('reagents',this.value)"></textarea></div>
       <div class="form-group"><label class="field-label">Current Reputation</label><input type="text" id="bp_reputation" oninput="saveBP('reputation',this.value)" placeholder="Unknown — new operation"></div>
       <div class="form-group"><label class="field-label">Notes</label><textarea id="bp_notes" style="min-height:40px" oninput="saveBP('notes',this.value)"></textarea></div>
-    </div>
+    </details>
   </div>
 </div>
 
@@ -1963,13 +1971,15 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
           <div class="fg"><label class="field-label">Feed Status</label><select id="ox-feed" onchange="state.wagon.ox.feed=this.value;save()"><option value="fed">Fed</option><option value="hungry">Hungry</option><option value="starving">Starving</option></select></div>
         </div>
         <div style="font-size:11px;color:var(--text-dim)">STR 18 — Pull capacity: <strong style="color:var(--gold)">1,080 lb</strong> (5e RAW) | HP 15 AC 11</div>
-        <hr style="border:none;border-top:1px solid var(--border);margin:10px 0">
-        <div class="form-group"><label class="field-label">Backstory</label><textarea id="ox-backstory" style="min-height:50px;font-size:11px" oninput="state.wagon.ox.backstory=this.value;save()" placeholder="Raised from a calf by Tinkle..."></textarea></div>
-        <div class="form-group"><label class="field-label">Personality &amp; Quirks</label><textarea id="ox-personality" style="min-height:50px;font-size:11px" oninput="state.wagon.ox.personality=this.value;save()"></textarea></div>
-        <div class="form-group"><label class="field-label">Bond — Tinkle</label><input type="text" id="ox-bond-tinkle" style="font-size:11px" oninput="state.wagon.ox.bonds.tinkle=this.value;save()"></div>
-        <div class="form-group"><label class="field-label">Bond — Pebble</label><input type="text" id="ox-bond-pebble" style="font-size:11px" oninput="state.wagon.ox.bonds.pebble=this.value;save()"></div>
-        <div class="form-group"><label class="field-label">Bond — Slasher</label><input type="text" id="ox-bond-slasher" style="font-size:11px" oninput="state.wagon.ox.bonds.slasher=this.value;save()"></div>
-        <div class="form-group"><label class="field-label">Experiment Log Reference</label><input type="text" id="ox-exp-log" style="font-size:11px" oninput="state.wagon.ox.experimentLog=this.value;save()" placeholder="Vol. 3 (current)..."></div>
+        <details style="margin-top:8px">
+          <summary style="font-size:10px;color:var(--text-dim);cursor:pointer;list-style:none;padding:4px 0;min-height:28px;display:flex;align-items:center">▶ Backstory &amp; Bonds</summary>
+          <div class="form-group" style="margin-top:6px"><label class="field-label">Backstory</label><textarea id="ox-backstory" style="min-height:50px;font-size:11px" oninput="state.wagon.ox.backstory=this.value;save()" placeholder="Raised from a calf by Tinkle..."></textarea></div>
+          <div class="form-group"><label class="field-label">Personality &amp; Quirks</label><textarea id="ox-personality" style="min-height:50px;font-size:11px" oninput="state.wagon.ox.personality=this.value;save()"></textarea></div>
+          <div class="form-group"><label class="field-label">Bond — Tinkle</label><input type="text" id="ox-bond-tinkle" style="font-size:11px" oninput="state.wagon.ox.bonds.tinkle=this.value;save()"></div>
+          <div class="form-group"><label class="field-label">Bond — Pebble</label><input type="text" id="ox-bond-pebble" style="font-size:11px" oninput="state.wagon.ox.bonds.pebble=this.value;save()"></div>
+          <div class="form-group"><label class="field-label">Bond — Slasher</label><input type="text" id="ox-bond-slasher" style="font-size:11px" oninput="state.wagon.ox.bonds.slasher=this.value;save()"></div>
+          <div class="form-group"><label class="field-label">Experiment Log Reference</label><input type="text" id="ox-exp-log" style="font-size:11px" oninput="state.wagon.ox.experimentLog=this.value;save()" placeholder="Vol. 3 (current)..."></div>
+        </details>
       </div>
       <div class="panel">
         <div class="panel-title">Cargo Capacity</div>
@@ -1996,11 +2006,11 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
         </div>
         <div id="wagon-cargo"></div>
       </div>
-      <div class="panel purple">
-        <div class="panel-title">Pebble's Hoard <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('hoard','hoard')">+ Add</button></div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">"Mine." — Pebble</p>
+      <details class="panel purple">
+        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Pebble's Hoard <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addWagonItem('hoard','hoard')">+ Add</button></summary>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px;margin-top:6px">"Mine." — Pebble</p>
         <div id="wagon-hoard"></div>
-      </div>
+      </details>
       <div class="panel">
         <div class="panel-title">Travel Log</div>
         <div id="travel-log-visual" style="padding:4px 0;max-height:280px;overflow-y:auto"></div>
@@ -3332,11 +3342,13 @@ function renderCards(){
     }
     let slotHtml='';
     if((pc.slots||[]).length){slotHtml='<div class="spell-slots">';(pc.slots||[]).forEach((s,si)=>{if(!s||typeof s.max!=='number')return;slotHtml+=`<div class="slot-level"><div class="sl-label">${SPELL_LVLS[si]}</div><div class="slot-pips">`;for(let i=0;i<s.max;i++)slotHtml+=`<span class="slot-pip ${i<(s.used||0)?'used':''}" onclick="toggleSlot(${idx},${si},${i})"></span>`;slotHtml+='</div></div>';});slotHtml+='</div>';}
-    let condHtml='<div class="conditions-row">';
     const pcConds=pc.conditions||[];
     const concSpell=pc.concentrating||'';
     const concBadge=concSpell?`<div style="margin-top:4px;font-size:10px;color:var(--purple-bright);display:flex;align-items:center;gap:4px"><span>⬤ Concentrating:</span><span style="color:var(--text)">${esc(concSpell)}</span><button onclick="upd(${idx},'concentrating','')" style="font-size:9px;padding:1px 4px;background:none;border:1px solid var(--purple);color:var(--purple-bright);cursor:pointer;border-radius:2px;margin-left:4px">end</button></div>`:'';
-    ALL_CONDS.forEach(c2=>{condHtml+=`<span class="cond-chip ${pcConds.includes(c2)?'active':''}" onclick="toggleCond(${idx},'${c2}')">${c2}</span>`;});
+    // Only show active conditions; compact add-picker replaces the full chip grid
+    let condHtml='<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:4px 0">';
+    pcConds.forEach(c2=>{condHtml+=`<span class="cond-chip active" onclick="toggleCond(${idx},'${c2}')" title="Tap to remove">${c2} ✕</span>`;});
+    condHtml+=`<select class="mini-select" onchange="addCondFromPicker(${idx},this)"><option value="">＋ condition…</option>${ALL_CONDS.map(c2=>`<option value="${c2}">${c2}</option>`).join('')}</select>`;
     condHtml+='</div>';
     const prof=Math.floor(((lvl)-1)/4)+2;
     const statMod=s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);return(m>=0?'+':'')+m;};
@@ -3349,8 +3361,8 @@ function renderCards(){
       </div>
       <div class="pc-card-body">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-          <div class="hp-display">${pc.hp} <span class="hp-max">/ ${pc.hp_max} HP</span></div>
-          <div style="display:flex;gap:4px"><input type="number" id="hpamt-${idx}" style="width:55px;text-align:center;padding:4px" placeholder="Amt"><button class="btn sm green" onclick="adjHP(${idx},true)">+</button><button class="btn sm red" onclick="adjHP(${idx},false)">−</button></div>
+          <div class="hp-display hp-tap" onclick="setStepTarget('pc',${idx})" title="Tap to target with step bar">${pc.hp} <span class="hp-max">/ ${pc.hp_max} HP</span></div>
+          <div style="display:flex;gap:4px"><input type="number" id="hpamt-${idx}" style="width:48px;text-align:center;padding:3px;font-size:11px" placeholder="Amt"><button class="btn sm green" onclick="adjHP(${idx},true)" style="padding:3px 7px;min-height:26px;font-size:11px">+</button><button class="btn sm red" onclick="adjHP(${idx},false)" style="padding:3px 7px;min-height:26px;font-size:11px">−</button></div>
         </div>
         <div class="hp-bar-wrap"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
         ${pc.levelReady?'<div onclick="openLevelUpWizard('+idx+')" style="font-size:11px;font-weight:700;color:var(--bg);background:var(--gold);border-radius:var(--radius-sm);padding:5px 10px;margin-bottom:6px;cursor:pointer;text-align:center">⬆ Ready for Level '+(lvl+1)+'! Tap to level up (after Long Rest)</div>':''}
@@ -5447,7 +5459,6 @@ function pcShortRest(idx){
 function pcLongRest(idx){
   const pc=state.pcs[idx];if(!pc)return;
   pc.hp=pc.hp_max;
-  pc.hp_current=pc.hp_max;
   (pc.resources||[]).forEach(r=>{r.used=0;});
   (pc.slots||[]).forEach(s=>{if(s)s.used=0;});
   if(pc.conditions)pc.conditions=pc.conditions.filter(c=>c!=='Exhausted');
@@ -5458,6 +5469,14 @@ function pcLongRest(idx){
 function toggleCond(idx,cond){
   const pc=state.pcs[idx];if(!pc)return;if(!Array.isArray(pc.conditions))pc.conditions=[];const i=pc.conditions.indexOf(cond);
   if(i>-1)pc.conditions.splice(i,1);else pc.conditions.push(cond);
+  saveRefresh();
+}
+function addCondFromPicker(idx,sel){
+  const cond=sel.value;if(!cond)return;
+  const pc=state.pcs[idx];if(!pc)return;
+  if(!Array.isArray(pc.conditions))pc.conditions=[];
+  if(!pc.conditions.includes(cond))pc.conditions.push(cond);
+  sel.value='';
   saveRefresh();
 }
 function toggleSlot(idx,li,pi){
@@ -8020,7 +8039,7 @@ function renderHUD(){
   mosaic.innerHTML='';
   const pcs=state.pcs||[];
   pcs.forEach((pc,i)=>{
-    const hp=parseInt(pc.hp_current)||0;
+    const hp=parseInt(pc.hp)||0;
     const max=parseInt(pc.hp_max)||1;
     const pct=Math.max(0,Math.min(100,(hp/max)*100));
     const sparkCls=pct<20?'danger':pct<55?'warn':'ok';
@@ -8058,7 +8077,7 @@ function setStepTarget(type,idx){
     const pc=state.pcs[idx];
     // Update step label
     const lbl=document.getElementById('step-target-label');
-    if(lbl){lbl.style.display='block';lbl.textContent='Target: '+(pc?.name||'PC')+' HP ('+( parseInt(pc?.hp_current)||0)+'/'+(parseInt(pc?.hp_max)||1)+')';}
+    if(lbl){lbl.style.display='block';lbl.textContent='Target: '+(pc?.name||'PC')+' HP ('+( parseInt(pc?.hp)||0)+'/'+(parseInt(pc?.hp_max)||1)+')';}
   } else if(type==='gp'){
     if(gpEl)gpEl.classList.add('active-target');
     const lbl=document.getElementById('step-target-label');
@@ -8073,10 +8092,10 @@ function executeStep(delta){
   if(t.type==='pc'){
     const pc=state.pcs[t.idx];
     if(!pc)return;
-    let hp=(parseInt(pc.hp_current)||0)+delta;
+    let hp=(parseInt(pc.hp)||0)+delta;
     const max=parseInt(pc.hp_max)||1;
     hp=Math.max(0,Math.min(max,hp));
-    pc.hp_current=hp;
+    pc.hp=hp;
     const lbl=document.getElementById('step-target-label');
     if(lbl)lbl.textContent='Target: '+(pc.name||'PC')+' HP ('+hp+'/'+max+')';
     renderHUD();
