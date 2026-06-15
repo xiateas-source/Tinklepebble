@@ -112,6 +112,7 @@ input[type=checkbox]{width:auto;accent-color:var(--gold);}
 .stat-mini{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;padding:5px 2px;}
 .stat-mini .s-name{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;display:block;font-weight:500;}
 .stat-mini .s-val{font-size:12px;font-weight:600;color:var(--gold);display:block;margin-top:1px;}
+.stat-mini .s-mod{font-size:10px;font-weight:700;color:var(--gold-bright);display:block;margin-top:0;line-height:1.1;}
 .conditions-row{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0;}
 .cond-chip{padding:5px 11px;border:1px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:var(--surface2);color:var(--text-dim);user-select:none;-webkit-tap-highlight-color:transparent;min-height:34px;display:inline-flex;align-items:center;font-weight:500;transition:all .15s;}
 .cond-chip.active{background:rgba(192,74,58,.2);border-color:var(--red);color:#ff9090;}
@@ -3337,6 +3338,8 @@ function renderCards(){
     const concBadge=concSpell?`<div style="margin-top:4px;font-size:10px;color:var(--purple-bright);display:flex;align-items:center;gap:4px"><span>⬤ Concentrating:</span><span style="color:var(--text)">${esc(concSpell)}</span><button onclick="upd(${idx},'concentrating','')" style="font-size:9px;padding:1px 4px;background:none;border:1px solid var(--purple);color:var(--purple-bright);cursor:pointer;border-radius:2px;margin-left:4px">end</button></div>`:'';
     ALL_CONDS.forEach(c2=>{condHtml+=`<span class="cond-chip ${pcConds.includes(c2)?'active':''}" onclick="toggleCond(${idx},'${c2}')">${c2}</span>`;});
     condHtml+='</div>';
+    const prof=Math.floor(((lvl)-1)/4)+2;
+    const statMod=s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);return(m>=0?'+':'')+m;};
     const card=document.createElement('div');
     card.className='pc-card';card.style.borderColor=pc.color||'var(--border)';
     card.innerHTML=`
@@ -3352,15 +3355,14 @@ function renderCards(){
         <div class="hp-bar-wrap"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
         ${pc.levelReady?'<div onclick="openLevelUpWizard('+idx+')" style="font-size:11px;font-weight:700;color:var(--bg);background:var(--gold);border-radius:var(--radius-sm);padding:5px 10px;margin-bottom:6px;cursor:pointer;text-align:center">⬆ Ready for Level '+(lvl+1)+'! Tap to level up (after Long Rest)</div>':''}
         <div class="stat-mini-row">
-          <div class="stat-mini"><span class="s-name">STR</span><span class="s-val">${(pc.str||'').split(' ')[0]}</span></div>
-          <div class="stat-mini"><span class="s-name">DEX</span><span class="s-val">${(pc.dex||'').split(' ')[0]}</span></div>
-          <div class="stat-mini"><span class="s-name">CON</span><span class="s-val">${(pc.con||'').split(' ')[0]}</span></div>
-          <div class="stat-mini"><span class="s-name">INT</span><span class="s-val">${(pc.int||'').split(' ')[0]}</span></div>
-          <div class="stat-mini"><span class="s-name">WIS</span><span class="s-val">${(pc.wis||'').split(' ')[0]}</span></div>
-          <div class="stat-mini"><span class="s-name">CHA</span><span class="s-val">${(pc.cha||'').split(' ')[0]}</span></div>
+          ${['str','dex','con','int','wis','cha'].map(s=>`<div class="stat-mini"><span class="s-name">${s.toUpperCase()}</span><span class="s-val">${parseInt(pc[s])||10}</span><span class="s-mod">${statMod(s)}</span></div>`).join('')}
         </div>
-        <div style="font-size:11px;color:var(--text-bright);margin-bottom:4px"><b>AC:</b>${pc.ac} <b>Init:</b>+${pc.initiative} <b>Spd:</b>${pc.speed}ft <b>PP:</b>${pc.passive_perception}</div>
+        <div style="font-size:11px;color:var(--text-bright);margin-bottom:4px"><b>AC:</b>${pc.ac} <b>Init:</b>${(parseInt(pc.initiative)||0)>=0?'+':''}${parseInt(pc.initiative)||0} <b>Spd:</b>${pc.speed}ft <b>PP:</b>${pc.passive_perception} <b>Prof:</b>+${prof}</div>
         ${resourceHtml}${slotHtml}${condHtml}${concBadge}
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn sm" onclick="pcShortRest(${idx})" style="flex:1;font-size:11px">💤 Short Rest</button>
+          <button class="btn sm gold" onclick="pcLongRest(${idx})" style="flex:1;font-size:11px">🌙 Long Rest</button>
+        </div>
         <details style="margin-top:6px"><summary style="font-size:10px;color:var(--text-dim);cursor:pointer;list-style:none;padding:4px 0;min-height:28px;display:flex;align-items:center">▶ Inventory (${(pc.inventory||[]).length})</summary>
           <div id="pc-inv-${idx}" style="margin-top:6px"></div>
           <button class="btn sm green" style="margin-top:4px" onclick="addPcItem(${idx})">+ Add Item</button>
@@ -3430,7 +3432,17 @@ function renderSheets(){
       ${['Skills','Features','Spells','Spellbook','Gear'].map((t,i)=>`<button onclick="setSheetTab(${i})" style="flex:1;padding:8px 4px;font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;border:none;border-bottom:2px solid ${i===_pcSheetTab?'var(--gold)':'transparent'};background:none;color:${i===_pcSheetTab?'var(--gold)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans);min-height:36px;transition:color .15s">${t}</button>`).join('')}
     </div>
     ${_pcSheetTab===0?`
-    <div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label><textarea id="sheet-skills-${idx}" onchange="upd(${idx},'skills',this.value)" style="min-height:120px"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+      ${(()=>{
+        const prof=Math.floor(((pc.level||1)-1)/4)+2;
+        const mod=s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);return(m>=0?'+':'')+m;};
+        const saves=[['STR Save',mod('str')],['DEX Save',mod('dex')],['CON Save',mod('con')],['INT Save',mod('int')],['WIS Save',mod('wis')],['CHA Save',mod('cha')]];
+        const checks=[['Athletics',mod('str')],['Acrobatics',mod('dex')],['Stealth',mod('dex')],['Perception',mod('wis')],['Insight',mod('wis')],['Persuasion',mod('cha')],['Deception',mod('cha')],['Intimidation',mod('cha')],['Arcana',mod('int')],['History',mod('int')],['Investigation',mod('int')],['Medicine',mod('wis')],['Nature',mod('int')],['Religion',mod('int')],['Animal Handling',mod('wis')],['Survival',mod('wis')],['Performance',mod('cha')],['Sleight of Hand',mod('dex')]];
+        return `<div><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-weight:600">Ability Saves (base)</div>${saves.map(([n,m])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-dim)">${n}</span><span style="color:var(--gold);font-weight:700">${m}</span></div>`).join('')}<div style="font-size:9px;color:var(--text-dim);margin-top:6px">Prof bonus: <b style="color:var(--gold)">+${prof}</b> at Lv${pc.level||1}</div></div>
+        <div><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-weight:600">Skill Checks (base)</div>${checks.map(([n,m])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text-dim)">${n}</span><span style="color:var(--text-bright);font-weight:600">${m}</span></div>`).join('')}</div>`;
+      })()}
+    </div>
+    <div class="form-group"><label class="field-label">Proficiencies &amp; Notes</label><textarea id="sheet-skills-${idx}" onchange="upd(${idx},'skills',this.value)" style="min-height:100px"></textarea></div>
     `:''}
     ${_pcSheetTab===1?`
     <div class="form-group"><label class="field-label">Features, Feats &amp; Class Resources</label><textarea id="sheet-features-${idx}" onchange="upd(${idx},'features',this.value)" style="min-height:120px"></textarea></div>
@@ -5351,6 +5363,24 @@ function adjHP(idx,isHeal){
   inp.value='';
   if(!isHeal&&pc.hp===0&&document.getElementById('auto-down')?.checked)triggerChk('PC Down: '+pc.name);
   saveRefresh();
+}
+function pcShortRest(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  let recharged=0;
+  (pc.resources||[]).forEach(r=>{if(r.restore==='short'&&r.used>0){r.used=0;recharged++;}});
+  saveRefresh();
+  toast((pc.name||'PC')+': Short Rest — '+(recharged?recharged+' abilit'+(recharged===1?'y':'ies')+' recharged':'nothing recharged'));
+}
+function pcLongRest(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  pc.hp=pc.hp_max;
+  pc.hp_current=pc.hp_max;
+  (pc.resources||[]).forEach(r=>{r.used=0;});
+  (pc.slots||[]).forEach(s=>{if(s)s.used=0;});
+  if(pc.conditions)pc.conditions=pc.conditions.filter(c=>c!=='Exhausted');
+  pc.concentrating='';
+  saveRefresh();renderHUD();
+  toast('🌙 '+(pc.name||'PC')+': Long Rest — fully restored');
 }
 function toggleCond(idx,cond){
   const pc=state.pcs[idx];if(!pc)return;if(!Array.isArray(pc.conditions))pc.conditions=[];const i=pc.conditions.indexOf(cond);
