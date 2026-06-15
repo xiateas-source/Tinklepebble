@@ -39,7 +39,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 @media(max-width:900px){.grid-2,.grid-2-1,.grid-1-2{grid-template-columns:1fr;}.tab-section{padding:12px;padding-bottom:100px;}}
 
 /* ── PANELS ── */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;}
 .panel-title{font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--sans);}
 .panel.accent{border-color:var(--gold-dim);}
 .panel.danger{border-color:var(--red-dim);}
@@ -371,8 +371,8 @@ body{font-size:16px;line-height:1.68;}
   text-transform:none;letter-spacing:.3px;
   color:var(--gold-bright);
   background:linear-gradient(90deg,rgba(200,120,64,.13) 0%,transparent 68%);
-  margin:-14px -14px 14px;
-  padding:12px 14px 11px;
+  margin:-10px -12px 10px;
+  padding:9px 12px 8px;
   border-radius:var(--radius) var(--radius) 0 0;
   border-bottom:1px solid var(--border-bright);
   text-shadow:0 0 20px rgba(200,120,64,.5),0 1px 2px rgba(0,0,0,.75);
@@ -927,7 +927,7 @@ body{background-image:none;}
 .dash-flag-cat-icon{font-size:16px;display:block;}
 .dash-flag-cat-count{font-family:var(--mono);font-size:15px;color:var(--gold);}
 /* ── OOC CHANNEL ── */
-.chat-tab-row{display:flex;gap:0;border-bottom:1px solid var(--border);margin:-14px -14px 12px;padding:0 14px;}
+.chat-tab-row{display:flex;gap:0;border-bottom:1px solid var(--border);margin:-10px -12px 12px;padding:0 12px;}
 .chat-tab-btn{padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;transition:color .15s,border-color .15s;min-height:36px;-webkit-tap-highlight-color:transparent;}
 .chat-tab-btn:hover{color:var(--text);}
 .chat-tab-btn.active{color:var(--gold-bright);border-bottom-color:var(--gold);}

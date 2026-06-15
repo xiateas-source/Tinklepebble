@@ -190,9 +190,13 @@
 
 <!-- PARTY TAB -->
 <div id="tab-party" class="tab-section active">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px">
+    <span style="font-size:10px;color:var(--text-dim);letter-spacing:.3px">Tap a card to open character sheet</span>
+    <button class="btn sm green" onclick="addNewChar()" style="flex-shrink:0">+ Add</button>
+  </div>
   <div id="party-pc-list" style="margin-bottom:12px"></div>
-  <details class="panel" id="char-editor-details" open>
-    <summary class="panel-title">Character Editor <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addNewChar()">+ Add</button></summary>
+  <details class="panel" id="char-editor-details">
+    <summary class="panel-title">✎ Advanced Editor <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addNewChar()">+ Add</button></summary>
     <div id="char-tabs" style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;margin-top:10px"></div>
     <div id="edit-sheets"></div>
   </details>
