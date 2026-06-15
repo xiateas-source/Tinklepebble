@@ -621,6 +621,7 @@ function completeSetup(){
 // ═══ TABS ═══
 function showTab(id){
   currentTab=id;
+  closeQAMenu();
   // New interface: non-DM tabs open in drawer
   if(id==='tab-dm'){closeDrawer();return;}
   if(typeof _DRAWER_TABS!=='undefined'&&_DRAWER_TABS.includes(id)){
@@ -3639,6 +3640,10 @@ function showChatTab(tab){
     if(pane)pane.style.display=(t===tab)?'block':'none';
     if(btn)btn.classList.toggle('active',t===tab);
   });
+  if(tab==='narrative'){
+    const cm=document.getElementById('chat-msgs');
+    if(cm)requestAnimationFrame(()=>{cm.scrollTop=cm.scrollHeight;});
+  }
 }
 function renderOOC(){
   const c=document.getElementById('ooc-msgs');if(!c)return;c.innerHTML='';
@@ -5919,6 +5924,7 @@ function executeStep(delta){
 }
 
 function openDrawer(tabId){
+  closeQAMenu();
   const drawerBody=document.getElementById('drawer-body');
   if(!drawerBody)return;
   // Move all known drawer tabs into drawer-body if not already there
