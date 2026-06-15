@@ -122,9 +122,9 @@ function fbInit(config){
     updFbStatus(true);
     return true;
   }catch(e){
-    toast('Firebase error: '+e.message);
+    toast('⚠ Firebase unavailable — running in local-only mode');
     var errEl=document.getElementById('fb-error');
-    if(errEl){errEl.textContent='Firebase error: '+e.message;errEl.style.display='block';}
+    if(errEl){errEl.textContent='Firebase unavailable — local-only mode ('+e.message+')';errEl.style.display='block';}
     fbEnabled=false;updFbStatus(false);return false;
   }
 }
@@ -5814,6 +5814,8 @@ function closeDrawer(){
   ['log','party','wagon','world'].forEach(k=>{
     document.getElementById('nav-btn-'+k)?.classList.toggle('active',k==='log');
   });
+  currentTab='tab-dm';
+  renderQAMenu();
 }
 
 function navTo(key){
