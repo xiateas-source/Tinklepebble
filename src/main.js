@@ -1112,10 +1112,18 @@ function updatePremiseUI(){
 // ═══ NPCs ═══
 function renderNPCs(){
   const c=document.getElementById('npc-list');if(!c)return;c.innerHTML='';
-  state.npcs.forEach((n,idx)=>{
+  const sorted=[...state.npcs.map((n,i)=>({n,i}))].sort((a,b)=>{
+    const rank=s=>s==='deceased'?2:s==='departed'?1:0;
+    return rank(a.n.status)-rank(b.n.status);
+  });
+  const DISPS=['Friendly','Neutral','Hostile','Ally','Enemy','Unknown'];
+  sorted.forEach(({n,i:idx})=>{
+    const dead=n.status==='deceased'||n.status==='departed';
     const d=document.createElement('div');
     d.className='npc-row'+(n.status==='deceased'?' deceased':'');
-    d.innerHTML=`<input type="text" style="flex:1;min-width:70px;font-size:11px" value="${esc(n.name)}" placeholder="Name" onchange="updNPC(${idx},'name',this.value)"><input type="text" style="width:76px;font-size:11px" value="${esc(n.disposition||'')}" placeholder="Disposition" onchange="updNPC(${idx},'disposition',this.value)"><input type="number" style="width:48px;font-size:11px;text-align:center" value="${n.hp||0}" title="Current HP" onchange="updNPC(${idx},'hp',parseInt(this.value)||0)"><input type="text" style="flex:2;min-width:80px;font-size:11px" value="${esc(n.details||'')}" placeholder="Details / Conditions" onchange="updNPC(${idx},'details',this.value)"><select style="width:82px;font-size:11px;padding:4px" onchange="updNPC(${idx},'status',this.value)"><option value="active" ${n.status!=='deceased'&&n.status!=='departed'?'selected':''}>Active</option><option value="deceased" ${n.status==='deceased'?'selected':''}>Deceased</option><option value="departed" ${n.status==='departed'?'selected':''}>Departed</option></select><button class="btn sm red icon-btn" onclick="remNPC(${idx})">&times;</button>`;
+    d.style.opacity=dead?'0.55':'1';
+    const dispCol=n.disposition==='Friendly'||n.disposition==='Ally'?'var(--green)':n.disposition==='Hostile'||n.disposition==='Enemy'?'var(--red)':'var(--text-dim)';
+    d.innerHTML=`<input type="text" style="flex:1;min-width:70px;font-size:11px;${dead?'text-decoration:line-through':''}" value="${esc(n.name)}" placeholder="Name" onchange="updNPC(${idx},'name',this.value)"><select style="width:82px;font-size:10px;padding:3px 4px;border-color:${dispCol};color:${dispCol}" onchange="updNPC(${idx},'disposition',this.value)">${DISPS.map(d2=>`<option value="${d2}" ${n.disposition===d2?'selected':''}>${d2}</option>`).join('')}</select><input type="number" style="width:42px;font-size:11px;text-align:center" value="${n.hp||0}" title="HP" onchange="updNPC(${idx},'hp',parseInt(this.value)||0)"><input type="text" style="flex:2;min-width:80px;font-size:11px" value="${esc(n.details||'')}" placeholder="Details" onchange="updNPC(${idx},'details',this.value)"><select style="width:76px;font-size:10px;padding:3px 4px" onchange="updNPC(${idx},'status',this.value)"><option value="active" ${!dead?'selected':''}>Active</option><option value="deceased" ${n.status==='deceased'?'selected':''}>Deceased</option><option value="departed" ${n.status==='departed'?'selected':''}>Departed</option></select><button class="btn sm red icon-btn" onclick="remNPC(${idx})">&times;</button>`;
     c.appendChild(d);
   });
 }
@@ -1126,11 +1134,19 @@ function remNPC(i){state.npcs.splice(i,1);saveRefresh();}
 // ═══ QUESTS ═══
 function renderQuests(){
   const c=document.getElementById('quest-list');if(!c)return;c.innerHTML='';
-  state.quests.forEach((q,idx)=>{
-    const d=document.createElement('div');d.style.cssText='display:flex;gap:8px;margin-bottom:6px;align-items:center';
+  const sorted=[...state.quests.map((q,i)=>({q,i}))].sort((a,b)=>{
+    const rank=s=>s==='active'?0:s==='failed'?1:2;
+    return rank(a.q.status)-rank(b.q.status);
+  });
+  if(!sorted.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No quests. Tap + Quest.</div>';return;}
+  const active=state.quests.filter(q=>q.status==='active').length;
+  if(active){const h=document.createElement('div');h.style.cssText='font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px';h.textContent='⬤ '+active+' Active';c.appendChild(h);}
+  sorted.forEach(({q,i:idx})=>{
+    const d=document.createElement('div');d.style.cssText='display:flex;gap:6px;margin-bottom:5px;align-items:center';
     const qst=q.status||'active';
     const qcol=qst==='done'?'var(--text-dim)':qst==='failed'?'var(--red)':'var(--green)';
-    d.innerHTML=`<select style="width:82px;font-size:10px;padding:3px 4px;border-color:${qcol};color:${qcol}" onchange="updQ(${idx},'status',this.value)"><option value="active" ${qst==='active'?'selected':''}>🟢 Active</option><option value="done" ${qst==='done'?'selected':''}>✓ Done</option><option value="failed" ${qst==='failed'?'selected':''}>✗ Failed</option></select><input type="text" style="flex:1;font-size:12px;${qst==='done'?'text-decoration:line-through;color:var(--text-dim)':qst==='failed'?'color:var(--red-dim)':''}" value="${esc(q.text)}" onchange="updQ(${idx},'text',this.value)"><button class="btn sm red icon-btn" onclick="remQ(${idx})">&times;</button>`;
+    const hiddenStyle=q.hidden?'opacity:.55':'';
+    d.innerHTML=`<select style="width:78px;font-size:10px;padding:3px 4px;border-color:${qcol};color:${qcol}" onchange="updQ(${idx},'status',this.value)"><option value="active" ${qst==='active'?'selected':''}>🟢 Active</option><option value="done" ${qst==='done'?'selected':''}>✓ Done</option><option value="failed" ${qst==='failed'?'selected':''}>✗ Failed</option></select><input type="text" style="flex:1;font-size:12px;${qst==='done'?'text-decoration:line-through;color:var(--text-dim)':qst==='failed'?'color:var(--text-dim)':''};${hiddenStyle}" value="${esc(q.text)}" onchange="updQ(${idx},'text',this.value)"><button title="${q.hidden?'Reveal quest':'Hide from players'}" onclick="updQ(${idx},'hidden',${!q.hidden})" style="font-size:11px;padding:2px 5px;background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:${q.hidden?'var(--gold)':'var(--text-dim)'}">${q.hidden?'👁':'👁'}</button><button class="btn sm red icon-btn" onclick="remQ(${idx})">&times;</button>`;
     c.appendChild(d);
   });
 }
