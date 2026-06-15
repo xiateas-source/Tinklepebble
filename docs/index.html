@@ -1044,19 +1044,6 @@ When the party travels through wilderness, arrives at a new outdoor location, or
   </div>
   <button onclick="openStepConfig()" title="Configure HP steps" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:13px;color:var(--text-dim);cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent">⚙</button>
   </div>
-  <div id="dock-dice-panel" style="display:none;flex-wrap:wrap;gap:4px;padding:7px 10px;background:var(--bg);border-bottom:1px solid var(--border)">
-    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;width:100%">
-      <button class="btn sm gold" onclick="quickRoll(4,'dock-dice-mod','dock-dice-result')" style="min-width:32px;padding:4px 6px">d4</button>
-      <button class="btn sm gold" onclick="quickRoll(6,'dock-dice-mod','dock-dice-result')" style="min-width:32px;padding:4px 6px">d6</button>
-      <button class="btn sm gold" onclick="quickRoll(8,'dock-dice-mod','dock-dice-result')" style="min-width:32px;padding:4px 6px">d8</button>
-      <button class="btn sm gold" onclick="quickRoll(10,'dock-dice-mod','dock-dice-result')" style="min-width:34px;padding:4px 6px">d10</button>
-      <button class="btn sm gold" onclick="quickRoll(12,'dock-dice-mod','dock-dice-result')" style="min-width:34px;padding:4px 6px">d12</button>
-      <button class="btn sm gold" onclick="quickRoll(20,'dock-dice-mod','dock-dice-result')" style="min-width:34px;padding:4px 6px">d20</button>
-      <button class="btn sm gold" onclick="quickRoll(100,'dock-dice-mod','dock-dice-result')" style="min-width:36px;padding:4px 6px">d%</button>
-      <input type="number" id="dock-dice-mod" placeholder="+0" style="width:44px;padding:3px 4px;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px" title="Modifier">
-    </div>
-    <div id="dock-dice-result" style="width:100%;text-align:center;font-family:var(--mono);font-size:16px;font-weight:bold;min-height:20px;margin-top:2px;color:var(--text-bright)"></div>
-  </div>
   <div class="chat-quick-bar">
     <button class="btn sm" onclick="justSave()" title="Save game" style="padding:5px 9px;min-height:36px;flex-shrink:0">💾</button>
     <button class="btn sm" onclick="openRollSheet()" title="Roll & Submit" id="dice-picker-btn" style="padding:5px 9px;min-height:36px;flex-shrink:0">🎲</button>

@@ -2703,6 +2703,8 @@ function migrate(s){
     if(pc.levelReady===undefined)pc.levelReady=false;
     if(!Array.isArray(pc.spellbook))pc.spellbook=[];
     if(pc.familiar===undefined)pc.familiar=null;
+    if(!pc.death_saves)pc.death_saves={successes:0,failures:0};
+    if(pc.inspiration===undefined)pc.inspiration=false;
     // Seed Tinkle's rat familiar (Find Familiar active per Contract 2)
     if(pc.name==='Tinkle'&&!pc.familiar){
       pc.familiar={name:'Pip',type:'Rat (Find Familiar)',hp:1,hp_max:1,ac:10,speed:'20 ft.',
@@ -3345,6 +3347,18 @@ function parseMechanics(responseText){
           }
         }
       }
+      else if(key==='death_save'){
+        // Format: PCname|success OR PCname|failure
+        const [pcn,result]=(val||'').split('|').map(s=>s.trim());
+        const dpc=state.pcs.find(p=>p.name.toLowerCase().includes((pcn||'').toLowerCase()));
+        if(dpc){
+          if(!dpc.death_saves)dpc.death_saves={successes:0,failures:0};
+          const isSuccess=/success/i.test(result||'');
+          if(isSuccess){dpc.death_saves.successes=Math.min(3,dpc.death_saves.successes+1);if(dpc.death_saves.successes>=3){dpc.hp=1;dpc.death_saves={successes:0,failures:0};mechToast('⬤ '+esc(dpc.name)+' stabilized!','green');}}
+          else{dpc.death_saves.failures=Math.min(3,dpc.death_saves.failures+1);if(dpc.death_saves.failures>=3){dpc.death_saves={successes:0,failures:0};mechToast('💀 '+esc(dpc.name)+' has died.','red');}}
+          changes.push({text:dpc.name+' death save: '+(isSuccess?'success':'failure')});
+        }
+      }
       else if(key==='pc_update'){
         const pts=val.split(',').map(p=>p.trim());const pc=findPC(pts[0]);const field=pts[1];const nv=pts.slice(2).join(',');
         const fields=['name','race','class','level','background','alignment','initiative','speed','passive_perception','passive_insight','xp','str','dex','con','int','wis','cha','skills','features','magic','backstory_origin','backstory_motivation','backstory_secret','ac','hp_max'];
@@ -3467,6 +3481,59 @@ function confirmLedgerChip(amt,dir){
   setTimeout(()=>{if(chip.isConnected)close();},12000);
 }
 function findPC(name){if(!name)return null;return state.pcs.find(p=>p.id===name||p.name.toLowerCase()===name.toLowerCase());}
+
+// ═══ AI COMPLIANCE CHIPS — NPC + ITEM ═══
+function _showChip(icon,label,borderColor,onConfirm){
+  let c=document.getElementById('mech-toast');
+  if(!c){c=document.createElement('div');c.id='mech-toast';c.style.cssText='position:fixed;right:12px;bottom:96px;z-index:9998;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none;max-width:80vw';document.body.appendChild(c);}
+  const chip=document.createElement('div');
+  chip.style.cssText='pointer-events:auto;display:flex;align-items:center;gap:8px;font-size:12px;background:var(--surface2);color:var(--text-bright);border:1px solid '+borderColor+';border-left:3px solid '+borderColor+';border-radius:3px;padding:6px 8px 6px 10px;box-shadow:0 2px 10px rgba(0,0,0,.5);opacity:0;transform:translateX(14px);transition:opacity .25s ease,transform .25s ease';
+  const txt=document.createElement('span');txt.textContent=icon+' '+label;
+  const yes=document.createElement('button');yes.textContent='✓';yes.style.cssText='cursor:pointer;border:none;border-radius:3px;background:'+borderColor+';color:var(--bg);font-weight:bold;padding:2px 9px;font-size:13px';
+  const no=document.createElement('button');no.textContent='✕';no.style.cssText='cursor:pointer;border:1px solid var(--border);border-radius:3px;background:transparent;color:var(--text-dim);padding:2px 8px;font-size:13px';
+  const close=()=>{chip.style.opacity='0';chip.style.transform='translateX(14px)';setTimeout(()=>chip.remove(),300);};
+  yes.onclick=()=>{onConfirm(txt,yes,no);setTimeout(close,1400);};
+  no.onclick=close;
+  chip.appendChild(txt);chip.appendChild(yes);chip.appendChild(no);
+  c.appendChild(chip);
+  setTimeout(()=>{chip.style.opacity='1';chip.style.transform='translateX(0)';},40);
+  setTimeout(()=>{if(chip.isConnected)close();},12000);
+}
+function detectUnloggedNPC(prose,changes){
+  if(!prose)return;
+  if((changes||[]).some(c=>/npc_add:/i.test(c.text||'')))return;
+  const m=prose.match(/\b(?:meet[s]?|encounter[s]?|introduce[sd]?|approach(?:es)?|enter[s]?)\b[^.!?]{0,60}?\b([A-Z][a-z]{2,18})\b/);
+  if(!m)return;
+  const name=(m[1]||'').trim();
+  if(!name||name.length<3)return;
+  const skip=new Set(['The','You','They','She','He','It','We','This','That','Your','His','Her','Its','Our','When','Then','After','Before','During','While','There','Here','With','From','Into','Upon','Down','Each','Some','Many','Most','More','Just','Even','Also','Very']);
+  if(skip.has(name))return;
+  if((state.npcs||[]).some(n=>(n.name||'').toLowerCase()===name.toLowerCase()))return;
+  _showChip('👤','Log "'+name+'" as NPC?','var(--blue)',
+    (txt,yes,no)=>{
+      if(!Array.isArray(state.npcs))state.npcs=[];
+      state.npcs.push({id:'npc_'+Date.now(),name,disposition:'Neutral',status:'active',notes:'',tags:[]});
+      saveRefresh();renderNPCs();
+      txt.textContent='✓ '+name+' logged';yes.remove();no.remove();
+    });
+}
+function detectUnloggedItem(prose,changes){
+  if(!prose)return;
+  if((changes||[]).some(c=>/item_add:/i.test(c.text||'')))return;
+  const m=prose.match(/\b(?:receive[sd]?|find[s]?|found|gain(?:ed|s)?|pick(?:ed)? up|hand(?:ed)?|award(?:ed)?|obtain(?:ed)?|acquire[sd]?)\b[^.!?]{0,50}?\b([A-Za-z][a-z]{2,}(?:\s[A-Za-z][a-z]+)?)\b/i);
+  if(!m)return;
+  const item=(m[1]||'').trim();
+  if(!item||item.length<3)return;
+  const skip=new Set(['you','the','his','her','its','our','your','their','some','this','that','from','into','with','more','just','also','when','then','after','before','during','while','there','here','each','both','many','most']);
+  if(skip.has(item.toLowerCase()))return;
+  _showChip('📦','Log "'+item+'" to inventory?','var(--gold)',
+    (txt,yes,no)=>{
+      if(!Array.isArray(state.partyInventory))state.partyInventory=[];
+      state.partyInventory.push({name:item,qty:1,type:'misc',notes:'',ts:state.worldData.time});
+      saveRefresh();
+      txt.textContent='✓ '+item+' added';yes.remove();no.remove();
+    });
+}
 
 // ═══ OFFLINE CACHE ═══
 const CKEY='tt_cache';
@@ -3822,6 +3889,8 @@ async function sendMsg(){
     .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
     .trim();
     detectUnloggedGold(displayText,mechanics);
+    detectUnloggedNPC(displayText,mechanics);
+    detectUnloggedItem(displayText,mechanics);
     cacheResp(text,displayText);
     if(localStorage.getItem('tt_tts_auto')==='1'&&typeof speechSynthesis!=='undefined')speak(displayText);
     state.chatHistory.push({role:'assistant',content:displayText,mechanics,ts,realTs:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
@@ -4528,7 +4597,7 @@ function renderQAMenu(){
   flagCard.innerHTML='<span class="qa-card-icon">⚑</span><span class="qa-card-label">Flag This Moment</span>';
   flagCard.onclick=()=>{closeQAMenu();openFlagModal(-1,'');};
   body.appendChild(flagCard);
-  if(!actions.length){body.innerHTML='<div style="padding:20px;font-size:12px;color:var(--text-dim);text-align:center">No actions for this tab.<br><em style="font-size:11px">Add some in AI Tools → Quick Actions.</em></div>';return;}
+  if(!actions.length){const noActions=document.createElement('div');noActions.style.cssText='padding:20px;font-size:12px;color:var(--text-dim);text-align:center';noActions.innerHTML='No actions for this tab.<br><em style="font-size:11px">Add some in AI Tools → Quick Actions.</em>';body.appendChild(noActions);return;}
   const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘️',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'🎲',roleplay_npc:'🗣️',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',module_checkin:'📋',custom:'⚙️'};
   const PINNED=['qa_8','qa_13','qa_11'];
   const CAT_MAP={'Party & Combat':['hp','condition_add','condition_clear','resource_use','shell_defense_toggle','combat_next','short_rest','roll_submit'],'World & Story':['time_advance','surroundings','town_rep','random_event','roleplay_npc','char_moment','send_scene','item_add_foraged','ox_feed','log_entry'],'AI & System':['context_refresh','context_refresh_btn','resync_ai','module_checkin','state_fix','save_game','custom']};
@@ -5773,6 +5842,23 @@ function closeFamiliarOverview(){
   document.getElementById('familiar-ov')?.classList.remove('is-open');
   document.getElementById('familiar-ov-bd')?.classList.remove('is-open');
 }
+function toggleDeathSave(idx,type,slot){
+  const pc=state.pcs[idx];if(!pc)return;
+  if(!pc.death_saves)pc.death_saves={successes:0,failures:0};
+  const key=type==='success'?'successes':'failures';
+  const cur=pc.death_saves[key];
+  pc.death_saves[key]=cur>slot?slot:slot+1;
+  pc.death_saves[key]=Math.max(0,Math.min(3,pc.death_saves[key]));
+  if(pc.death_saves.successes>=3){pc.hp=1;pc.death_saves={successes:0,failures:0};mechToast('⬤ '+esc(pc.name)+' stabilized!','green');}
+  if(pc.death_saves.failures>=3){pc.death_saves={successes:0,failures:0};mechToast('💀 '+esc(pc.name)+' has died.','red');}
+  saveRefresh();renderPCOverview();renderHUD();
+}
+function toggleInspiration(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  pc.inspiration=!pc.inspiration;
+  if(pc.inspiration&&navigator.vibrate)try{navigator.vibrate([10,30,10]);}catch(e){}
+  saveRefresh();
+}
 function openGritOverview(){
   const ox=state.wagon&&state.wagon.ox;if(!ox)return;
   const hp=parseInt(ox.hp)||0,max=parseInt(ox.hp_max)||15;
@@ -6023,7 +6109,13 @@ function renderPCOverview(){
     </div>
     <div id="po-roll-result" style="display:none;background:var(--surface2);border:1px solid var(--border-bright);border-radius:5px;padding:5px 8px;margin-bottom:6px;font-size:12px;align-items:center"></div>
     ${(()=>{const eq=(pc.inventory||[]).filter(i=>GEAR_TYPES.has(i.type));return eq.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">'+eq.map(i=>`<span style="font-size:10px;background:var(--surface3);border:1px solid var(--border-bright);border-radius:3px;padding:2px 7px;color:var(--text-bright)">⚔ ${esc(i.name||'?')}</span>`).join('')+'</div>':''})()}
-    ${condHtml}${concBadge}${topSkillsHtml}${attackHtml}${resHtml}${slotHtml}${magicHtml}${spellbookHtml}
+    ${condHtml}${concBadge}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <div onclick="toggleInspiration(${idx});renderPCOverview()" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:4px 10px;border-radius:5px;border:1px solid ${pc.inspiration?'var(--gold)':'var(--border)'};background:${pc.inspiration?'var(--gold-dim)':'transparent'};-webkit-tap-highlight-color:transparent;touch-action:manipulation"><span style="font-size:14px">${pc.inspiration?'⭐':'☆'}</span><span style="font-size:10px;color:${pc.inspiration?'var(--gold-bright)':'var(--text-dim)'}">Inspiration</span></div>
+      <div style="font-size:10px;color:var(--text-dim)">Prof +${prof}</div>
+    </div>
+    ${pc.hp<=0?`<div style="margin:6px 0 8px;padding:8px;background:rgba(139,58,42,.18);border:1px solid var(--red);border-radius:6px"><div style="font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Death Saves</div><div style="display:flex;gap:20px"><div><div style="font-size:8px;color:var(--green);margin-bottom:3px">Successes</div><div style="display:flex;gap:5px">${[0,1,2].map(i=>`<span onclick="toggleDeathSave(${idx},'success',${i})" style="font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;opacity:${i<(pc.death_saves?.successes||0)?1:0.2}">♥</span>`).join('')}</div></div><div><div style="font-size:8px;color:var(--red);margin-bottom:3px">Failures</div><div style="display:flex;gap:5px">${[0,1,2].map(i=>`<span onclick="toggleDeathSave(${idx},'failure',${i})" style="font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;opacity:${i<(pc.death_saves?.failures||0)?1:0.2}">💀</span>`).join('')}</div></div></div></div>`:''}
+    ${topSkillsHtml}${attackHtml}${resHtml}${slotHtml}${magicHtml}${spellbookHtml}
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn sm" style="flex:1" onclick="closePCOverview();state.activeEditTab=${idx};const d=document.getElementById('char-editor-details');if(d)d.open=true;openDrawer('tab-party')">✎ Edit Sheet</button>
       <button class="btn sm red" onclick="if(confirm('Delete '+(state.pcs[${idx}]?.name||'character')+'?')){closePCOverview();delChar(${idx})}" style="padding:4px 10px" title="Delete character">🗑</button>
@@ -6053,7 +6145,7 @@ Object.assign(window, {
   handlePluginCmd, importConfig, importFromPaste, justSave, launchCampaign,
   loadPreset, lockPremise, logTurn, markChkDone,
   navTo, nextTurn, oocKey, openDashboard, openDrawer, openFlagModal,
-  openLevelUpWizard, openPCOverview, openRollSheet, openStepConfig, openTreasury, partyKey,
+  openLevelUpWizard, openPCOverview, openQASheet, openRollSheet, openStepConfig, openTreasury, partyKey,
   pcLongRest, pcShortRest, prevTurn, quickD20, quickRoll,
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
@@ -6066,7 +6158,7 @@ Object.assign(window, {
   setSheetTab, setStepTarget, setTtsProvider, setWFilter,
   showChatTab, showSessionMode, showSessionTab, showSetupStep, showTab, showWorldTab,
   speakActiveScene, speakIdx, speakScene, st, submitFlag, sw, switchUser,
-  testTts, toggleCombCond, toggleCond, toggleDockDice, toggleFlagVerdict,
+  testTts, toggleCombCond, toggleCond, toggleDeathSave, toggleDockDice, toggleFlagVerdict, toggleInspiration,
   toggleHeaderMenu, togglePremise, toggleQAContext, toggleQAMenu, toggleSkillProf,
   toggleSlot, toggleSuperpower, toggleTabOverflow, toggleThemeMode, toggleVis,
   triggerChk, uninstallPlugin, upd, updAtk, updCell, updCombHP, updFamiliar,
