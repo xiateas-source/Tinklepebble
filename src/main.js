@@ -730,6 +730,7 @@ function renderAll(){
 
   // Render relationships for active edit tab
   if(state.pcs[state.activeEditTab||0])renderRelationships(state.activeEditTab||0);
+  injectPanelFlags();
 }
 
 // ═══ ESC HTML ═══

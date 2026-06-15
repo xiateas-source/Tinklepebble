@@ -277,7 +277,7 @@ details.bs[open] summary::before{content:"\25BC  ";}
 .qa-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--text);-webkit-tap-highlight-color:transparent;transition:background .1s;}
 .qa-item:hover,.qa-item:active{background:var(--surface2);color:var(--gold-bright);}
 .qa-item-icon{font-size:16px;min-width:24px;text-align:center;}
-.qa-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:none;align-items:flex-end;justify-content:center;padding:0;}
+.qa-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1600;display:none;align-items:flex-end;justify-content:center;padding:0;}
 .qa-modal.open{display:flex;}
 .qa-sheet{background:var(--surface);border-top:1px solid var(--border-bright);border-radius:var(--radius) var(--radius) 0 0;padding:20px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto;box-shadow:0 -4px 40px rgba(0,0,0,.6);}
 .qa-sheet-title{font-family:var(--serif);font-size:17px;color:var(--gold);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
@@ -899,6 +899,8 @@ body{background-image:none;}
 .log-flag-btn:hover{opacity:0.85;color:var(--gold);}
 .panel-flag-btn{background:none;border:none;cursor:pointer;font-size:10px;color:var(--text-dim);opacity:0.18;padding:1px 5px;margin-left:5px;transition:opacity .2s;flex-shrink:0;line-height:1;}
 .panel-flag-btn:hover{opacity:1;color:var(--gold);}
+.qa-fab-flag{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold-dim);background:var(--surface2);color:var(--gold);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);transition:background .15s,color .15s;touch-action:manipulation;}
+.qa-fab-flag:active{background:var(--gold-dim);color:var(--text-bright);}
 /* ── SESSION DASHBOARD ── */
 .dash-stat-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
 .dash-stat-cell{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center;}
