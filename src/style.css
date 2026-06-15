@@ -950,7 +950,7 @@ body{background-image:none;}
 :root{
   /* Soft Autumn — chocolate brown family, darkened for screens */
   --bg:#1a0c07;--surface:#2c1a10;--surface2:#3c2618;--surface3:#4c3222;
-  --border:#4a2c1a;--border-bright:#6a4030;
+  --border:#5a3820;--border-bright:#7a5038;
   /* Cinnamon accent (replaces gold) */
   --gold:#b05830;--gold-dim:#70381a;--gold-bright:#d07845;
   /* Danger: deep chocolate red */
@@ -962,7 +962,7 @@ body{background-image:none;}
   /* Magic / concentration: dusty rose-plum (Soft Autumn) */
   --purple:#8a5e6a;--purple-bright:#a87888;
   /* Text: champagne + warm beige family */
-  --text:#c4a88a;--text-dim:#8a6b50;--text-bright:#e8d9c4;--cream:#e8d9c4;
+  --text:#c4a88a;--text-dim:#a07858;--text-bright:#e8d9c4;--cream:#e8d9c4;--ivory:#e8d9c4;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
   --mono:'Share Tech Mono','Courier New',monospace;
   --serif:'IM Fell English',Georgia,serif;
@@ -970,38 +970,49 @@ body{background-image:none;}
   --touch:52px;--radius:6px;--radius-sm:4px;
 }
 
-/* ── LIGHT MODE — Soft Autumn parchment ── */
+/* ── LIGHT MODE — Parchment + brass filigree (hybrid) ── */
 body.light-mode{
-  --bg:#f5ede0;--surface:#eddcca;--surface2:#dfc9b0;--surface3:#d0b898;
-  --border:#c4a882;--border-bright:#a88860;
-  --gold:#8b3e20;--gold-dim:#5c2810;--gold-bright:#a85030;
-  --red:#7a2815;--red-dim:#5c1e0e;
-  --green:#4a6048;--green-bright:#5a7058;
-  --blue:#3a5a50;--blue-bright:#4a7060;
-  --purple:#724a58;--purple-bright:#8a6070;
-  --text:#3c2418;--text-dim:#6a4a34;--text-bright:#1e0e06;--cream:#1e0e06;
+  --bg:#f5efe1;--surface:#ede4d0;--surface2:#e0d2bc;--surface3:#d0bea4;
+  --border:#c0a070;--border-bright:#a07840;
+  --gold:#7a3810;--gold-dim:#5c280a;--gold-bright:#9a4c1c;
+  --red:#7a2010;--red-dim:#5c1808;
+  --green:#385a36;--green-bright:#4a7446;
+  --blue:#2a5850;--blue-bright:#3a7060;
+  --purple:#5a3848;--purple-bright:#745060;
+  --text:#2a1408;--text-dim:#5a3820;--text-bright:#180804;--cream:#180804;--ivory:#180804;
 }
-body.light-mode .app-header{background:var(--surface);box-shadow:0 1px 0 var(--border-bright);}
-body.light-mode .main-tabs{background:var(--surface);border-bottom-color:var(--border);}
-body.light-mode .chat-msgs-wrap{background:var(--surface2);}
-body.light-mode .panel{box-shadow:0 2px 8px rgba(0,0,0,.12);background:var(--surface);}
-body.light-mode .panel-title{text-shadow:none;background:linear-gradient(90deg,rgba(139,62,32,.1) 0%,transparent 68%);}
-body.light-mode .modal-overlay{background:rgba(30,20,10,.72);}
-body.light-mode .modal-box{background:var(--surface);box-shadow:0 8px 40px rgba(0,0,0,.3);}
-body.light-mode body{background-image:none;}
-body.light-mode .btn{background:var(--surface2);border-color:var(--border-bright);}
-body.light-mode .btn:hover{background:var(--surface3);border-color:var(--gold);}
+body.light-mode .app-header{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+body.light-mode .global-hud{background:var(--surface);border-bottom-color:var(--border);}
+body.light-mode .main-tabs{background:var(--surface2);border-bottom:1px solid var(--border);}
+body.light-mode .chat-msgs-wrap{background:var(--surface2);border-color:var(--border);}
+body.light-mode .panel{background:var(--surface);border-color:var(--border);border-top:2px solid var(--gold-dim);box-shadow:0 2px 10px rgba(60,30,10,.1);}
+body.light-mode .panel.danger{border-top-color:var(--red-dim);}
+body.light-mode .panel.purple{border-top-color:var(--purple);}
+body.light-mode .panel.green{border-top-color:var(--green);}
+body.light-mode .panel-title{text-shadow:none;color:var(--gold);background:linear-gradient(90deg,rgba(122,56,16,.08) 0%,transparent 60%);}
+body.light-mode .modal-overlay{background:rgba(20,10,4,.7);}
+body.light-mode .modal-box{background:var(--surface);border-top:2px solid var(--gold-dim);border-color:var(--border-bright);box-shadow:0 8px 32px rgba(0,0,0,.2);}
+body.light-mode .btn{background:var(--surface2);border-color:var(--border-bright);color:var(--text);}
+body.light-mode .btn:hover{background:var(--surface3);border-color:var(--gold);color:var(--gold);}
+body.light-mode .btn.gold{background:linear-gradient(175deg,rgba(122,56,16,.15) 0%,rgba(122,56,16,.08) 100%);border-color:var(--gold-dim);color:var(--gold);}
+body.light-mode .btn.gold:hover,body.light-mode .btn.gold:active{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+body.light-mode input[type=text],body.light-mode input[type=number],body.light-mode input[type=password],body.light-mode textarea,body.light-mode select{background:var(--bg);border-color:var(--border);color:var(--text);}
+body.light-mode .chat-msg.dm{background:rgba(122,56,16,.05);border:1px solid rgba(122,56,16,.2);border-left:3px solid var(--gold);}
+body.light-mode .chat-msg.player{background:var(--surface2);border:1px solid var(--border);border-right:3px solid var(--blue-bright);}
+body.light-mode .hud-tile{background:var(--surface2);border-color:var(--border);}
+body.light-mode .ledger-output,body.light-mode .modal-output,body.light-mode .plugin-terminal{background:var(--surface2);color:var(--text);border-color:var(--border);}
+body.light-mode .plugin-input{color:var(--text);}
 
-/* ── Night Mode — Soft Autumn deepened, easy on dark-adapted eyes ── */
+/* ── Night Mode — low-light reading, legible on dark-adapted eyes ── */
 body.night-mode{
-  --bg:#0e0806;--surface:#180e08;--surface2:#201410;--surface3:#281a12;
-  --border:#301a10;--border-bright:#402418;
-  --gold:#8b4020;--gold-dim:#5c2810;--gold-bright:#a85030;
-  --red:#6a2818;--red-dim:#481810;
-  --green:#4a5c48;--green-bright:#5a7058;
-  --blue:#3a5850;--blue-bright:#4a6860;
-  --purple:#6a4050;--purple-bright:#7a5060;
-  --text:#7a5c40;--text-dim:#4a3428;--text-bright:#9a7050;--cream:#9a7050;
+  --bg:#0e0806;--surface:#1a1008;--surface2:#221610;--surface3:#2c1e14;
+  --border:#402212;--border-bright:#58301a;
+  --gold:#c07040;--gold-dim:#804a20;--gold-bright:#d88850;
+  --red:#c04830;--red-dim:#7a2c18;
+  --green:#5a7058;--green-bright:#7a9878;
+  --blue:#4a7068;--blue-bright:#5a8878;
+  --purple:#8a6070;--purple-bright:#a87888;
+  --text:#b09472;--text-dim:#7a5c40;--text-bright:#d4b890;--cream:#d4b890;--ivory:#d4b890;
 }
 body.night-mode{font-size:17px;line-height:1.76;}
 body.night-mode .app-header{background:var(--surface);box-shadow:0 1px 0 var(--border);}
@@ -1011,8 +1022,9 @@ body.night-mode .chat-msg{font-size:16px;line-height:1.72;}
 body.night-mode .chat-msg.dm{font-size:17px;line-height:1.82;}
 body.night-mode .chat-msg.sys{font-size:13px;}
 body.night-mode .chat-msg.chk-msg{font-size:13px;}
-body.night-mode .panel{box-shadow:inset 0 1px 0 rgba(176,88,48,.04),0 2px 12px rgba(0,0,0,.7);}
-body.night-mode .panel-title{text-shadow:none;background:linear-gradient(90deg,rgba(139,64,32,.12) 0%,transparent 70%);}
+body.night-mode .panel{box-shadow:0 2px 14px rgba(0,0,0,.75);}
+body.night-mode .panel-title{text-shadow:none;color:var(--gold-bright);background:linear-gradient(90deg,rgba(192,112,64,.12) 0%,transparent 70%);}
+body.night-mode .chat-msg.dm{background:rgba(192,112,64,.07);border-left-color:var(--gold);}
 body.night-mode .modal-overlay{background:rgba(8,6,4,.82);}
 body.night-mode .modal-box{background:var(--surface);box-shadow:0 8px 40px rgba(0,0,0,.7);}
 body.night-mode input,body.night-mode textarea,body.night-mode select{font-size:16px;}
