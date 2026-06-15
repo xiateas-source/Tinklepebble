@@ -137,6 +137,28 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ HUD tiles: red dot for conditions, purple dot for concentration
 - ✅ Party PC rows: AC displayed alongside HP
 - ✅ item_add mechanic stacks quantity on exact name match (Issue 21 partial)
+- ✅ Party tab: character editor open by default (`<details open>`)
+
+### Pending — Next Build (2026-06-15 session 2)
+These were discussed but not yet implemented. Implement in order:
+
+1. **HP step customization** — dock ±1/±5 buttons should use `state.hpSteps=[1,5]`. Tap the step amounts to change via prompt(). Render step bar dynamically from state. Update `renderSceneLabel()` label text. Expose `setHpStep(which)` function.
+
+2. **AI contracts readable (item 16)** — Textareas in the AI Tools tab accordion are scroll boxes. Fix: auto-size the textareas to full height (no scroll) by applying JS-based auto-resize on init and on input. Also: add `field-sizing:content` CSS. The `<textarea>` elements keep their IDs (genLedger reads them). No structural change needed — just remove min-height and let them expand.
+
+3. **Drawer glitches on party tab** — `openDrawer('tab-party')` should call `renderAll()` to ensure char-tabs and edit-sheets are freshly populated. Also ensure `renderCharTabs()` + `renderSheets()` fire whenever the party drawer opens (currently relies on stale DOM). Fix: add `renderCharTabs();renderSheets();` call inside `openDrawer()` when `tabId==='tab-party'`.
+
+4. **Delete party member accessible** — `delChar(idx)` already exists and is wired in edit-sheet header. Problem: user can't find it. Add a 🗑 Delete button to `renderPCOverview()` bottom action row (next to Edit Sheet). Use `if(confirm())` guard already present in delChar.
+
+5. **Familiar HUD tile** — If any PC has `pc.familiar`, add a compact tile to `#hud-mosaic` AFTER the PC tiles. Tile shows familiar name + HP. Tap opens a familiar bottom sheet (similar to PC overview but simpler). The familiar for this campaign is Tinkle's rat from Find Familiar. HUD tile class: `hud-tile fam-tile`. Bottom sheet: `#familiar-overview`.
+
+6. **Grit profile tile in HUD** — Add Grit (the ox, `state.wagon.ox`) as a tile in `#hud-mosaic` after PC tiles and familiar tile. Shows Grit's name + HP. Tap opens a Grit info bottom sheet with HP editor, feed status, conditions, backstory, quirks. Element: `#grit-overview`.
+
+7. **Town Rep → Wagon tab** — Move `#town-rep-list` and its Add button from World tab (Operations panel) to Wagon tab, placed between Travel Log and NPCs section. Keep `renderTownRep()`, `addTownRep()`, `updTown()`, `delTown()` functions unchanged. Just move the HTML block.
+
+8. **spell_add mechanic** — In `parseMechanics()`, handle `spell_add: PCname|SpellName|level|castTime|range|duration|components|desc`. Find PC by name (case-insensitive partial match), push to `pc.spellbook[]` if not already present. Dedup on exact name match. Toast confirmation.
+
+9. **Dice roller upgrade** — Match the screenshot: Character dropdown (top), Roll Type dropdown (skill/ability/attack/custom) + Modifier number input side-by-side, pre-filled modifier pills from active roll context, quick ±delta row (-5/-1/+1/+5 same as dock), dice grid (d4 d6 d8 d10 d12 d20 d% +0). The Roll & Submit QA sheet (`#qa-roll-submit-sheet`) needs this layout. Character selection auto-fills stat modifiers into Roll Type choices.
 
 ---
 

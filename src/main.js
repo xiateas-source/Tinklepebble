@@ -458,6 +458,7 @@ let state={
   campaignLaunched:false,
   prevSessionSummary:'',
   sessionNotes:'',
+  hpSteps:[1,5],
   quickActions:[
     {id:'qa_1',label:'Adjust HP',type:'hp',params:{pc:'',amount:'',mode:'damage'},context:['tab-party','tab-combat','tab-dm']},
     {id:'qa_2',label:'Add Condition',type:'condition_add',params:{pc:'',condition:''},context:['tab-party','tab-combat','tab-dm']},
@@ -702,6 +703,7 @@ function showSessionTab(which){
 // ═══ RENDER ALL ═══
 function renderAll(){
   if(typeof renderHUD==='function')renderHUD();
+  if(typeof renderStepBar==='function')renderStepBar();
   renderCharTabs();renderCards();renderSheets();renderStatusMini();
   renderNPCs();renderQuests();renderCombat();renderPresets();
   renderLogs();renderChat();renderTurnCtr();
@@ -5579,7 +5581,26 @@ function renderSceneLabel(){
   }
   const loc=state.worldData?.location||'';
   const scene=state.worldData?.scene_title||'';
-  lbl.textContent=scene?'📍 '+(scene+(loc?' · '+loc:'')):(loc?'📍 '+loc:'Tap a party tile to target · ±1/±5 HP');
+  const [sm,lg]=(state.hpSteps&&state.hpSteps.length===2)?state.hpSteps:[1,5];
+  lbl.textContent=scene?'📍 '+(scene+(loc?' · '+loc:'')):(loc?'📍 '+loc:'Tap a tile · ±'+sm+'/±'+lg+' HP (long-press to edit)');
+}
+function renderStepBar(){
+  const bar=document.getElementById('step-bar');if(!bar)return;
+  const [sm,lg]=(state.hpSteps&&state.hpSteps.length===2)?state.hpSteps:[1,5];
+  bar.innerHTML=
+    `<button class="step-btn dec" onclick="executeStep(-${lg})">-${lg}</button>`+
+    `<button class="step-btn dec" onclick="executeStep(-${sm})">-${sm}</button>`+
+    `<button class="step-btn inc" onclick="executeStep(${sm})">+${sm}</button>`+
+    `<button class="step-btn inc" onclick="executeStep(${lg})">+${lg}</button>`;
+}
+function setHpStep(which){
+  const cur=(state.hpSteps||[1,5])[which];
+  const label=which===0?'small step (currently '+cur+')':'large step (currently '+cur+')';
+  const v=parseInt(prompt('Set HP '+label+':'),10);
+  if(!v||v<1||v>999)return;
+  if(!state.hpSteps)state.hpSteps=[1,5];
+  state.hpSteps[which]=v;
+  save();renderStepBar();renderSceneLabel();
 }
 function setStepTarget(type,idx){
   _stepTarget={type:type,idx:idx};
