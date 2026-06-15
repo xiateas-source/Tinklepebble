@@ -1678,3 +1678,24 @@ details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-web
 .qa-sheet-hdr{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;gap:8px;}
 .qa-sheet-body{overflow-y:auto;flex:1;padding:14px 14px 20px;}
 
+/* ── CHARACTER SHEET REWORK ── */
+.sheet-tab-row{display:flex;background:var(--surface2);border-bottom:2px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0;}
+.sheet-tab-row::-webkit-scrollbar{display:none;}
+.sheet-tab-btn{padding:9px 12px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0;min-height:36px;transition:color .15s,border-color .15s;margin-bottom:-2px;}
+.sheet-tab-btn:hover{color:var(--text-bright);}
+.sheet-tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.sheet-section{padding:10px 0 4px;}
+.ability-tile{background:var(--surface2);border:1px solid var(--border-bright);border-radius:8px;padding:8px 4px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;-webkit-tap-highlight-color:transparent;transition:border-color .15s;}
+.ability-tile:active{border-color:var(--gold-dim);}
+.save-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:transparent;}
+.save-row:last-child{border-bottom:none;}
+.save-row:active{background:rgba(255,255,255,.03);}
+.skill-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:transparent;}
+.skill-row:last-child{border-bottom:none;}
+.skill-row:active{background:rgba(255,255,255,.03);}
+.prof-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--border-bright);flex-shrink:0;transition:background .15s,border-color .15s;}
+.prof-dot.filled{background:var(--gold);border-color:var(--gold);}
+.sheet-lock-btn{padding:4px 9px;font-size:12px;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer;min-height:28px;color:var(--text-dim);-webkit-tap-highlight-color:transparent;transition:border-color .15s,color .15s;}
+.sheet-lock-btn.locked{border-color:var(--red-dim);color:var(--red);}
+.sheet-lock-btn.unlocked{border-color:var(--green);color:var(--green);}
+
