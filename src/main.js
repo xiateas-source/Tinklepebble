@@ -6026,7 +6026,7 @@ function renderPCOverview(){
     ${condHtml}${concBadge}${topSkillsHtml}${attackHtml}${resHtml}${slotHtml}${magicHtml}${spellbookHtml}
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn sm" style="flex:1" onclick="closePCOverview();state.activeEditTab=${idx};const d=document.getElementById('char-editor-details');if(d)d.open=true;openDrawer('tab-party')">✎ Edit Sheet</button>
-      <button class="btn sm red" onclick="if(confirm('Delete '+esc(state.pcs[${idx}].name)+'?')){closePCOverview();delChar(${idx})}" style="padding:4px 10px" title="Delete character">🗑</button>
+      <button class="btn sm red" onclick="if(confirm('Delete '+(state.pcs[${idx}]?.name||'character')+'?')){closePCOverview();delChar(${idx})}" style="padding:4px 10px" title="Delete character">🗑</button>
     </div>
   `;
 }
