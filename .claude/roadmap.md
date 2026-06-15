@@ -114,9 +114,29 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 ## Phase 1 — Active Sprint
 - [x] Context Refresh / Re-sync protocol rework
 - [ ] **Visual redesign** — D&D Beyond / Demiplane mobile style (see Visual Redesign v2). CSS pass first, then nav restructure.
-- [ ] **Character sheet swappable tabs** — Attacks / Spells / Inventory / Features
-- [ ] **Auto-modifier calculation** — parse ability score strings, compute saves/skills live
-- [ ] Vite migration (before Drop 4)
+- [x] **Character sheet swappable tabs** — Skills / Features / Attacks / Spells / Spellbook / Gear (done 2026-06-14)
+- [x] **Auto-modifier calculation** — saves + skills live-calculated from ability scores + skillProfs (done 2026-06-15)
+- [x] Vite migration — src/style.css + src/main.js + lean index.html, builds to docs/ (done 2026-06-15)
+
+### Shipped 2026-06-15
+- ✅ Playwright bug fixes: header menu z-index, dead renderCards(), Firebase offline banner
+- ✅ Base URL fix: /Tinklepebble/ for GitHub Pages subdirectory deployment
+- ✅ Tap-to-roll ability checks in PC overview (all 6 stats + initiative)
+- ✅ Roll result strip with 📨 Send to chat button in PC overview
+- ✅ Save-proficiency dots on stat grid (gold ● + gold border if save is proficient)
+- ✅ Proficient skills panel in PC overview — tappable pills to roll skill checks
+- ✅ Auto-calculated Passive Perception from WIS + Perception prof
+- ✅ XP progress bars in party list rows and PC overview
+- ✅ Equipped gear tag pills in PC overview
+- ✅ D&D term tooltips in narrative chat (27 terms, tap for definition popup)
+- ✅ Message lock — expanded "Read more" messages stay expanded across re-renders
+- ✅ Spellbook level filter tabs (dynamic per available levels)
+- ✅ Bug fix: addSpell() was switching to Gear tab instead of Spellbook tab
+- ✅ NPC list: sort active→departed→deceased, disposition select with color, deceased dimmed
+- ✅ Quest list: sort active→failed→done, active count header, hidden toggle button
+- ✅ HUD tiles: red dot for conditions, purple dot for concentration
+- ✅ Party PC rows: AC displayed alongside HP
+- ✅ item_add mechanic stacks quantity on exact name match (Issue 21 partial)
 
 ---
 
@@ -146,11 +166,13 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 *Inspired by D&D Beyond + Demiplane mobile UX. Prioritized by effort vs daily-use value.*
 
 ### Near-term
-- **Sheet swappable tabs** — Attacks / Spells / Inventory / Features inside Party sheet. Medium effort.
-- **Auto-modifier calculation** — Parse ability score number, compute saves/skills live. Low effort.
-- **Dice rolling in sheet** — Roll button on each stat/attack row, fires dice picker inline. Low effort.
-- **Chat term tooltips** — Underline D&D game terms in narrative feed (Prone, Sneak Attack, Concentration, etc.). Tap shows quick definition popup. ~200-term dictionary, regex on renderChat(), small popup. Medium effort. Unique to this VTT.
-- **Spell/inventory filter sliders** — Level, school, cost, type toggles. Extends wagon cargo filter pattern. Feeds Issue #21. Low-medium effort.
+- ✅ Sheet swappable tabs — done 2026-06-14
+- ✅ Auto-modifier calculation — done 2026-06-15
+- ✅ Dice rolling in sheet — tap stats / attacks, roll + send to chat (done 2026-06-15)
+- ✅ Chat term tooltips — 27 D&D terms, tap for popup, DM messages only (done 2026-06-15)
+- ✅ Spell/inventory filter sliders — Spellbook level filter done 2026-06-15; wagon already had type filters
+- **Expand term glossary** — Add 50+ more terms (class features, conditions, action types). Low effort.
+- **Compendium quick-lookup** — Search bar in Rules tab or as modal; offline SRD snippets.
 
 ### Medium-term
 - **Character Builder wizard** — Guided: race → class → background → stats → skills → equipment. Reuses level-up wizard architecture. Medium effort.
@@ -187,10 +209,10 @@ Open questions (answer before Drop 6):
 5. Chat log archive — DONE (summarizeAndPrune, DR-7)
 6. Income/Expense Log silent — PARTIALLY ADDRESSED (detectUnloggedGold confirm-chip). Root cause: AI compliance gap, not parser.
 7. NPC log silent — Same compliance pattern. Deferred until gold chip proves the pattern.
-8. Quest "Primary Goal" rename — Should be "Main Quest"
-9. Travel Log — Should move to Wagon tab
-15. Party chat → narrative ping — When player posts OOC, notify AI DM
-16. Message lock — Reading a message should stay open when new prompt arrives
+8. Quest "Primary Goal" rename — ✅ DONE (already says "Main Quest")
+9. Travel Log — ✅ DONE (in Wagon tab)
+15. Party chat → narrative ping — ✅ DONE (ooc_echo bar in narrative feed)
+16. Message lock — ✅ DONE (2026-06-15, _expandedMsgs Set)
 21. **Inventory UX overhaul** — Three interlocked problems:
     - Name truncation in party + PC inventory
     - No subcategories/grouping (wagon cargo has filter tabs; party inventory has nothing)
