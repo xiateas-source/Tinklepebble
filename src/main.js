@@ -5190,9 +5190,11 @@ const FLAG_CATS={
   rule:{icon:'📜',label:'Wrong Rule'},
   ai:{icon:'🤖',label:'AI Made It Up'},
   story:{icon:'📖',label:'Story Error'},
-  infra:{icon:'🔧',label:'Infrastructure / App Issue'},
+  infra:{icon:'🔧',label:'App Issue'},
+  idea:{icon:'💡',label:'Idea / Feature'},
   other:{icon:'❓',label:'Something Felt Off'}
 };
+let _flagCatFilter='all';
 
 function setFlagVerdict(id,verdict){
   const f=(state.errorLog||[]).find(f=>f.id===id);
@@ -5241,15 +5243,20 @@ function renderErrorLog(){
   const countEl=document.getElementById('error-log-count');
   const auditRow=document.getElementById('error-log-audit-row');
   if(!list)return;
-  const flags=(state.errorLog||[]).filter(f=>!f.resolved);
-  if(countEl)countEl.textContent=flags.length;
-  if(!flags.length){
+  const allActive=(state.errorLog||[]).filter(f=>!f.resolved);
+  if(countEl)countEl.textContent=allActive.length;
+  const flags=_flagCatFilter==='all'?allActive:allActive.filter(f=>(f.category||'other')===_flagCatFilter);
+  if(!allActive.length){
     list.innerHTML='<p style="font-size:11px;color:var(--text-dim)">No active flags. Use ⚑ on any AI message or Manual Flag to capture moments during play.</p>';
     if(auditRow)auditRow.style.display='none';
     return;
   }
-  const failCount=flags.filter(f=>f.verdict==='fail').length;
+  const failCount=allActive.filter(f=>f.verdict==='fail').length;
   if(auditRow)auditRow.style.display=failCount>0?'block':'none';
+  if(!flags.length){
+    list.innerHTML='<p style="font-size:11px;color:var(--text-dim)">No flags in this category.</p>';
+    return;
+  }
   list.innerHTML=flags.map(function(f){
     const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
     const verdict=f.verdict==='pass'?'resolved':f.verdict;
@@ -5257,6 +5264,7 @@ function renderErrorLog(){
     let vBadgeClass,vBadgeText;
     if(!verdict){vBadgeClass='pending';vBadgeText='Pending';}
     else if(verdict==='fail'){vBadgeClass='fail';vBadgeText='Fail';}
+    else if(verdict==='reviewed'){vBadgeClass='reviewed';vBadgeText='Reviewed';}
     else{vBadgeClass='resolved';vBadgeText='Resolved';}
     const vBadge='<span class="err-log-verdict-badge '+vBadgeClass+'" onclick="toggleFlagVerdict(\''+f.id+'\')" style="cursor:pointer" title="Tap to cycle: Pending → Fail → Resolved">'+vBadgeText+'</span>';
     const snippet=f.msgContent?
@@ -5288,9 +5296,19 @@ function renderErrorLog(){
 function toggleFlagVerdict(id){
   const f=(state.errorLog||[]).find(f=>f.id===id);if(!f)return;
   const cur=f.verdict==='pass'?'resolved':f.verdict;
-  const cycle=[null,'fail','resolved'];
+  const cycle=[null,'fail','reviewed','resolved'];
   f.verdict=cycle[(cycle.indexOf(cur)+1)%cycle.length];
   save();renderErrorLog();
+}
+function setFlagCatFilter(cat){
+  _flagCatFilter=cat;
+  document.querySelectorAll('.flag-filter-pill').forEach(p=>p.classList.toggle('active',p.dataset.cat===cat));
+  renderErrorLog();
+}
+function copyDevNotes(){
+  const val=state.sessionNotes||'';
+  if(!val.trim()){toast('No dev notes to copy.');return;}
+  copyText(val,'✓ Dev notes copied!');
 }
 function clearResolvedFlags(){
   if(!confirm('Remove all Resolved flags permanently?'))return;
@@ -6476,6 +6494,7 @@ Object.assign(window, {
   delChar, deleteChatMsg, deleteFlag, doLongRest, doQAHP, doShortRest,
   doStateFix, editFlagNote, endCombat, executeReset, executeStep,
   exportConfig, exportFlagReport, fbDisconnect, genLedger, generateSessionZero,
+  setFlagCatFilter, copyDevNotes,
   handlePluginCmd, importConfig, importFromPaste, justSave, launchCampaign,
   loadPreset, lockPremise, logTurn, markChkDone,
   navTo, nextTurn, oocKey, openDashboard, openDrawer, openFlagModal,
