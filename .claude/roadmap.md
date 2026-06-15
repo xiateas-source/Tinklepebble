@@ -246,7 +246,7 @@ AC · Initiative · Speed · HP (current / max / temp HP badge) · Hit Dice pips
 | **Core** | 6 ability score circles (score + modifier) · 6 saving throws (prof dot + value) · Passive Perception · Passive Insight · Proficiency bonus |
 | **Skills** | 18 skills: prof dot · stat tag · auto-calc modifier · tap to roll |
 | **Combat** | HP (full controls) · Temp HP field · Hit Dice pips (tap to spend) · Death Saves · Conditions · Exhaustion 0–6 pip track · Attacks table |
-| **Spells** | Spell slots by level (pip bubbles) · Spells list, each row tap-to-expand full description · Cantrips as level 0 |
+| **Spells** | Spell slots by level (pip bubbles) · Spells list, each row tap-to-expand full description · Cantrips as level 0. Each spell carries a `desc` field — manually seeded now, compendium-backed in Drop 7. |
 | **Gear** | Equipment list · Currency bubbles (CP/SP/EP/GP/PP) — separate from party treasury |
 | **Features** | Class features · Racial traits · Feats · Languages (tap chips) · Tool proficiencies · Personality / Ideals / Bonds / Flaws (collapsible "Character Soul" section) |
 
@@ -276,6 +276,47 @@ AC · Initiative · Speed · HP (current / max / temp HP badge) · Hit Dice pips
 
 ### AI DM Testing Chat (Flag #13)
 *Isolated sandbox session separate from campaign history. Design questions: shared contracts? separate AI key? export format for test sessions? Needs dedicated design session.*
+
+---
+
+## Compendium Integration — Long-range Architecture (Drop 6+)
+
+**Vision:** The app imports PDFs/epubs (PHB, Xanathar's, sourcebooks), parses them into structured compendium data, and uses that data to inject accurate rule context into every AI send. The AI gets the source text; the game gets AI-interpreted output. A bidirectional grounding loop.
+
+**Data flow:**
+```
+PDF/epub import → parse → structured compendium (spells, items, features, rules)
+                                    ↓
+              pc.magic[] / pc.inventory[] reference compendium entries by ID
+                                    ↓
+              buildPrompt() injects relevant entries as context per send
+              (active spells, current conditions, queried terms)
+                                    ↓
+              AI responds with source-grounded narration + mechanics
+```
+
+**Storage:** IndexedDB (not Firebase/localStorage — source data is too large). Compendium IDs live in state; full text lives in IndexedDB.
+
+**What already supports this:**
+- `state.snippets[]` — manual proto-compendium; active snippets already inject into every prompt. Same architecture, hand-authored.
+- `state.magic[]` per PC — spell lists already tracked; need description field added now.
+- `buildPrompt()` / `genLedger()` injection pipeline already exists.
+
+**Seed now (before Drop 6), don't redesign later:**
+- Each spell in `pc.magic[]` should carry a `desc` field (short description). Populated manually for now; replaced by compendium parser later.
+- `state.snippets[]` is the manual compendium for custom rules, house rules, module-specific content — keep expanding it.
+- Compendium injection logic: only inject entries relevant to the current context (active spells, applied conditions, referenced items) — not the full SRD every send.
+
+**Parse targets (priority order):**
+1. Spells (name, level, school, casting time, range, components, duration, description)
+2. Conditions (name, effect text) — already partially in ALL_CONDS
+3. Class features (name, level, description)
+4. Items / equipment (name, type, properties, description)
+5. Full rulebook chapters (for term lookup / compendium browse)
+
+**Drop sequence:**
+- Drop 6 prerequisites: state visibility split, player view
+- Drop 7: Full compendium import + injection pipeline (IndexedDB, PDF parser, context-aware injection)
 
 ---
 
