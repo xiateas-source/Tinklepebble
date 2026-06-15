@@ -280,9 +280,10 @@ details.bs[open] summary::before{content:"\25BC  ";}
 
 .town-row.neutral{border-left:3px solid var(--border);}
 .secret-row{padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;}
-.qa-fab{position:fixed;bottom:calc(155px + env(safe-area-inset-bottom, 0px));right:16px;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:transform .15s;}
+.qa-fab{position:relative;flex-shrink:0;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:transform .15s;}
 .qa-fab:active{transform:scale(.92);}
-.qa-menu{position:fixed;bottom:150px;right:16px;background:var(--surface);border:1px solid var(--border-bright);border-radius:var(--radius);box-shadow:0 8px 40px rgba(0,0,0,.7);z-index:201;min-width:230px;max-width:300px;max-height:70vh;overflow-y:auto;display:none;}
+#qa-fab-wrap{position:fixed;bottom:calc(155px + env(safe-area-inset-bottom,0px));right:16px;z-index:202;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none;user-select:none;}
+.qa-menu{position:relative;background:var(--surface);border:1px solid var(--border-bright);border-radius:var(--radius);box-shadow:0 8px 40px rgba(0,0,0,.7);min-width:230px;max-width:300px;max-height:65vh;overflow-y:auto;display:none;}
 .qa-menu.open{display:block;}
 .qa-menu-title{font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;padding:10px 14px;border-bottom:1px solid var(--border);}
 .qa-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--text);-webkit-tap-highlight-color:transparent;transition:background .1s;}
@@ -1826,7 +1827,7 @@ details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-web
 
 <!-- PARTY TAB -->
 <div id="tab-party" class="tab-section active">
-  <div class="party-grid" id="party-cards"></div>
+  <div id="party-cards" style="display:none"></div>
   <details class="panel" id="char-editor-details" open>
     <summary class="panel-title">Character Editor <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addNewChar()">+ Add</button></summary>
     <div id="char-tabs" style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap;margin-top:10px"></div>
@@ -2637,7 +2638,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 
 <!-- BOTTOM DOCK -->
 <footer class="lower-dock">
-  <div id="step-target-label" class="step-target-label" style="display:none">Tap a party tile or GP to set step target</div>
+  <div id="step-target-label" class="step-target-label" style="display:block">Tap a name above to select · then ±1 / ±5 adjusts HP</div>
   <div class="step-bar">
     <button class="step-btn dec" onclick="executeStep(-5)">-5</button>
     <button class="step-btn dec" onclick="executeStep(-1)">-1</button>
@@ -2665,8 +2666,8 @@ When the party travels through wilderness, arrives at a new outdoor location, or
   </div>
   <nav class="nav-dock">
     <button class="nav-btn active" id="nav-btn-log" onclick="navTo('log')">
-      <span class="nav-btn-icon">📖</span>
-      <span class="nav-btn-lbl">Log</span>
+      <span class="nav-btn-icon">🤖</span>
+      <span class="nav-btn-lbl">AI DM</span>
     </button>
     <button class="nav-btn" id="nav-btn-party" onclick="navTo('party')">
       <span class="nav-btn-icon">👥</span>
@@ -3191,6 +3192,34 @@ window.addEventListener('DOMContentLoaded',()=>{
     const gp=document.getElementById('hud-gp');
     if(m&&m.style.display!=='none'&&!m.contains(e.target)&&e.target!==gp){m.style.display='none';}
   });
+  // Draggable FAB
+  (()=>{
+    const wrap=document.getElementById('qa-fab-wrap');
+    if(!wrap)return;
+    let sx=0,sy=0,ox=0,oy=0,moved=false;
+    wrap.addEventListener('touchstart',e=>{
+      if(e.target.closest('button')&&e.target.id!=='qa-fab')return;
+      const t=e.touches[0];
+      sx=t.clientX;sy=t.clientY;
+      const r=wrap.getBoundingClientRect();ox=r.left;oy=r.top;
+      moved=false;
+    },{passive:true});
+    wrap.addEventListener('touchmove',e=>{
+      const t=e.touches[0];
+      const dx=t.clientX-sx,dy=t.clientY-sy;
+      if(!moved&&Math.abs(dx)+Math.abs(dy)<10)return;
+      moved=true;
+      closeQAMenu();
+      wrap.style.left=Math.max(0,Math.min(window.innerWidth-wrap.offsetWidth,ox+dx))+'px';
+      wrap.style.top=Math.max(58,Math.min(window.innerHeight-wrap.offsetHeight-80,oy+dy))+'px';
+      wrap.style.right='auto';wrap.style.bottom='auto';
+      e.preventDefault();
+    },{passive:false});
+    wrap.addEventListener('touchend',()=>{
+      if(moved){wrap.dataset.dragged='1';localStorage.setItem('tt_fab',JSON.stringify({left:wrap.style.left,top:wrap.style.top}));}
+    },{passive:true});
+    try{const s=JSON.parse(localStorage.getItem('tt_fab')||'null');if(s&&s.left){wrap.style.left=s.left;wrap.style.top=s.top;wrap.style.right='auto';wrap.style.bottom='auto';}}catch(e){}
+  })();
   renderAll();genLedger();
   renderQAMenu();
   showSessionMode('play'); // set initial session mode
@@ -7000,10 +7029,21 @@ function updProvStatusMini(){
 // ═══ CONTEXT-AWARE QUICK ACTIONS FAB ═══
 let currentTab='tab-party';
 function toggleQAMenu(){
+  const wrap=document.getElementById('qa-fab-wrap');
+  if(wrap&&wrap.dataset.dragged){delete wrap.dataset.dragged;return;}
   const menu=document.getElementById('qa-menu');
-  if(menu)menu.classList.toggle('open');
+  const bd=document.getElementById('qa-backdrop');
+  if(!menu)return;
+  const isOpen=menu.classList.contains('open');
+  if(isOpen){menu.classList.remove('open');if(bd)bd.style.display='none';}
+  else{renderQAMenu();menu.classList.add('open');if(bd)bd.style.display='block';}
 }
-function closeQAMenu(){const menu=document.getElementById('qa-menu');if(menu)menu.classList.remove('open');}
+function closeQAMenu(){
+  const menu=document.getElementById('qa-menu');
+  const bd=document.getElementById('qa-backdrop');
+  if(menu)menu.classList.remove('open');
+  if(bd)bd.style.display='none';
+}
 function renderQAMenu(){
   const menu=document.getElementById('qa-menu-items');const title=document.getElementById('qa-menu-title');
   if(!menu)return;
@@ -8120,7 +8160,7 @@ function renderHUD(){
     const tile=document.createElement('div');
     tile.className='hud-tile'+(isTarget?' active-target':'');
     tile.id='hud-tile-'+i;
-    tile.onclick=(function(idx){return function(){setStepTarget('pc',idx);};})(i);
+    tile.onclick=(function(idx){return function(){openPCOverview(idx);};})(i);
     tile.innerHTML='<div class="hud-name">'+esc(pc.name||'PC')+'</div>'
       +'<div class="hud-val">'+hp+'<span style="font-size:9px;color:var(--text-dim)">/'+max+'</span></div>'
       +'<div class="hud-spark '+sparkCls+'" style="width:'+pct.toFixed(1)+'%"></div>';
@@ -8222,13 +8262,138 @@ function chatKeyQuick(e){
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsgQuick();}
 }
 
+var _overviewIdx=null;
+function openPCOverview(idx){
+  _overviewIdx=idx;
+  setStepTarget('pc',idx);
+  renderPCOverview();
+  const bd=document.getElementById('pc-overview-backdrop');
+  const sh=document.getElementById('pc-overview-sheet');
+  if(bd)bd.style.display='block';
+  if(sh){sh.style.display='flex';sh.style.flexDirection='column';requestAnimationFrame(()=>sh.style.transform='translateY(0)');}
+}
+function closePCOverview(){
+  const bd=document.getElementById('pc-overview-backdrop');
+  const sh=document.getElementById('pc-overview-sheet');
+  if(sh){sh.style.transform='translateY(100%)';setTimeout(()=>{if(sh)sh.style.display='none';},260);}
+  if(bd)bd.style.display='none';
+  _overviewIdx=null;
+}
+function renderPCOverview(){
+  const idx=_overviewIdx;if(idx===null)return;
+  const pc=state.pcs[idx];if(!pc)return;
+  const lvl=pc.level||1;
+  const prof=Math.floor((lvl-1)/4)+2;
+  const mod=s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);return(m>=0?'+':'')+m;};
+  const modN=s=>{const n=parseInt(pc[s])||10;return Math.floor((n-10)/2);};
+  const pct=Math.max(0,Math.min(100,(pc.hp/(pc.hp_max||1))*100));
+  const hpCol=pc.hp<=0?'var(--red)':pct<25?'#c04a3a':pct<50?'var(--gold)':'var(--green)';
+
+  // Header
+  document.getElementById('po-name').textContent=pc.name||'Character';
+  document.getElementById('po-class').textContent='Lv '+lvl+' '+esc(pc.race||'')+' '+esc(pc.class||'')+(pc.subclass?' · '+esc(pc.subclass):'');
+
+  let badge='<span class="status-badge ok">OK</span>';
+  if(pc.hp<=0)badge='<span class="status-badge dead">DOWN</span>';
+  else if(pct<50||(pc.conditions||[]).length>0)badge='<span class="status-badge warn">HURT</span>';
+  document.getElementById('po-badge').innerHTML=badge;
+
+  // Body
+  const pcConds=pc.conditions||[];
+  let condHtml='<div style="display:flex;flex-wrap:wrap;gap:4px;margin:8px 0">';
+  pcConds.forEach(c=>{condHtml+=`<span class="cond-chip active" onclick="toggleCond(${idx},'${c}');renderPCOverview()">${c} ✕</span>`;});
+  condHtml+=`<select class="mini-select" onchange="addCondFromPicker(${idx},this);setTimeout(renderPCOverview,50)"><option value="">＋ condition…</option>${ALL_CONDS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>`;
+  condHtml+='</div>';
+  const concBadge=pc.concentrating?`<div style="font-size:10px;color:var(--purple-bright);margin-bottom:6px">⬤ Concentrating: ${esc(pc.concentrating)} <button onclick="upd(${idx},'concentrating','');renderPCOverview()" style="font-size:9px;padding:1px 5px;background:none;border:1px solid var(--purple);color:var(--purple-bright);cursor:pointer;border-radius:2px;margin-left:4px">end</button></div>`:'';
+
+  let attackHtml='';
+  if((pc.attacks||[]).length){
+    attackHtml='<div style="margin:8px 0"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Attacks</div><div style="display:flex;flex-wrap:wrap;gap:5px">';
+    const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);
+    pc.attacks.forEach((a,ai)=>{
+      const b=(a.proficient!==false?prof:0)+sm(a.stat||'str')+(parseInt(a.attackBonus)||0);
+      const ds=a.damageStat==='none'?0:sm(a.damageStat||a.stat||'str');
+      const db=ds+(parseInt(a.damageBonus)||0);
+      attackHtml+=`<div onclick="rollAttack(${idx},${ai});closePCOverview()" style="background:var(--surface3);border:1px solid var(--border-bright);border-radius:5px;padding:5px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation"><div style="font-size:11px;font-weight:600;color:var(--text-bright)">${esc(a.name||'Attack')}</div><div style="font-size:10px;color:var(--gold-bright)">${b>=0?'+':''}${b} to hit &nbsp;·&nbsp; ${a.damageDie||'1d6'}${db===0?'':db>0?'+'+db:db}</div></div>`;
+    });
+    attackHtml+='</div></div>';
+  }
+
+  let resHtml='';
+  if((pc.resources||[]).length){
+    resHtml='<div style="margin:8px 0"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Resources</div><div style="display:flex;flex-wrap:wrap;gap:8px">';
+    pc.resources.forEach((res,ri)=>{
+      const rem=res.max-res.used;
+      let pips='';
+      for(let i=0;i<res.max;i++)pips+=`<span onclick="useResource(${idx},${ri},${i});renderPCOverview()" style="width:16px;height:16px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid var(--purple);background:${i<res.used?'var(--surface3)':'var(--purple)'}"></span>`;
+      resHtml+=`<div><div style="font-size:9px;color:var(--text-dim);margin-bottom:2px">${esc(res.name)} ${rem}/${res.max}</div><div style="display:flex;gap:3px">${pips}</div></div>`;
+    });
+    resHtml+='</div></div>';
+  }
+
+  let slotHtml='';
+  if((pc.slots||[]).length){
+    slotHtml='<div style="margin:8px 0"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Spell Slots</div><div class="spell-slots">';
+    pc.slots.forEach((s,si)=>{if(!s||typeof s.max!=='number')return;slotHtml+=`<div class="slot-level"><div class="sl-label">${SPELL_LVLS[si]}</div><div class="slot-pips">`;for(let i=0;i<s.max;i++)slotHtml+=`<span class="slot-pip ${i<(s.used||0)?'used':''}" onclick="toggleSlot(${idx},${si},${i});renderPCOverview()"></span>`;slotHtml+='</div></div>';});
+    slotHtml+='</div></div>';
+  }
+
+  document.getElementById('pc-overview-body').innerHTML=`
+    <div style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
+      <div onclick="setStepTarget('pc',${idx})" class="hp-tap" style="font-size:22px;font-weight:700;color:${hpCol};font-family:var(--mono)">${pc.hp}<span style="font-size:14px;color:var(--text-dim)"> / ${pc.hp_max} HP</span></div>
+      <div style="display:flex;gap:4px"><input type="number" id="po-hpamt" style="width:52px;text-align:center;padding:4px;font-size:12px" placeholder="Amt"><button class="btn sm green" onclick="(function(){const v=parseInt(document.getElementById('po-hpamt').value);if(!v)return;state.pcs[${idx}].hp=Math.min(state.pcs[${idx}].hp_max,state.pcs[${idx}].hp+v);document.getElementById('po-hpamt').value='';saveRefresh();renderPCOverview();renderHUD();})()" style="padding:3px 8px">+</button><button class="btn sm red" onclick="(function(){const v=parseInt(document.getElementById('po-hpamt').value);if(!v)return;state.pcs[${idx}].hp=Math.max(0,state.pcs[${idx}].hp-v);document.getElementById('po-hpamt').value='';saveRefresh();renderPCOverview();renderHUD();})()" style="padding:3px 8px">−</button></div>
+    </div>
+    <div class="hp-bar-wrap" style="margin-bottom:10px"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px;text-align:center">
+      ${['str','dex','con','int','wis','cha'].map(s=>`<div style="background:var(--surface2);border-radius:5px;padding:4px 2px;border:1px solid var(--border)"><div style="font-size:8px;font-weight:700;color:var(--text-dim);text-transform:uppercase">${s}</div><div style="font-size:18px;font-weight:800;color:var(--gold-bright);line-height:1.1;font-family:var(--mono)">${mod(s)}</div><div style="font-size:9px;color:var(--text-dim)">${parseInt(pc[s])||10}</div></div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px;font-size:10px;text-align:center">
+      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">AC</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.ac}</div></div>
+      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Init</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${(parseInt(pc.initiative)||0)>=0?'+':''}${parseInt(pc.initiative)||0}</div></div>
+      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Spd</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.speed||30}</div></div>
+      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">PP</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.passive_perception||10}</div></div>
+      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Prof</div><div style="font-size:15px;font-weight:700;color:var(--gold)">+${prof}</div></div>
+    </div>
+    ${condHtml}${concBadge}${attackHtml}${resHtml}${slotHtml}
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn sm" onclick="pcShortRest(${idx});renderPCOverview();renderHUD()" style="flex:1">💤 Short Rest</button>
+      <button class="btn sm gold" onclick="pcLongRest(${idx});renderPCOverview();renderHUD()" style="flex:1">🌙 Long Rest</button>
+      <button class="btn sm" onclick="closePCOverview();state.activeEditTab=${idx};openDrawer('tab-party')" style="flex:1">✎ Edit Sheet</button>
+    </div>
+  `;
+}
+
 </script>
 
+<!-- PC OVERVIEW SHEET (tap HUD tile) -->
+<div id="pc-overview-backdrop" onclick="closePCOverview()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:810;-webkit-tap-highlight-color:transparent"></div>
+<div id="pc-overview-sheet" style="display:none;position:fixed;bottom:0;left:0;width:100vw;max-height:82vh;background:var(--surface);border-top:2px solid var(--gold-dim);border-radius:14px 14px 0 0;z-index:820;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);transform:translateY(100%);transition:transform .25s cubic-bezier(.1,.75,.55,1)">
+  <div style="width:36px;height:4px;background:var(--border-bright);border-radius:2px;margin:10px auto 0;flex-shrink:0"></div>
+  <div id="pc-overview-hdr" style="display:flex;align-items:center;padding:10px 14px 6px;border-bottom:1px solid var(--border);gap:10px;flex-shrink:0">
+    <div style="flex:1">
+      <div id="po-name" style="font-family:var(--serif);font-size:17px;color:var(--gold-bright);font-weight:600"></div>
+      <div id="po-class" style="font-size:11px;color:var(--text-dim)"></div>
+    </div>
+    <div id="po-badge"></div>
+    <button onclick="closePCOverview()" style="background:none;border:none;font-size:18px;color:var(--text-dim);cursor:pointer;padding:4px 8px;-webkit-tap-highlight-color:transparent">✕</button>
+  </div>
+  <div id="pc-overview-body" style="overflow-y:auto;flex:1;padding:12px 14px 20px"></div>
+</div>
+
 <!-- QUICK ACTIONS FAB -->
-<button class="qa-fab" id="qa-fab" onclick="toggleQAMenu()" title="Quick Actions">⚡</button>
-<div class="qa-menu" id="qa-menu">
-  <div class="qa-menu-title" id="qa-menu-title">Quick Actions</div>
-  <div id="qa-menu-items"></div>
+<div id="qa-backdrop" onclick="closeQAMenu()" style="display:none;position:fixed;inset:0;z-index:200;-webkit-tap-highlight-color:transparent"></div>
+<div id="qa-fab-wrap" style="position:fixed;bottom:calc(155px + env(safe-area-inset-bottom,0px));right:16px;z-index:202;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none;user-select:none">
+  <div class="qa-menu" id="qa-menu">
+    <div class="qa-menu-title" id="qa-menu-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Quick Actions</span>
+      <button class="btn sm" onclick="closeQAMenu()" style="padding:2px 7px">✕</button>
+    </div>
+    <div id="qa-menu-items"></div>
+    <div style="padding:6px 12px 10px;border-top:1px solid var(--border)">
+      <button onclick="closeQAMenu();navTo('ait')" style="font-size:10px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:4px 0;width:100%;text-align:left">✎ Customize actions…</button>
+    </div>
+  </div>
+  <button class="qa-fab" id="qa-fab" onclick="toggleQAMenu()" title="Quick Actions">⚡</button>
 </div>
 
 <!-- LEVEL UP MODAL (bottom sheet) -->
