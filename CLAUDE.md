@@ -11,6 +11,21 @@
 4. Resume from where the last session left off
 5. Work on branch `claude/plugins-installation-gikz6l` (never push to main without explicit instruction)
 
+## Session End Protocol
+Before ending any session:
+1. Commit all changes with a clear message describing what was built
+2. Push the feature branch: `git push -u origin claude/plugins-installation-gikz6l`
+3. If the user asks to go live: merge to main and push `origin main`
+4. Update `.claude/roadmap.md` — mark completed items ✓, add any new pending items
+5. **Start a new chat for the next session** — do not continue in the same chat across separate work sessions
+
+## Token Management
+- Open a new chat at the start of every work session (even same day, if you've stepped away)
+- A fresh chat re-reads CLAUDE.md + roadmap.md and is fully oriented in seconds
+- Long chat history burns tokens re-reading context that's already captured in these files
+- Never cut mid-feature: finish the task, commit, push, THEN start a new chat
+- The `.claude/` files are the memory — nothing is lost by starting fresh
+
 ## Architecture
 - Single HTML file: `index.html` — all CSS, JS, HTML inline (~7,600 lines)
 - GitHub Pages from `main` branch
