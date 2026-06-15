@@ -1648,4 +1648,9 @@ details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-web
 #ai-persona,#ai-never,#ai-actions,#ai-continuity,#ai-multi{min-height:40px;height:auto;overflow:hidden;resize:vertical;field-sizing:content;line-height:1.55;}
 .fam-tile{border-color:var(--purple)!important;}
 .grit-tile{border-color:var(--green)!important;}
+/* Familiar + Grit overview bottom sheets */
+#familiar-ov,#grit-ov{position:fixed;bottom:0;left:0;width:100vw;max-height:65vh;background:var(--surface);border-top:2px solid var(--gold-dim);border-radius:14px 14px 0 0;transform:translateY(100%);transition:transform .25s cubic-bezier(.1,.75,.55,1);z-index:950;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);}
+#familiar-ov.is-open,#grit-ov.is-open{transform:translateY(0);}
+.qa-sheet-hdr{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;gap:8px;}
+.qa-sheet-body{overflow-y:auto;flex:1;padding:14px 14px 20px;}
 
