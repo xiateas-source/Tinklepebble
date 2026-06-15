@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Tinkle's Tinctures — Visual Redesign v2 Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a0c07;--surface:#2c1a10;--surface2:#3c2618;--surface3:#4c3222;
+  --border:#4a2c1a;--border-bright:#6a4030;
+  --gold:#b05830;--gold-dim:#70381a;--gold-bright:#d07845;
+  --red:#8b3a2a;--red-dim:#5c2415;
+  --green:#788a73;--green-bright:#9aab95;
+  --blue:#4a7068;--blue-bright:#628a7a;
+  --purple:#8a5e6a;--purple-bright:#a87888;
+  --text:#c4a88a;--text-dim:#8a6b50;--text-bright:#e8d9c4;
+  --sans:'Inter',system-ui,sans-serif;
+  --serif:'IM Fell English',Georgia,serif;
+  --display:'Cinzel',Georgia,serif;
+  --mono:'Share Tech Mono',monospace;
+  --nav-h:62px;--header-h:52px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;
+  min-height:100dvh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;
+  position:relative;overflow:hidden;}
+
+/* ── HEADER ── */
+.app-header{
+  position:sticky;top:0;z-index:100;height:var(--header-h);
+  background:var(--surface);
+  border-bottom:2px solid var(--gold-dim);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px 0 14px;gap:8px;
+  box-shadow:0 2px 12px rgba(0,0,0,.5);
+}
+.header-title{
+  font-family:var(--display);font-size:15px;color:var(--gold);
+  letter-spacing:.5px;flex-shrink:0;
+}
+.header-hp-badges{display:flex;gap:5px;flex:1;overflow-x:auto;scrollbar-width:none;padding:2px 0;}
+.hp-badge{
+  display:flex;align-items:center;gap:4px;
+  background:var(--surface2);border:1px solid var(--border-bright);
+  border-radius:6px;padding:3px 7px;white-space:nowrap;font-size:11px;
+}
+.hp-badge .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.hp-badge .dot.green{background:var(--green);}
+.hp-badge .dot.yellow{background:#c8a030;}
+.hp-badge .hp-val{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text-bright);}
+.ai-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);flex-shrink:0;}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 6px rgba(120,138,115,.6);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.header-dice-btn{
+  background:var(--gold);color:var(--bg);border:none;border-radius:50%;
+  width:34px;height:34px;font-size:16px;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+
+/* ── MAIN CONTENT ── */
+.tab-content{
+  flex:1;overflow-y:auto;padding:14px 12px;
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);
+  display:none;
+}
+.tab-content.active{display:block;}
+
+/* ── PANELS ── */
+.panel{
+  background:var(--surface);border:1px solid var(--border-bright);border-radius:8px;
+  padding:12px 14px;margin-bottom:10px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+.panel-title{
+  font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;
+  letter-spacing:1.2px;border-bottom:1px solid var(--border);
+  padding-bottom:8px;margin-bottom:10px;font-family:var(--sans);
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+/* ── CHAT ── */
+.chat-wrap{
+  background:#0e0806;border:1px solid var(--border);border-radius:8px;
+  padding:12px;display:flex;flex-direction:column;gap:10px;
+  min-height:300px;margin-bottom:10px;
+}
+.chat-msg{padding:10px 13px;border-radius:6px;max-width:92%;font-size:14px;line-height:1.65;word-break:break-word;}
+.chat-msg.dm{
+  background:var(--surface2);border:1px solid var(--border-bright);
+  color:var(--text-bright);font-family:var(--serif);font-size:14px;
+  align-self:flex-start;border-left:3px solid var(--gold);
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.chat-msg.dm .msg-who{font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-family:var(--sans);}
+.chat-msg.player{
+  background:var(--surface3);border:1px solid var(--border-bright);
+  color:var(--text);align-self:flex-end;border-right:3px solid var(--blue);
+}
+.chat-msg.player .msg-who{font-size:10px;font-weight:600;color:var(--blue-bright);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-family:var(--sans);text-align:right;}
+.chat-msg.roll{
+  background:transparent;border:1px dashed var(--gold-dim);
+  color:var(--gold-bright);font-family:var(--mono);font-size:12px;
+  align-self:center;max-width:85%;text-align:center;
+  border-radius:6px;padding:7px 14px;
+}
+.typing{
+  align-self:flex-start;padding:9px 13px;
+  background:var(--surface2);border:1px solid var(--border-bright);
+  border-left:3px solid var(--gold-dim);border-radius:6px;
+  font-family:var(--serif);color:var(--gold-dim);font-style:italic;font-size:13px;
+}
+
+/* ── ACTION PILLS ── */
+.pills-row{
+  display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+  padding:0 0 8px;margin-bottom:8px;
+}
+.pill{
+  flex-shrink:0;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:500;
+  border:1px solid var(--border-bright);background:var(--surface2);
+  color:var(--text);cursor:pointer;white-space:nowrap;transition:all .15s;
+  font-family:var(--sans);
+}
+.pill.gold{border-color:var(--gold-dim);color:var(--gold);}
+.pill.green{border-color:var(--green);color:var(--green-bright);}
+.pill.red{border-color:var(--red);color:#ff9090;}
+
+/* ── CHAT INPUT ── */
+.chat-input-row{display:flex;gap:6px;align-items:flex-end;}
+.chat-input{
+  flex:1;background:var(--surface2);border:1px solid var(--border-bright);
+  color:var(--text-bright);border-radius:8px;padding:10px 12px;
+  font-family:var(--sans);font-size:14px;resize:none;min-height:42px;
+  outline:none;
+}
+.chat-input:focus{border-color:var(--gold-dim);}
+.send-btn{
+  background:var(--gold);color:var(--bg);border:none;border-radius:8px;
+  padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;
+  font-family:var(--sans);white-space:nowrap;min-height:42px;
+}
+
+/* ── PC CARDS ── */
+.pc-card{
+  background:var(--surface);border:1px solid var(--border-bright);
+  border-radius:8px;overflow:hidden;margin-bottom:10px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);position:relative;
+}
+.pc-card::before{
+  content:'';position:absolute;top:0;bottom:0;left:0;width:3px;
+  background:linear-gradient(180deg,var(--gold-dim) 0%,var(--gold) 50%,var(--gold-dim) 100%);
+}
+.pc-card-header{
+  padding:10px 14px 10px 18px;
+  background:linear-gradient(135deg,rgba(176,88,48,.1) 0%,transparent 55%),
+             linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);
+  border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.pc-name{font-family:var(--display);font-size:16px;color:var(--text-bright);}
+.pc-class{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-top:1px;}
+.pc-card-body{padding:10px 14px 12px 18px;}
+.hp-display{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text-bright);}
+.hp-bar-wrap{height:8px;background:rgba(0,0,0,.4);border-radius:4px;overflow:hidden;margin:5px 0;box-shadow:inset 0 1px 3px rgba(0,0,0,.5);}
+.hp-bar-fill{height:100%;border-radius:4px;}
+.stats-row{display:flex;gap:4px;margin-top:8px;}
+.stat-tile{
+  flex:1;background:radial-gradient(circle at 36% 32%,var(--surface3) 0%,#120a06 100%);
+  border:2px solid var(--border-bright);border-radius:50%;aspect-ratio:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 3px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.stat-tile .s-name{font-size:7px;letter-spacing:.4px;color:var(--text-dim);text-transform:uppercase;}
+.stat-tile .s-val{font-size:12px;font-weight:700;color:var(--gold-bright);}
+.cond-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;}
+.cond-chip{
+  padding:3px 8px;border-radius:3px;font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.4px;background:linear-gradient(180deg,var(--surface3) 0%,var(--surface2) 100%);
+  border:1px solid var(--border-bright);color:var(--text-dim);cursor:pointer;
+}
+.cond-chip.active{
+  background:linear-gradient(180deg,rgba(139,58,42,.32) 0%,rgba(139,58,42,.16) 100%);
+  border-color:var(--red);color:#ff9090;
+}
+
+/* ── SHEET TABS ── */
+.sheet-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:12px;}
+.sheet-tab{
+  flex:1;padding:8px 4px;font-size:10px;font-weight:600;letter-spacing:.4px;
+  text-transform:uppercase;border:none;border-bottom:2px solid transparent;
+  background:none;color:var(--text-dim);cursor:pointer;font-family:var(--sans);
+}
+.sheet-tab.active{border-bottom-color:var(--gold);color:var(--gold);}
+
+/* ── WORLD CARDS ── */
+.world-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.world-stat{
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  padding:8px 10px;
+}
+.world-stat .ws-label{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-dim);margin-bottom:3px;}
+.world-stat .ws-val{font-size:13px;font-weight:600;color:var(--text-bright);}
+.npc-row{display:flex;align-items:center;gap:8px;padding:7px 10px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;}
+.npc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.npc-dot.friendly{background:var(--green);}
+.npc-dot.neutral{background:var(--text-dim);}
+.npc-dot.hostile{background:var(--red);}
+.quest-item{padding:7px 10px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;margin-bottom:5px;font-size:12px;border-left:3px solid var(--gold-dim);}
+
+/* ── SYSTEMS ── */
+.sys-row{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;margin-bottom:6px;font-size:13px;}
+.sys-row .sys-label{color:var(--text);}
+.sys-badge{font-size:10px;color:var(--text-dim);background:var(--surface3);
+  border-radius:3px;padding:2px 7px;}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  background:var(--surface);border-top:2px solid var(--gold-dim);
+  display:flex;align-items:stretch;z-index:200;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  box-shadow:0 -4px 20px rgba(0,0,0,.5);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:8px 4px;border:none;background:none;cursor:pointer;
+  color:var(--text-dim);font-family:var(--sans);font-size:9px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.4px;min-height:var(--nav-h);
+  border-top:2px solid transparent;transition:all .15s;
+}
+.nav-btn.active{color:var(--gold);border-top-color:var(--gold);}
+.nav-btn .nav-icon{font-size:20px;line-height:1;}
+
+/* ── D20 FAB ── */
+.d20-fab{
+  position:fixed;bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom,0px));
+  right:14px;width:50px;height:50px;border-radius:50%;
+  background:var(--gold);color:var(--bg);border:none;font-size:20px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(176,88,48,.5);z-index:150;
+  font-family:var(--mono);font-weight:700;
+}
+
+/* ── SUB-NAV ── */
+.sub-nav{display:flex;gap:2px;margin-bottom:12px;background:var(--surface);
+  border:1px solid var(--border);border-radius:6px;padding:4px;overflow-x:auto;scrollbar-width:none;}
+.sub-tab{flex-shrink:0;padding:6px 12px;border-radius:4px;font-size:11px;font-weight:500;
+  border:none;background:none;color:var(--text-dim);cursor:pointer;font-family:var(--sans);
+  white-space:nowrap;transition:all .15s;}
+.sub-tab.active{background:var(--surface3);color:var(--gold);}
+
+/* ── MISC ── */
+.pill-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-dim);margin-bottom:5px;}
+.slot-pips{display:flex;gap:4px;margin-top:4px;}
+.slot-pip{width:14px;height:14px;border-radius:50%;border:2px solid var(--purple-bright);
+  background:radial-gradient(circle at 35% 35%,rgba(138,94,106,.5) 0%,rgba(88,52,62,.2) 100%);}
+.slot-pip.used{background:var(--surface3);border-color:var(--border-bright);}
+.badge{background:var(--red);color:#fff;border-radius:10px;font-size:9px;font-weight:700;
+  padding:1px 5px;min-width:16px;text-align:center;}
+.label{font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+.divider{height:1px;background:var(--border);margin:10px 0;}
+.note{font-size:11px;color:var(--text-dim);font-style:italic;padding:6px 0;}
+
+/* ── MOCKUP BANNER ── */
+.mockup-banner{
+  background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim));
+  color:var(--bg);font-size:10px;font-weight:700;text-align:center;
+  padding:4px;letter-spacing:1px;text-transform:uppercase;font-family:var(--sans);
+  position:sticky;top:0;z-index:999;
+}
+</style>
+</head>
+<body>
+
+<div class="mockup-banner">Visual Redesign v2 — Mockup Preview</div>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="header-hp-badges">
+    <div class="hp-badge"><span class="dot green"></span><span style="color:var(--text-dim);font-size:10px;margin-right:2px">Slash</span><span class="hp-val">39/39</span></div>
+    <div class="hp-badge"><span class="dot green"></span><span style="color:var(--text-dim);font-size:10px;margin-right:2px">Tink</span><span class="hp-val">27/27</span></div>
+    <div class="hp-badge"><span class="dot yellow"></span><span style="color:var(--text-dim);font-size:10px;margin-right:2px">Pebb</span><span class="hp-val">18/30</span></div>
+  </div>
+  <div class="ai-status"><div class="ai-dot"></div><span>DM</span></div>
+  <button class="header-dice-btn">🎲</button>
+</div>
+
+<!-- ═══ ADVENTURE TAB ═══ -->
+<div class="tab-content active" id="tab-adventure">
+  <div class="sub-nav">
+    <button class="sub-tab active">📖 Narrative</button>
+    <button class="sub-tab">❓ Rules</button>
+    <button class="sub-tab">🗨 OOC <span class="badge">2</span></button>
+  </div>
+
+  <div class="chat-wrap">
+    <div class="chat-msg dm">
+      <div class="msg-who">🎭 DM</div>
+      The wagon creaks to a halt as fog rolls across the Whispering Weald. Through the trees, lantern-light flickers — a village, perhaps half a mile off. Grit snorts uneasily. The smell of pine and something sweeter hangs in the air.
+    </div>
+    <div class="chat-msg roll">🎲 Tinkle — Perception (d20+5) → <strong style="color:var(--gold-bright)">17</strong> — Success</div>
+    <div class="chat-msg dm">
+      <div class="msg-who">🎭 DM</div>
+      Sharp eyes catch movement between the trunks — two figures watching the road. They haven't moved toward you. Not yet. What do you do?
+    </div>
+    <div class="chat-msg player">
+      <div class="msg-who" style="text-align:right">🐢 Tinkle</div>
+      I signal Pebble with two fingers — eyes on the treeline. Then I reach for my blowgun and load a sedative bolt, staying low.
+    </div>
+    <div class="typing">DM is writing…</div>
+  </div>
+
+  <div class="pills-row">
+    <div class="pill gold">⚔ Attack / Action</div>
+    <div class="pill">🎲 Roll & Send</div>
+    <div class="pill green">🌿 Harvest Ingredient</div>
+    <div class="pill">🏕 Short Rest</div>
+    <div class="pill red">💀 Death Save</div>
+    <div class="pill">📍 Scene Snapshot</div>
+    <div class="pill">🔄 Re-sync AI</div>
+  </div>
+
+  <div class="chat-input-row">
+    <textarea class="chat-input" rows="2" placeholder="What do you do…"></textarea>
+    <button class="send-btn">Send ▶</button>
+  </div>
+</div>
+
+<!-- ═══ LOGISTICS TAB ═══ -->
+<div class="tab-content" id="tab-logistics">
+  <div class="sub-nav">
+    <button class="sub-tab active">🌍 World</button>
+    <button class="sub-tab">⚙ Ops</button>
+    <button class="sub-tab">🐂 Wagon</button>
+    <button class="sub-tab">⚔ Combat</button>
+  </div>
+
+  <div class="world-grid">
+    <div class="world-stat"><div class="ws-label">Time</div><div class="ws-val">Day 2, 2:30 PM</div></div>
+    <div class="world-stat"><div class="ws-label">Location</div><div class="ws-val">Whispering Weald</div></div>
+    <div class="world-stat"><div class="ws-label">Weather</div><div class="ws-val">Foggy, cool</div></div>
+    <div class="world-stat"><div class="ws-label">Treasury</div><div class="ws-val">47 gp</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Main Quest</div>
+    <div style="font-size:13px;color:var(--text-bright);margin-bottom:6px">Deliver the "Shelled Alchemist" shipment to Greenest without raising suspicion</div>
+    <div class="quest-item">🟡 Investigate the lantern-light in the Weald</div>
+    <div class="quest-item">⚪ Find a buyer for the Torpor reagent stock</div>
+    <div class="quest-item">✅ Escape Goodbarrel without incident</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">NPCs</div>
+    <div class="npc-row"><span class="npc-dot friendly"></span><span style="font-weight:600;color:var(--text-bright);font-size:13px">Sister Garaele</span><span style="font-size:11px;color:var(--text-dim);margin-left:auto">trusts · Greenest Temple</span></div>
+    <div class="npc-row"><span class="npc-dot neutral"></span><span style="font-weight:600;color:var(--text-bright);font-size:13px">Harlan Dusk</span><span style="font-size:11px;color:var(--text-dim);margin-left:auto">wary · Road merchant</span></div>
+    <div class="npc-row"><span class="npc-dot hostile"></span><span style="font-weight:600;color:var(--text-bright);font-size:13px">Watcher Bram</span><span style="font-size:11px;color:var(--text-dim);margin-left:auto">suspicious · Goodbarrel guard</span></div>
+  </div>
+</div>
+
+<!-- ═══ SHEET TAB ═══ -->
+<div class="tab-content" id="tab-sheet">
+  <!-- PC selector -->
+  <div class="sub-nav">
+    <button class="sub-tab active">Slasher</button>
+    <button class="sub-tab">Tinkle</button>
+    <button class="sub-tab">Pebble</button>
+    <button class="sub-tab">+ New</button>
+  </div>
+
+  <!-- Card preview -->
+  <div class="pc-card" style="margin-bottom:14px">
+    <div class="pc-card-header">
+      <div>
+        <div class="pc-name">Slasher</div>
+        <div class="pc-class">Lv 3 Black Dragonborn · Fighter · Battle Master</div>
+      </div>
+      <div style="text-align:right">
+        <div class="hp-display">39<span style="font-size:14px;color:var(--text-dim);font-weight:400">/39</span></div>
+        <div style="font-size:10px;color:var(--text-dim)">AC 16 · Initiative +3</div>
+      </div>
+    </div>
+    <div class="pc-card-body">
+      <div class="hp-bar-wrap"><div class="hp-bar-fill" style="width:100%;background:linear-gradient(90deg,var(--green),var(--green-bright))"></div></div>
+      <div class="stats-row">
+        <div class="stat-tile"><span class="s-name">STR</span><span class="s-val">17</span></div>
+        <div class="stat-tile"><span class="s-name">DEX</span><span class="s-val">12</span></div>
+        <div class="stat-tile"><span class="s-name">CON</span><span class="s-val">16</span></div>
+        <div class="stat-tile"><span class="s-name">INT</span><span class="s-val">10</span></div>
+        <div class="stat-tile"><span class="s-name">WIS</span><span class="s-val">12</span></div>
+        <div class="stat-tile"><span class="s-name">CHA</span><span class="s-val">13</span></div>
+      </div>
+      <div class="cond-row">
+        <div class="cond-chip">Blinded</div>
+        <div class="cond-chip active">Prone</div>
+        <div class="cond-chip">Poisoned</div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="label" style="margin-bottom:4px">Spell Slots</div>
+        <div style="font-size:11px;color:var(--text-dim)">No spell slots</div>
+      </div>
+      <div style="margin-top:8px">
+        <div class="label" style="margin-bottom:4px">Resources</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="font-size:11px"><span style="color:var(--text-dim)">Action Surge:</span> <span style="color:var(--text-bright);font-weight:600">1/1</span></div>
+          <div style="font-size:11px"><span style="color:var(--text-dim)">Second Wind:</span> <span style="color:var(--text-bright);font-weight:600">1/1</span></div>
+          <div style="font-size:11px"><span style="color:var(--text-dim)">Sup. Dice:</span> <span style="color:var(--text-bright);font-weight:600">4/4</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit sheet tabs -->
+  <div class="panel" style="padding:12px">
+    <div class="sheet-tabs">
+      <button class="sheet-tab active">Skills</button>
+      <button class="sheet-tab">Features</button>
+      <button class="sheet-tab">Spells</button>
+      <button class="sheet-tab" style="color:var(--purple-bright);border-bottom-color:transparent">Spellbook</button>
+      <button class="sheet-tab">Gear</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-dim);padding:6px 0">
+      <div style="margin-bottom:6px"><span style="color:var(--text-bright);font-weight:600">Athletics</span> +5 · Proficient</div>
+      <div style="margin-bottom:6px"><span style="color:var(--text-bright);font-weight:600">Perception</span> +3</div>
+      <div style="margin-bottom:6px"><span style="color:var(--text-bright);font-weight:600">Intimidation</span> +3</div>
+      <div style="margin-bottom:6px"><span style="color:var(--text-bright);font-weight:600">Smith's Tools</span> · Proficient</div>
+      <div class="note">Great Weapon Fighting · Heavy Armor Prof.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SYSTEMS TAB ═══ -->
+<div class="tab-content" id="tab-systems">
+  <div class="sub-nav">
+    <button class="sub-tab active">🤖 AI Tools</button>
+    <button class="sub-tab">📋 Session</button>
+    <button class="sub-tab">🛠 Dev</button>
+    <button class="sub-tab">⚙ Setup</button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">AI Contracts</div>
+    <div class="sys-row"><span class="sys-label">🎭 DM Persona & Tone</span><span class="sys-badge">Contract 1</span></div>
+    <div class="sys-row"><span class="sys-label">🚫 What You Never Do</span><span class="sys-badge">Contract 2</span></div>
+    <div class="sys-row"><span class="sys-label">⚔ How You Handle Actions</span><span class="sys-badge">Contract 3</span></div>
+    <div class="sys-row"><span class="sys-label">🐂 Continuity & Wagon</span><span class="sys-badge">Contract 4</span></div>
+    <div class="sys-row"><span class="sys-label">👥 Multi-Player Awareness</span><span class="sys-badge">Contract 5</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Quick Tools</div>
+    <div class="sys-row"><span class="sys-label">📦 Export State Backup</span><span style="font-size:18px">↓</span></div>
+    <div class="sys-row"><span class="sys-label">🔄 Re-sync AI State</span><span style="font-size:18px;color:var(--gold)">↺</span></div>
+    <div class="sys-row"><span class="sys-label">⏪ Rewind Stack</span><span class="sys-badge">10 snaps</span></div>
+    <div class="sys-row"><span class="sys-label">🚩 Error Flags</span><span class="badge">3</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">App Info</div>
+    <div style="font-size:11px;color:var(--text-dim);line-height:1.8">
+      Save Version: <span style="color:var(--text-bright)">11</span><br>
+      Firebase: <span style="color:var(--green-bright)">● Connected</span><br>
+      Last save: <span style="color:var(--text-bright)">2s ago</span><br>
+      Chat messages: <span style="color:var(--text-bright)">47</span>
+    </div>
+  </div>
+</div>
+
+<!-- D20 FAB -->
+<button class="d20-fab">d20</button>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('adventure',this)">
+    <span class="nav-icon">⚔</span>Adventure
+  </button>
+  <button class="nav-btn" onclick="switchTab('logistics',this)">
+    <span class="nav-icon">📦</span>Logistics
+  </button>
+  <button class="nav-btn" onclick="switchTab('sheet',this)">
+    <span class="nav-icon">📜</span>Sheet
+  </button>
+  <button class="nav-btn" onclick="switchTab('systems',this)">
+    <span class="nav-icon">⚙</span>Systems
+  </button>
+</nav>
+
+<script>
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+document.querySelectorAll('.sub-tab').forEach(t=>{
+  t.addEventListener('click',function(){
+    this.closest('.sub-nav').querySelectorAll('.sub-tab').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+document.querySelectorAll('.sheet-tab').forEach(t=>{
+  t.addEventListener('click',function(){
+    this.closest('.sheet-tabs').querySelectorAll('.sheet-tab').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

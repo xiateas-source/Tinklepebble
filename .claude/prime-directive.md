@@ -6,9 +6,9 @@
 
 ## WHO WE ARE
 
-Two developers/players building something that doesn't exist yet: a complete, phone-native D&D 5e virtual tabletop that runs in a single HTML file, requires no installation, no subscription, and replaces a human DM with an AI that is contractually bound to run the game correctly.
+Two developers/players building sla complete, phone-native D&D 5e virtual tabletop that runs in a single HTML file, requires no installation, no subscription, and replaces a human DM with an AI that is contractually bound to run the game correctly.
 
-One player (Tinkle/Mastermind). One player (Pebble/Pitchman). One AI DM. One shared Firebase state. Real dice, real consequences, real rules enforcement.
+One player (Tinkle). One player (Pebble/Pitchman). One AI DM. One shared Firebase state. Real dice, real consequences, real rules enforcement.
 
 ---
 

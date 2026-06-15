@@ -653,7 +653,7 @@ body{
 }
 .pc-card-header{
   background:
-    linear-gradient(135deg,rgba(200,120,64,.1) 0%,transparent 55%),
+    linear-gradient(135deg,rgba(176,88,48,.12) 0%,transparent 55%),
     linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);
 }
 .pc-name{font-size:18px;}
@@ -687,9 +687,9 @@ body{
 /* Spell slot pips — arcane orbs */
 .slot-pip{
   width:18px;height:18px;border-radius:50%;
-  border:2px solid var(--blue-bright);
-  background:radial-gradient(circle at 35% 35%,rgba(106,152,176,.55) 0%,rgba(58,104,128,.22) 100%);
-  box-shadow:0 0 8px rgba(90,152,184,.32),inset 0 1px 0 rgba(255,255,255,.18);
+  border:2px solid var(--purple-bright);
+  background:radial-gradient(circle at 35% 35%,rgba(138,94,106,.55) 0%,rgba(88,52,62,.22) 100%);
+  box-shadow:0 0 8px rgba(138,94,106,.38),inset 0 1px 0 rgba(255,255,255,.18);
 }
 .slot-pip.used{
   background:radial-gradient(circle at 35% 35%,var(--surface3) 0%,var(--surface2) 100%);
@@ -706,8 +706,10 @@ body{
   box-shadow:0 2px 0 rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04);
 }
 .cond-chip.active{
-  background:linear-gradient(180deg,rgba(192,72,40,.28) 0%,rgba(192,72,40,.14) 100%);
-  box-shadow:0 0 12px rgba(192,72,40,.32),0 2px 0 rgba(0,0,0,.45);
+  background:linear-gradient(180deg,rgba(139,58,42,.32) 0%,rgba(139,58,42,.16) 100%);
+  border-color:var(--red);
+  color:var(--text-bright);
+  box-shadow:0 0 12px rgba(139,58,42,.38),0 2px 0 rgba(0,0,0,.45);
 }
 
 /* Combat tracker */
@@ -717,9 +719,9 @@ body{
   box-shadow:0 2px 6px rgba(0,0,0,.38);
 }
 .init-row.current{
-  background:linear-gradient(90deg,rgba(200,120,64,.14) 0%,var(--surface3) 60%);
+  background:linear-gradient(90deg,rgba(176,88,48,.16) 0%,var(--surface3) 60%);
   border-left:3px solid var(--gold);
-  box-shadow:0 0 26px rgba(200,120,64,.34),0 2px 6px rgba(0,0,0,.4);
+  box-shadow:0 0 26px rgba(176,88,48,.34),0 2px 6px rgba(0,0,0,.4);
 }
 .init-badge{font-family:var(--display);font-size:20px;font-weight:700;}
 .round-counter{
@@ -945,14 +947,21 @@ body{background-image:none;}
    ════════════════════════════════════════════════════ */
 
 :root{
-  --bg:#2c1d1a;--surface:#3b2b24;--surface2:#4a3b39;--surface3:#5a4a46;
-  --border:#4a3530;--border-bright:#6a5048;
-  --gold:#c8a06a;--gold-dim:#8a6040;--gold-bright:#e8c898;
-  --red:#a85040;--red-dim:#6a3028;
-  --green:#5a7860;--green-bright:#8aa38b;
-  --blue:#508070;--blue-bright:#6c8a80;
-  --purple:#6a5870;--purple-bright:#8a7890;
-  --text:#cbbba0;--text-dim:#8a7060;--text-bright:#f2efe9;--cream:#f2efe9;
+  /* Soft Autumn — chocolate brown family, darkened for screens */
+  --bg:#1a0c07;--surface:#2c1a10;--surface2:#3c2618;--surface3:#4c3222;
+  --border:#4a2c1a;--border-bright:#6a4030;
+  /* Cinnamon accent (replaces gold) */
+  --gold:#b05830;--gold-dim:#70381a;--gold-bright:#d07845;
+  /* Danger: deep chocolate red */
+  --red:#8b3a2a;--red-dim:#5c2415;
+  /* Status: sage grey */
+  --green:#788a73;--green-bright:#9aab95;
+  /* Player messages: warm olive-teal (Soft Autumn cool accent) */
+  --blue:#4a7068;--blue-bright:#628a7a;
+  /* Magic / concentration: dusty rose-plum (Soft Autumn) */
+  --purple:#8a5e6a;--purple-bright:#a87888;
+  /* Text: champagne + warm beige family */
+  --text:#c4a88a;--text-dim:#8a6b50;--text-bright:#e8d9c4;--cream:#e8d9c4;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
   --mono:'Share Tech Mono','Courier New',monospace;
   --serif:'IM Fell English',Georgia,serif;
@@ -960,38 +969,38 @@ body{background-image:none;}
   --touch:52px;--radius:6px;--radius-sm:4px;
 }
 
-/* ── LIGHT MODE ── */
+/* ── LIGHT MODE — Soft Autumn parchment ── */
 body.light-mode{
-  --bg:#f0d3b6;--surface:#e8d8c0;--surface2:#d4c4a8;--surface3:#c0a888;
-  --border:#c8b498;--border-bright:#a89070;
-  --gold:#a06828;--gold-dim:#6a4010;--gold-bright:#c8a06a;
-  --red:#a85040;--red-dim:#7a3828;
-  --green:#3a6848;--green-bright:#4a7858;
-  --blue:#306870;--blue-bright:#407870;
-  --purple:#5a4868;--purple-bright:#7a6878;
-  --text:#4a3428;--text-dim:#7a6050;--text-bright:#2c1d1a;--cream:#2c1d1a;
+  --bg:#f5ede0;--surface:#eddcca;--surface2:#dfc9b0;--surface3:#d0b898;
+  --border:#c4a882;--border-bright:#a88860;
+  --gold:#8b3e20;--gold-dim:#5c2810;--gold-bright:#a85030;
+  --red:#7a2815;--red-dim:#5c1e0e;
+  --green:#4a6048;--green-bright:#5a7058;
+  --blue:#3a5a50;--blue-bright:#4a7060;
+  --purple:#724a58;--purple-bright:#8a6070;
+  --text:#3c2418;--text-dim:#6a4a34;--text-bright:#1e0e06;--cream:#1e0e06;
 }
 body.light-mode .app-header{background:var(--surface);box-shadow:0 1px 0 var(--border-bright);}
 body.light-mode .main-tabs{background:var(--surface);border-bottom-color:var(--border);}
 body.light-mode .chat-msgs-wrap{background:var(--surface2);}
 body.light-mode .panel{box-shadow:0 2px 8px rgba(0,0,0,.12);background:var(--surface);}
-body.light-mode .panel-title{text-shadow:none;background:linear-gradient(90deg,rgba(160,104,40,.1) 0%,transparent 68%);}
+body.light-mode .panel-title{text-shadow:none;background:linear-gradient(90deg,rgba(139,62,32,.1) 0%,transparent 68%);}
 body.light-mode .modal-overlay{background:rgba(30,20,10,.72);}
 body.light-mode .modal-box{background:var(--surface);box-shadow:0 8px 40px rgba(0,0,0,.3);}
 body.light-mode body{background-image:none;}
 body.light-mode .btn{background:var(--surface2);border-color:var(--border-bright);}
 body.light-mode .btn:hover{background:var(--surface3);border-color:var(--gold);}
 
-/* ── Night Mode — deep sepia, warm amber, easy on dark-adapted eyes ── */
+/* ── Night Mode — Soft Autumn deepened, easy on dark-adapted eyes ── */
 body.night-mode{
-  --bg:#100d0a;--surface:#1a1410;--surface2:#22180f;--surface3:#2b1f14;
-  --border:#302418;--border-bright:#403020;
-  --gold:#a07840;--gold-dim:#6a5028;--gold-bright:#b89050;
-  --red:#7a3830;--red-dim:#5a2820;
-  --green:#3a5838;--green-bright:#486848;
-  --blue:#285058;--blue-bright:#386068;
-  --purple:#483458;--purple-bright:#584868;
-  --text:#9a7850;--text-dim:#685040;--text-bright:#b88e5a;--cream:#b88e5a;
+  --bg:#0e0806;--surface:#180e08;--surface2:#201410;--surface3:#281a12;
+  --border:#301a10;--border-bright:#402418;
+  --gold:#8b4020;--gold-dim:#5c2810;--gold-bright:#a85030;
+  --red:#6a2818;--red-dim:#481810;
+  --green:#4a5c48;--green-bright:#5a7058;
+  --blue:#3a5850;--blue-bright:#4a6860;
+  --purple:#6a4050;--purple-bright:#7a5060;
+  --text:#7a5c40;--text-dim:#4a3428;--text-bright:#9a7050;--cream:#9a7050;
 }
 body.night-mode{font-size:17px;line-height:1.76;}
 body.night-mode .app-header{background:var(--surface);box-shadow:0 1px 0 var(--border);}
@@ -1001,8 +1010,8 @@ body.night-mode .chat-msg{font-size:16px;line-height:1.72;}
 body.night-mode .chat-msg.dm{font-size:17px;line-height:1.82;}
 body.night-mode .chat-msg.sys{font-size:13px;}
 body.night-mode .chat-msg.chk-msg{font-size:13px;}
-body.night-mode .panel{box-shadow:inset 0 1px 0 rgba(255,200,120,.03),0 2px 12px rgba(0,0,0,.6);}
-body.night-mode .panel-title{text-shadow:none;background:linear-gradient(90deg,rgba(160,120,64,.12) 0%,transparent 70%);}
+body.night-mode .panel{box-shadow:inset 0 1px 0 rgba(176,88,48,.04),0 2px 12px rgba(0,0,0,.7);}
+body.night-mode .panel-title{text-shadow:none;background:linear-gradient(90deg,rgba(139,64,32,.12) 0%,transparent 70%);}
 body.night-mode .modal-overlay{background:rgba(8,6,4,.82);}
 body.night-mode .modal-box{background:var(--surface);box-shadow:0 8px 40px rgba(0,0,0,.7);}
 body.night-mode input,body.night-mode textarea,body.night-mode select{font-size:16px;}
@@ -3263,6 +3272,9 @@ function renderPcInv(idx){
 }
 
 // ═══ EDIT SHEETS ═══
+var _pcSheetTab=0;
+var _piFilter='all';
+function setSheetTab(n){_pcSheetTab=n;renderSheets();}
 function renderSheets(){
   const c=document.getElementById('edit-sheets');if(!c)return;c.innerHTML='';
   const idx=state.activeEditTab||0;const pc=state.pcs[idx];if(!pc)return;
@@ -3295,36 +3307,67 @@ function renderSheets(){
       <div class="fg"><label class="field-label">Pass. Insight</label><input type="number" value="${pc.passive_insight||10}" onchange="upd(${idx},'passive_insight',parseInt(this.value)||10)"></div>
     </div>
     <div class="stat-mini-row" style="margin-bottom:12px">
-      ${['str','dex','con','int','wis','cha'].map(s=>`<div><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${esc(pc[s]||'10 (+0)')}" onchange="upd(${idx},'${s}',this.value)"></div>`).join('')}
+      ${['str','dex','con','int','wis','cha'].map(s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);const ms=(m>=0?'+':'')+m;return`<div style="text-align:center"><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${n}" onchange="upd(${idx},'${s}',parseInt(this.value)||10)" style="text-align:center;font-size:15px;font-weight:600"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-top:3px;letter-spacing:.5px">${ms}</div></div>`;}).join('')}
     </div>
-    <div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label><textarea id="sheet-skills-${idx}" onchange="upd(${idx},'skills',this.value)" style="min-height:60px"></textarea></div>
-    <div class="form-group"><label class="field-label">Features, Feats &amp; Class Resources</label><textarea id="sheet-features-${idx}" onchange="upd(${idx},'features',this.value)" style="min-height:60px"></textarea></div>
-    <div class="form-group"><label class="field-label">Spellcasting</label><textarea id="sheet-magic-${idx}" onchange="upd(${idx},'magic',this.value)" style="min-height:60px"></textarea></div>
-    <div class="form-group"><label class="field-label">Spell Slots <button class="slot-add-btn" onclick="addSlotLvl(${idx})">+ Add Level</button></label><div id="slot-ed-${idx}"></div></div>
-    <details class="bs" style="margin-top:8px">
+    <div style="display:flex;gap:0;margin:14px 0 10px;border-bottom:1px solid var(--border)">
+      ${['Skills','Features','Spells','Spellbook','Gear'].map((t,i)=>`<button onclick="setSheetTab(${i})" style="flex:1;padding:8px 4px;font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;border:none;border-bottom:2px solid ${i===_pcSheetTab?'var(--gold)':'transparent'};background:none;color:${i===_pcSheetTab?'var(--gold)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans);min-height:36px;transition:color .15s">${t}</button>`).join('')}
+    </div>
+    ${_pcSheetTab===0?`
+    <div class="form-group"><label class="field-label">Skills &amp; Proficiencies</label><textarea id="sheet-skills-${idx}" onchange="upd(${idx},'skills',this.value)" style="min-height:120px"></textarea></div>
+    `:''}
+    ${_pcSheetTab===1?`
+    <div class="form-group"><label class="field-label">Features, Feats &amp; Class Resources</label><textarea id="sheet-features-${idx}" onchange="upd(${idx},'features',this.value)" style="min-height:120px"></textarea></div>
+    <details class="bs" style="margin-top:8px" open>
       <summary>⚡ Resources &amp; Abilities <button class="slot-add-btn" onclick="event.stopPropagation();addResource(${idx})">+ Add</button></summary>
       <div class="bs-body" id="res-ed-${idx}"></div>
     </details>
-    <details class="bs" style="margin-top:8px">
+    `:''}
+    ${_pcSheetTab===2?`
+    <div class="form-group"><label class="field-label">Spellcasting</label><textarea id="sheet-magic-${idx}" onchange="upd(${idx},'magic',this.value)" style="min-height:100px"></textarea></div>
+    <div class="form-group"><label class="field-label">Spell Slots <button class="slot-add-btn" onclick="addSlotLvl(${idx})">+ Add Level</button></label><div id="slot-ed-${idx}"></div></div>
+    `:''}
+    ${_pcSheetTab===3?`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:11px;color:var(--text-dim)">✨ ${pc.spellbook&&pc.spellbook.length?pc.spellbook.length+' spell'+(pc.spellbook.length===1?'':'s'):'No spells yet'}</span>
+      <button class="btn sm gold" onclick="addSpell(${idx})">+ Add Spell</button>
+    </div>
+    <div id="spellbook-panel-${idx}"></div>
+    `:''}
+    ${_pcSheetTab===4?`
+    <details class="bs" open>
       <summary>🎒 Inventory <button class="slot-add-btn" onclick="event.stopPropagation();addPcItem(${idx})">+ Add Item</button></summary>
       <div class="bs-body" id="inv-ed-${idx}"></div>
     </details>
+    ${pc.familiar?`
+    <details class="bs" style="margin-top:8px" open>
+      <summary>🦉 Familiar — ${esc(pc.familiar.name||'Unnamed')}</summary>
+      <div class="bs-body" id="familiar-panel-${idx}"></div>
+    </details>
+    `:`
+    <div style="margin-top:10px;text-align:center">
+      <button class="btn sm" onclick="addFamiliar(${idx})">🦉 Add Familiar</button>
+    </div>
+    `}
     <details class="bs" style="margin-top:8px">
       <summary>🔗 Relationships</summary>
       <div class="bs-body" id="rel-editor-${idx}"></div>
     </details>
-    <details class="bs">
+    <details class="bs" style="margin-top:8px">
       <summary>📖 Backstory &amp; Roleplay Hooks</summary>
       <div class="bs-body">
         <div class="form-group"><label class="field-label">Origin</label><textarea id="sheet-origin-${idx}" onchange="upd(${idx},'backstory_origin',this.value)" style="min-height:50px"></textarea></div>
         <div class="form-group"><label class="field-label">Motivation</label><textarea id="sheet-motiv-${idx}" onchange="upd(${idx},'backstory_motivation',this.value)" style="min-height:50px;border-color:var(--gold-dim)"></textarea></div>
         <div class="form-group"><label class="field-label">Secret / Flaw</label><textarea id="sheet-secret-${idx}" onchange="upd(${idx},'backstory_secret',this.value)" style="min-height:50px;border-color:var(--red-dim)"></textarea></div>
       </div>
-    </details>`;
+    </details>
+    `:''}
+    `;
   renderSlotEditor(idx);
   renderResourceEditor(idx);
   renderPcInvEditor(idx);
   renderRelationships(idx);
+  renderSpellbook(idx);
+  renderFamiliarPanel(idx);
   // Set textarea values directly — innerHTML doesn't reliably populate textareas on mobile browsers
   const setTA=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
   setTA('sheet-skills-'+idx, pc.skills);
@@ -3368,11 +3411,12 @@ function remResource(idx,ri){state.pcs[idx].resources.splice(ri,1);save();render
 function renderPcInvEditor(idx){
   const c=document.getElementById('inv-ed-'+idx);if(!c)return;c.innerHTML='';
   const pc=state.pcs[idx];if(!pc)return;
-  if(!Array.isArray(pc.inventory)||!pc.inventory.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No items. Click + Add Item to add.</div>';return;}
-  pc.inventory.forEach((item,ii)=>{
-    const d=document.createElement('div');d.className='inv-item';
-    const tag=item.type?`<span class="inv-tag ${item.type}">${item.type}</span>`:'';
-    d.innerHTML=`<input type="text" value="${esc(item.name||'')}" style="flex:2;min-width:70px" placeholder="Item" onchange="updPcItem(${idx},${ii},'name',this.value)">${tag}<input type="number" value="${item.qty||1}" style="width:42px" onchange="updPcItem(${idx},${ii},'qty',parseInt(this.value)||1)"><input type="number" value="${item.weight||0}" style="width:50px" placeholder="lb" onchange="updPcItem(${idx},${ii},'weight',parseFloat(this.value)||0)"><select style="width:80px;font-size:11px;padding:3px" onchange="updPcItem(${idx},${ii},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px" placeholder="Notes" onchange="updPcItem(${idx},${ii},'notes',this.value)"><button class="btn sm red icon-btn" onclick="remPcItemSheet(${idx},${ii})">&times;</button>`;
+  const inv=pc.inventory||[];
+  if(!inv.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No items. Tap + Add Item.</div>';return;}
+  inv.forEach((item,ii)=>{
+    const d=document.createElement('div');
+    d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:8px 10px;margin-bottom:6px';
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updPcItem(${idx},${ii},'name',this.value)"><button class="btn sm red icon-btn" onclick="remPcItemSheet(${idx},${ii})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updPcItem(${idx},${ii},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updPcItem(${idx},${ii},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updPcItem(${idx},${ii},'weight',parseFloat(this.value)||0)"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updPcItem(${idx},${ii},'notes',this.value)"></div>`;
     c.appendChild(d);
   });
 }
@@ -3546,11 +3590,25 @@ function remQ(i){state.quests.splice(i,1);saveRefresh();}
 // ═══ PARTY INVENTORY ═══
 function renderPartyInv(){
   const c=document.getElementById('party-inv');if(!c)return;c.innerHTML='';
-  if(!(state.partyInventory||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No party items.</div>';return;}
-  state.partyInventory.forEach((item,idx)=>{
-    const d=document.createElement('div');d.className='inv-item';
-    const tag=item.type?`<span class="inv-tag ${item.type}">${item.type}</span>`:'';
-    d.innerHTML=`<input type="text" value="${esc(item.name||'')}" style="flex:2;min-width:80px" placeholder="Item" onchange="updPI(${idx},'name',this.value)">${tag}<input type="number" value="${item.qty||1}" style="width:45px" onchange="updPI(${idx},'qty',parseInt(this.value)||1)"><input type="number" value="${item.weight||0}" style="width:52px" placeholder="lb" onchange="updPI(${idx},'weight',parseFloat(this.value)||0)"><select style="width:85px;font-size:11px;padding:3px" onchange="updPI(${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px" placeholder="Notes" onchange="updPI(${idx},'notes',this.value)"><button class="btn sm red icon-btn" onclick="remPI(${idx})">&times;</button>`;
+  const all=state.partyInventory||[];
+  const filters=['all','supply','loot','trade','ingredient','misc'];
+  const bar=document.createElement('div');
+  bar.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px';
+  filters.forEach(f=>{
+    const b=document.createElement('button');
+    b.textContent=f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1);
+    b.style.cssText=`font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid ${_piFilter===f?'var(--gold)':'var(--border)'};background:${_piFilter===f?'var(--gold-dim)':'none'};color:${_piFilter===f?'var(--gold-bright)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans)`;
+    b.onclick=()=>{_piFilter=f;renderPartyInv();};
+    bar.appendChild(b);
+  });
+  c.appendChild(bar);
+  const visible=_piFilter==='all'?all:all.filter(i=>i.type===_piFilter);
+  if(!visible.length){const e=document.createElement('div');e.style.cssText='color:var(--text-dim);font-size:11px;padding:6px 0';e.textContent=_piFilter==='all'?'No party items. Tap + Add Item.':'No '+_piFilter+' items.';c.appendChild(e);return;}
+  visible.forEach(item=>{
+    const idx=all.indexOf(item);
+    const d=document.createElement('div');
+    d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:8px 10px;margin-bottom:6px';
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updPI(${idx},'name',this.value)"><button class="btn sm red icon-btn" onclick="remPI(${idx})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updPI(${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updPI(${idx},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updPI(${idx},'weight',parseFloat(this.value)||0)"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updPI(${idx},'notes',this.value)"></div>`;
     c.appendChild(d);
   });
 }
@@ -3670,10 +3728,10 @@ function renderHoard(){
 }
 
 function renderInvRow(container,item,idx,listType){
-  const d=document.createElement('div');d.className='inv-item';
-  const tag=item.type?`<span class="inv-tag ${item.type}">${item.type}</span>`:'';
-  const sellBtn=listType==='cargo'?`<button class="btn sm gold" onclick="quickSellItem(${idx})" style="font-size:10px;padding:2px 6px" title="Quick sell">💰</button>`:'';
-  d.innerHTML=`<input type="text" value="${esc(item.name||'')}" style="flex:2;min-width:70px;font-size:11px" placeholder="Item" onchange="updWItem('${listType}',${idx},'name',this.value)">${tag}<input type="number" value="${item.qty||1}" style="width:42px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><input type="number" value="${item.weight||0}" style="width:50px;font-size:11px" placeholder="lb" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><select style="width:85px;font-size:11px;padding:3px" onchange="updWItem('${listType}',${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:50px;font-size:11px" placeholder="Notes" onchange="updWItem('${listType}',${idx},'notes',this.value)">${sellBtn}<button class="btn sm red icon-btn" onclick="remWItem('${listType}',${idx})">&times;</button>`;
+  const d=document.createElement('div');
+  d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:8px 10px;margin-bottom:6px';
+  const sellBtn=listType==='cargo'?`<button class="btn sm gold" onclick="quickSellItem(${idx})" style="font-size:10px;padding:2px 7px;border-radius:8px;flex-shrink:0" title="Quick sell">💰</button>`:'';
+  d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updWItem('${listType}',${idx},'name',this.value)">${sellBtn}<button class="btn sm red icon-btn" onclick="remWItem('${listType}',${idx})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updWItem('${listType}',${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:50px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updWItem('${listType}',${idx},'notes',this.value)"></div>`;
   container.appendChild(d);
 }
 function addWagonItem(list,type){
@@ -5061,6 +5119,8 @@ function migrate(s){
     if(!pc.hp_max||pc.hp_max<1)pc.hp_max=10;
     if(pc.hp===undefined||pc.hp===null)pc.hp=pc.hp_max;
     if(pc.levelReady===undefined)pc.levelReady=false;
+    if(!Array.isArray(pc.spellbook))pc.spellbook=[];
+    if(pc.familiar===undefined)pc.familiar=null;
   });
 }
 // ═══ PERSISTENCE ═══
@@ -6462,6 +6522,89 @@ function addRelationship(fromId){
 }
 function updRel(i,k,v){if(state.relationships[i])state.relationships[i][k]=v;save();}
 function remRel(i){state.relationships.splice(i,1);save();renderSheets();}
+
+// ─── SPELLBOOK ───
+function renderSpellbook(idx){
+  const c=document.getElementById('spellbook-panel-'+idx);if(!c)return;
+  const pc=state.pcs[idx];if(!pc)return;
+  c.innerHTML='';
+  const book=pc.spellbook||[];
+  if(!book.length){c.innerHTML='<div style="color:var(--text-dim);font-size:12px;padding:14px 0;text-align:center">No spells added yet. Tap + Add Spell above.</div>';return;}
+  const LVLS=['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
+  book.forEach((sp,si)=>{
+    const d=document.createElement('details');d.className='bs';d.style.marginBottom='7px';
+    const lvlStr=sp.level===0?'Cantrip':(LVLS[sp.level]||sp.level+'th')+' Level';
+    d.innerHTML=`
+      <summary style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+        <div style="flex:1;min-width:0">
+          <span style="font-weight:600;color:var(--text-bright);font-size:13px">${esc(sp.name||'Unnamed Spell')}</span>
+          <span style="margin-left:7px;font-size:10px;color:var(--purple-bright);background:rgba(138,94,106,.2);border-radius:3px;padding:1px 6px;white-space:nowrap">${esc(lvlStr)}</span>
+          ${sp.school?`<span style="margin-left:4px;font-size:10px;color:var(--text-dim)">${esc(sp.school)}</span>`:''}
+          ${sp.castTime?`<span style="display:block;font-size:10px;color:var(--text-dim);margin-top:1px">${esc(sp.castTime)}${sp.range?' · '+esc(sp.range):''}${sp.duration?' · '+esc(sp.duration):''}</span>`:''}
+        </div>
+        <button class="btn sm red icon-btn" onclick="event.stopPropagation();remSpell(${idx},${si})" style="flex-shrink:0">&times;</button>
+      </summary>
+      <div class="bs-body">
+        <div class="form-row" style="margin-bottom:8px">
+          <div style="width:58px"><label class="field-label">Level</label><input type="number" min="0" max="9" value="${sp.level||0}" onchange="updSpell(${idx},${si},'level',parseInt(this.value)||0)"></div>
+          <div class="fg"><label class="field-label">School</label><input type="text" value="${esc(sp.school||'')}" placeholder="Enchantment" onchange="updSpell(${idx},${si},'school',this.value)"></div>
+          <div class="fg"><label class="field-label">Cast Time</label><input type="text" value="${esc(sp.castTime||'')}" placeholder="1 action" onchange="updSpell(${idx},${si},'castTime',this.value)"></div>
+        </div>
+        <div class="form-row" style="margin-bottom:8px">
+          <div class="fg"><label class="field-label">Range</label><input type="text" value="${esc(sp.range||'')}" placeholder="30 feet" onchange="updSpell(${idx},${si},'range',this.value)"></div>
+          <div class="fg"><label class="field-label">Duration</label><input type="text" value="${esc(sp.duration||'')}" placeholder="Instantaneous" onchange="updSpell(${idx},${si},'duration',this.value)"></div>
+          <div class="fg"><label class="field-label">Components</label><input type="text" value="${esc(sp.components||'')}" placeholder="V, S" onchange="updSpell(${idx},${si},'components',this.value)"></div>
+        </div>
+        <div class="form-group"><label class="field-label">Spell Name</label><input type="text" value="${esc(sp.name||'')}" onchange="updSpell(${idx},${si},'name',this.value)"></div>
+        <div class="form-group"><label class="field-label">Description &amp; Rules</label><textarea id="spell-desc-${idx}-${si}" onchange="updSpell(${idx},${si},'desc',this.value)" style="min-height:90px;font-size:13px;line-height:1.5"></textarea></div>
+      </div>`;
+    c.appendChild(d);
+    const ta=d.querySelector('#spell-desc-'+idx+'-'+si);if(ta)ta.value=sp.desc||'';
+  });
+}
+function addSpell(idx){
+  if(!state.pcs[idx])return;
+  if(!Array.isArray(state.pcs[idx].spellbook))state.pcs[idx].spellbook=[];
+  state.pcs[idx].spellbook.push({name:'',level:1,school:'',castTime:'1 action',range:'',duration:'',components:'V, S',desc:''});
+  save();_pcSheetTab=3;renderSheets();
+}
+function updSpell(idx,si,k,v){const sp=state.pcs[idx]?.spellbook?.[si];if(!sp)return;sp[k]=v;save();}
+function remSpell(idx,si){state.pcs[idx].spellbook.splice(si,1);save();renderSheets();}
+
+// ─── FAMILIAR ───
+function addFamiliar(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  pc.familiar={name:'',type:'',hp:1,hp_max:1,ac:10,speed:'20 ft.',
+    str:3,dex:15,con:10,int:2,wis:12,cha:7,passive_perception:11,notes:''};
+  save();_pcSheetTab=4;renderSheets();
+}
+function renderFamiliarPanel(idx){
+  const c=document.getElementById('familiar-panel-'+idx);if(!c)return;
+  const pc=state.pcs[idx];if(!pc||!pc.familiar)return;
+  const f=pc.familiar;
+  c.innerHTML=`
+    <div class="form-row" style="margin-bottom:8px">
+      <div class="fg"><label class="field-label">Name</label><input type="text" value="${esc(f.name||'')}" placeholder="e.g. Pip" onchange="updFamiliar(${idx},'name',this.value)"></div>
+      <div class="fg"><label class="field-label">Type / Species</label><input type="text" value="${esc(f.type||'')}" placeholder="Owl, Bat, Cat..." onchange="updFamiliar(${idx},'type',this.value)"></div>
+    </div>
+    <div class="form-row" style="margin-bottom:10px">
+      <div style="width:52px"><label class="field-label">HP</label><input type="number" value="${f.hp||1}" onchange="updFamiliar(${idx},'hp',parseInt(this.value)||1)"></div>
+      <div style="width:62px"><label class="field-label">Max HP</label><input type="number" value="${f.hp_max||1}" onchange="updFamiliar(${idx},'hp_max',parseInt(this.value)||1)"></div>
+      <div style="width:52px"><label class="field-label">AC</label><input type="number" value="${f.ac||10}" onchange="updFamiliar(${idx},'ac',parseInt(this.value)||10)"></div>
+      <div class="fg"><label class="field-label">Speed</label><input type="text" value="${esc(f.speed||'20 ft.')}" onchange="updFamiliar(${idx},'speed',this.value)"></div>
+    </div>
+    <div class="stat-mini-row" style="margin-bottom:10px">
+      ${['str','dex','con','int','wis','cha'].map(s=>{const n=parseInt(f[s])||10;const m=Math.floor((n-10)/2);const ms=(m>=0?'+':'')+m;return`<div style="text-align:center"><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${n}" onchange="updFamiliar(${idx},'${s}',parseInt(this.value)||10)" style="text-align:center;font-size:15px;font-weight:600"><div style="font-size:13px;font-weight:700;color:var(--purple-bright);margin-top:3px">${ms}</div></div>`;}).join('')}
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <div style="width:80px"><label class="field-label">Pass. Perc.</label><input type="number" value="${f.passive_perception||11}" onchange="updFamiliar(${idx},'passive_perception',parseInt(this.value)||10)"></div>
+    </div>
+    <div class="form-group"><label class="field-label">Special Abilities &amp; Notes</label><textarea id="familiar-notes-${idx}" onchange="updFamiliar(${idx},'notes',this.value)" style="min-height:70px"></textarea></div>
+    <button class="btn sm red" style="margin-top:8px" onclick="if(confirm('Remove familiar?')){state.pcs[${idx}].familiar=null;save();renderSheets();}">🗑 Remove Familiar</button>
+  `;
+  const nt=c.querySelector('#familiar-notes-'+idx);if(nt)nt.value=f.notes||'';
+}
+function updFamiliar(idx,k,v){const f=state.pcs[idx]?.familiar;if(!f)return;f[k]=v;save();}
 
 // ═══ CAMPAIGN SECRETS ═══
 function renderCampaignSecrets(){
