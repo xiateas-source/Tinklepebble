@@ -1,0 +1,983 @@
+{
+  "pcs": [
+    {
+      "id": "slasher",
+      "name": "Slasher",
+      "race": "Black Dragonborn",
+      "class": "Fighter (Battle Master)",
+      "level": 3,
+      "background": "Guild Artisan (Smith)",
+      "alignment": "Lawful Good",
+      "hp": 39,
+      "hp_max": 39,
+      "ac": 16,
+      "initiative": 1,
+      "speed": 30,
+      "passive_perception": 11,
+      "passive_insight": 11,
+      "str": "17",
+      "dex": "12",
+      "con": "16",
+      "int": "10",
+      "wis": "12",
+      "cha": "13",
+      "skills": "Acrobatics +5, Sleight of Hand +5, Stealth +7 (Expertise), Deception +4\nPassive Perception: 12",
+      "features": "GREAT WEAPON FIGHTING (Style): When rolling damage for an attack with a two-handed weapon, reroll any 1 or 2 — must use new roll.\nSECOND WIND (Bonus Action, 1/Short Rest): Regain 1d10+3 HP as a bonus action.\nACTION SURGE (1/Short Rest): Take one additional action on your turn.\nACID BREATH (Action, Recharge 5-6): 5x30ft line, all creatures make DC 13 CON save or take 2d6 acid damage (half on success).\nACID RESISTANCE: Resistance to acid damage.\nHEAVY ARMOR PROFICIENCY: Wearing chain mail (AC 16). Disadvantage on Stealth checks.\nGREATSWORD: 2d6 slashing, heavy, two-handed. Primary weapon.\nSMITH'S TOOLS: Proficient. Handles all equipment maintenance and repairs.\nGUILD MEMBERSHIP: Can call on the Smith's Guild for support, lodging, and contacts.\nHONEST TO A FAULT: Cannot deceive. Genuinely baffled by Tinkle and Pebble's methods.\nPROTECTOR: Sworn to keep Tinkle and Pebble safe.\nCOMBAT SUPERIORITY: 4 Superiority Dice (d8s) per short rest.\nMANEUVERS: Bait & Switch (swap with ally, add d8 to roll for AC), Precision Attack (add d8 to hit after roll), Trip Attack (add d8 damage, target makes DC 13 STR save or falls prone).",
+      "magic": "None.",
+      "conditions": [],
+      "slots": [],
+      "backstory_origin": "Born to a family of smiths with a proud name and a longer history. Grew up with metal and fire, not words. Left the forge to become an adventurer because he believes the best smiths must first understand what their weapons endure. Has never been in a situation that required talking his way out.",
+      "backstory_motivation": "Forge himself into the perfect weapon. Become the best smith of his name. Every scar earned adventuring is research.",
+      "backstory_secret": "Genuinely does not understand that Tinkle's Tinctures is a con operation. He thinks they are a legitimate traveling apothecary. He is very proud to be part of something that helps people.",
+      "subclass": "Battle Master",
+      "levelReady": false,
+      "resources": [
+        {
+          "name": "Second Wind",
+          "max": 1,
+          "used": 0,
+          "restore": "short",
+          "desc": "Bonus action, heal 1d10+3 HP"
+        },
+        {
+          "name": "Action Surge",
+          "max": 1,
+          "used": 0,
+          "restore": "short",
+          "desc": "Take one additional action on your turn"
+        },
+        {
+          "name": "Superiority Dice",
+          "max": 4,
+          "used": 0,
+          "restore": "short",
+          "desc": "d8 — Bait & Switch / Precision Attack / Trip Attack"
+        }
+      ],
+      "xp": 0,
+      "color": "#c04a3a",
+      "inventory": [
+        {
+          "name": "Chain Mail",
+          "qty": 1,
+          "weight": 55,
+          "type": "supply",
+          "notes": "AC 16. Stealth disadvantage. Currently worn."
+        },
+        {
+          "name": "Greatsword",
+          "qty": 1,
+          "weight": 6,
+          "type": "supply",
+          "notes": "2d6 slashing, heavy, two-handed. Primary weapon."
+        },
+        {
+          "name": "Handaxe",
+          "qty": 2,
+          "weight": 4,
+          "type": "supply",
+          "notes": "1d6 slashing, thrown (20/60ft)."
+        },
+        {
+          "name": "Smith's Tools",
+          "qty": 1,
+          "weight": 8,
+          "type": "supply",
+          "notes": "Proficient. Used for party equipment maintenance and repairs."
+        },
+        {
+          "name": "Dungeoneer's Pack",
+          "qty": 1,
+          "weight": 12,
+          "type": "supply",
+          "notes": "Rope, torches, rations, waterskin, tinderbox, backpack."
+        }
+      ],
+      "pending": [],
+      "concentrating": "",
+      "spellbook": [],
+      "familiar": null
+    },
+    {
+      "id": "tinkle",
+      "name": "Tinkle",
+      "race": "Tortle",
+      "class": "Rogue (Arcane Trickster)",
+      "level": 3,
+      "background": "Scholar / Con-Artist",
+      "alignment": "Neutral (Self-Interested)",
+      "hp": 27,
+      "hp_max": 27,
+      "ac": 17,
+      "initiative": 2,
+      "speed": 30,
+      "passive_perception": 10,
+      "passive_insight": 13,
+      "str": "10",
+      "dex": "14",
+      "con": "13",
+      "int": "16",
+      "wis": "12",
+      "cha": "8",
+      "skills": "Arcana +5, History +5, Investigation +5\nPassive Perception: 10",
+      "features": "NATURAL ARMOR: AC 17 flat. Cannot wear armor. Shields allowed.\nSHELL DEFENSE (Reaction or Hide Action): Withdraw into shell. Gain +4 AC (AC 21), become prone and incapacitated. Emerge using Bonus Action.\nSNEAK ATTACK (2d6): Once per turn when attacking with advantage OR when an ally is adjacent to target.\nCUNNING ACTION: Dash, Disengage, or Hide as a Bonus Action each turn.\nTHIEVES CANT: Secret underworld language.\nEXPERTISE: Deception and Investigation at double proficiency.\nHOLD BREATH: Up to 1 hour.\nCLAWS: 1d4 slashing natural weapon.\nBLOWGUN: 1d1 piercing, range 25/100ft. Loaded with Torpor Poison (DC 15 CON save or incapacitated for 4d6 hours).\nMAGE HAND LEGERDEMAIN: Mage Hand is invisible, can pick pockets, disarm traps, or stow objects remotely.\nTHE MASTERMIND: Manufactures the tonics, runs the operation, writes the labels.",
+      "magic": "Spellcasting: Intelligence | Save DC: 13 | Attack Bonus: +5\nCantrips: Mage Hand, Message, Prestidigitation\nLevel 1 Spells: Disguise Self, Find Familiar (Rat), Sleep",
+      "conditions": [],
+      "slots": [
+        {
+          "max": 2,
+          "used": 0
+        }
+      ],
+      "backstory_origin": "Leads a trio of traveling grifters. Rolls into towns with \"The Shelled Alchemist\" wagon, laden with shimmering useless vials. Has been doing this long enough to have a system.",
+      "backstory_motivation": "Maximum profit, minimum effort. The placebo effect is a documented scientific phenomenon.",
+      "backstory_secret": "Perpetually one bad batch away from a bounty. Keeps the party moving before locals realize the side effects. Secretly fears Slasher or Pebble will decide he is more trouble than he is worth.",
+      "subclass": "Arcane Trickster",
+      "levelReady": false,
+      "resources": [],
+      "xp": 0,
+      "color": "#4a7090",
+      "inventory": [
+        {
+          "name": "Troll-Blood",
+          "qty": 9,
+          "weight": 0.4,
+          "type": "reagent",
+          "notes": "Collected at Goodbarrel Logistics HQ loading dock."
+        },
+        {
+          "name": "Iron-bound Lockbox",
+          "qty": 1,
+          "weight": 15,
+          "type": "loot",
+          "notes": "Seized on road 2 miles outside Greenest.",
+          "ts": "Day 1, Late Afternoon",
+          "location": "2 miles outside Greenest, main road"
+        },
+        {
+          "name": "Beaded Coin Pouch",
+          "qty": 1,
+          "weight": 0.5,
+          "type": "container",
+          "notes": "",
+          "ts": "Day 1, Early Evening",
+          "location": "2 miles outside Greenest, main road"
+        },
+        {
+          "name": "Scroll Case",
+          "qty": 1,
+          "weight": 0.5,
+          "type": "mystery",
+          "notes": "Sealed. Contents unknown.",
+          "ts": "Day 1, Dusk",
+          "location": "2 miles outside Greenest, main road"
+        },
+        {
+          "name": "Gold Coins",
+          "qty": 49,
+          "weight": 0.9,
+          "type": "currency",
+          "notes": "Looted from road ambush.",
+          "ts": "Day 1, Dusk",
+          "location": "2 miles outside Greenest, main road"
+        },
+        {
+          "name": "Cult Signet Ring",
+          "qty": 1,
+          "weight": 0,
+          "type": "key",
+          "notes": "",
+          "ts": "Day 1, 9:45 PM",
+          "location": "2 miles outside Greenest, main road"
+        },
+        {
+          "name": "Scroll Case (Second)",
+          "qty": 1,
+          "weight": 0.5,
+          "type": "mystery",
+          "notes": "Sealed. Contents unknown.",
+          "ts": "Day 1, 10:00 PM",
+          "location": "2 miles outside Greenest (off-road)"
+        },
+        {
+          "name": "Gold Vials",
+          "qty": 1,
+          "weight": 0.1,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 1, 10:00 PM",
+          "location": "2 miles outside Greenest (off-road)"
+        },
+        {
+          "name": "Signet Ring (Obsidian)",
+          "qty": 1,
+          "weight": 0.1,
+          "type": "jewelry",
+          "notes": "",
+          "ts": "Day 1, 10:00 PM",
+          "location": "2 miles outside Greenest (off-road)"
+        },
+        {
+          "name": "Masterwork Serrated Longsword",
+          "qty": 1,
+          "weight": 5,
+          "type": "weapon",
+          "notes": "",
+          "ts": "Day 1, 11:15 PM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Cultist Ledger",
+          "qty": 1,
+          "weight": 0.5,
+          "type": "book",
+          "notes": "",
+          "ts": "Day 1, 11:15 PM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Violet Vial (Unknown)",
+          "qty": 1,
+          "weight": 0.1,
+          "type": "potion",
+          "notes": "",
+          "ts": "Day 1, 11:15 PM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Half-Dragon Blood Vial",
+          "qty": 3,
+          "weight": 0.3,
+          "type": "reagent",
+          "notes": "Harvested from half-dragon encounters.",
+          "ts": "Day 1, 11:15 PM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Half-Dragon Scales",
+          "qty": 3,
+          "weight": 0.3,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 1, 11:15 PM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Half-Dragon Teeth",
+          "qty": 3,
+          "weight": 0.3,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 1, 11:15 PM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Blue Half-Dragon Tongue",
+          "qty": 2,
+          "weight": 0,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 12:30 AM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Blue Half-Dragon Eye",
+          "qty": 4,
+          "weight": 0,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 12:30 AM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Blue Half-Dragon Teeth",
+          "qty": 12,
+          "weight": 0.1,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 12:30 AM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Dragon-Blood Vial",
+          "qty": 2,
+          "weight": 0.5,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 12:30 AM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Dragon-Skin Samples",
+          "qty": 3,
+          "weight": 0.3,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 12:30 AM",
+          "location": "Ravine, 2 miles from Greenest"
+        },
+        {
+          "name": "Brass Skeleton Key",
+          "qty": 1,
+          "weight": 0.1,
+          "type": "key",
+          "notes": "",
+          "ts": "Day 2, 2:05 AM",
+          "location": "Old Mill, Storage Room (Door L)"
+        },
+        {
+          "name": "Silver Hook Key",
+          "qty": 1,
+          "weight": 0.1,
+          "type": "key",
+          "notes": "",
+          "ts": "Day 2, 2:05 AM",
+          "location": "Old Mill, Storage Room (Door L)"
+        },
+        {
+          "name": "Copper Tagged Key (L)",
+          "qty": 1,
+          "weight": 0.1,
+          "type": "key",
+          "notes": "",
+          "ts": "Day 2, 2:05 AM",
+          "location": "Old Mill, Storage Room (Door L)"
+        },
+        {
+          "name": "Masterwork Shackles",
+          "qty": 1,
+          "weight": 0,
+          "type": "tool",
+          "notes": "",
+          "ts": "Day 2, 2:10 AM",
+          "location": "Old Mill, Back Office"
+        },
+        {
+          "name": "Draconic Fangs",
+          "qty": 10,
+          "weight": 0,
+          "type": "reagent",
+          "notes": "Harvested from Old Mill — two separate collections.",
+          "ts": "Day 2, 2:35 AM",
+          "location": "Old Mill, Main Floor"
+        },
+        {
+          "name": "Draconic Blood",
+          "qty": 2,
+          "weight": 0,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 2:35 AM",
+          "location": "Old Mill, Main Floor"
+        },
+        {
+          "name": "Draconic Truth Serum",
+          "qty": 1,
+          "weight": 0,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 5:30 AM",
+          "location": "Greenest Temple Courtyard"
+        },
+        {
+          "name": "Binding Contract (Draconic/Chemical)",
+          "qty": 1,
+          "weight": 0,
+          "type": "misc",
+          "notes": "",
+          "ts": "Day 2, 6:00 AM",
+          "location": "Greenest Temple Courtyard"
+        },
+        {
+          "name": "Pristine Alembic",
+          "qty": 1,
+          "weight": 0,
+          "type": "gear",
+          "notes": "",
+          "ts": "Day 2, 7:30 AM",
+          "location": "Road to Cleft of Sighs"
+        },
+        {
+          "name": "Smuggler's Ledger",
+          "qty": 1,
+          "weight": 0,
+          "type": "info",
+          "notes": "",
+          "ts": "Day 2, 7:30 AM",
+          "location": "Road to Cleft of Sighs"
+        },
+        {
+          "name": "Necrotic Oil",
+          "qty": 3,
+          "weight": 0.1,
+          "type": "consumable",
+          "notes": "",
+          "ts": "Day 2, 7:30 AM",
+          "location": "Road to Cleft of Sighs"
+        },
+        {
+          "name": "Black Dragon Mask",
+          "qty": 1,
+          "weight": 0,
+          "type": "artifact",
+          "notes": "Recovered from the Sanctum, Cleft of Sighs.",
+          "ts": "Day 2, 9:10 AM",
+          "location": "The Sanctum, Cleft of Sighs"
+        },
+        {
+          "name": "Cultist Identity Marker",
+          "qty": 1,
+          "weight": 0,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 9:10 AM",
+          "location": "The Sanctum, Cleft of Sighs"
+        },
+        {
+          "name": "Breath-Fire Oil",
+          "qty": 2,
+          "weight": 1,
+          "type": "consumable",
+          "notes": "",
+          "ts": "Day 2, 9:10 AM",
+          "location": "The Sanctum, Cleft of Sighs"
+        },
+        {
+          "name": "Dragon-Fang Dagger",
+          "qty": 1,
+          "weight": 0.5,
+          "type": "weapon",
+          "notes": "",
+          "ts": "Day 2, 10:30 AM",
+          "location": "Foothills, 2 miles from Cleft"
+        },
+        {
+          "name": "Mask-Lined Lead Box",
+          "qty": 1,
+          "weight": 2,
+          "type": "container",
+          "notes": "For safely transporting the Black Dragon Mask.",
+          "ts": "Day 2, 10:30 AM",
+          "location": "Foothills, 2 miles from Cleft"
+        },
+        {
+          "name": "Deadening Salve",
+          "qty": 1,
+          "weight": 0,
+          "type": "alchemy",
+          "notes": "",
+          "ts": "Day 2, 2:00 PM",
+          "location": "The Foothills"
+        },
+        {
+          "name": "Whispering Moss",
+          "qty": 2,
+          "weight": 0.2,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 2:30 PM",
+          "location": "Whispering Weald"
+        },
+        {
+          "name": "Shadow-Cap Mushrooms",
+          "qty": 1,
+          "weight": 0.1,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 2:30 PM",
+          "location": "Whispering Weald"
+        },
+        {
+          "name": "Ironwood Bark",
+          "qty": 1,
+          "weight": 0.5,
+          "type": "reagent",
+          "notes": "",
+          "ts": "Day 2, 2:30 PM",
+          "location": "Whispering Weald"
+        }
+      ],
+      "pending": [],
+      "concentrating": "",
+      "spellbook": [],
+      "familiar": null
+    },
+    {
+      "id": "pebble",
+      "name": "Pebble",
+      "race": "Goliath (Stone Giant Ancestry)",
+      "class": "Bard (College of Lore)",
+      "level": 3,
+      "background": "Merchant",
+      "alignment": "Neutral Good",
+      "hp": 30,
+      "hp_max": 30,
+      "ac": 13,
+      "initiative": 2,
+      "speed": 35,
+      "passive_perception": 10,
+      "passive_insight": 12,
+      "str": "8",
+      "dex": "14",
+      "con": "14",
+      "int": "13",
+      "wis": "10",
+      "cha": "17",
+      "skills": "Persuasion +7 (Expertise), Deception +7 (Expertise), Performance +5, Insight +2, Perception +2, Arcana +3, Sleight of Hand +4",
+      "features": "LITTLE GIANT: Counts as Large size for carrying capacity (240 lb) and push/drag/lift (480 lb).\nSTONES ENDURANCE (2/Long Rest): Reaction to reduce damage by 1d12+2. If reduced to 0, active concentration is automatically protected.\nLUCKY FEAT (3 Points/Long Rest): Spend 1 point to gain Advantage on a d20 Test OR impose Disadvantage on an attack against you.\nBARDIC INSPIRATION (3/Long Rest): Bonus Action, give a d6 die to a target within 60ft. They may add it to one d20 Test within 10 minutes, after seeing the roll.\nJACK OF ALL TRADES: Add +1 (half proficiency) to any ability check not already including proficiency.\nSONG OF REST: Allies who spend Hit Dice during a Short Rest regain an extra 1d6 HP.\nCOLLEGE OF LORE — BONUS PROFICIENCIES: Gained Perception, Arcana, and Sleight of Hand.\nCOLLEGE OF LORE — CUTTING WORDS: Use a Bardic Inspiration die as a Reaction to subtract the roll from an enemy's attack, ability check, or damage roll — declared before outcome.\nTHE PITCHMAN: Public face of Tinkle Tonics. High CHA is the product.",
+      "magic": "Spellcasting: Charisma | Save DC: 13 | Attack Bonus: +5\nCantrips: Friends, Vicious Mockery\n1st-Level Spells: Charm Person, Healing Word, Sleep\n2nd-Level Spells: Lesser Restoration, Suggestion",
+      "conditions": [],
+      "slots": [
+        {
+          "max": 4,
+          "used": 0
+        },
+        {
+          "max": 2,
+          "used": 0
+        }
+      ],
+      "backstory_origin": "Born to a clan of stone giant-descended traders who measured worth in contracts honored and debts repaid. Pebble is the smallest of their kin — hence the name.",
+      "backstory_motivation": "Prove that words and wit can move mountains that strength cannot. The Tinctures operation is the proof of concept.",
+      "backstory_secret": "Once talked a rival merchant caravan into a ruinous deal that bankrupted three families. Still not entirely sure it was wrong.",
+      "subclass": "College of Lore",
+      "levelReady": false,
+      "resources": [
+        {
+          "name": "Bardic Inspiration",
+          "max": 3,
+          "used": 0,
+          "restore": "short",
+          "desc": "Bonus action, 60ft range, d6, target adds after seeing roll"
+        },
+        {
+          "name": "Stone's Endurance",
+          "max": 2,
+          "used": 0,
+          "restore": "short",
+          "desc": "Reaction, 1d12+2 damage reduction, 0 damage = concentration protected"
+        },
+        {
+          "name": "Lucky Points",
+          "max": 3,
+          "used": 0,
+          "restore": "long",
+          "desc": "Spend for self-advantage on d20 test OR impose disadvantage on attack vs you"
+        }
+      ],
+      "xp": 0,
+      "color": "#7060a0",
+      "inventory": [
+        {
+          "name": "Troll Blood",
+          "qty": 3,
+          "weight": 0,
+          "type": "reagent",
+          "notes": ""
+        },
+        {
+          "name": "Traveling Clothes",
+          "qty": 1,
+          "weight": 0,
+          "type": "apparel",
+          "notes": "",
+          "ts": "Day 2, 8:00 AM",
+          "location": "Road to Cleft of Sighs"
+        },
+        {
+          "name": "Draconic Explosive",
+          "qty": 2,
+          "weight": 1,
+          "type": "weapon",
+          "notes": "",
+          "ts": "Day 2, 8:00 AM",
+          "location": "Cleft of Sighs, Ridge Approach"
+        },
+        {
+          "name": "Studded Leather Armor",
+          "qty": 1,
+          "weight": 13,
+          "type": "armor",
+          "notes": "",
+          "ts": "Day 2, 8:40 AM",
+          "location": "Cleft of Sighs, Tunnel Junction"
+        },
+        {
+          "name": "Tranquilizer Crossbow",
+          "qty": 1,
+          "weight": 4,
+          "type": "weapon",
+          "notes": "",
+          "ts": "Day 2, 8:40 AM",
+          "location": "Cleft of Sighs, Tunnel Junction"
+        },
+        {
+          "name": "Sedative Bolts",
+          "qty": 10,
+          "weight": 0,
+          "type": "ammo",
+          "notes": "",
+          "ts": "Day 2, 8:40 AM",
+          "location": "Cleft of Sighs, Tunnel Junction"
+        },
+        {
+          "name": "Sedative Bolt Crafting Kit",
+          "qty": 1,
+          "weight": 2,
+          "type": "tool",
+          "notes": "",
+          "ts": "Day 2, 8:40 AM",
+          "location": "Cleft of Sighs, Tunnel Junction"
+        },
+        {
+          "name": "Ritual Key",
+          "qty": 1,
+          "weight": 0,
+          "type": "key",
+          "notes": "",
+          "ts": "Day 2, 9:10 AM",
+          "location": "The Sanctum, Cleft of Sighs"
+        },
+        {
+          "name": "Tuned Wyrmspeaker's Staff",
+          "qty": 1,
+          "weight": 4,
+          "type": "focus",
+          "notes": "Attuned and tuned at the Sanctum. Functions as arcane focus and conduit.",
+          "ts": "Day 2, 10:30 AM",
+          "location": "Foothills, 2 miles from Cleft"
+        },
+        {
+          "name": "Potion of Healing",
+          "qty": 2,
+          "weight": 0,
+          "type": "consumable",
+          "notes": "2d4+2 HP. Two potions acquired during Cleft infiltration.",
+          "ts": "Day 2, 9:10 AM",
+          "location": "The Sanctum, Cleft of Sighs"
+        },
+        {
+          "name": "Scroll of Protection from Evil and Good",
+          "qty": 2,
+          "weight": 0,
+          "type": "consumable",
+          "notes": "Two scrolls acquired during Cleft infiltration.",
+          "ts": "Day 2, 9:10 AM",
+          "location": "The Sanctum, Cleft of Sighs"
+        },
+        {
+          "name": "Cult Gold",
+          "qty": 45,
+          "weight": 0,
+          "type": "currency",
+          "notes": "",
+          "ts": "Day 2, 8:40 AM",
+          "location": "Cleft of Sighs, Tunnel Junction"
+        },
+        {
+          "name": "Wyrmspeaker's Shift Ledger",
+          "qty": 1,
+          "weight": 0,
+          "type": "intel",
+          "notes": "",
+          "ts": "Day 2, 8:40 AM",
+          "location": "Cleft of Sighs, Tunnel Junction"
+        }
+      ],
+      "pending": [],
+      "concentrating": "",
+      "spellbook": [],
+      "familiar": null
+    }
+  ],
+  "worldData": {
+    "time": "Day 2, Late Morning",
+    "season": "Early Spring",
+    "weather": "Clear, cool breeze (62°F)",
+    "illum": "Bright Light (Daylight)",
+    "location": "Whispering Weald / Foothills",
+    "loc_desc": "The party has cleared the Cleft of Sighs and is moving through the foothills and weald east of Greenest.",
+    "ref_file": "D&D 5E - Dungeon Master's Guide.pdf",
+    "plot": "- Black Dragon Cult (Cult of the Dragon) is active in the region. The party has infiltrated and partially dismantled a cell at the Cleft of Sighs.\n- Durgrim Ironheart controls the forge district. Allied.\n- A Cultist Lieutenant and Kobold Assistant are secured in the wagon holding cells.\n- Unmapped trade routes near the eastern hazard zone.",
+    "secrets": "- The ginger bug fermentation unlocks a special brew recipe.\n- The Black Dragon Mask is a genuine cult artifact — its true value to the cult is unknown.\n- The Cultist Ledger and Wyrmspeaker's Shift Ledger contain operational intelligence.",
+    "timers": "- Ginger bug completing in ~1 campaign day (Day 3)\n- Durgrim's forge contract deadline: Day 7\n- Cultist Lieutenant interrogation window is closing",
+    "travelLog": [
+      "Day 1, 9:00 AM: Goodbarrel Logistics HQ | Opening pitch to laborers",
+      "Day 1, Afternoon: Goodbarrel Logistics HQ → Road toward Greenest | Travel",
+      "Day 1, Evening: Greenest Road → 2 miles outside Greenest | Ambush and loot recovery",
+      "Day 1, Night: Road → Ravine (2 miles from Greenest) | Half-dragon encounter and harvesting",
+      "Day 2, 2:00 AM: Ravine → Old Mill | Prisoner extraction, reagent harvest",
+      "Day 2, 5:30 AM: Old Mill → Greenest Temple Courtyard | Draconic Truth Serum acquired",
+      "Day 2, 7:30 AM: Greenest → Road to Cleft of Sighs | Travel",
+      "Day 2, 8:40 AM: Road → Cleft of Sighs, Tunnel Junction | Infiltration begins",
+      "Day 2, 9:10 AM: Tunnel Junction → The Sanctum | Boss encounter, Black Dragon Mask recovered",
+      "Day 2, 10:30 AM: The Sanctum → Foothills | Withdrawal after Sanctum",
+      "Day 2, 2:30 PM: Foothills → Whispering Weald | Reagent forage"
+    ],
+    "townReputation": [],
+    "campaignSecrets": [],
+    "businessProfile": {
+      "name": "Tinkle's Tinctures",
+      "realStock": "Troll-Blood reagents, Blue Half-Dragon biologics, Draconic materials, Draconic Truth Serum",
+      "snakeOil": "Elixir of Endless Vitality (rainwater + beet juice). Standard product line.",
+      "reagents": "Whispering Moss, Shadow-Cap Mushrooms, Ironwood Bark, Draconic Blood, Blue Half-Dragon parts",
+      "reputation": "Unknown (new operation)",
+      "notes": "Wagon holds Cultist Lieutenant and Kobold Assistant as prisoners in holding cells."
+    },
+    "premiseLocked": false,
+    "primaryMission": "Establish Tinkle's Tinctures as a profitable operation while operating covertly alongside cult activity. Current: return to Greenest or press further east.",
+    "scene_title": "Whispering Weald — Post-Cleft Recovery",
+    "scene_threat": "Interrogation of Cultist Lieutenant pending. Cult may know their sanctum was breached.",
+    "scene_cond": "All party members at full HP. Grit fed. Wagon loaded with prisoners and cult artifacts."
+  },
+  "npcs": [
+    {
+      "name": "Durgrim Ironheart",
+      "disposition": "Allied",
+      "details": "Dwarf Guildmaster of the forge district. Demands automated iron ore shipments.",
+      "hp": 0
+    },
+    {
+      "name": "Cultist Lieutenant",
+      "disposition": "Hostile",
+      "details": "Prisoner in wagon holding cell. Secured with Masterwork Shackles. Interrogation pending.",
+      "hp": 0
+    },
+    {
+      "name": "Kobold Assistant",
+      "disposition": "Neutral",
+      "details": "Prisoner in wagon holding cell. Kobold underling — possibly more cooperative than the Lieutenant.",
+      "hp": 0
+    },
+    {
+      "name": "Bramble",
+      "disposition": "Neutral",
+      "details": "Sour-faced dwarf shift manager at Goodbarrel Logistics HQ. Was suspicious of the wagon operation.",
+      "hp": 0
+    }
+  ],
+  "quests": [
+    {
+      "text": "Secure forge contract verification paperwork from Durgrim.",
+      "done": false,
+      "status": "active",
+      "hidden": false
+    },
+    {
+      "text": "Cultivate and stabilize ginger bug starter compound.",
+      "done": false,
+      "status": "active",
+      "hidden": false
+    },
+    {
+      "text": "Interrogate the Cultist Lieutenant — learn what the Cult of the Dragon is doing in the region.",
+      "done": false,
+      "status": "active",
+      "hidden": false
+    },
+    {
+      "text": "Identify the contents of the two sealed scroll cases.",
+      "done": false,
+      "status": "active",
+      "hidden": false
+    },
+    {
+      "text": "Determine the value and risk of the Black Dragon Mask.",
+      "done": false,
+      "status": "active",
+      "hidden": false
+    }
+  ],
+  "treasuryData": {
+    "pp": 0,
+    "gp": 15,
+    "ep": 0,
+    "sp": 0,
+    "cp": 0,
+    "lifestyle": "Modest (1 gp/day shared)",
+    "attuned": "None currently attuned.",
+    "shared": "Brewer's Supplies, Tinker's Tools, Cartography Maps, 2x Rations.",
+    "incomeLog": []
+  },
+  "combat": {
+    "active": false,
+    "round": 1,
+    "currentIdx": 0,
+    "list": []
+  },
+  "logs": [
+    {
+      "ts": "Day 1, 9:00 AM",
+      "type": "dm",
+      "body": "Campaign terminal configuration updated successfully. Party tracking framework initialized."
+    },
+    {
+      "ts": "Day 1, 9:00 AM",
+      "type": "dm",
+      "body": "The morning air at the Goodbarrel Logistics HQ is sharp, smelling of pine needles and the damp earth of a recent dew. The wagons are lined up like sleeping beasts, their canvas covers taut. Tinkle stands by the rear of the main wagon, checking the seal on a fresh batch of 'Elixir of Endless Vitality.' Pebble is tuning a lute, ready to pitch. Slasher stands guard, genuinely believing he is protecting curative distillates worth their weight in gold. Shift manager Bramble eyes the wagon with a clipboard."
+    },
+    {
+      "ts": "Day 1, Evening",
+      "type": "dm",
+      "body": "Road ambush 2 miles outside Greenest. Party looted: iron-bound lockbox, 49 gold coins, signet rings, scroll cases, cult materials. Night encounter at a ravine yielded extensive Blue Half-Dragon biologics."
+    },
+    {
+      "ts": "Day 2, 2:00 AM",
+      "type": "dm",
+      "body": "Old Mill infiltration. Storage Room secured: Cultist Lieutenant and Kobold Assistant taken prisoner. Masterwork Shackles used. Draconic Fangs and Blood harvested from main floor."
+    },
+    {
+      "ts": "Day 2, 5:30 AM",
+      "type": "dm",
+      "body": "Greenest Temple Courtyard. Draconic Truth Serum and Binding Contract (Draconic/Chemical) acquired."
+    },
+    {
+      "ts": "Day 2, 8:40 AM",
+      "type": "dm",
+      "body": "Cleft of Sighs infiltration. Tunnel Junction: Pebble acquired Tranquilizer Crossbow, Studded Leather Armor, Sedative Bolts, Wyrmspeaker's Staff, Ritual Key. Tinkle: Necrotic Oil, Smuggler's Ledger, Pristine Alembic."
+    },
+    {
+      "ts": "Day 2, 9:10 AM",
+      "type": "dm",
+      "body": "The Sanctum breach. Black Dragon Mask recovered by Tinkle. Pebble's Wyrmspeaker's Staff was tuned — now a functioning arcane focus (Tuned Wyrmspeaker's Staff). Cult Identity Marker and Breath-Fire Oil also recovered."
+    },
+    {
+      "ts": "Day 2, 2:30 PM",
+      "type": "dm",
+      "body": "Whispering Weald forage. Tinkle collected: Whispering Moss x2, Shadow-Cap Mushrooms, Ironwood Bark. Party in recovery position. Wagon: prisoners secured, cult artifacts stowed."
+    }
+  ],
+  "logSummary": "DAY 1: Party opened at Goodbarrel Logistics HQ (shift manager Bramble suspicious). Traveled toward Greenest. Road ambush — looted iron-bound lockbox, 49 gold, signet rings, scroll cases, cult materials. Night: Ravine encounter — harvested extensive Blue Half-Dragon biologics (tongues, eyes, teeth, blood, scales). Acquired Cultist Ledger, Obsidian Signet Ring, Masterwork Serrated Longsword, Violet Vial (unknown).\n\nDAY 2: Old Mill (2am) — captured Cultist Lieutenant and Kobold Assistant (now in wagon holding cells, Masterwork Shackles). Draconic Fangs x10 and Blood harvested. Greenest Temple Courtyard (5:30am) — Draconic Truth Serum + Binding Contract acquired. Road to Cleft of Sighs (7:30am) — Necrotic Oil, Pristine Alembic, Smuggler's Ledger. Cleft of Sighs infiltration (8:40am): Tunnel Junction — Pebble got Tranquilizer Crossbow, Studded Leather, Sedative Bolts x10, Wyrmspeaker's Staff, Ritual Key, Cult Gold 45gp. The Sanctum — Black Dragon Mask (Tinkle), Tuned Wyrmspeaker's Staff (Pebble, now arcane focus), Cult Identity Marker, Breath-Fire Oil x2. Foothills (10:30am) — Dragon-Fang Dagger, Mask-Lined Lead Box, Deadening Salve. Whispering Weald (2:30pm) — Whispering Moss x2, Shadow-Cap Mushrooms, Ironwood Bark.\n\nCURRENT STATE: All PCs full HP. Grit fed. Prisoners in wagon (Cultist Lieutenant + Kobold). Black Dragon Mask in lead-lined box. Cult knows their Sanctum may have been breached. Ginger bug due Day 3. Durgrim's forge deadline Day 7.",
+  "activeEditTab": 1,
+  "chatHistory": [
+    {
+      "role": "user",
+      "content": "Hi",
+      "ts": "Day 1, 9:00 AM",
+      "realTs": "07:31 PM",
+      "playerName": "Lor",
+      "playerChar": "Tinkle"
+    },
+    {
+      "role": "assistant",
+      "content": "The morning air at the Goodbarrel Logistics HQ is sharp, smelling of pine needles and the damp earth of a recent dew. The wagons are lined up like sleeping beasts, their canvas covers taut. Tinkle stands by the rear of the main wagon, checking the seal on a fresh batch of 'Elixir of Endless Vitality.' Pebble is tuning a lute. Slasher stands guard, genuinely proud to be protecting what he believes are legitimate curative distillates.",
+      "mechanics": null,
+      "ts": "Day 1, 9:00 AM",
+      "realTs": "07:31 PM"
+    }
+  ],
+  "prevSessionSummary": "Session 1 covered Day 1 and most of Day 2. Party opened at Goodbarrel Logistics HQ. Night road ambush yielded cult materials and half-dragon biologics. Old Mill infiltration captured a Cultist Lieutenant and Kobold Assistant (now prisoners in wagon). Infiltrated the Cleft of Sighs — reached The Sanctum, recovered the Black Dragon Mask and tuned Pebble's staff. Currently in the Whispering Weald after forage. All party full HP. Prisoners secured. Multiple cult intelligence items in hand.",
+  "logSummary2": "",
+  "oocHistory": [],
+  "partyChat": [],
+  "storyChapters": [],
+  "moduleProgress": [
+    {
+      "name": "Episode 1 — Greenest in Flames",
+      "status": "active",
+      "notes": "Party is operating alongside the cult incursion — not yet defending Greenest directly."
+    },
+    {
+      "name": "Episode 2 — Raiders' Camp",
+      "status": "pending",
+      "notes": ""
+    },
+    {
+      "name": "Episode 3 — Dragon Hatchery",
+      "status": "pending",
+      "notes": ""
+    },
+    {
+      "name": "Episode 4 — On the Road",
+      "status": "pending",
+      "notes": ""
+    },
+    {
+      "name": "Episode 5 — Construction Ahead",
+      "status": "pending",
+      "notes": ""
+    },
+    {
+      "name": "Episode 6 — Castle Naerytar",
+      "status": "pending",
+      "notes": ""
+    },
+    {
+      "name": "Episode 7 — Hunting Lodge",
+      "status": "pending",
+      "notes": ""
+    },
+    {
+      "name": "Episode 8 — Castle in the Clouds",
+      "status": "pending",
+      "notes": ""
+    }
+  ],
+  "campaignLaunched": true,
+  "dmSecrets": "Cultist Lieutenant knows the location of the Raiders' Camp. Kobold may break under mild pressure. Black Dragon Mask radiates faint abjuration magic — someone with Arcana could detect it.",
+  "activeSceneIdx": -1,
+  "turnsSince": 0,
+  "msgsSinceChk": 0,
+  "autoChkInterval": 8,
+  "sessionNotes": "",
+  "wagonFilter": "all",
+  "wagon": {
+    "ox": {
+      "name": "Grit",
+      "hp": 15,
+      "hp_max": 15,
+      "ac": 11,
+      "conditions": "None",
+      "feed": "fed",
+      "backstory": "Raised from a calf by Tinkle. The only member of the operation who has never been asked to lie about anything. Has been used as a test subject for new batches on at least three documented occasions.",
+      "personality": "Stoic and dependable. Unusually calm around Tinkle specifically. Skittish around loud magic. Stubborn on roads he has decided are bad ideas.",
+      "bonds": {
+        "tinkle": "Deeply bonded — raised from calf. Tolerates the experiments with resigned dignity.",
+        "pebble": "Comfortable. Responds well to Pebble's voice. Possibly the most normal relationship on the wagon.",
+        "slasher": "Wary. Has learned that when Slasher gets excited, something loud is about to happen."
+      },
+      "quirks": [
+        "Refuses to cross bridges at a trot — walk only",
+        "Perks up noticeably around apples",
+        "Has a scar on his left flank from Experiment 7 — Tinkle does not discuss this",
+        "Occasionally regarded with suspicion by other animals, cause unknown"
+      ],
+      "experimentLog": "Vol. 3 (current). Vols 1-2 were lost in a hasty departure from Millhaven."
+    },
+    "cells": [
+      {
+        "name": "Cultist Lieutenant",
+        "size": "Medium",
+        "temperament": "hostile",
+        "escDC": "DC 18",
+        "weight": 180,
+        "notes": "Masterwork Shackles applied. Interrogation pending."
+      },
+      {
+        "name": "Kobold Assistant",
+        "size": "Small",
+        "temperament": "sedated",
+        "escDC": "DC 12",
+        "weight": 40,
+        "notes": "Smaller cell. May be cooperative with mild persuasion."
+      }
+    ],
+    "cargo": [],
+    "hoard": [],
+    "hp": 20,
+    "hp_max": 20,
+    "ac": 11,
+    "conditions": "",
+    "wagonName": "The Shelled Alchemist"
+  },
+  "partyInventory": [],
+  "relationships": [],
+  "scenes": [],
+  "snippets": [],
+  "encounterPresets": [],
+  "rewindStack": [],
+  "quickActions": [],
+  "errorLog": [],
+  "saveVersion": 11,
+  "_ts": 1781486400000
+}

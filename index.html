@@ -5084,10 +5084,14 @@ function migrate(s){
   if(!s.wagon||typeof s.wagon!=='object')s.wagon={};
   if(!s.wagon.ox||typeof s.wagon.ox!=='object')s.wagon.ox={name:'Grit',hp:15,hp_max:15,ac:11,conditions:'None',feed:'fed',backstory:'',personality:'',bonds:{},quirks:[],experimentLog:''};
   if(!s.wagon.ox.name)s.wagon.ox.name='Grit';
-  if(!s.wagon.ox.backstory)s.wagon.ox.backstory='';
-  if(!s.wagon.ox.personality)s.wagon.ox.personality='';
+  if(!s.wagon.ox.backstory)s.wagon.ox.backstory='Raised from a calf by Tinkle. The only member of the operation who has never been asked to lie about anything. Has been used as a test subject for new batches on at least three documented occasions.';
+  if(!s.wagon.ox.personality)s.wagon.ox.personality='Stoic and dependable. Unusually calm around Tinkle specifically. Skittish around loud magic. Stubborn on roads he has decided are bad ideas.';
   if(!s.wagon.ox.bonds||typeof s.wagon.ox.bonds!=='object')s.wagon.ox.bonds={};
-  if(!Array.isArray(s.wagon.ox.quirks))s.wagon.ox.quirks=[];
+  if(!s.wagon.ox.bonds.tinkle)s.wagon.ox.bonds.tinkle='Deeply bonded — raised from calf. Tolerates the experiments with resigned dignity.';
+  if(!s.wagon.ox.bonds.pebble)s.wagon.ox.bonds.pebble="Comfortable. Responds well to Pebble's voice. Possibly the most normal relationship on the wagon.";
+  if(!s.wagon.ox.bonds.slasher)s.wagon.ox.bonds.slasher='Wary. Has learned that when Slasher gets excited, something loud is about to happen.';
+  if(!Array.isArray(s.wagon.ox.quirks)||!s.wagon.ox.quirks.length)s.wagon.ox.quirks=['Refuses to cross bridges at a trot — walk only','Perks up noticeably around apples','Has a scar on his left flank from Experiment 7 — Tinkle does not discuss this','Occasionally regarded with suspicion by other animals, cause unknown'];
+  if(!s.wagon.ox.experimentLog)s.wagon.ox.experimentLog='Vol. 3 (current). Vols 1-2 were lost in a hasty departure from Millhaven.';
   if(!Array.isArray(s.wagon.cells))s.wagon.cells=[];
   if(!Array.isArray(s.wagon.cargo))s.wagon.cargo=[];
   if(!Array.isArray(s.wagon.hoard))s.wagon.hoard=[];
