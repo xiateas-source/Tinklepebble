@@ -919,6 +919,10 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party');clearPartyBadge()">🗨️ OOC <span id="party-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
         </div>
         <div id="chat-pane-narrative">
+          <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
+            <button class="btn sm" onclick="document.getElementById('chat-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
+            <button class="btn sm" onclick="const e=document.getElementById('chat-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
+          </div>
         <div id="chat-msgs" class="chat-msgs-wrap"></div>
         <div class="typing-ind" id="typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
         <div id="ai-retry-status" style="display:none;font-size:11px;color:var(--text-dim);padding:4px 0 2px;font-family:var(--mono)"></div>
