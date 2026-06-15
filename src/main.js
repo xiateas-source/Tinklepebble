@@ -5657,6 +5657,24 @@ function renderPCOverview(){
     slotHtml+='</div></div>';
   }
 
+  // Proficient skills quick view — tappable to roll
+  let topSkillsHtml='';
+  {
+    const profs=Array.isArray(pc.skillProfs)?pc.skillProfs:[];
+    const ALL_CHECKS=[['Athletics','str'],['Acrobatics','dex'],['Sleight of Hand','dex'],['Stealth','dex'],['Perception','wis'],['Insight','wis'],['Medicine','wis'],['Animal Handling','wis'],['Survival','wis'],['Persuasion','cha'],['Deception','cha'],['Intimidation','cha'],['Performance','cha'],['Arcana','int'],['History','int'],['Investigation','int'],['Nature','int'],['Religion','int']];
+    const fmtM=v=>(v>=0?'+':'')+v;
+    const profChecks=ALL_CHECKS.filter(([n])=>profs.includes(n));
+    if(profChecks.length){
+      topSkillsHtml='<div style="margin:6px 0 8px"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Proficient Skills <span style="color:var(--text-dim);font-weight:400;text-transform:none">(tap to roll)</span></div><div style="display:flex;flex-wrap:wrap;gap:4px">';
+      profChecks.forEach(([n,s])=>{
+        const score=parseInt(pc[s])||10;
+        const bonus=Math.floor((score-10)/2)+prof;
+        topSkillsHtml+=`<div onclick="rollStatCheck(${idx},'${s}','${n}')" style="font-size:10px;background:var(--surface3);border:1px solid var(--gold-dim);border-radius:4px;padding:2px 8px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation"><span style="color:var(--text-bright)">${n}</span> <span style="color:var(--gold);font-weight:700">${fmtM(bonus)}</span></div>`;
+      });
+      topSkillsHtml+='</div></div>';
+    }
+  }
+
   // Magic overview from pc.magic text (Item 17)
   let magicHtml='';
   if(pc.magic&&pc.magic!=='None'&&pc.magic.trim()){
@@ -5688,12 +5706,12 @@ function renderPCOverview(){
       <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">AC</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.ac}</div></div>
       <div onclick="rollInitiative(${idx})" style="background:var(--surface2);padding:5px 2px;border-radius:4px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Init ⚄</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${(parseInt(pc.initiative)||0)>=0?'+':''}${parseInt(pc.initiative)||0}</div></div>
       <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Spd</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.speed||30}</div></div>
-      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">PP</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.passive_perception||10}</div></div>
+      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">PP</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${(()=>{const ps=Array.isArray(pc.skillProfs)?pc.skillProfs:[];const wm=Math.floor((parseInt(pc.wis)||10-10)/2);return 10+wm+(ps.includes('Perception')?prof:0);})()}</div></div>
       <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Prof</div><div style="font-size:15px;font-weight:700;color:var(--gold)">+${prof}</div></div>
     </div>
     <div id="po-roll-result" style="display:none;background:var(--surface2);border:1px solid var(--border-bright);border-radius:5px;padding:5px 8px;margin-bottom:6px;font-size:12px;align-items:center"></div>
     ${(()=>{const eq=(pc.inventory||[]).filter(i=>GEAR_TYPES.has(i.type));return eq.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">'+eq.map(i=>`<span style="font-size:10px;background:var(--surface3);border:1px solid var(--border-bright);border-radius:3px;padding:2px 7px;color:var(--text-bright)">⚔ ${esc(i.name||'?')}</span>`).join('')+'</div>':''})()}
-    ${condHtml}${concBadge}${attackHtml}${resHtml}${slotHtml}${magicHtml}${spellbookHtml}
+    ${condHtml}${concBadge}${topSkillsHtml}${attackHtml}${resHtml}${slotHtml}${magicHtml}${spellbookHtml}
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn sm" style="flex:1" onclick="closePCOverview();state.activeEditTab=${idx};const d=document.getElementById('char-editor-details');if(d)d.open=true;openDrawer('tab-party')">✎ Edit Sheet</button>
     </div>
