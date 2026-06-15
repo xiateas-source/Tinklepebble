@@ -739,7 +739,8 @@ function renderPartyPCList(){
     return `<div onclick="openPCOverview(${i})" style="background:var(--surface2);border:1px solid ${pc.color||'var(--border)'};border-radius:8px;padding:10px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .15s">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
         <div style="flex:1;font-family:var(--serif);font-size:14px;font-weight:600;color:${pc.color||'var(--gold-bright)'}">${esc(pc.name||'PC')}</div>
-        <div style="font-size:11px;color:var(--text-dim)">Lv ${pc.level||1} ${esc(pc.race||'')} ${esc(pc.class||'')}</div>
+        <div style="font-size:10px;color:var(--text-dim)">Lv ${pc.level||1} ${esc(pc.race||'')} ${esc(pc.class||'')}</div>
+        <div style="font-size:10px;color:var(--text-dim);white-space:nowrap">AC ${pc.ac||10}</div>
         <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${hpCol}">${hp}<span style="font-size:10px;color:var(--text-dim)">/${max}</span></div>
       </div>
       <div style="height:3px;background:var(--surface3);border-radius:2px;margin-bottom:4px"><div style="height:3px;width:${pct.toFixed(1)}%;background:${hpCol};border-radius:2px;transition:width .3s"></div></div>
@@ -5556,7 +5557,11 @@ function renderHUD(){
     tile.className='hud-tile'+(isTarget?' active-target':'');
     tile.id='hud-tile-'+i;
     tile.onclick=(function(idx){return function(){openPCOverview(idx);};})(i);
-    tile.innerHTML='<div class="hud-name">'+esc(pc.name||'PC')+'</div>'
+    const hasCond=(pc.conditions||[]).length>0;
+    const hasConc=!!pc.concentrating;
+    const condDot=hasCond?'<span style="display:inline-block;width:5px;height:5px;background:var(--red);border-radius:50%;margin-left:3px;vertical-align:middle"></span>':'';
+    const concDot=hasConc?'<span style="display:inline-block;width:5px;height:5px;background:var(--purple-bright);border-radius:50%;margin-left:2px;vertical-align:middle"></span>':'';
+    tile.innerHTML='<div class="hud-name">'+esc(pc.name||'PC')+condDot+concDot+'</div>'
       +'<div class="hud-val">'+hp+'<span style="font-size:9px;color:var(--text-dim)">/'+max+'</span></div>'
       +'<div class="hud-spark '+sparkCls+'" style="width:'+pct.toFixed(1)+'%"></div>';
     mosaic.appendChild(tile);
