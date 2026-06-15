@@ -1583,6 +1583,66 @@ button.fab{
   .modal-box{margin:8px;padding:14px;}
 }
 
+/* ═══ NEW INTERFACE — HUD + DRAWER + DOCK ═══ */
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;}
+.app-header{display:none!important;}
+.main-tabs{display:none!important;}
+/* Global HUD */
+.global-hud{height:54px;background:var(--surface);border-bottom:2px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:8px;z-index:100;flex-shrink:0;}
+.hud-mosaic{display:flex;gap:5px;flex:1;overflow-x:auto;scrollbar-width:none;align-items:center;}
+.hud-mosaic::-webkit-scrollbar{display:none;}
+.hud-tile{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;min-width:68px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.hud-tile.active-target{border-color:var(--gold);box-shadow:0 0 0 2px rgba(176,88,48,.3);}
+.hud-name{font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;white-space:nowrap;letter-spacing:.5px;}
+.hud-val{font-family:var(--mono);font-size:12px;font-weight:bold;color:var(--text-bright);line-height:1.3;}
+.hud-spark{position:absolute;bottom:0;left:0;height:3px;transition:width .3s,background .3s;}
+.hud-spark.ok{background:var(--green);}
+.hud-spark.warn{background:#cc8b3c;}
+.hud-spark.danger{background:var(--red);}
+.hud-meta{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.hud-gp{font-family:var(--mono);background:var(--surface2);padding:4px 8px;border-radius:4px;font-size:11px;color:var(--gold);cursor:pointer;border:1px solid var(--border);font-weight:600;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+.hud-gp.active-target{border-color:var(--gold);box-shadow:0 0 0 2px rgba(176,88,48,.3);}
+/* Main canvas — tab-dm always fills remaining space */
+#tab-dm{display:flex!important;flex-direction:column;flex:1;overflow:hidden;padding:0!important;animation:none!important;min-height:0;}
+#tab-dm .grid-1{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+#tab-dm .col{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+#tab-dm .panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;border-radius:0;border-left:none;border-right:none;border-bottom:none;}
+#tab-dm #chat-pane-narrative{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+#tab-dm .chat-msgs-wrap{flex:1;overflow-y:auto;min-height:0!important;max-height:none!important;}
+#tab-dm .panel-title{border-radius:0;flex-shrink:0;}
+#tab-dm .chat-tab-row{flex-shrink:0;}
+#tab-dm #dice-picker-panel{flex-shrink:0;}
+/* Drawer */
+.drawer-backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .22s;z-index:800;}
+.drawer-backdrop.is-open{opacity:1;pointer-events:auto;}
+.drawer-sheet{position:fixed;bottom:0;left:0;width:100vw;max-height:80vh;background:var(--surface);border-top:2px solid var(--gold-dim);border-radius:14px 14px 0 0;transform:translateY(100%);transition:transform .25s cubic-bezier(.1,.75,.55,1);z-index:900;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);}
+.drawer-sheet.is-open{transform:translateY(0);}
+.drawer-handle{width:36px;height:4px;background:var(--border-bright);border-radius:2px;margin:10px auto 0;flex-shrink:0;}
+.drawer-hdr{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;gap:8px;}
+.drawer-hdr-title{font-family:var(--serif);font-size:14px;color:var(--gold);font-weight:600;flex:1;}
+.drawer-body{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;}
+.drawer-body>.tab-section{display:none;padding:14px!important;padding-bottom:20px!important;}
+.drawer-body>.tab-section.active{display:block;}
+/* Bottom dock */
+.lower-dock{background:var(--surface);border-top:2px solid var(--border);z-index:700;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px);}
+.step-bar{display:flex;border-bottom:1px solid var(--border);}
+.step-btn{flex:1;height:40px;background:transparent;border:none;border-right:1px solid var(--border);font-family:var(--mono);font-size:15px;font-weight:700;cursor:pointer;transition:background .12s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.step-btn:last-child{border-right:none;}
+.step-btn:active{background:var(--surface2);}
+.step-btn.dec{color:var(--red);}
+.step-btn.inc{color:var(--green);}
+.chat-quick-bar{display:flex;padding:6px 10px;gap:6px;background:var(--bg);align-items:center;}
+.chat-quick-input{flex:1;height:36px;background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:0 10px;font-family:var(--sans);color:var(--text);font-size:13px;-webkit-appearance:none;}
+.chat-quick-input:focus{outline:none;border-color:var(--gold-dim);}
+.chat-quick-send{width:36px;height:36px;background:var(--gold);border:none;border-radius:6px;color:var(--bg);font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;-webkit-tap-highlight-color:transparent;}
+.nav-dock{display:flex;height:50px;border-top:1px solid var(--border);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:var(--text-dim);gap:2px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .15s,background .15s;touch-action:manipulation;}
+.nav-btn-icon{font-size:18px;line-height:1;}
+.nav-btn-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.nav-btn.active{color:var(--gold);background:var(--surface2);}
+/* Step-target indicator in step bar */
+.step-target-label{font-size:10px;color:var(--text-dim);padding:3px 10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid var(--border);background:var(--surface2);}
+
 </style>
 </head>
 <body>
@@ -1698,22 +1758,20 @@ button.fab{
   </div>
 </div>
 
-<!-- HEADER -->
-<header class="app-header">
-  <div style="flex:1;min-width:0;cursor:pointer" onclick="showTab('tab-party')">
-    <div class="app-title">Tinkle's Tinctures</div>
-    <div class="header-meta">
-      <span class="autosave-dot" id="as-dot"></span>
-      <span id="as-lbl" style="display:none"></span>
-      <span id="fb-status-mini" style="margin-left:3px"></span>
-    </div>
+<!-- GLOBAL HUD -->
+<header class="global-hud">
+  <div class="hud-mosaic" id="hud-mosaic"></div>
+  <div class="hud-meta">
+    <div class="hud-gp" id="hud-gp" onclick="setStepTarget('gp',0)">0gp</div>
+    <span class="autosave-dot" id="as-dot"></span>
+    <span id="as-lbl" style="display:none"></span>
+    <span id="fb-status-mini" style="display:none"></span>
+    <span id="hdr-chk-mini" class="chk-status-msg ok" style="display:none"></span>
+    <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Cycle theme" class="btn sm" style="padding:5px 8px;min-height:32px">☀</button>
+    <button id="hdr-menu-btn" onclick="toggleHeaderMenu()" class="btn sm" style="padding:5px 8px;min-height:32px">☰</button>
   </div>
-  <span id="hdr-chk-mini" class="chk-status-msg ok" style="display:none"></span>
-  <button onclick="openRollSheet()" title="Roll & Submit" class="btn sm">🎲</button>
-  <button id="theme-toggle-btn" onclick="toggleThemeMode()" title="Cycle theme" class="btn sm">☀</button>
-  <button id="hdr-menu-btn" onclick="toggleHeaderMenu()" class="btn sm">☰</button>
 </header>
-<div id="header-menu" style="display:none;position:fixed;top:66px;right:0;left:0;background:var(--surface);border-bottom:1px solid var(--border-bright);z-index:99;padding:14px 16px 12px;box-shadow:0 8px 32px rgba(0,0,0,.7);" onclick="if(event.target===this)closeHeaderMenu()">
+<div id="header-menu" style="display:none;position:fixed;top:58px;right:0;left:0;background:var(--surface);border-bottom:1px solid var(--border-bright);z-index:99;padding:14px 16px 12px;box-shadow:0 8px 32px rgba(0,0,0,.7);" onclick="if(event.target===this)closeHeaderMenu()">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
     <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
     <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
@@ -1724,7 +1782,15 @@ button.fab{
     <button onclick="openResetModal('campaign');closeHeaderMenu()" class="btn" style="border-color:var(--gold);color:var(--gold)!important">🌅 New Campaign</button>
     <button onclick="openResetModal('full');closeHeaderMenu()" class="btn" style="border-color:var(--red);color:var(--red-bright)!important">⚠ Full Reset</button>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+    <button onclick="showTab('tab-combat');closeHeaderMenu()" class="btn">⚔ Combat</button>
+    <button onclick="showTab('tab-session');closeHeaderMenu()" class="btn">📋 Session</button>
+    <button onclick="showTab('tab-ait');closeHeaderMenu()" class="btn">🔮 AI Tools</button>
+    <button onclick="openRollSheet();closeHeaderMenu()" class="btn">🎲 Roll</button>
+    <button onclick="showTab('tab-dev');closeHeaderMenu()" class="btn" style="color:var(--gold)">🛠 Dev</button>
+    <button onclick="showTab('tab-setup');closeHeaderMenu()" class="btn" style="color:var(--purple-bright)">⚙ Setup</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap;margin-top:8px">
     <span style="font-size:10px;color:var(--text-dim);text-transform:uppercase">AI messages since checkpoint:</span>
     <span id="hdr-turn" style="font-family:var(--mono);font-size:18px;color:var(--gold)">0</span>
     <span id="hdr-chk" class="chk-status-msg ok" style="font-size:11px"></span>
@@ -2548,6 +2614,50 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 </div>
 </div>
 
+<!-- DRAWER OVERLAY -->
+<div id="drawer-backdrop" class="drawer-backdrop" onclick="closeDrawer()"></div>
+<div id="drawer-sheet" class="drawer-sheet">
+  <div class="drawer-handle"></div>
+  <div class="drawer-hdr">
+    <span class="drawer-hdr-title" id="drawer-title">Party</span>
+    <button class="btn sm" onclick="closeDrawer()">✕ Close</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
+<!-- BOTTOM DOCK -->
+<footer class="lower-dock">
+  <div id="step-target-label" class="step-target-label" style="display:none">Tap a party tile or GP to set step target</div>
+  <div class="step-bar">
+    <button class="step-btn dec" onclick="executeStep(-5)">-5</button>
+    <button class="step-btn dec" onclick="executeStep(-1)">-1</button>
+    <button class="step-btn inc" onclick="executeStep(1)">+1</button>
+    <button class="step-btn inc" onclick="executeStep(5)">+5</button>
+  </div>
+  <div class="chat-quick-bar">
+    <input type="text" class="chat-quick-input" id="chat-quick-input" placeholder="Command AI DM…" onkeydown="chatKeyQuick(event)">
+    <button class="chat-quick-send" onclick="sendMsgQuick()">▶</button>
+  </div>
+  <nav class="nav-dock">
+    <button class="nav-btn active" id="nav-btn-log" onclick="navTo('log')">
+      <span class="nav-btn-icon">📖</span>
+      <span class="nav-btn-lbl">Log</span>
+    </button>
+    <button class="nav-btn" id="nav-btn-party" onclick="navTo('party')">
+      <span class="nav-btn-icon">👥</span>
+      <span class="nav-btn-lbl">Party</span>
+    </button>
+    <button class="nav-btn" id="nav-btn-wagon" onclick="navTo('wagon')">
+      <span class="nav-btn-icon">🛒</span>
+      <span class="nav-btn-lbl">Wagon</span>
+    </button>
+    <button class="nav-btn" id="nav-btn-world" onclick="navTo('world')">
+      <span class="nav-btn-icon">🌍</span>
+      <span class="nav-btn-lbl">World</span>
+    </button>
+  </nav>
+</footer>
+
 <!-- SESSION DASHBOARD MODAL -->
 <div class="modal-overlay" id="dash-modal" onclick="if(event.target===this)closeModal('dash-modal')">
   <div class="modal-box" style="max-width:500px;max-height:92vh;overflow-y:auto">
@@ -3017,6 +3127,14 @@ window.addEventListener('DOMContentLoaded',()=>{
   _lastPartyChatLen=(state.partyChat||[]).length;
   populateVoices();
   if(typeof speechSynthesis!=='undefined'&&speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=populateVoices;
+  // Move non-DM tab sections into drawer body
+  const drawerBody=document.getElementById('drawer-body');
+  if(drawerBody){
+    ['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dev','tab-setup'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)drawerBody.appendChild(el);
+    });
+  }
   renderAll();genLedger();
   renderQAMenu();
   showSessionMode('play'); // set initial session mode
@@ -3057,6 +3175,13 @@ function completeSetup(){
 // ═══ TABS ═══
 function showTab(id){
   currentTab=id;
+  // New interface: non-DM tabs open in drawer
+  if(id==='tab-dm'){closeDrawer();return;}
+  if(typeof _DRAWER_TABS!=='undefined'&&_DRAWER_TABS.includes(id)){
+    openDrawer(id);
+    return;
+  }
+  // Fallback (direct show, for any tabs not yet in drawer system)
   document.querySelectorAll('.tab-section').forEach(e=>{e.classList.remove('active');});
   document.querySelectorAll('.main-tab').forEach(e=>e.classList.remove('active'));
   document.getElementById(id)?.classList.add('active');
@@ -3064,11 +3189,9 @@ function showTab(id){
   if(btn)btn.classList.add('active');
   clearTabBadge(id);
   renderQAMenu();
-  // Reset session sub-tab state on every tab switch
   if(id==='tab-session'){
     showSessionMode('play');
   } else {
-    // Force module panel hidden when leaving session tab
     const modPanel=document.getElementById('sess-module-panel');
     const logPanel=document.getElementById('sess-log-panel');
     if(modPanel)modPanel.style.cssText='display:none;height:0;overflow:hidden;margin:0;padding:0';
@@ -3140,6 +3263,7 @@ function showSessionTab(which){
 
 // ═══ RENDER ALL ═══
 function renderAll(){
+  if(typeof renderHUD==='function')renderHUD();
   renderCharTabs();renderCards();renderSheets();renderStatusMini();
   renderNPCs();renderQuests();renderCombat();renderPresets();
   renderLogs();renderChat();renderTurnCtr();
@@ -7787,6 +7911,154 @@ function renderSuperpowers(){
     +'</div>';
   }).join('');
 }
+
+// ═══ NEW INTERFACE — HUD + DRAWER + DOCK ═══
+
+var _stepTarget=null; // {type:'pc',idx:N} or {type:'gp'}
+const _DRAWER_TABS=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dev','tab-setup'];
+const _DRAWER_TITLES={'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dev':'Dev','tab-setup':'Setup'};
+
+function renderHUD(){
+  const mosaic=document.getElementById('hud-mosaic');
+  if(!mosaic)return;
+  mosaic.innerHTML='';
+  const pcs=state.pcs||[];
+  pcs.forEach((pc,i)=>{
+    const hp=parseInt(pc.hp_current)||0;
+    const max=parseInt(pc.hp_max)||1;
+    const pct=Math.max(0,Math.min(100,(hp/max)*100));
+    const sparkCls=pct<20?'danger':pct<55?'warn':'ok';
+    const isTarget=_stepTarget&&_stepTarget.type==='pc'&&_stepTarget.idx===i;
+    const tile=document.createElement('div');
+    tile.className='hud-tile'+(isTarget?' active-target':'');
+    tile.id='hud-tile-'+i;
+    tile.onclick=(function(idx){return function(){setStepTarget('pc',idx);};})(i);
+    tile.innerHTML='<div class="hud-name">'+esc(pc.name||'PC')+'</div>'
+      +'<div class="hud-val">'+hp+'<span style="font-size:9px;color:var(--text-dim)">/'+max+'</span></div>'
+      +'<div class="hud-spark '+sparkCls+'" style="width:'+pct.toFixed(1)+'%"></div>';
+    mosaic.appendChild(tile);
+  });
+  // GP
+  const gp=parseFloat((state.treasuryData||{}).gp)||0;
+  const gpEl=document.getElementById('hud-gp');
+  if(gpEl){
+    gpEl.textContent=(gp%1===0?Math.round(gp):gp.toFixed(1))+'gp';
+    gpEl.classList.toggle('active-target',!!(_stepTarget&&_stepTarget.type==='gp'));
+  }
+  // Sync dot
+  const syncDot=document.getElementById('as-dot');
+  // (already managed by existing save() / justSave() code via class toggles)
+}
+
+function setStepTarget(type,idx){
+  _stepTarget={type:type,idx:idx};
+  // Update HUD tile highlights
+  document.querySelectorAll('.hud-tile').forEach(t=>t.classList.remove('active-target'));
+  const gpEl=document.getElementById('hud-gp');
+  if(gpEl)gpEl.classList.remove('active-target');
+  if(type==='pc'){
+    const tile=document.getElementById('hud-tile-'+idx);
+    if(tile)tile.classList.add('active-target');
+    const pc=state.pcs[idx];
+    // Update step label
+    const lbl=document.getElementById('step-target-label');
+    if(lbl){lbl.style.display='block';lbl.textContent='Target: '+(pc?.name||'PC')+' HP ('+( parseInt(pc?.hp_current)||0)+'/'+(parseInt(pc?.hp_max)||1)+')';}
+  } else if(type==='gp'){
+    if(gpEl)gpEl.classList.add('active-target');
+    const lbl=document.getElementById('step-target-label');
+    const gp=parseFloat((state.treasuryData||{}).gp)||0;
+    if(lbl){lbl.style.display='block';lbl.textContent='Target: Gold Pieces ('+gp+'gp)';}
+  }
+}
+
+function executeStep(delta){
+  if(!_stepTarget){toast('Tap a party tile or GP to set target');return;}
+  const t=_stepTarget;
+  if(t.type==='pc'){
+    const pc=state.pcs[t.idx];
+    if(!pc)return;
+    let hp=(parseInt(pc.hp_current)||0)+delta;
+    const max=parseInt(pc.hp_max)||1;
+    hp=Math.max(0,Math.min(max,hp));
+    pc.hp_current=hp;
+    const lbl=document.getElementById('step-target-label');
+    if(lbl)lbl.textContent='Target: '+(pc.name||'PC')+' HP ('+hp+'/'+max+')';
+    renderHUD();
+    renderCards();
+    save();
+    toast((pc.name||'PC')+': '+hp+'/'+max+' HP');
+  } else if(t.type==='gp'){
+    if(!state.treasuryData)state.treasuryData={};
+    let gp=(parseFloat(state.treasuryData.gp)||0)+delta;
+    gp=Math.max(0,gp);
+    state.treasuryData.gp=gp;
+    const lbl=document.getElementById('step-target-label');
+    if(lbl)lbl.textContent='Target: Gold Pieces ('+gp+'gp)';
+    renderHUD();
+    renderTreasuryTotal();
+    save();
+    toast('GP: '+gp);
+  }
+}
+
+function openDrawer(tabId){
+  const drawerBody=document.getElementById('drawer-body');
+  if(!drawerBody)return;
+  // Move all known drawer tabs into drawer-body if not already there
+  _DRAWER_TABS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.parentNode!==drawerBody)drawerBody.appendChild(el);
+    if(el)el.classList.remove('active');
+  });
+  // Show the requested tab
+  const target=document.getElementById(tabId);
+  if(target)target.classList.add('active');
+  // Update title
+  const titleEl=document.getElementById('drawer-title');
+  if(titleEl)titleEl.textContent=_DRAWER_TITLES[tabId]||tabId;
+  // Show backdrop + sheet
+  document.getElementById('drawer-backdrop')?.classList.add('is-open');
+  document.getElementById('drawer-sheet')?.classList.add('is-open');
+  // Sync nav
+  const navMap={'tab-party':'party','tab-world':'world','tab-wagon':'wagon','tab-combat':'combat','tab-session':'session'};
+  const navKey=navMap[tabId]||null;
+  ['log','party','wagon','world'].forEach(k=>{
+    document.getElementById('nav-btn-'+k)?.classList.toggle('active',k===navKey);
+  });
+  // Session sub-tab state
+  if(tabId==='tab-session'){showSessionMode('play');}
+  clearTabBadge(tabId);
+  renderQAMenu();
+}
+
+function closeDrawer(){
+  document.getElementById('drawer-backdrop')?.classList.remove('is-open');
+  document.getElementById('drawer-sheet')?.classList.remove('is-open');
+  ['log','party','wagon','world'].forEach(k=>{
+    document.getElementById('nav-btn-'+k)?.classList.toggle('active',k==='log');
+  });
+}
+
+function navTo(key){
+  if(key==='log'){closeDrawer();return;}
+  openDrawer('tab-'+key);
+}
+
+function sendMsgQuick(){
+  const qi=document.getElementById('chat-quick-input');
+  const ci=document.getElementById('chat-input');
+  if(!qi||!ci)return;
+  const val=qi.value.trim();
+  if(!val)return;
+  ci.value=val;
+  qi.value='';
+  sendMsg();
+}
+
+function chatKeyQuick(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsgQuick();}
+}
+
 </script>
 
 <!-- QUICK ACTIONS FAB -->
