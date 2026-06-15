@@ -5240,17 +5240,19 @@ function exportFlagReport(mode){
   const all=(state.errorLog||[]).filter(f=>!f.resolved);
   const flags=mode==='pending'?all.filter(f=>!f.verdict):all;
   if(!flags.length){toast('No '+(mode==='pending'?'pending ':'')+'flags to export.');return;}
-  let report='=== FLAG REPORT — '+(mode==='pending'?'PENDING ONLY':'ALL FLAGS')+' ===\n';
-  report+='Generated: '+new Date().toLocaleString()+'\n\n';
+  const today=new Date().toISOString().slice(0,10);
+  const nPending=all.filter(f=>!f.verdict).length;
+  const nFail=all.filter(f=>f.verdict==='fail').length;
+  const nResolved=all.filter(f=>f.verdict==='pass'||f.verdict==='resolved').length;
+  const parts=[nPending+' pending'];
+  if(nFail)parts.push(nFail+' fail');
+  if(nResolved)parts.push(nResolved+' resolved');
+  let report='FLAGS '+today+' — '+parts.join(', ')+'\n\n';
   flags.forEach(function(f,i){
-    const cat=FLAG_CATS[f.category]||FLAG_CATS.other;
-    const v=f.verdict==='pass'?'resolved':f.verdict;
-    const verdictStr=!v?'PENDING':v.toUpperCase();
-    report+=(i+1)+'. ['+cat.icon+' '+cat.label+'] → '+verdictStr+'\n';
-    if(f.location)report+='   Location: '+f.location+(f.gameTs?' at '+f.gameTs:'')+'\n';
-    if(f.note)report+='   Note: '+f.note+'\n';
-    if(f.msgContent&&f.msgContent.indexOf('[')!==0)report+='   AI said: "'+f.msgContent.slice(0,200)+(f.msgContent.length>200?'…':'')+'"'+'\n';
-    report+='\n';
+    const cat=f.category||'other';
+    const v=f.verdict==='pass'?'resolved':f.verdict||'pending';
+    const note=(f.note||'').trim()||'(no note)';
+    report+=(i+1)+'. ['+cat+'|'+v+'] '+note+'\n';
   });
   copyText(report,'✓ '+(mode==='pending'?'Pending':'All')+' flags copied!');
 }
