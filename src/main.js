@@ -2702,6 +2702,12 @@ function migrate(s){
     if(pc.levelReady===undefined)pc.levelReady=false;
     if(!Array.isArray(pc.spellbook))pc.spellbook=[];
     if(pc.familiar===undefined)pc.familiar=null;
+    // Seed Tinkle's rat familiar (Find Familiar active per Contract 2)
+    if(pc.name==='Tinkle'&&!pc.familiar){
+      pc.familiar={name:'Pip',type:'Rat (Find Familiar)',hp:1,hp_max:1,ac:10,speed:'20 ft.',
+        str:2,dex:11,con:9,int:2,wis:10,cha:4,passive_perception:10,
+        notes:'Invisible Mage Hand Legerdemain familiar. Scouting, pick-pockets, disarm traps, stow objects — cannot attack. Dismissed/re-summoned as bonus action.'};
+    }
   });
 }
 // ═══ PERSISTENCE ═══
