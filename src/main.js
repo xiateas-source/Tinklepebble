@@ -732,6 +732,34 @@ function renderAll(){
   // Render relationships for active edit tab
   if(state.pcs[state.activeEditTab||0])renderRelationships(state.activeEditTab||0);
   injectPanelFlags();
+  renderContextStrip();
+}
+
+// ═══ CONTEXT STRIP ═══
+function renderContextStrip(){
+  const el=document.getElementById('context-strip');if(!el)return;
+  if(state.combat&&state.combat.active&&(state.combat.list||[]).length){
+    const round=state.combat.round||1;
+    const cur=state.combat.list[state.combat.currentIdx||0];
+    const curName=cur?cur.name:'—';
+    el.innerHTML=`<span style="color:var(--red);font-weight:600">⚔ Round ${round}</span><span style="color:var(--border)">·</span><span style="color:var(--text-dim)">${esc(curName)}'s turn</span>`;
+  }else{
+    const loc=state.worldData&&state.worldData.location?state.worldData.location:'—';
+    const scene=state.worldData&&state.worldData.scene_title?state.worldData.scene_title:'';
+    el.innerHTML=`<span style="cursor:pointer;color:var(--gold)" onclick="showTab('tab-world')">${esc(loc)}</span>`+(scene?`<span style="color:var(--border)">·</span><span style="color:var(--text-dim)">${esc(scene)}</span>`:'');
+  }
+}
+
+// ═══ COPY CONTRACTS ═══
+function copyContracts(){
+  const ids=['ai-persona','ai-never','ai-actions','ai-continuity','ai-multi'];
+  const labels=['DM Persona','Never Do','Actions','Continuity','Multi-Player'];
+  let out='AI CONTRACTS\n\n';
+  ids.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el&&el.value.trim())out+=labels[i]+':\n'+el.value.trim()+'\n\n';
+  });
+  copyText(out,'✓ Contracts copied');
 }
 
 // ═══ ESC HTML ═══
@@ -4444,6 +4472,7 @@ function renderSpellbook(idx){
         <button class="btn sm red icon-btn" onclick="event.stopPropagation();remSpell(${idx},${si})" style="flex-shrink:0">&times;</button>
       </summary>
       <div class="bs-body">
+        <div style="font-size:12px;color:${sp.desc?'var(--text)':'var(--text-dim)'};font-style:${sp.desc?'normal':'italic'};line-height:1.5;margin-bottom:10px;padding:6px 8px;background:var(--surface);border-radius:4px;white-space:pre-wrap">${sp.desc?esc(sp.desc):'No description yet'}</div>
         <div class="form-row" style="margin-bottom:8px">
           <div style="width:58px"><label class="field-label">Level</label><input type="number" min="0" max="9" value="${sp.level||0}" onchange="updSpell(${idx},${si},'level',parseInt(this.value)||0)"></div>
           <div class="fg"><label class="field-label">School</label><input type="text" value="${esc(sp.school||'')}" placeholder="Enchantment" onchange="updSpell(${idx},${si},'school',this.value)"></div>
@@ -4455,7 +4484,7 @@ function renderSpellbook(idx){
           <div class="fg"><label class="field-label">Components</label><input type="text" value="${esc(sp.components||'')}" placeholder="V, S" onchange="updSpell(${idx},${si},'components',this.value)"></div>
         </div>
         <div class="form-group"><label class="field-label">Spell Name</label><input type="text" value="${esc(sp.name||'')}" onchange="updSpell(${idx},${si},'name',this.value)"></div>
-        <div class="form-group"><label class="field-label">Description &amp; Rules</label><textarea id="spell-desc-${idx}-${si}" onchange="updSpell(${idx},${si},'desc',this.value)" style="min-height:90px;font-size:13px;line-height:1.5"></textarea></div>
+        <div class="form-group"><label class="field-label">Description &amp; Rules</label><textarea id="spell-desc-${idx}-${si}" onchange="updSpell(${idx},${si},'desc',this.value)" style="min-height:90px;font-size:13px;line-height:1.5" placeholder="Spell description, rules, and notes..."></textarea></div>
       </div>`;
     c.appendChild(d);
     const ta=d.querySelector('#spell-desc-'+idx+'-'+si);if(ta)ta.value=sp.desc||'';
@@ -6458,4 +6487,5 @@ Object.assign(window, {
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
+  renderContextStrip, copyContracts,
 });
