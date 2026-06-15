@@ -2799,6 +2799,38 @@ function rollAttack(idx,ai){
   toast(`${esc(atk.name||'Attack')}: d20(${d20})${atkBonus>=0?'+':''}${atkBonus}=${total}${note} | Dmg: ${dmgTotal}`,3500);
   const el=document.getElementById('dice-result');if(el){el.textContent=`${atk.name}: ${total} to hit | ${dmgTotal} dmg${note}`;el.style.color=isCrit?'var(--gold-bright)':isMiss?'var(--red)':'var(--text-bright)';}
 }
+function rollStatCheck(idx,stat,label){
+  const pc=state.pcs[idx];if(!pc)return;
+  const n=parseInt(pc[stat])||10;
+  const m=Math.floor((n-10)/2);
+  const d20=Math.ceil(Math.random()*20);
+  const total=d20+m;
+  const isCrit=d20===20,isFumble=d20===1;
+  const lbl=label||(stat.toUpperCase()+' check');
+  const note=isCrit?' ⚡ NAT 20':isFumble?' 💀 NAT 1':'';
+  const sendTxt='['+esc(pc.name||'PC')+' rolls '+lbl+': d20('+d20+')'+(m>=0?'+':'')+m+' = '+total+note+']';
+  toast(lbl+': '+total+note,2500);
+  const sa=document.getElementById('po-roll-result');
+  if(sa){
+    sa.style.display='flex';
+    sa.innerHTML='<span style="color:'+(isCrit?'var(--gold-bright)':isFumble?'var(--red)':'var(--text-bright)')+'">🎲 '+lbl+': <strong>'+total+'</strong>'+note+'</span>'
+      +'<button onclick="sendRollToChat(\''+sendTxt.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\');this.textContent=\'✓ Sent\';this.disabled=true" style="font-size:10px;padding:2px 8px;margin-left:8px;background:var(--surface3);border:1px solid var(--gold-dim);color:var(--gold);border-radius:4px;cursor:pointer">📨 Send</button>';
+  }
+}
+function rollInitiative(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  const bonus=parseInt(pc.initiative)||0;
+  const d20=Math.ceil(Math.random()*20);
+  const total=d20+bonus;
+  const sendTxt='['+esc(pc.name||'PC')+' rolls Initiative: d20('+d20+')'+(bonus>=0?'+':'')+bonus+' = '+total+']';
+  toast('Initiative: '+total,2500);
+  const sa=document.getElementById('po-roll-result');
+  if(sa){
+    sa.style.display='flex';
+    sa.innerHTML='<span style="color:var(--gold-bright)">⚔ Initiative: <strong>'+total+'</strong></span>'
+      +'<button onclick="sendRollToChat(\''+sendTxt.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\');this.textContent=\'✓ Sent\';this.disabled=true" style="font-size:10px;padding:2px 8px;margin-left:8px;background:var(--surface3);border:1px solid var(--gold-dim);color:var(--gold);border-radius:4px;cursor:pointer">📨 Send</button>';
+  }
+}
 function pcShortRest(idx){
   const pc=state.pcs[idx];if(!pc)return;
   let recharged=0;
@@ -5649,16 +5681,18 @@ function renderPCOverview(){
       <div style="display:flex;gap:4px"><input type="number" id="po-hpamt" style="width:52px;text-align:center;padding:4px;font-size:12px" placeholder="Amt"><button class="btn sm green" onclick="(function(){const v=parseInt(document.getElementById('po-hpamt').value);if(!v)return;state.pcs[${idx}].hp=Math.min(state.pcs[${idx}].hp_max,state.pcs[${idx}].hp+v);document.getElementById('po-hpamt').value='';saveRefresh();renderPCOverview();renderHUD();})()" style="padding:3px 8px">+</button><button class="btn sm red" onclick="(function(){const v=parseInt(document.getElementById('po-hpamt').value);if(!v)return;state.pcs[${idx}].hp=Math.max(0,state.pcs[${idx}].hp-v);document.getElementById('po-hpamt').value='';saveRefresh();renderPCOverview();renderHUD();})()" style="padding:3px 8px">−</button></div>
     </div>
     <div class="hp-bar-wrap" style="margin-bottom:10px"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px;text-align:center">
-      ${['str','dex','con','int','wis','cha'].map(s=>`<div style="background:var(--surface2);border-radius:5px;padding:4px 2px;border:1px solid var(--border)"><div style="font-size:8px;font-weight:700;color:var(--text-dim);text-transform:uppercase">${s}</div><div style="font-size:18px;font-weight:800;color:var(--gold-bright);line-height:1.1;font-family:var(--mono)">${mod(s)}</div><div style="font-size:9px;color:var(--text-dim)">${parseInt(pc[s])||10}</div></div>`).join('')}
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:6px;text-align:center">
+      ${(()=>{const saveNames=['STR Save','DEX Save','CON Save','INT Save','WIS Save','CHA Save'];const profs=Array.isArray(pc.skillProfs)?pc.skillProfs:[];return['str','dex','con','int','wis','cha'].map((s,si)=>{const sp=profs.includes(saveNames[si]);return`<div onclick="rollStatCheck(${idx},'${s}')" style="background:var(--surface2);border-radius:5px;padding:4px 2px;border:1px solid ${sp?'var(--gold-dim)':'var(--border)'};cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation"><div style="font-size:8px;font-weight:700;color:var(--text-dim);text-transform:uppercase">${s}${sp?'<span style="color:var(--gold);margin-left:1px">●</span>':''}</div><div style="font-size:18px;font-weight:800;color:var(--gold-bright);line-height:1.1;font-family:var(--mono)">${mod(s)}</div><div style="font-size:9px;color:var(--text-dim)">${parseInt(pc[s])||10}</div></div>`;}).join('');})()}
     </div>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px;font-size:10px;text-align:center">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px;font-size:10px;text-align:center">
       <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">AC</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.ac}</div></div>
-      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Init</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${(parseInt(pc.initiative)||0)>=0?'+':''}${parseInt(pc.initiative)||0}</div></div>
+      <div onclick="rollInitiative(${idx})" style="background:var(--surface2);padding:5px 2px;border-radius:4px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Init ⚄</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${(parseInt(pc.initiative)||0)>=0?'+':''}${parseInt(pc.initiative)||0}</div></div>
       <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Spd</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.speed||30}</div></div>
       <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">PP</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.passive_perception||10}</div></div>
       <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Prof</div><div style="font-size:15px;font-weight:700;color:var(--gold)">+${prof}</div></div>
     </div>
+    <div id="po-roll-result" style="display:none;background:var(--surface2);border:1px solid var(--border-bright);border-radius:5px;padding:5px 8px;margin-bottom:6px;font-size:12px;align-items:center"></div>
+    ${(()=>{const eq=(pc.inventory||[]).filter(i=>GEAR_TYPES.has(i.type));return eq.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">'+eq.map(i=>`<span style="font-size:10px;background:var(--surface3);border:1px solid var(--border-bright);border-radius:3px;padding:2px 7px;color:var(--text-bright)">⚔ ${esc(i.name||'?')}</span>`).join('')+'</div>':''})()}
     ${condHtml}${concBadge}${attackHtml}${resHtml}${slotHtml}${magicHtml}${spellbookHtml}
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn sm" style="flex:1" onclick="closePCOverview();state.activeEditTab=${idx};const d=document.getElementById('char-editor-details');if(d)d.open=true;openDrawer('tab-party')">✎ Edit Sheet</button>
@@ -5693,7 +5727,7 @@ Object.assign(window, {
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
   remSecret, remSlotLvl, remSnip, remSpell, remTown, remWItem,
-  renderAll, renderSheets, renderCards, rollAttack,
+  renderAll, renderSheets, renderCards, rollAttack, rollStatCheck, rollInitiative,
   saveRefresh, saveSetupPC, saveTts, saveBP,
   scrollStoryBottom, scrollStoryTop, selectFlagCat,
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
