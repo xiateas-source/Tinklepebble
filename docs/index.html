@@ -851,6 +851,20 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button class="btn sm green" style="margin-left:auto" onclick="addQA()">+ Add Action</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Customise the ⚡ floating button. Set label, type, and which tabs it appears on.</p>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <label class="field-label" style="margin:0;white-space:nowrap">FAB Icon</label>
+          <input type="text" id="qa-fab-icon-input" maxlength="4" style="width:52px;font-size:20px;text-align:center;padding:4px" placeholder="⚡" oninput="updQAFabIcon(this.value)">
+          <div style="display:flex;gap:5px;flex-wrap:wrap" id="qa-fab-presets">
+            <button class="btn sm" onclick="pickQAFabIcon('⚡')">⚡</button>
+            <button class="btn sm" onclick="pickQAFabIcon('🎲')">🎲</button>
+            <button class="btn sm" onclick="pickQAFabIcon('🗡️')">🗡️</button>
+            <button class="btn sm" onclick="pickQAFabIcon('🔮')">🔮</button>
+            <button class="btn sm" onclick="pickQAFabIcon('⚔️')">⚔️</button>
+            <button class="btn sm" onclick="pickQAFabIcon('🌿')">🌿</button>
+            <button class="btn sm" onclick="pickQAFabIcon('🐉')">🐉</button>
+            <button class="btn sm" onclick="pickQAFabIcon('✦')">✦</button>
+          </div>
+        </div>
         <div id="qa-editor-list"></div>
       </div>
     </div>
@@ -1104,18 +1118,18 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 </div>
 
 <!-- QUICK ACTIONS FAB -->
-<div id="qa-backdrop" onclick="closeQAMenu()" style="display:none;position:fixed;inset:0;z-index:200;-webkit-tap-highlight-color:transparent"></div>
-<div id="qa-fab-wrap" style="position:fixed;bottom:calc(155px + env(safe-area-inset-bottom,0px));right:16px;z-index:202;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none;user-select:none">
-  <div class="qa-menu" id="qa-menu">
-    <div class="qa-menu-title" id="qa-menu-title" style="display:flex;align-items:center;justify-content:space-between">
-      <span>Quick Actions</span>
-      <button class="btn sm" onclick="closeQAMenu()" style="padding:2px 7px">✕</button>
-    </div>
-    <div id="qa-menu-items"></div>
-    <div style="padding:6px 12px 10px;border-top:1px solid var(--border)">
-      <button onclick="closeQAMenu();navTo('ait')" style="font-size:10px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:4px 0;width:100%;text-align:left">✎ Customize actions…</button>
-    </div>
+<div id="qa-backdrop" onclick="closeQAMenu()" style="display:none;position:fixed;inset:0;z-index:201;-webkit-tap-highlight-color:transparent"></div>
+<div id="qa-menu" class="qa-menu" role="dialog" aria-modal="true" aria-label="Quick Actions">
+  <div class="qa-menu-hdr">
+    <span id="qa-menu-title" class="qa-menu-title">Quick Actions</span>
+    <button class="qa-menu-close" onclick="closeQAMenu()" aria-label="Close">✕</button>
   </div>
+  <div class="qa-menu-body" id="qa-menu-items"></div>
+  <div class="qa-menu-footer">
+    <button onclick="closeQAMenu();navTo('ait')">✎ Customize actions &amp; icon…</button>
+  </div>
+</div>
+<div id="qa-fab-wrap" style="position:fixed;bottom:calc(155px + env(safe-area-inset-bottom,0px));right:16px;z-index:203;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none;user-select:none">
   <button class="qa-fab" id="qa-fab" onclick="toggleQAMenu()" title="Quick Actions">⚡</button>
   <button class="qa-fab-flag" id="flag-fab" onclick="openFlagModal(-1,'')" title="Flag This Moment">⚑</button>
 </div>

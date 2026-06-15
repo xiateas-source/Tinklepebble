@@ -4494,14 +4494,25 @@ function toggleQAMenu(){
   const bd=document.getElementById('qa-backdrop');
   if(!menu)return;
   const isOpen=menu.classList.contains('open');
-  if(isOpen){menu.classList.remove('open');if(bd)bd.style.display='none';}
-  else{renderQAMenu();menu.classList.add('open');if(bd)bd.style.display='block';}
+  const fab=document.getElementById('qa-fab');
+  if(isOpen){
+    menu.classList.remove('open');
+    if(bd)bd.style.display='none';
+    if(fab){fab.textContent=state.qaFabIcon||'⚡';fab.classList.remove('is-open');}
+  }else{
+    renderQAMenu();
+    menu.classList.add('open');
+    if(bd)bd.style.display='block';
+    if(fab){fab.textContent='✕';fab.classList.add('is-open');}
+  }
 }
 function closeQAMenu(){
   const menu=document.getElementById('qa-menu');
   const bd=document.getElementById('qa-backdrop');
   if(menu)menu.classList.remove('open');
   if(bd)bd.style.display='none';
+  const fab=document.getElementById('qa-fab');
+  if(fab){fab.textContent=state.qaFabIcon||'⚡';fab.classList.remove('is-open');}
 }
 function renderQAMenu(){
   const menu=document.getElementById('qa-menu-items');const title=document.getElementById('qa-menu-title');
