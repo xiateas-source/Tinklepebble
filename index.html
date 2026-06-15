@@ -3358,6 +3358,7 @@ function renderCards(){
           ${['str','dex','con','int','wis','cha'].map(s=>`<div class="stat-mini"><span class="s-name">${s.toUpperCase()}</span><span class="s-val">${parseInt(pc[s])||10}</span><span class="s-mod">${statMod(s)}</span></div>`).join('')}
         </div>
         <div style="font-size:11px;color:var(--text-bright);margin-bottom:4px"><b>AC:</b>${pc.ac} <b>Init:</b>${(parseInt(pc.initiative)||0)>=0?'+':''}${parseInt(pc.initiative)||0} <b>Spd:</b>${pc.speed}ft <b>PP:</b>${pc.passive_perception} <b>Prof:</b>+${prof}</div>
+        ${(()=>{if(!(pc.attacks||[]).length)return '';const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);return'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">'+pc.attacks.map((a,ai)=>{const b=(a.proficient!==false?prof:0)+sm(a.stat||'str')+(parseInt(a.attackBonus)||0);const ds=a.damageStat==='none'?0:sm(a.damageStat||a.stat||'str');const db=ds+(parseInt(a.damageBonus)||0);return`<div onclick="rollAttack(${idx},${ai})" style="background:var(--surface3);border:1px solid var(--border-bright);border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation" title="Tap to roll"><b style="color:var(--text-bright)">${esc(a.name||'Atk')}</b> <span style="color:var(--gold-bright)">${b>=0?'+':''}${b}</span><span style="color:var(--text-dim)"> (${a.damageDie||'1d6'}${db===0?'':db>0?'+'+db:db})</span></div>`}).join('')+'</div>';})()}
         ${resourceHtml}${slotHtml}${condHtml}${concBadge}
         <div style="display:flex;gap:6px;margin-top:8px">
           <button class="btn sm" onclick="pcShortRest(${idx})" style="flex:1;font-size:11px">💤 Short Rest</button>
@@ -3429,7 +3430,7 @@ function renderSheets(){
       ${['str','dex','con','int','wis','cha'].map(s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);const ms=(m>=0?'+':'')+m;return`<div style="text-align:center"><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${n}" onchange="upd(${idx},'${s}',parseInt(this.value)||10)" style="text-align:center;font-size:15px;font-weight:600"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-top:3px;letter-spacing:.5px">${ms}</div></div>`;}).join('')}
     </div>
     <div style="display:flex;gap:0;margin:14px 0 10px;border-bottom:1px solid var(--border)">
-      ${['Skills','Features','Spells','Spellbook','Gear'].map((t,i)=>`<button onclick="setSheetTab(${i})" style="flex:1;padding:8px 4px;font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;border:none;border-bottom:2px solid ${i===_pcSheetTab?'var(--gold)':'transparent'};background:none;color:${i===_pcSheetTab?'var(--gold)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans);min-height:36px;transition:color .15s">${t}</button>`).join('')}
+      ${['Skills','Features','Attacks','Spells','Spellbook','Gear'].map((t,i)=>`<button onclick="setSheetTab(${i})" style="flex:1;padding:8px 2px;font-size:9px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;border:none;border-bottom:2px solid ${i===_pcSheetTab?'var(--gold)':'transparent'};background:none;color:${i===_pcSheetTab?'var(--gold)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans);min-height:36px;transition:color .15s">${t}</button>`).join('')}
     </div>
     ${_pcSheetTab===0?`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
@@ -3452,17 +3453,24 @@ function renderSheets(){
     </details>
     `:''}
     ${_pcSheetTab===2?`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:11px;color:var(--text-dim)">${(pc.attacks||[]).length} attack${(pc.attacks||[]).length===1?'':'s'}</span>
+      <button class="btn sm gold" onclick="addAttack(${idx})">+ Add Attack</button>
+    </div>
+    <div id="attack-ed-${idx}"></div>
+    `:''}
+    ${_pcSheetTab===3?`
     <div class="form-group"><label class="field-label">Spellcasting</label><textarea id="sheet-magic-${idx}" onchange="upd(${idx},'magic',this.value)" style="min-height:100px"></textarea></div>
     <div class="form-group"><label class="field-label">Spell Slots <button class="slot-add-btn" onclick="addSlotLvl(${idx})">+ Add Level</button></label><div id="slot-ed-${idx}"></div></div>
     `:''}
-    ${_pcSheetTab===3?`
+    ${_pcSheetTab===4?`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <span style="font-size:11px;color:var(--text-dim)">✨ ${pc.spellbook&&pc.spellbook.length?pc.spellbook.length+' spell'+(pc.spellbook.length===1?'':'s'):'No spells yet'}</span>
       <button class="btn sm gold" onclick="addSpell(${idx})">+ Add Spell</button>
     </div>
     <div id="spellbook-panel-${idx}"></div>
     `:''}
-    ${_pcSheetTab===4?`
+    ${_pcSheetTab===5?`
     <details class="bs" open>
       <summary>🎒 Inventory <button class="slot-add-btn" onclick="event.stopPropagation();addPcItem(${idx})">+ Add Item</button></summary>
       <div class="bs-body" id="inv-ed-${idx}"></div>
@@ -3493,6 +3501,7 @@ function renderSheets(){
     `;
   renderSlotEditor(idx);
   renderResourceEditor(idx);
+  renderAttackEditor(idx);
   renderPcInvEditor(idx);
   renderRelationships(idx);
   renderSpellbook(idx);
@@ -5364,6 +5373,70 @@ function adjHP(idx,isHeal){
   if(!isHeal&&pc.hp===0&&document.getElementById('auto-down')?.checked)triggerChk('PC Down: '+pc.name);
   saveRefresh();
 }
+// ═══ ATTACKS ═══
+function renderAttackEditor(idx){
+  const c=document.getElementById('attack-ed-'+idx);if(!c)return;
+  const pc=state.pcs[idx];if(!pc)return;
+  c.innerHTML='';
+  if(!(pc.attacks||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:12px 0;text-align:center">No attacks yet. Add weapons, spells used in combat, or special abilities.</div>';return;}
+  const prof=Math.floor(((pc.level||1)-1)/4)+2;
+  const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);
+  (pc.attacks||[]).forEach((atk,ai)=>{
+    const b=(atk.proficient!==false?prof:0)+sm(atk.stat||'str')+(parseInt(atk.attackBonus)||0);
+    const ds=atk.damageStat==='none'?0:sm(atk.damageStat||atk.stat||'str');
+    const db=ds+(parseInt(atk.damageBonus)||0);
+    const d=document.createElement('div');
+    d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:10px;margin-bottom:8px';
+    d.innerHTML=
+      `<div style="display:flex;gap:6px;align-items:center;margin-bottom:7px">
+        <input type="text" value="${esc(atk.name||'')}" placeholder="Attack name" style="flex:1;font-weight:600;font-size:13px" onchange="updAtk(${idx},${ai},'name',this.value)">
+        <span style="font-size:12px;color:var(--gold-bright);font-weight:700;white-space:nowrap">${b>=0?'+':''}${b} to hit</span>
+        <button class="btn sm gold" onclick="rollAttack(${idx},${ai})" style="padding:3px 10px;min-height:28px">🎲</button>
+        <button class="btn sm red icon-btn" onclick="remAtk(${idx},${ai})">&times;</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px;margin-bottom:5px">
+        <label class="field-label" style="margin:0">Stat</label>
+        <select style="font-size:11px;padding:3px" onchange="updAtk(${idx},${ai},'stat',this.value)">${['str','dex','con','int','wis','cha'].map(s=>`<option value="${s}" ${(atk.stat||'str')===s?'selected':''}>${s.toUpperCase()}</option>`).join('')}</select>
+        <label class="field-label" style="margin:0">+Bonus</label>
+        <input type="number" value="${parseInt(atk.attackBonus)||0}" style="width:46px" onchange="updAtk(${idx},${ai},'attackBonus',parseInt(this.value)||0)">
+        <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-size:11px"><input type="checkbox" ${atk.proficient!==false?'checked':''} onchange="updAtk(${idx},${ai},'proficient',this.checked)"> Prof</label>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px;margin-bottom:5px">
+        <label class="field-label" style="margin:0">Damage</label>
+        <input type="text" value="${esc(atk.damageDie||'1d6')}" placeholder="1d8" style="width:52px;font-size:11px" onchange="updAtk(${idx},${ai},'damageDie',this.value)">
+        <label class="field-label" style="margin:0">+</label>
+        <select style="font-size:11px;padding:3px" onchange="updAtk(${idx},${ai},'damageStat',this.value)">${['str','dex','con','int','wis','cha','none'].map(s=>`<option value="${s}" ${(atk.damageStat||atk.stat||'str')===s?'selected':''}>${s==='none'?'None':s.toUpperCase()}</option>`).join('')}</select>
+        <span style="color:var(--gold);font-weight:700">${(db>=0?'+':'')+db} total</span>
+      </div>
+      <input type="text" value="${esc(atk.notes||'')}" placeholder="Notes (e.g. Versatile 1d10, Reach, Thrown 20/60)" style="width:100%;font-size:11px" onchange="updAtk(${idx},${ai},'notes',this.value)">`;
+    c.appendChild(d);
+  });
+}
+function addAttack(idx){
+  if(!state.pcs[idx])return;
+  if(!state.pcs[idx].attacks)state.pcs[idx].attacks=[];
+  state.pcs[idx].attacks.push({name:'',stat:'str',proficient:true,attackBonus:0,damageDie:'1d6',damageStat:'str',damageBonus:0,notes:''});
+  save();renderSheets();
+}
+function updAtk(idx,ai,k,v){const atk=state.pcs[idx]?.attacks?.[ai];if(!atk)return;atk[k]=v;save();renderSheets();}
+function remAtk(idx,ai){state.pcs[idx]?.attacks?.splice(ai,1);save();renderSheets();}
+function rollAttack(idx,ai){
+  const pc=state.pcs[idx];if(!pc)return;
+  const atk=(pc.attacks||[])[ai];if(!atk)return;
+  const prof=Math.floor(((pc.level||1)-1)/4)+2;
+  const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);
+  const atkBonus=(atk.proficient!==false?prof:0)+sm(atk.stat||'str')+(parseInt(atk.attackBonus)||0);
+  const d20=Math.ceil(Math.random()*20);
+  const total=d20+atkBonus;
+  const isCrit=d20===20,isMiss=d20===1;
+  const [dc,df]=(atk.damageDie||'1d6').split('d').map(Number);
+  let dmg=0;for(let i=0;i<(dc||1);i++)dmg+=Math.ceil(Math.random()*(df||6));
+  const dmgBonus=(atk.damageStat==='none'?0:sm(atk.damageStat||atk.stat||'str'))+(parseInt(atk.damageBonus)||0);
+  const dmgTotal=dmg+dmgBonus;
+  const note=isCrit?' ⚡ CRITICAL!':isMiss?' 💀 MISS':total>=15?' ✓':'';
+  toast(`${esc(atk.name||'Attack')}: d20(${d20})${atkBonus>=0?'+':''}${atkBonus}=${total}${note} | Dmg: ${dmgTotal}`,3500);
+  const el=document.getElementById('dice-result');if(el){el.textContent=`${atk.name}: ${total} to hit | ${dmgTotal} dmg${note}`;el.style.color=isCrit?'var(--gold-bright)':isMiss?'var(--red)':'var(--text-bright)';}
+}
 function pcShortRest(idx){
   const pc=state.pcs[idx];if(!pc)return;
   let recharged=0;
@@ -6717,7 +6790,7 @@ function addSpell(idx){
   if(!state.pcs[idx])return;
   if(!Array.isArray(state.pcs[idx].spellbook))state.pcs[idx].spellbook=[];
   state.pcs[idx].spellbook.push({name:'',level:1,school:'',castTime:'1 action',range:'',duration:'',components:'V, S',desc:''});
-  save();_pcSheetTab=3;renderSheets();
+  save();_pcSheetTab=5;renderSheets();
 }
 function updSpell(idx,si,k,v){const sp=state.pcs[idx]?.spellbook?.[si];if(!sp)return;sp[k]=v;save();}
 function remSpell(idx,si){state.pcs[idx].spellbook.splice(si,1);save();renderSheets();}
@@ -6727,7 +6800,7 @@ function addFamiliar(idx){
   const pc=state.pcs[idx];if(!pc)return;
   pc.familiar={name:'',type:'',hp:1,hp_max:1,ac:10,speed:'20 ft.',
     str:3,dex:15,con:10,int:2,wis:12,cha:7,passive_perception:11,notes:''};
-  save();_pcSheetTab=4;renderSheets();
+  save();_pcSheetTab=5;renderSheets();
 }
 function renderFamiliarPanel(idx){
   const c=document.getElementById('familiar-panel-'+idx);if(!c)return;
@@ -7749,10 +7822,10 @@ function sessionRecap(){
 }
 
 // ═══ TOAST ═══
-function toast(msg){
+function toast(msg,dur){
   const t=document.getElementById('toast');if(!t)return;
   t.innerText=msg;t.style.display='block';
-  setTimeout(()=>{t.style.display='none';},2500);
+  setTimeout(()=>{t.style.display='none';},dur||2500);
 }
 
 // ═══ PLUGINS ═══
