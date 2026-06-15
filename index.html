@@ -2287,8 +2287,8 @@ details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-web
   <div class="grid-2">
     <div class="col">
       <div class="panel accent">
-        <div class="panel-title">AI System Prompt Contracts</div>
-        <div class="form-group"><label class="field-label">Contract 1 — DM Persona &amp; Tone</label><textarea id="ai-persona" style="min-height:70px">You are the Dungeon Master for Tinkle's Tinctures, a D&D 5e campaign. Narrate immersively, enforce strict RAW mechanics, and treat every player action seriously. Maintain consistent narrator voice — do not drift more casual or formal over time.
+        <div class="panel-title">AI System Prompt Contracts <span style="font-size:9px;font-weight:400;color:var(--text-dim);text-transform:none;letter-spacing:0">Tap to expand · changes auto-save</span></div>
+        <details class="bs" open style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--gold)">①</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">DM Persona &amp; Tone</span><span style="font-size:9px;color:var(--text-dim)">Character voices, tone, Slasher con-protection</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-persona" style="min-height:70px">You are the Dungeon Master for Tinkle's Tinctures, a D&D 5e campaign. Narrate immersively, enforce strict RAW mechanics, and treat every player action seriously. Maintain consistent narrator voice — do not drift more casual or formal over time.
 
 Tone: Gritty traveling-con-artist fantasy. Grounded, low-magic, darkly comic. The operation is morally grey and everyone knows it. Dry wit welcome. Melodrama earned, not given.
 
@@ -2296,8 +2296,8 @@ THE PARTY: Tinkle (Tortle Rogue) is the Mastermind — brews the product, runs t
 
 CRITICAL — MULTI-PLAYER ADDRESSING: Never use "you" as a catch-all for the party. Always address each character by name. Tinkle, Pebble, and Slasher are three distinct people in the same scene. Narrate what each character experiences separately. "Tinkle notices the merchant's hesitation while Pebble launches into his pitch and Slasher stands nearby looking earnest and confused" — not "you notice the merchant's hesitation." This is non-negotiable.
 
-You may apply any standard D&D 5e RAW rule confidently. Only pause when genuinely ambiguous — say so and ask players to confirm before continuing.</textarea></div>
-        <div class="form-group"><label class="field-label">Contract 2 — What You Never Do</label><textarea id="ai-never" style="min-height:80px">- Never invent stats, items, or rules not in the state ledger or standard 5e RAW
+You may apply any standard D&D 5e RAW rule confidently. Only pause when genuinely ambiguous — say so and ask players to confirm before continuing.</textarea></div></div></details>
+        <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--red)">②</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">What You Never Do</span><span style="font-size:9px;color:var(--text-dim)">Rules, death saves, concentration, action economy</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-never" style="min-height:80px">- Never invent stats, items, or rules not in the state ledger or standard 5e RAW
 - Never invent HP values. If damage not stated, roll appropriate dice, announce the roll, apply result
 - Never reveal Secret DM Notes or AI-only relationship entries to players
 - Before a player rolls: state check type and DC, wait. After a roll is submitted: resolve immediately, do not re-ask
@@ -2317,8 +2317,8 @@ You may apply any standard D&D 5e RAW rule confidently. Only pause when genuinel
 - LUCKY FEAT (Pebble): 3 luck points per long rest. Spend to gain advantage on own d20 OR impose disadvantage on attack vs Pebble. These are different features — never confuse them
 - Tinkle and Pebble prefer non-violence. Always narrate non-violent options before combat escalates. Slasher will try to help but follow the party's lead
 - NEVER resolve a physically challenging action as success without first requesting a roll. Success is not assumed. Degrees of failure matter — failing by 5 or more should have worse consequences than a narrow miss
-- When multiple PCs act in the same moment, resolve each separately with appropriate checks</textarea></div>
-        <div class="form-group"><label class="field-label">Contract 3 — How You Handle Actions</label><textarea id="ai-actions" style="min-height:70px">WHEN TO CALL FOR A ROLL (DMG p.237 / PHB p.174):
+- When multiple PCs act in the same moment, resolve each separately with appropriate checks</textarea></div></div></details>
+        <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--gold)">③</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">How You Handle Actions</span><span style="font-size:9px;color:var(--text-dim)">When to roll, procedure, encumbrance</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-actions" style="min-height:70px">WHEN TO CALL FOR A ROLL (DMG p.237 / PHB p.174):
 Call for a D20 test ONLY when ALL THREE are true:
 1. The outcome is uncertain (not trivially easy or impossible)
 2. There are meaningful consequences for failure
@@ -2336,8 +2336,8 @@ PROCEDURE for every action:
 7. State all mechanical consequences: HP changes, conditions, slots used, resources spent, action/bonus action/reaction used
 8. State who goes next and what each character perceives
 
-ENCUMBRANCE (PHB p.176 variant): STR carry capacity = STR score × 15 lbs. Slasher (STR 17): 255 lb limit. Encumbered threshold = STR × 5 lbs (Slasher: 85 lbs of personal carry) → speed reduced 10 ft. Heavily Encumbered = STR × 10 lbs (Slasher: 170 lbs) → speed reduced 20 ft + disadvantage on all STR/DEX/CON checks, saves, and attacks. Wagon cargo capacity: 1080 lbs total. When wagon is over capacity, travel speed is halved. Call out encumbrance when PCs pick up heavy loot, prisoners, or bulk supplies. Never assume a PC can carry unlimited personal gear.</textarea></div>
-        <div class="form-group"><label class="field-label">Contract 4 — Continuity &amp; Wagon Awareness</label><textarea id="ai-continuity" style="min-height:70px">At the start of every response, internally verify: who is at 0 HP, active conditions, concentration spells, current location, last player action. Never contradict these.
+ENCUMBRANCE (PHB p.176 variant): STR carry capacity = STR score × 15 lbs. Slasher (STR 17): 255 lb limit. Encumbered threshold = STR × 5 lbs (Slasher: 85 lbs of personal carry) → speed reduced 10 ft. Heavily Encumbered = STR × 10 lbs (Slasher: 170 lbs) → speed reduced 20 ft + disadvantage on all STR/DEX/CON checks, saves, and attacks. Wagon cargo capacity: 1080 lbs total. When wagon is over capacity, travel speed is halved. Call out encumbrance when PCs pick up heavy loot, prisoners, or bulk supplies. Never assume a PC can carry unlimited personal gear.</textarea></div></div></details>
+        <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--green)">④</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">Continuity &amp; Wagon Awareness</span><span style="font-size:9px;color:var(--text-dim)">Quests, NPCs, income, con mechanics, story</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-continuity" style="min-height:70px">At the start of every response, internally verify: who is at 0 HP, active conditions, concentration spells, current location, last player action. Never contradict these.
 
 The wagon is the party's livelihood and home. Always consider its location, cargo, Grit's condition, and holding cell contents when narrating travel or combat. Grit is bonded to Tinkle — skittish around loud magic, stubborn on roads he has decided are bad ideas.
 
@@ -2374,8 +2374,8 @@ Sales are NOT automatic successes. Tinkle's Deception check vs NPC's Passive Ins
 STORY CHRONICLE: The app maintains a structured chapter-based story chronicle. You may add a chapter at major narrative milestones (end of a pivotal scene, significant revelation, arc turning point). Format:
 - chapter_add: Chapter N: Title | [3-6 sentence narrative prose, past tense, third person]
 - chapter_update: partial title | [revised content]
-Reserve for story-significant moments only. The DM controls this with ✨ Chapter — only add chapters autonomously when a clearly major arc milestone is reached.</textarea></div>
-        <div class="form-group"><label class="field-label">Contract 5 — Multi-Player Awareness</label><textarea id="ai-multi" style="min-height:50px">CRITICAL — MULTI-PLAYER ADDRESSING:
+Reserve for story-significant moments only. The DM controls this with ✨ Chapter — only add chapters autonomously when a clearly major arc milestone is reached.</textarea></div></div></details>
+        <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--purple-bright)">⑤</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">Multi-Player Awareness</span><span style="font-size:9px;color:var(--text-dim)">Never "you" for the party · name every character</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-multi" style="min-height:50px">CRITICAL — MULTI-PLAYER ADDRESSING:
 NEVER use "you" as a catch-all for the party. This is a multi-player game.
 Always address each character by name: Tinkle, Pebble, Slasher.
 Narrate what each character individually sees, hears, does, and feels.
@@ -2386,7 +2386,7 @@ Multiple players may send messages tagged with their name and character. Treat e
 
 In combat, treat each player message as that character's turn action in initiative order. If a player acts out of turn, resolve it but note the correct initiative position. Do not wait for all players to submit before narrating — resolve each action as it arrives and advance the tracker.
 
-When the party travels through wilderness, arrives at a new outdoor location, or takes a rest outdoors: note 1-3 harvestable ingredients appropriate to the biome. Do not mention ingredients in every message — only on arrival and rest.</textarea></div>
+When the party travels through wilderness, arrives at a new outdoor location, or takes a rest outdoors: note 1-3 harvestable ingredients appropriate to the biome. Do not mention ingredients in every message — only on arrival and rest.</textarea></div></div></details>
       </div>
       <div class="panel">
         <div class="panel-title">Ledger Settings</div>
@@ -2720,6 +2720,8 @@ const XP_T=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,12000
 const CP_INT={exploration:6,combat:3,roleplay:8,custom:6};
 const MAX_LB=1080;
 const ITYPES=['supply','foraged','ingredient','trade','loot','hoard','misc','key'];
+const PC_ITEM_TYPES=['weapon','armor','shield','tool','potion','scroll','consumable','loot','misc','key'];
+const GEAR_TYPES=new Set(['weapon','armor','shield','tool']);
 
 // ── Level-Up Data (Fighter/Rogue/Bard L2–L5) ──
 const LEVEL_UP_DATA={
@@ -3676,12 +3678,23 @@ function renderPcInvEditor(idx){
   const pc=state.pcs[idx];if(!pc)return;
   const inv=pc.inventory||[];
   if(!inv.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No items. Tap + Add Item.</div>';return;}
-  inv.forEach((item,ii)=>{
+  const mkItem=(item,ii)=>{
     const d=document.createElement('div');
     d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:8px 10px;margin-bottom:6px';
-    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updPcItem(${idx},${ii},'name',this.value)"><button class="btn sm red icon-btn" onclick="remPcItemSheet(${idx},${ii})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updPcItem(${idx},${ii},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updPcItem(${idx},${ii},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updPcItem(${idx},${ii},'weight',parseFloat(this.value)||0)"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updPcItem(${idx},${ii},'notes',this.value)"></div>`;
-    c.appendChild(d);
-  });
+    const typeOpts=PC_ITEM_TYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('');
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updPcItem(${idx},${ii},'name',this.value)"><button class="btn sm red icon-btn" onclick="remPcItemSheet(${idx},${ii})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updPcItem(${idx},${ii},'type',this.value)">${typeOpts}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updPcItem(${idx},${ii},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updPcItem(${idx},${ii},'weight',parseFloat(this.value)||0)"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updPcItem(${idx},${ii},'notes',this.value)"></div>`;
+    return d;
+  };
+  const gear=inv.filter(i=>GEAR_TYPES.has(i.type));
+  const carried=inv.filter(i=>!GEAR_TYPES.has(i.type));
+  if(gear.length){
+    const h=document.createElement('div');h.style.cssText='font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;margin-top:2px';h.textContent='⚔ Equipped';
+    c.appendChild(h);gear.forEach((item,gi)=>{const ii=inv.indexOf(item);c.appendChild(mkItem(item,ii));});
+  }
+  if(carried.length){
+    const h=document.createElement('div');h.style.cssText='font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;'+(gear.length?'margin-top:10px':'');h.textContent='🎒 Carried';
+    c.appendChild(h);carried.forEach((item,ci)=>{const ii=inv.indexOf(item);c.appendChild(mkItem(item,ii));});
+  }
 }
 function addSlotLvl(idx){if(!state.pcs[idx].slots)state.pcs[idx].slots=[];state.pcs[idx].slots.push({max:2,used:0});save();renderSheets();}
 function remSlotLvl(idx,si){state.pcs[idx].slots.splice(si,1);save();renderSheets();}
@@ -6357,17 +6370,18 @@ function quickRoll(sides,modId,resultId){
   const disp=document.getElementById(resultId);
   if(disp){
     const col=roll===sides?'var(--gold-bright)':(roll===1?'var(--red)':'var(--text-bright)');
+    const label=(nat?'✦ ':'')+'d'+sides+': '+roll+modStr+(nat?' ✦':'');
+    const sendTxt='[d'+sides+' roll: '+roll+modStr+(nat?' ('+nat+')':'')+']';
     const settle=()=>{
-      disp.style.color=col;
-      disp.textContent=(nat?'✦ ':'')+'d'+sides+': '+roll+modStr+(nat?' ✦':'');
-      if(!reduce){disp.style.transition='none';disp.style.transform='scale(1.18)';requestAnimationFrame(()=>{disp.style.transition='transform .18s ease';disp.style.transform='scale(1)';});}
+      disp.innerHTML='<span style="color:'+col+';font-weight:700">'+label+'</span>'
+        +'<button onclick="sendRollToChat(\''+sendTxt.replace(/'/g,"\\'")+'\')" style="margin-left:8px;font-size:10px;padding:2px 8px;background:var(--surface3);border:1px solid var(--gold-dim);color:var(--gold);border-radius:3px;cursor:pointer;-webkit-tap-highlight-color:transparent">📨 Send</button>';
+      if(!reduce){disp.style.transition='none';disp.style.transform='scale(1.12)';requestAnimationFrame(()=>{disp.style.transition='transform .18s ease';disp.style.transform='scale(1)';});}
     };
     if(reduce){settle();}
     else{
       let ticks=0;
       const iv=setInterval(()=>{
-        disp.style.color='var(--text-dim)';
-        disp.textContent='d'+sides+': '+(Math.floor(Math.random()*sides)+1);
+        disp.innerHTML='<span style="color:var(--text-dim)">d'+sides+': '+(Math.floor(Math.random()*sides)+1)+'</span>';
         if(++ticks>=4){clearInterval(iv);settle();}
       },55);
     }
@@ -6386,6 +6400,13 @@ function toggleDockDice(){
   const open=p.style.display!=='none';
   p.style.display=open?'none':'flex';
   if(b)b.style.background=open?'':'var(--gold-dim)';
+}
+function sendRollToChat(txt){
+  const qi=document.getElementById('chat-quick-input');
+  const ci=document.getElementById('chat-input');
+  if(ci&&document.getElementById('tab-dm')?.classList.contains('active')){ci.value=txt;sendMsg();}
+  else if(qi){qi.value=txt;sendMsgQuick();}
+  else if(ci){ci.value=txt;sendMsg();}
 }
 function openTreasury(){
   const m=document.getElementById('treasury-modal');
@@ -8381,6 +8402,24 @@ function renderPCOverview(){
     slotHtml+='</div></div>';
   }
 
+  // Magic overview from pc.magic text (Item 17)
+  let magicHtml='';
+  if(pc.magic&&pc.magic!=='None'&&pc.magic.trim()){
+    magicHtml=`<details style="margin:8px 0"><summary style="list-style:none;cursor:pointer;font-size:9px;font-weight:700;color:var(--purple-bright);text-transform:uppercase;letter-spacing:.7px;display:flex;align-items:center;gap:4px"><span>✨ Spells &amp; Magic</span></summary><div style="font-size:10px;color:var(--text-dim);margin-top:5px;white-space:pre-line;line-height:1.7;padding:4px 0">${esc(pc.magic)}</div></details>`;
+  }
+  // Spellbook entries with tap-to-expand descriptions (Item 13)
+  let spellbookHtml='';
+  const book=pc.spellbook||[];
+  if(book.length){
+    const LVLS=['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
+    spellbookHtml='<div style="margin:6px 0"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Spellbook ('+book.length+')</div>';
+    book.forEach(sp=>{
+      const lvl=sp.level===0?'Cantrip':(LVLS[sp.level]||sp.level+'th');
+      spellbookHtml+=`<details style="margin-bottom:3px"><summary style="list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;font-weight:600;color:var(--text-bright)">${esc(sp.name||'?')}</span><span style="font-size:9px;color:var(--purple-bright);background:rgba(138,94,106,.18);padding:1px 6px;border-radius:3px">${esc(lvl)}</span></summary><div style="font-size:10px;color:var(--text-dim);padding:5px 0 4px;line-height:1.5">${sp.castTime?'<span style="color:var(--text)">'+esc(sp.castTime)+'</span>':''}${sp.range?' · '+esc(sp.range):''}${sp.duration?' · '+esc(sp.duration):''}${sp.components?'<br>'+esc(sp.components):''}${sp.desc?'<br><span style="color:var(--text);margin-top:3px;display:block">'+esc(sp.desc)+'</span>':''}</div></details>`;
+    });
+    spellbookHtml+='</div>';
+  }
+
   document.getElementById('pc-overview-body').innerHTML=`
     <div style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
       <div onclick="setStepTarget('pc',${idx})" class="hp-tap" style="font-size:22px;font-weight:700;color:${hpCol};font-family:var(--mono)">${pc.hp}<span style="font-size:14px;color:var(--text-dim)"> / ${pc.hp_max} HP</span></div>
@@ -8397,7 +8436,7 @@ function renderPCOverview(){
       <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">PP</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.passive_perception||10}</div></div>
       <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Prof</div><div style="font-size:15px;font-weight:700;color:var(--gold)">+${prof}</div></div>
     </div>
-    ${condHtml}${concBadge}${attackHtml}${resHtml}${slotHtml}
+    ${condHtml}${concBadge}${attackHtml}${resHtml}${slotHtml}${magicHtml}${spellbookHtml}
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn sm" style="flex:1" onclick="closePCOverview();state.activeEditTab=${idx};const d=document.getElementById('char-editor-details');if(d)d.open=true;openDrawer('tab-party')">✎ Edit Sheet</button>
     </div>
