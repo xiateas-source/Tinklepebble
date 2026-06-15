@@ -1,4 +1,4 @@
-import './style.css';
+// CSS loaded via <link rel="stylesheet"> in index.html — no import needed
 
 // ═══ CONSTANTS ═══
 const ALL_CONDS=['Blinded','Charmed','Deafened','Exhausted','Frightened','Grappled','Incapacitated','Invisible','Paralyzed','Petrified','Poisoned','Prone','Restrained','Stunned','Unconscious'];
@@ -177,6 +177,13 @@ function updFbStatus(connected){
 }
 
 function fbLoadConfig(){
+  if(typeof firebase==='undefined'){
+    toast('⚠ Firebase unavailable — offline mode only');
+    var banner=document.getElementById('fb-offline-banner');
+    if(banner)banner.style.display='block';
+    updFbStatus(false);
+    return;
+  }
   // Try saved config first
   var saved=localStorage.getItem('tt_fb_config');
   if(saved){try{var cfg=JSON.parse(saved);if(cfg&&cfg.databaseURL){fbInit(cfg);return;}}catch(e){}}
@@ -718,77 +725,6 @@ function delChar(idx){
 // ═══ PARTY CARDS ═══
 function renderCards(){
   renderPartyPCList();
-  const c=document.getElementById('party-cards');if(!c)return;c.innerHTML='';
-  state.pcs.forEach((pc,idx)=>{
-    try{
-    const pct=Math.max(0,Math.min(100,(pc.hp/(pc.hp_max||1))*100));
-    const hpCol=pc.hp<=0?'var(--red)':pct<25?'#c04a3a':pct<50?'var(--gold)':'var(--green)';
-    const lvl=pc.level||1;const nxp=XP_T[Math.min(lvl,19)];const xpPct=nxp>0?Math.min(100,((pc.xp||0)/nxp)*100):0;
-    let badge='<span class="status-badge ok">OK</span>';
-    if(pc.hp<=0)badge='<span class="status-badge dead">DOWN</span>';
-    else if(pct<50||(pc.conditions||[]).length>0)badge='<span class="status-badge warn">HURT</span>';
-    else if(pc.levelReady)badge='<span class="status-badge" style="background:var(--gold);color:var(--bg);font-weight:700;cursor:pointer" onclick="openLevelUpWizard('+idx+')" title="Ready to level up!">⬆ LVL</span>';
-    // Resource pips
-    let resourceHtml='';
-    if((pc.resources||[]).length){
-      resourceHtml='<div style="margin:5px 0;display:flex;flex-wrap:wrap;gap:6px;">';
-      pc.resources.forEach((res,ri)=>{
-        const remaining=res.max-res.used;
-        let pips='';
-        for(let i=0;i<res.max;i++) pips+=`<span style="width:14px;height:14px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid var(--purple);background:${i<res.used?'var(--surface3)':'var(--purple)'};" onclick="useResource(${idx},${ri},${i})" title="${res.name}"></span>`;
-        resourceHtml+=`<div><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">${esc(res.name)} ${remaining}/${res.max}</div><div style="display:flex;gap:3px">${pips}</div></div>`;
-      });
-      resourceHtml+='</div>';
-    }
-    let slotHtml='';
-    if((pc.slots||[]).length){slotHtml='<div class="spell-slots">';(pc.slots||[]).forEach((s,si)=>{if(!s||typeof s.max!=='number')return;slotHtml+=`<div class="slot-level"><div class="sl-label">${SPELL_LVLS[si]}</div><div class="slot-pips">`;for(let i=0;i<s.max;i++)slotHtml+=`<span class="slot-pip ${i<(s.used||0)?'used':''}" onclick="toggleSlot(${idx},${si},${i})"></span>`;slotHtml+='</div></div>';});slotHtml+='</div>';}
-    const pcConds=pc.conditions||[];
-    const concSpell=pc.concentrating||'';
-    const concBadge=concSpell?`<div style="margin-top:4px;font-size:10px;color:var(--purple-bright);display:flex;align-items:center;gap:4px"><span>⬤ Concentrating:</span><span style="color:var(--text)">${esc(concSpell)}</span><button onclick="upd(${idx},'concentrating','')" style="font-size:9px;padding:1px 4px;background:none;border:1px solid var(--purple);color:var(--purple-bright);cursor:pointer;border-radius:2px;margin-left:4px">end</button></div>`:'';
-    // Only show active conditions; compact add-picker replaces the full chip grid
-    let condHtml='<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:4px 0">';
-    pcConds.forEach(c2=>{condHtml+=`<span class="cond-chip active" onclick="toggleCond(${idx},'${c2}')" title="Tap to remove">${c2} ✕</span>`;});
-    condHtml+=`<select class="mini-select" onchange="addCondFromPicker(${idx},this)"><option value="">＋ condition…</option>${ALL_CONDS.map(c2=>`<option value="${c2}">${c2}</option>`).join('')}</select>`;
-    condHtml+='</div>';
-    const prof=Math.floor(((lvl)-1)/4)+2;
-    const statMod=s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);return(m>=0?'+':'')+m;};
-    const card=document.createElement('div');
-    card.className='pc-card';card.style.borderColor=pc.color||'var(--border)';
-    card.innerHTML=`
-      <div class="pc-card-header" style="background:linear-gradient(135deg,var(--surface2),var(--surface3))">
-        <div><div class="pc-name" style="color:${pc.color||'var(--gold-bright)'}">${esc(pc.name)}</div><div class="pc-class">Lv ${lvl} ${esc(pc.race)} ${esc(pc.class)}${pc.subclass?'<div style="font-size:10px;color:var(--gold-dim);margin-top:1px">'+esc(pc.subclass)+'</div>':''}</div></div>
-        <div style="text-align:right">${badge}<div style="font-size:10px;color:var(--text-dim)">XP ${pc.xp||0}/${nxp}</div><div class="xp-bar-wrap" style="width:60px"><div class="xp-bar-fill" style="width:${xpPct}%"></div></div></div>
-      </div>
-      <div class="pc-card-body">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-          <div class="hp-display hp-tap" onclick="setStepTarget('pc',${idx})" title="Tap to target with step bar">${pc.hp} <span class="hp-max">/ ${pc.hp_max} HP</span></div>
-          <div style="display:flex;gap:4px"><input type="number" id="hpamt-${idx}" style="width:48px;text-align:center;padding:3px;font-size:11px" placeholder="Amt"><button class="btn sm green" onclick="adjHP(${idx},true)" style="padding:3px 7px;min-height:26px;font-size:11px">+</button><button class="btn sm red" onclick="adjHP(${idx},false)" style="padding:3px 7px;min-height:26px;font-size:11px">−</button></div>
-        </div>
-        <div class="hp-bar-wrap"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
-        ${pc.levelReady?'<div onclick="openLevelUpWizard('+idx+')" style="font-size:11px;font-weight:700;color:var(--bg);background:var(--gold);border-radius:var(--radius-sm);padding:5px 10px;margin-bottom:6px;cursor:pointer;text-align:center">⬆ Ready for Level '+(lvl+1)+'! Tap to level up (after Long Rest)</div>':''}
-        <div class="stat-mini-row">
-          ${['str','dex','con','int','wis','cha'].map(s=>`<div class="stat-mini"><span class="s-name">${s.toUpperCase()}</span><span class="s-val">${parseInt(pc[s])||10}</span><span class="s-mod">${statMod(s)}</span></div>`).join('')}
-        </div>
-        <div style="font-size:11px;color:var(--text-bright);margin-bottom:4px"><b>AC:</b>${pc.ac} <b>Init:</b>${(parseInt(pc.initiative)||0)>=0?'+':''}${parseInt(pc.initiative)||0} <b>Spd:</b>${pc.speed}ft <b>PP:</b>${pc.passive_perception} <b>Prof:</b>+${prof}</div>
-        ${(()=>{if(!(pc.attacks||[]).length)return '';const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);return'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">'+pc.attacks.map((a,ai)=>{const b=(a.proficient!==false?prof:0)+sm(a.stat||'str')+(parseInt(a.attackBonus)||0);const ds=a.damageStat==='none'?0:sm(a.damageStat||a.stat||'str');const db=ds+(parseInt(a.damageBonus)||0);return`<div onclick="rollAttack(${idx},${ai})" style="background:var(--surface3);border:1px solid var(--border-bright);border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation" title="Tap to roll"><b style="color:var(--text-bright)">${esc(a.name||'Atk')}</b> <span style="color:var(--gold-bright)">${b>=0?'+':''}${b}</span><span style="color:var(--text-dim)"> (${a.damageDie||'1d6'}${db===0?'':db>0?'+'+db:db})</span></div>`}).join('')+'</div>';})()}
-        ${resourceHtml}${slotHtml}${condHtml}${concBadge}
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <button class="btn sm" onclick="pcShortRest(${idx})" style="flex:1;font-size:11px">💤 Short Rest</button>
-          <button class="btn sm gold" onclick="pcLongRest(${idx})" style="flex:1;font-size:11px">🌙 Long Rest</button>
-        </div>
-        <details style="margin-top:6px"><summary style="font-size:10px;color:var(--text-dim);cursor:pointer;list-style:none;padding:4px 0;min-height:28px;display:flex;align-items:center">▶ Inventory (${(pc.inventory||[]).length})</summary>
-          <div id="pc-inv-${idx}" style="margin-top:6px"></div>
-          <button class="btn sm green" style="margin-top:4px" onclick="addPcItem(${idx})">+ Add Item</button>
-        </details>
-      </div>`;
-    c.appendChild(card);renderPcInv(idx);
-    }catch(e){console.error('renderCards error for PC',idx,e);
-      const errCard=document.createElement('div');errCard.className='pc-card';
-      errCard.style.borderColor='var(--red)';
-      errCard.innerHTML=`<div class="pc-card-header"><div class="pc-name" style="color:var(--red)">⚠ Load Error</div></div><div class="pc-card-body" style="font-size:11px;color:var(--text-dim)">Could not render character ${idx+1}. Try refreshing or re-importing your save.</div>`;
-      c.appendChild(errCard);
-    }
-  });
 }
 function renderPcInv(idx){
   const c=document.getElementById('pc-inv-'+idx);if(!c)return;

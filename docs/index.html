@@ -14,6 +14,11 @@
 </head>
 <body>
 
+<!-- FIREBASE OFFLINE BANNER -->
+<div id="fb-offline-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:2000;background:var(--red);color:#fff;font-size:12px;text-align:center;padding:6px 8px;font-weight:600">
+  ⚠ Sync unavailable — offline mode only. Real-time sync requires Firebase.
+</div>
+
 <!-- SETUP MODAL -->
 <div class="modal-overlay" id="setup-modal">
   <div class="modal-box" style="max-width:460px">
@@ -138,7 +143,7 @@
     <button id="hdr-menu-btn" onclick="toggleHeaderMenu()" class="btn sm" style="padding:5px 8px;min-height:32px">☰</button>
   </div>
 </header>
-<div id="header-menu" style="display:none;position:fixed;top:58px;right:0;left:0;background:var(--surface);border-bottom:1px solid var(--border-bright);z-index:99;padding:14px 16px 12px;box-shadow:0 8px 32px rgba(0,0,0,.7);" onclick="if(event.target===this)closeHeaderMenu()">
+<div id="header-menu" style="display:none;position:fixed;top:58px;right:0;left:0;background:var(--surface);border-bottom:1px solid var(--border-bright);z-index:1000;padding:14px 16px 12px;box-shadow:0 8px 32px rgba(0,0,0,.7);" onclick="if(event.target===this)closeHeaderMenu()">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
     <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
     <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
