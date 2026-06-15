@@ -488,6 +488,8 @@ let state={
 let playerName='',playerChar='',provider='openrouter';
 let sessionLogIdx=0;
 let _lastPartyChatLen=0,_unreadParty=0;
+const _expandedMsgs=new Set(); // message indices the user has expanded
+let _spellFilter='all'; // spellbook level filter
 let sessionStart=Date.now(),sessionStartGP=0;
 // Message content lookup — avoids JSON.stringify in onclick attributes
 const msgMap={};
@@ -3466,7 +3468,8 @@ function renderChat(){
       const pills=msg.mechanics.map(m=>`<span class="mech-pill${m.error?' err':''}">${esc(m.text)}</span>`).join('');
       mechBadge=`<div class="mech-badge"><div class="mech-badge-hdr" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='flex'?'none':'flex'"><span class="mech-badge-lbl">⚡ Changes</span><span style="font-size:10px;color:var(--green-bright);margin-left:4px">${msg.mechanics.length} — tap to expand</span></div><div class="mech-pills" style="display:none">${pills}</div></div>`;
     }
-    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${ttsBtn}${copyBtn}${flagBtn}${delBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong?' msg-collapsed':''}">${text}</div>${isLong?'<span class="read-more" onclick="this.previousElementSibling.classList.remove(\'msg-collapsed\');this.remove()">Read more ▼</span>':''}${mechBadge}`;
+    const isExpanded=_expandedMsgs.has(msgIdx);
+    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${ttsBtn}${copyBtn}${flagBtn}${delBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${isLong&&!isExpanded?`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});this.previousElementSibling.classList.remove('msg-collapsed');this.remove()">Read more ▼</span>`:''}${mechBadge}`;
     c.appendChild(d);
   });
   // Auto-scroll if user is near bottom — don't interrupt reading
@@ -4226,6 +4229,7 @@ function updRel(i,k,v){if(state.relationships[i])state.relationships[i][k]=v;sav
 function remRel(i){state.relationships.splice(i,1);save();renderSheets();}
 
 // ─── SPELLBOOK ───
+function setSpellFilter(f){_spellFilter=f;const idx=state.activeEditTab||0;renderSpellbook(idx);}
 function renderSpellbook(idx){
   const c=document.getElementById('spellbook-panel-'+idx);if(!c)return;
   const pc=state.pcs[idx];if(!pc)return;
@@ -4233,7 +4237,17 @@ function renderSpellbook(idx){
   const book=pc.spellbook||[];
   if(!book.length){c.innerHTML='<div style="color:var(--text-dim);font-size:12px;padding:14px 0;text-align:center">No spells added yet. Tap + Add Spell above.</div>';return;}
   const LVLS=['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
-  book.forEach((sp,si)=>{
+  // Level filter bar
+  const usedLevels=[...new Set(book.map(sp=>sp.level||0))].sort((a,b)=>a-b);
+  const filterBar=document.createElement('div');filterBar.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px';
+  const mkFBtn=(f,label)=>{const b=document.createElement('button');const active=_spellFilter===f;b.textContent=label;b.style.cssText=`font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid ${active?'var(--purple)':'var(--border)'};background:${active?'rgba(138,94,106,.25)':'none'};color:${active?'var(--purple-bright)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans)`;b.onclick=()=>setSpellFilter(f);return b;};
+  filterBar.appendChild(mkFBtn('all','All ('+book.length+')'));
+  usedLevels.forEach(lv=>filterBar.appendChild(mkFBtn(String(lv),LVLS[lv]||(lv+'th'))));
+  c.appendChild(filterBar);
+  const visible=_spellFilter==='all'?book:book.filter(sp=>String(sp.level||0)===_spellFilter);
+  if(!visible.length){const e=document.createElement('div');e.style.cssText='color:var(--text-dim);font-size:12px;padding:10px 0;text-align:center';e.textContent='No spells at this level.';c.appendChild(e);return;}
+  visible.forEach((sp)=>{
+    const si=book.indexOf(sp);
     const d=document.createElement('details');d.className='bs';d.style.marginBottom='7px';
     const lvlStr=sp.level===0?'Cantrip':(LVLS[sp.level]||sp.level+'th')+' Level';
     d.innerHTML=`
@@ -4268,7 +4282,7 @@ function addSpell(idx){
   if(!state.pcs[idx])return;
   if(!Array.isArray(state.pcs[idx].spellbook))state.pcs[idx].spellbook=[];
   state.pcs[idx].spellbook.push({name:'',level:1,school:'',castTime:'1 action',range:'',duration:'',components:'V, S',desc:''});
-  save();_pcSheetTab=5;renderSheets();
+  save();_pcSheetTab=4;renderSheets();
 }
 function updSpell(idx,si,k,v){const sp=state.pcs[idx]?.spellbook?.[si];if(!sp)return;sp[k]=v;save();}
 function remSpell(idx,si){state.pcs[idx].spellbook.splice(si,1);save();renderSheets();}
@@ -5812,4 +5826,5 @@ Object.assign(window, {
   useResource, verifyElKey, renderSceneLabel, renderPartyPCList, toggleSkillProf,
   sendRollToChat, addPartyItem, remPI, updPI,
   showTermTip, rollStatCheck, rollInitiative,
+  _expandedMsgs, setSpellFilter,
 });
