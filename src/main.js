@@ -718,7 +718,7 @@ function renderAll(){
   renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();renderStoryRead();
   renderWagon();renderIncome();renderPartyInv();syncWorld();renderTreasuryTotal();
   renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
-  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();renderSetupLock();
+  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();renderSetupLock();renderContracts();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
     if(document.getElementById('sess-module-panel')?.style.display==='block'){
@@ -750,14 +750,34 @@ function renderContextStrip(){
   }
 }
 
-// ═══ COPY CONTRACTS ═══
+// ═══ CONTRACTS → STATE (DR-6) ═══
+const _CONTRACT_KEYS=[['persona','ai-persona'],['never','ai-never'],['actions','ai-actions'],['continuity','ai-continuity'],['multi','ai-multi']];
+function saveContract(key,value){
+  if(!state.aiContracts)state.aiContracts={};
+  state.aiContracts[key]=value;
+  save();
+}
+function renderContracts(){
+  _CONTRACT_KEYS.forEach(([key,id])=>{
+    const el=document.getElementById(id);if(!el)return;
+    if(state.aiContracts&&state.aiContracts[key]){
+      // State has content — populate textarea from state
+      if(el.value!==state.aiContracts[key])el.value=state.aiContracts[key];
+    } else {
+      // First load — seed state from whatever is in the DOM
+      if(el.value.trim()){
+        if(!state.aiContracts)state.aiContracts={};
+        state.aiContracts[key]=el.value;
+      }
+    }
+  });
+}
 function copyContracts(){
-  const ids=['ai-persona','ai-never','ai-actions','ai-continuity','ai-multi'];
   const labels=['DM Persona','Never Do','Actions','Continuity','Multi-Player'];
   let out='AI CONTRACTS\n\n';
-  ids.forEach((id,i)=>{
-    const el=document.getElementById(id);
-    if(el&&el.value.trim())out+=labels[i]+':\n'+el.value.trim()+'\n\n';
+  _CONTRACT_KEYS.forEach(([key],i)=>{
+    const val=(state.aiContracts?.[key]||'').trim();
+    if(val)out+=labels[i]+':\n'+val+'\n\n';
   });
   copyText(out,'✓ Contracts copied');
 }
@@ -2483,6 +2503,7 @@ function migrate(s){
   if(!Array.isArray(s.oocHistory))s.oocHistory=[];
   if(!Array.isArray(s.partyChat))s.partyChat=[];
   if(!Array.isArray(s.storyChapters))s.storyChapters=[];
+  if(!s.aiContracts||typeof s.aiContracts!=='object')s.aiContracts={persona:'',never:'',actions:'',continuity:'',multi:''};
   // Normalize NPCs, quests
   s.npcs.forEach(n=>{if(n.hp===undefined)n.hp=0;});
   s.quests.forEach(q=>{if(!q.status){q.status=q.done?'done':'active';}if(q.hidden===undefined)q.hidden=false;});
@@ -2778,7 +2799,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -3120,8 +3141,19 @@ async function callAI(messages,sysProm,maxTok=1400){
 }
 
 // ═══ SYSTEM PROMPT BUILDER ═══
+const _SLASHER_FRAGMENT='He does not know the operation is a con. Never tell him.';
 function buildPrompt(ledger){
-  const g=id=>document.getElementById(id)?.value||'';
+  // Read from state (DR-6) with DOM fallback for resilience
+  const g=id=>{
+    const key=_CONTRACT_KEYS.find(([,domId])=>domId===id)?.[0];
+    if(key&&state.aiContracts?.[key])return state.aiContracts[key];
+    return document.getElementById(id)?.value||'';
+  };
+  // ⛔ SECURITY — Slasher must never learn the operation is a con (permanent constraint)
+  const persona=g('ai-persona');
+  if(!persona.includes(_SLASHER_FRAGMENT)){
+    throw new Error('⛔ SECURITY: Contract 1 (DM Persona) is missing the required Slasher con-protection clause. Open AI Tools → Contracts and restore:\n"'+_SLASHER_FRAGMENT+'"');
+  }
   const activeSnips=(state.snippets||[]).filter(s=>s.active!==false&&s.text).map(s=>'['+s.name+']\n'+s.text).join('\n\n');
   const mechBlock=`
 CONTRACT 6 — MECHANICS BLOCK (REQUIRED)
@@ -6495,6 +6527,7 @@ Object.assign(window, {
   doStateFix, editFlagNote, endCombat, executeReset, executeStep,
   exportConfig, exportFlagReport, fbDisconnect, genLedger, generateSessionZero,
   setFlagCatFilter, copyDevNotes,
+  saveContract, renderContracts,
   handlePluginCmd, importConfig, importFromPaste, justSave, launchCampaign,
   loadPreset, lockPremise, logTurn, markChkDone,
   navTo, nextTurn, oocKey, openDashboard, openDrawer, openFlagModal,
