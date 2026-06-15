@@ -507,8 +507,11 @@
 <div id="tab-dev" class="tab-section">
   <div class="panel accent">
     <div class="panel-title">Dev Notes
-      <span style="font-size:10px;color:var(--text-dim);margin-left:4px;font-weight:normal">Ops Debrief only — DM never sees this</span>
-      <button class="btn sm red" style="margin-left:auto" onclick="if(confirm('Clear dev notes?')){state.sessionNotes='';const el=document.getElementById('session-notes');if(el)el.value='';save();}">Clear</button>
+      <span style="font-size:10px;color:var(--text-dim);margin-left:4px;font-weight:normal">DM never sees this</span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn sm" onclick="copyDevNotes()" title="Copy notes to clipboard">📋</button>
+        <button class="btn sm red" onclick="if(confirm('Clear dev notes?')){state.sessionNotes='';const el=document.getElementById('session-notes');if(el)el.value='';save();}">Clear</button>
+      </div>
     </div>
     <textarea id="session-notes" style="min-height:110px" oninput="state.sessionNotes=this.value;save()" placeholder="App bugs, things to fix, questions for dev. Never sent to the DM."></textarea>
   </div>
@@ -521,7 +524,17 @@
         <button class="btn sm red" onclick="clearResolvedFlags()">Clear Resolved</button>
       </div>
     </div>
-    <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Flags captured during play. Tap a flag's status badge to cycle: Pending → Fail → Resolved. Tap note text to edit.</p>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Tap status badge to cycle: Pending → Fail → Reviewed → Resolved. Tap note to edit.</p>
+    <div class="flag-filter-row" id="error-log-filter-row">
+      <button class="flag-filter-pill active" data-cat="all" onclick="setFlagCatFilter('all')">All</button>
+      <button class="flag-filter-pill" data-cat="roll" onclick="setFlagCatFilter('roll')">🎲 Roll</button>
+      <button class="flag-filter-pill" data-cat="rule" onclick="setFlagCatFilter('rule')">📜 Rule</button>
+      <button class="flag-filter-pill" data-cat="ai" onclick="setFlagCatFilter('ai')">🤖 AI</button>
+      <button class="flag-filter-pill" data-cat="story" onclick="setFlagCatFilter('story')">📖 Story</button>
+      <button class="flag-filter-pill" data-cat="infra" onclick="setFlagCatFilter('infra')">🔧 App</button>
+      <button class="flag-filter-pill" data-cat="idea" onclick="setFlagCatFilter('idea')">💡 Idea</button>
+      <button class="flag-filter-pill" data-cat="other" onclick="setFlagCatFilter('other')">❓ Other</button>
+    </div>
     <div id="error-log-list"><p style="font-size:11px;color:var(--text-dim)">No flags yet this session.</p></div>
     <div id="error-log-audit-row" style="display:none;margin-top:10px">
       <button class="btn red full" onclick="auditWithAI()">📤 Export Failures</button>
@@ -1148,6 +1161,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
       <button class="flag-cat-btn" data-cat="ai" onclick="selectFlagCat(this)"><span class="cat-icon">🤖</span>AI Made It Up</button>
       <button class="flag-cat-btn" data-cat="story" onclick="selectFlagCat(this)"><span class="cat-icon">📖</span>Story Error</button>
       <button class="flag-cat-btn" data-cat="infra" onclick="selectFlagCat(this)"><span class="cat-icon">🔧</span>App Issue</button>
+      <button class="flag-cat-btn" data-cat="idea" onclick="selectFlagCat(this)"><span class="cat-icon">💡</span>Idea / Feature</button>
       <button class="flag-cat-btn" data-cat="other" onclick="selectFlagCat(this)"><span class="cat-icon">❓</span>Something Felt Off</button>
     </div>
     <div class="form-group">
