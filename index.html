@@ -2525,14 +2525,13 @@ When the party travels through wilderness, arrives at a new outdoor location, or
   <div class="grid-1">
     <div class="col">
       <div class="panel" style="display:flex;flex-direction:column;position:relative">
-        <div class="panel-title">
-          🧙 AI Dungeon Master
-          <span id="provider-status-mini" style="margin-left:auto;font-size:11px;color:var(--text-dim)">No key set</span>
-          <button class="btn sm" onclick="openModal('provider-modal')" style="margin-left:6px">⚙</button>
-          <div style="margin-left:auto;display:flex;gap:6px">
-            <button class="btn sm" onclick="populateVoices();openModal('tts-modal')">🔊</button>
-            <button class="btn sm red" onclick="clearChat()">Clear</button>
-          </div>
+        <div class="panel-title" style="padding:8px 14px;">
+          🧙 AI DM
+          <span id="provider-status-mini" style="margin-left:6px;font-size:10px;color:var(--text-dim)">No key set</span>
+          <button class="btn sm" onclick="document.getElementById('chat-msgs').scrollTop=document.getElementById('chat-msgs').scrollHeight" title="Scroll to bottom" style="margin-left:auto;padding:3px 8px;min-height:28px">↓</button>
+          <button class="btn sm" onclick="populateVoices();openModal('tts-modal')" style="padding:3px 7px;min-height:28px">🔊</button>
+          <button class="btn sm" onclick="openModal('provider-modal')" style="padding:3px 7px;min-height:28px">⚙</button>
+          <button class="btn sm red" onclick="clearChat()" style="padding:3px 8px;min-height:28px">✕</button>
         </div>
         <div class="chat-tab-row">
           <button class="chat-tab-btn active" id="chat-tab-narrative" onclick="showChatTab('narrative')">📖 Narrative</button>
@@ -2540,21 +2539,13 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party');clearPartyBadge()">🗨️ OOC <span id="party-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
         </div>
         <div id="chat-pane-narrative">
-        <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
-          <button class="btn sm" onclick="document.getElementById('chat-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
-          <button class="btn sm" onclick="const e=document.getElementById('chat-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
-        </div>
         <div id="chat-msgs" class="chat-msgs-wrap"></div>
         <div class="typing-ind" id="typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
         <div id="ai-retry-status" style="display:none;font-size:11px;color:var(--text-dim);padding:4px 0 2px;font-family:var(--mono)"></div>
         <div class="offline-banner" id="offline-banner">📴 Offline — showing cached response</div>
-        <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
-          <div style="flex:1"><textarea id="chat-input" style="min-height:52px;resize:none;margin:0;width:100%;padding:8px" placeholder="Describe your action... (Enter to send, Shift+Enter for newline)" onkeydown="chatKey(event)"></textarea></div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <button class="btn gold" id="send-btn" onclick="sendMsg()" style="height:28px;min-height:28px;padding:0 14px">Send</button>
-            <button class="btn sm green" onclick="justSave()" title="Save game">💾</button>
-            <button class="btn sm" onclick="toggleDicePicker()" title="Dice picker" id="dice-picker-btn">🎲</button>
-          </div>
+        <div id="dm-inline-input-row" style="display:none">
+          <textarea id="chat-input" style="display:none" onkeydown="chatKey(event)"></textarea>
+          <button id="send-btn" style="display:none" onclick="sendMsg()">Send</button>
         </div>
         <div id="dice-picker-panel" style="display:none;pointer-events:none;flex-wrap:wrap;gap:4px;margin-top:4px;padding:6px;background:var(--surface2);border-radius:4px;border:1px solid var(--border)">
           <span style="font-size:10px;color:var(--text-dim);width:100%;margin-bottom:2px">ROLL DICE — tap to roll, hold modifier field to add bonus</span>
@@ -2570,11 +2561,11 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           </div>
           <div id="dice-result" style="width:100%;text-align:center;font-family:var(--mono,monospace);font-size:18px;font-weight:bold;min-height:24px;margin-top:6px;letter-spacing:1px;color:var(--text-bright)"></div>
         </div>
-        <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;flex-wrap:wrap;align-items:center">
+        <div id="dm-options-row" style="display:flex;gap:10px;padding:4px 0 2px;font-size:11px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
           <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-log" checked> Log</label>
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-ledger" checked> Include Ledger</label>
-          <button onclick="openFlagModal(-1)" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-dim);font-size:11px;padding:3px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">⚑ Flag</button>
-          <button id="player-lbl" onclick="switchUser()" title="Tap to switch player" style="color:var(--gold);font-size:11px;margin-left:auto;background:none;border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer;padding:2px 8px;transition:border-color .15s;white-space:nowrap" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='transparent'"></button>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-ledger" checked> Ledger</label>
+          <button onclick="openFlagModal(-1)" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-dim);font-size:11px;padding:3px 8px;cursor:pointer">⚑</button>
+          <button id="player-lbl" onclick="switchUser()" title="Tap to switch player" style="color:var(--gold);font-size:11px;margin-left:auto;background:none;border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer;padding:2px 6px;white-space:nowrap"></button>
         </div>
         </div><!-- end chat-pane-narrative -->
         <div id="chat-pane-ooc" style="display:none">
@@ -2635,6 +2626,8 @@ When the party travels through wilderness, arrives at a new outdoor location, or
     <button class="step-btn inc" onclick="executeStep(5)">+5</button>
   </div>
   <div class="chat-quick-bar">
+    <button class="btn sm" onclick="justSave()" title="Save game" style="padding:5px 9px;min-height:36px;flex-shrink:0">💾</button>
+    <button class="btn sm" onclick="toggleDicePicker()" title="Dice" id="dice-picker-btn" style="padding:5px 9px;min-height:36px;flex-shrink:0">🎲</button>
     <input type="text" class="chat-quick-input" id="chat-quick-input" placeholder="Command AI DM…" onkeydown="chatKeyQuick(event)">
     <button class="chat-quick-send" onclick="sendMsgQuick()">▶</button>
   </div>
