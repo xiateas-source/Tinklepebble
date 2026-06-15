@@ -1084,22 +1084,19 @@ function syncWorld(){
   Object.entries(om).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&ox[k]!==undefined)el.value=ox[k];});
 }
 function sw(k,v){state.worldData[k]=v;save();}
-// Flash a tab button to signal AI-triggered state change on that tab
-const _tabBadgeIds={'tab-world':'world-badge','tab-session':'session-badge','tab-wagon':'wagon-badge'};
-const _tabBadgeCounts={'tab-world':0,'tab-session':0,'tab-wagon':0};
+// Flash nav dot to signal AI-triggered state change on a drawer sub-tab
+const _tabNavDots={
+  'tab-world':'logistics-dot','tab-wagon':'logistics-dot','tab-combat':'logistics-dot',
+  'tab-session':'systems-dot','tab-ait':'systems-dot','tab-dev':'systems-dot','tab-setup':'systems-dot'
+};
 function flashTab(tabId){
   if(tabId===currentTab)return;
-  const btn=Array.from(document.querySelectorAll('.main-tab')).find(b=>b.getAttribute('onclick')?.includes("'"+tabId+"'"));
-  if(!btn)return;
-  btn.classList.remove('tab-flash');
-  void btn.offsetWidth;
-  btn.classList.add('tab-flash');
-  setTimeout(()=>btn.classList.remove('tab-flash'),1800);
-  if(_tabBadgeIds[tabId]){_tabBadgeCounts[tabId]++;const b=document.getElementById(_tabBadgeIds[tabId]);if(b){b.textContent=_tabBadgeCounts[tabId];b.style.display='inline';}}
+  const dotId=_tabNavDots[tabId];
+  if(dotId){const d=document.getElementById(dotId);if(d)d.style.display='inline-block';}
 }
 function clearTabBadge(tabId){
-  if(!_tabBadgeIds[tabId])return;
-  _tabBadgeCounts[tabId]=0;const b=document.getElementById(_tabBadgeIds[tabId]);if(b)b.style.display='none';
+  const dotId=_tabNavDots[tabId];
+  if(dotId){const d=document.getElementById(dotId);if(d)d.style.display='none';}
 }
 function quickSellItem(idx){
   const item=state.wagon.cargo[idx];if(!item)return;
@@ -6054,6 +6051,7 @@ function executeStep(delta){
 
 function openDrawer(tabId){
   closeQAMenu();
+  document.getElementById('drawer-subnav')?.style && (document.getElementById('drawer-subnav').style.display='none');
   const drawerBody=document.getElementById('drawer-body');
   if(!drawerBody)return;
   // Move all known drawer tabs into drawer-body if not already there
@@ -6073,9 +6071,9 @@ function openDrawer(tabId){
   document.getElementById('drawer-backdrop')?.classList.add('is-open');
   document.getElementById('drawer-sheet')?.classList.add('is-open');
   // Sync nav
-  const navMap={'tab-party':'party','tab-world':'world','tab-wagon':'wagon','tab-combat':'combat','tab-session':'session'};
+  const navMap={'tab-party':'party','tab-world':'logistics','tab-wagon':'logistics','tab-combat':'logistics','tab-session':'systems','tab-ait':'systems','tab-dev':'systems','tab-setup':'systems'};
   const navKey=navMap[tabId]||null;
-  ['log','party','wagon','world'].forEach(k=>{
+  ['log','party','logistics','systems'].forEach(k=>{
     document.getElementById('nav-btn-'+k)?.classList.toggle('active',k===navKey);
   });
   // Session sub-tab state
@@ -6088,7 +6086,7 @@ function openDrawer(tabId){
 function closeDrawer(){
   document.getElementById('drawer-backdrop')?.classList.remove('is-open');
   document.getElementById('drawer-sheet')?.classList.remove('is-open');
-  ['log','party','wagon','world'].forEach(k=>{
+  ['log','party','logistics','systems'].forEach(k=>{
     document.getElementById('nav-btn-'+k)?.classList.toggle('active',k==='log');
   });
   currentTab='tab-dm';
@@ -6097,9 +6095,74 @@ function closeDrawer(){
   renderQAMenu();
 }
 
+let _logisticsTab='world';
+let _systemsTab='session';
+
 function navTo(key){
   if(key==='log'){closeDrawer();return;}
+  if(key==='party'){openDrawer('tab-party');return;}
+  if(key==='logistics'){openLogisticsDrawer();return;}
+  if(key==='systems'){openSystemsDrawer();return;}
+  if(['world','wagon','combat'].includes(key)){openLogisticsDrawer(key);return;}
+  if(['session','ait','dev','setup'].includes(key)){openSystemsDrawer(key);return;}
   openDrawer('tab-'+key);
+}
+function _setNavActive(key){
+  ['log','party','logistics','systems'].forEach(k=>{
+    document.getElementById('nav-btn-'+k)?.classList.toggle('active',k===key);
+  });
+}
+function openLogisticsDrawer(sub){
+  sub=sub||_logisticsTab;
+  _logisticsTab=sub;
+  openDrawer('tab-'+sub);
+  const sn=document.getElementById('drawer-subnav');
+  if(sn){
+    sn.style.display='flex';
+    sn.innerHTML=[['world','🌍 World'],['wagon','🛒 Wagon'],['combat','⚔ Combat']]
+      .map(([k,lbl])=>`<button class="drawer-subnav-btn${k===sub?' active':''}" onclick="switchLogisticsTab('${k}')">${lbl}</button>`).join('');
+  }
+  const t=document.getElementById('drawer-title');if(t)t.textContent='Logistics';
+  _setNavActive('logistics');
+}
+function openSystemsDrawer(sub){
+  sub=sub||_systemsTab;
+  _systemsTab=sub;
+  openDrawer('tab-'+sub);
+  const sn=document.getElementById('drawer-subnav');
+  if(sn){
+    sn.style.display='flex';
+    sn.innerHTML=[['session','📅 Session'],['ait','🤖 AI Tools'],['dev','🔧 Dev'],['setup','⚙ Setup']]
+      .map(([k,lbl])=>`<button class="drawer-subnav-btn${k===sub?' active':''}" onclick="switchSystemsTab('${k}')">${lbl}</button>`).join('');
+  }
+  const t=document.getElementById('drawer-title');if(t)t.textContent='Systems';
+  _setNavActive('systems');
+}
+function switchLogisticsTab(sub){
+  _logisticsTab=sub;
+  ['tab-world','tab-wagon','tab-combat'].forEach(id=>{document.getElementById(id)?.classList.remove('active');});
+  document.getElementById('tab-'+sub)?.classList.add('active');
+  document.querySelectorAll('#drawer-subnav .drawer-subnav-btn').forEach(b=>{
+    b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+sub+"'"));
+  });
+  if(sub==='wagon'){renderWagon();renderIncome();renderPartyInv();renderTreasuryTotal();}
+  if(sub==='world'){syncWorld();}
+  if(sub==='combat'){renderCombat();}
+  clearTabBadge('tab-'+sub);
+  currentTab='tab-'+sub;
+  renderQAMenu();setTimeout(injectPanelFlags,150);
+}
+function switchSystemsTab(sub){
+  _systemsTab=sub;
+  ['tab-session','tab-ait','tab-dev','tab-setup'].forEach(id=>{document.getElementById(id)?.classList.remove('active');});
+  document.getElementById('tab-'+sub)?.classList.add('active');
+  document.querySelectorAll('#drawer-subnav .drawer-subnav-btn').forEach(b=>{
+    b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+sub+"'"));
+  });
+  if(sub==='session'){showSessionMode('play');}
+  clearTabBadge('tab-'+sub);
+  currentTab='tab-'+sub;
+  renderQAMenu();setTimeout(injectPanelFlags,150);
 }
 
 function sendMsgQuick(){
@@ -6531,6 +6594,7 @@ Object.assign(window, {
   handlePluginCmd, importConfig, importFromPaste, justSave, launchCampaign,
   loadPreset, lockPremise, logTurn, markChkDone,
   navTo, nextTurn, oocKey, openDashboard, openDrawer, openFlagModal,
+  openLogisticsDrawer, openSystemsDrawer, switchLogisticsTab, switchSystemsTab,
   openLevelUpWizard, openPCOverview, openQASheet, openRollSheet, openStepConfig, openTreasury, partyKey,
   pcLongRest, pcShortRest, prevTurn, quickD20, quickRoll,
   remCell, remComb, remModuleEp, remNPC, remPI,
