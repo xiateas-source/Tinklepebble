@@ -50,6 +50,54 @@ const BARD_SPELLS={
   3:['Bestow Curse','Clairvoyance','Dispel Magic','Fear','Hypnotic Pattern','Major Image','Nondetection','Plant Growth','Sending','Slow','Speak with Dead','Stinking Cloud','Tongues']
 };
 
+// ═══ D&D TERM GLOSSARY ═══
+const TERM_TIPS={
+  'Prone':'Attacks against: advantage if adj (5 ft), disadvantage if ranged. Costs half movement to stand.',
+  'Blinded':'Fails sight checks. Attacks: disadvantage. Attacks against: advantage.',
+  'Stunned':'Incapacitated, can\'t move. Attacks: advantage. Fails STR/DEX saves.',
+  'Frightened':'Disadvantage on checks/attacks while source visible. Can\'t willingly move closer.',
+  'Grappled':'Speed becomes 0. Ends if grappler is incapacitated or creature moves out of reach.',
+  'Restrained':'Speed 0. Attacks: disadvantage. Attacks against: advantage. DEX saves: disadvantage.',
+  'Incapacitated':'Can\'t take actions or reactions.',
+  'Paralyzed':'Incapacitated, can\'t move or speak. Auto-fail STR/DEX saves. Attacks: advantage (crit if within 5 ft).',
+  'Charmed':'Can\'t attack the charmer. Charmer has advantage on social checks vs. creature.',
+  'Poisoned':'Disadvantage on attack rolls and ability checks.',
+  'Exhaustion':'Stacks 1–6: ×1 disadvantage on checks, ×2 speed halved, ×3 disadvantage attacks/saves, ×4 speed 0, ×5 max HP halved, ×6 death.',
+  'Concentration':'Damaged → CON save (DC 10 or ½ damage). Casting another concentration spell ends previous.',
+  'Sneak Attack':'Rogue: extra 1d6/2 levels/turn with finesse or ranged weapon + advantage OR ally adj to target.',
+  'Opportunity Attack':'Triggered when creature voluntarily leaves reach. Uses reaction; one melee attack.',
+  'Advantage':'Roll two d20s, use the higher result.',
+  'Disadvantage':'Roll two d20s, use the lower result.',
+  'Reaction':'Once per round, used immediately in response to a trigger. Resets on your turn.',
+  'Bonus Action':'Additional action beyond your main Action (specific abilities grant one).',
+  'Dash':'Gain extra movement equal to your speed for this turn.',
+  'Disengage':'Your movement doesn\'t provoke opportunity attacks for the rest of this turn.',
+  'Help':'Give one ally advantage on an ability check, OR on attack vs. a creature within 5 ft.',
+  'Dodge':'Until next turn: attacks against you have disadvantage, DEX saves have advantage.',
+  'Ready':'Hold an action to trigger after a specified condition before your next turn.',
+  'Shove':'Athletics vs. target\'s Athletics/Acrobatics: push 5 ft or knock prone.',
+  'Grapple':'Athletics vs. target\'s Athletics/Acrobatics: target becomes Grappled.',
+  'Flanking':'Optional rule: if two allies are on opposite sides, both have advantage on melee attacks.',
+  'Cover':'Half: +2 AC/DEX saves. Three-quarters: +5. Full: can\'t be targeted.',
+};
+const _termRe=new RegExp('(?<![a-zA-Z>])('+ Object.keys(TERM_TIPS).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![a-zA-Z])', 'g');
+function _highlightTerms(text){return text.replace(_termRe,(m,t)=>`<span class="term-tip" onclick="showTermTip(event,'${t}')">${t}</span>`);}
+function showTermTip(event,term){
+  event.stopPropagation();
+  document.querySelectorAll('.term-popup').forEach(p=>p.remove());
+  const def=TERM_TIPS[term];if(!def)return;
+  const p=document.createElement('div');p.className='term-popup';
+  p.innerHTML=`<strong>${esc(term)}</strong><div style="margin-top:4px;color:var(--text-dim)">${esc(def)}</div><button class="term-popup-close" onclick="this.closest('.term-popup').remove()">✕ close</button>`;
+  const rect=event.target.getBoundingClientRect();
+  const left=Math.min(rect.left,window.innerWidth-270);
+  const top=rect.bottom+6>window.innerHeight-120?rect.top-10:'auto';
+  const topVal=top!=='auto'?rect.top-p.offsetHeight-6:rect.bottom+6;
+  p.style.left=left+'px';
+  p.style.top=(top!=='auto'?rect.top-90:rect.bottom+6)+'px';
+  document.body.appendChild(p);
+  setTimeout(()=>{const cl=()=>{p.remove();document.removeEventListener('click',cl);};document.addEventListener('click',cl);},50);
+}
+
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
 const SAVE_VERSION=11;
@@ -3405,6 +3453,7 @@ function renderChat(){
     text=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
     text=text.replace(/\*(.*?)\*/g,'<em>$1</em>');
     text=text.replace(/\n/g,'<br>');
+    if(isDM)text=_highlightTerms(text);
     const isLong=(msg.content||'').length>800;
     const ttsBtn=isDM?`<button class="tts-btn" onclick="speakIdx(${msgIdx},this)" title="Read aloud">🔊</button>`:'';
     const copyBtn=`<button class="copy-btn" onclick="copyIdx(${msgIdx})" title="Copy message">📋</button>`;
@@ -5761,5 +5810,6 @@ Object.assign(window, {
   updResource, updScene, updSecret, updSlot, updSnip, updSpell, updTown,
   updWItem, updateCpMode, updateRollMod, updateStateFixForm, updateStoryThread,
   useResource, verifyElKey, renderSceneLabel, renderPartyPCList, toggleSkillProf,
-  sendRollToChat, addPartyItem, remPI, updPI, 
+  sendRollToChat, addPartyItem, remPI, updPI,
+  showTermTip, rollStatCheck, rollInitiative,
 });
