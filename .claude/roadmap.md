@@ -218,10 +218,97 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 ## VTT Drops
 - **Drop 4**: Zone combat map (replaces Combat tab entirely — do NOT refactor Combat tab)
-- **Drop 5**: Shared dice feed (Firebase-wired; header 🎲 becomes entry point)
+- **Drop 5**: Shared dice feed + image maps (Firebase Storage; token overlay on uploaded map images)
 - **Drop 6**: Player View — needs World State/Operations split + state visibility audit first
   - `buildPlayerView()` computes player-safe snapshot → Firebase `/session/playerView`
-- **Drop 7**: Handout/image cards (additive to Drop 6)
+- **Drop 7**: Handout/image cards + full VTT layer (grid snap, fog of war, room reveals)
+
+---
+
+## Map Architecture
+
+Three tiers, built incrementally:
+
+**Tier 1 — Drop 4: Zone Combat (abstract)**
+No image. Six named zones as a styled 2×3 grid. Tokens are colored tiles. AI controls position via `zone_move:` mechanic. Replaces Combat tab. Ships fast, works without a map image.
+
+**Tier 2 — Drop 5: Image Maps + Token Overlay**
+Upload any image (screenshot, photo of book map, PDF-extracted map). Tokens placed on image with tap-to-move. Firebase Storage for image URLs. Module maps become playable.
+
+**Tier 3 — Drop 7+: Full VTT Layer**
+Grid snap, fog of war, room reveals. Full Roll20 feature set. Tiers 1 and 2 architecture grows naturally into this.
+
+**Three Map Types (same renderer, different data):**
+| Type | Use Case | Scale | AI mechanic |
+|---|---|---|---|
+| Combat Map | Active fight — zones or battle image | Room | `zone_move:` / `token_move:` |
+| Dungeon Map | Room exploration, reveals as entered | Building | `room_reveal:` / `room_enter:` |
+| Area/World Map | Overworld travel, wagon routes, regions | Regional | `travel_to:` / `waypoint_add:` |
+
+The wagon tracker IS a map (Area scale). Waypoints = towns/camps. Wagon position = current location. Travel log entries anchor to map positions.
+
+**Drop 4 Scope — Option A: zone only (fast)**
+Abstract 6-zone grid ships first. Image maps follow in Drop 5. Firebase Storage config required before image maps — confirm before touching.
+
+**Zone definitions:**
+| Zone | Role |
+|---|---|
+| Frontline | Melee range, high danger — fighters, tanks, aggressive enemies |
+| Backline | Ranged/support range — bards, rogues, archers |
+| Left Flank | Flanking position |
+| Right Flank | Flanking position |
+| Air | Elevated/flying — flying enemies, area spells |
+| Rear | Behind enemy lines — sneak attack, ambush |
+
+**New AI mechanics for Drop 4 (add to parseMechanics):**
+- `zone_move: CharName|ZoneName`
+- `zone_add_enemy: Name|HP|AC|ZoneName`
+- `zone_remove: Name`
+- `zone_effect: ZoneName|Description`
+
+**State addition (`state.combat.zones`):**
+Each zone is an array of `{ name, type:'pc'|'enemy', hp, hp_max, ac, color }`. Initialize in migrate() structural guard.
+
+---
+
+## QA Testing Checklist (Session 2 rework)
+
+Run on-device before merging Phase 2 to main:
+
+**QA Menu Redesign**
+- [ ] Tap ⚡ — bottom sheet slides up, 2-col card grid visible
+- [ ] Cards show correct icons and labels for current tab
+- [ ] FAB shows ✕ when menu is open
+- [ ] Tap ✕ or backdrop — menu slides down, FAB icon restores
+- [ ] AI Tools → Quick Actions → FAB Icon input — type emoji, FAB updates immediately
+- [ ] Preset icon buttons (🎲🗡🔮 etc.) update FAB
+- [ ] Reload — custom icon persists
+
+**Flag System**
+- [ ] Tap ⚑ (small gold circle below ⚡) — flag modal opens
+- [ ] Tap text box — keyboard appears, no iOS zoom
+- [ ] Panel headers have faint ⚑ buttons
+- [ ] Flag modal opens above the drawer when drawer is open
+
+**HUD Tiles**
+- [ ] Pip (familiar) tile visible in HUD after PC tiles
+- [ ] Grit tile visible after Pip
+- [ ] Tap Pip — familiar bottom sheet slides up
+- [ ] Tap Grit — Grit overview slides up
+- [ ] HUD scrolls horizontally if tiles overflow screen
+
+**Dice Roller**
+- [ ] Roll & Submit sheet: character dropdown + dice grid visible
+- [ ] ±delta buttons adjust modifier value
+- [ ] Roll d20 — result shows with nat-20/nat-1 detection
+- [ ] Send to chat posts result to narrative
+
+**Other**
+- [ ] Wagon tab has Town Rep section (NOT in World tab)
+- [ ] Party drawer opens with character editor panel visible by default
+- [ ] HP ± dock buttons use customizable step values
+
+---
 
 ## State Visibility (for Drop 6)
 PUBLIC: `pcs[*]` (name/color/hp/hp_max/ac/conditions — NOT backstory_secret), worldData (time/season/weather/location/scene_title/travelLog/premise/primaryMission), quests (hidden!==true), chatHistory, combat.list, treasuryData coins.
