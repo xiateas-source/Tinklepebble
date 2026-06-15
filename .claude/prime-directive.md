@@ -10,6 +10,8 @@ Two developers/players building a complete, phone-native D&D 5e virtual tabletop
 
 One player (Tinkle). One player (Pebble/Pitchman). One AI DM. One shared Firebase state. Real dice, real consequences, real rules enforcement.
 
+This is not just a D&D companion app. It is a universal AI tabletop that can run any TTRPG from digital books you already own — no new purchases, no human DM required. Bring your rulebook. Load your module. The AI DM reads the contracts and runs the game.
+
 ---
 
 ## THE PRIME DIRECTIVE
@@ -69,15 +71,29 @@ Every UI decision is made for a phone screen in portrait mode, one-handed, mid-s
 3. Income/Expense log silent — consequence of #1
 4. NPC log silent — consequence of #1
 
+**UI/UX:**
+- AI contracts still in DOM textareas — can't Firebase-sync, fragile to refactors (DR-6 fixes this)
+- PDF/epub ingestion — not yet built; needed for book-driven play
+- Map system — not yet built; needed for spatial combat and exploration (Drop 4+)
+
 ---
 
 ## ROAD TO DROP 4
 
-1. Refine recent rework (QA menu, flag system, HUD polish)
-2. Close AI compliance gap — detectUnloggedNPC + detectUnloggedItem chips
-3. DR-6: contracts → state.aiContracts{} with Firebase sync
+**Phase 2 — Road to Drop 4:**
+1. Polish pass — QA menu card sizing, flag panel coverage, HUD tile tap targets
+2. AI compliance chips — detectUnloggedNPC() + detectUnloggedItem() (mirror detectUnloggedGold pattern)
+3. DR-6: Contracts → state.aiContracts{} with Firebase sync
 4. Visual Redesign v2 — 4-tab bottom nav (Adventure / Logistics / Sheet / Systems)
-5. Drop 4 — Zone combat map (slots into new nav)
+5. Drop 4: Zone combat map (Option A — abstract zones first, image maps in Drop 5)
+
+**PDF/epub Book Ingestion (parallel track):**
+- Browser FileReader API + PDF.js (client-side text extraction)
+- epub.js for epub parsing
+- Auto-chunk by chapter/heading; user tags chunks as rules/lore/module_scene/npc_roster/map
+- Stored in state.bookChunks[] synced via Firebase
+- Inject via _ctxInject on demand or auto-inject on scene entry
+- Map images extractable from PDF chunks → feeds directly into Drop 5 image maps
 
 ---
 
