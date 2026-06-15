@@ -175,7 +175,15 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ **Context strip** — see Polish Pass above
 - ✅ **Spell descriptions** — see Polish Pass above
 - ✅ **Copy contracts** — see Polish Pass above
-- ⏳ **Character sheet rework** — 6-tab sheet in progress (subagent building; see design below)
+- ✅ **Character sheet rework** — 6-tab sheet (Core/Skills/Combat/Spells/Gear/Features) with lock/unlock, auto-lock on close (subagent, 2026-06-15)
+
+### Shipped 2026-06-15 (Session 4)
+- ✅ **4-tab nav** — AI DM / Sheet (📜) / Logistics (📦) / Systems (⚙) replacing 9-tab top bar
+- ✅ **Composite drawers** — Logistics: World/Wagon/Combat subnav; Systems: Session/AI Tools/Dev/Setup subnav
+- ✅ **Nav dots** — gold activity dots on Logistics/Systems buttons when AI triggers state changes
+- ✅ **DR-6: Contracts → state** — `state.aiContracts{}` + Firebase sync; `buildPrompt()` validates Slasher security fragment; hard-error blocks send if missing
+- ✅ **Flag system: Idea category, filter pills, Reviewed verdict, dev notes copy** — `FLAG_CATS` + `idea` cat + 8-pill filter row + `reviewed` badge cycle + `copyDevNotes()`
+- ✅ **Patch notes v1.12** — `renderChangelog()` updated with 21-item session 3 summary
 
 ## Phase 2 — Active Sprint
 
@@ -188,12 +196,17 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 ### Phase 2 Sequence
 1. ✅ **Bug fixes** — 4 of 5 done; skill bonus wrong still open
 2. ✅ **Polish pass** — core items done; flag system quick wins still pending
-3. ⏳ **Character Sheet Rework** — 6-tab digital sheet in progress (subagent building)
-4. **"Clean without clutter" pass** — panel header audit, icon-only buttons, tighter padding
-5. **Flag system quick wins** — categories, filter, Reviewed-Pending, export pending-only
-6. **DR-6: Contracts → state** — migrate DOM textareas to state.aiContracts{}
-7. **Visual Redesign v2: 4-tab nav**
-8. **Drop 4: Zone Combat Map**
+3. ✅ **Character Sheet Rework** — 6-tab sheet (Core/Skills/Combat/Spells/Gear/Features), lock/unlock, auto-lock on close (subagent, 2026-06-15)
+4. ✅ **DR-6: Contracts → state** — `state.aiContracts{}` + Firebase sync + Slasher security validation in buildPrompt() (2026-06-15)
+5. ✅ **Visual Redesign v2: 4-tab nav** — AI DM / Sheet / Logistics / Systems with composite drawers + subnav + nav dots (2026-06-15)
+6. **World Consequence Engine** — `state.consequences[]`, AI mechanics `consequence_add/resolve`, injected into buildPrompt()
+7. **Reputation Ripple** — burned town ripples to adjacent towns; Insight DC warnings in ledger
+8. **Con Scorecard** — `state.slasherOI=0`, income log parsed by snake_oil/real_stock, town survival stats
+9. **"Previously On…"** — new QA action; 2-sentence recap from last 8 messages
+10. **AI Contract Health Check** — "Verify Contracts" button in Systems › AI Tools
+11. **"Clean without clutter" pass** — panel header audit, icon-only buttons, tighter padding
+12. **Flag system quick wins** — categories, filter, Reviewed-Pending, export pending-only
+13. **Drop 4: Zone Combat Map**
 
 ---
 
