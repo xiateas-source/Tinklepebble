@@ -6089,6 +6089,8 @@ function closeDrawer(){
   ['log','party','logistics','systems'].forEach(k=>{
     document.getElementById('nav-btn-'+k)?.classList.toggle('active',k==='log');
   });
+  document.querySelectorAll('.tab-section:not(.drawer-body .tab-section)').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-dm')?.classList.add('active');
   currentTab='tab-dm';
   // Auto-lock all character sheets on drawer close
   if(Array.isArray(state.pcs)){state.pcs.forEach(p=>{p.sheetLocked=true;});save();}
