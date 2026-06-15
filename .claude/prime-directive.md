@@ -1,12 +1,12 @@
 # TINKLE'S TINCTURES — PRIME DIRECTIVE (REVISED)
 ## Mobile AI Virtual Tabletop — Development Mandate
-*Revised 2026-06-14 — v1.6*
+*Revised 2026-06-15 — v1.6.1*
 
 ---
 
 ## WHO WE ARE
 
-Two developers/players building sla complete, phone-native D&D 5e virtual tabletop that runs in a single HTML file, requires no installation, no subscription, and replaces a human DM with an AI that is contractually bound to run the game correctly.
+Two developers/players building a complete, phone-native D&D 5e virtual tabletop that runs in a single HTML file, requires no installation, no subscription, and replaces a human DM with an AI that is contractually bound to run the game correctly.
 
 One player (Tinkle). One player (Pebble/Pitchman). One AI DM. One shared Firebase state. Real dice, real consequences, real rules enforcement.
 
@@ -33,55 +33,51 @@ Every UI decision is made for a phone screen in portrait mode, one-handed, mid-s
 
 ---
 
-## CURRENT STATE — CONFIRMED WORKING (v1.6)
+## CURRENT STATE — CONFIRMED WORKING (v1.6.1)
 
 - Firebase real-time sync — both phones live ✓
-- Mechanics block parser — flexible, catches all variants ✓
-- Canonical character sheets — Slasher, Tinkle, Pebble correct after Firebase sync ✓
+- Core play loop: player types → AI responds → mechanics parse → state syncs ✓
+- Vite build (src/main.js + src/style.css → docs/) — deployed via GitHub Pages ✓
+- Mechanics block parser — 35+ handlers, flexible, catches variants ✓
+- Canonical character sheets — Slasher L3, Tinkle L3, Pebble L3 (SAVE_VERSION 11) ✓
 - AI contracts — rolls, concentration, death saves, action economy enforced ✓
-- Session tab — During Session / Between Sessions / Module ✓
-- New Campaign / Full Reset — clean slate with starting gold ✓
-- Dice picker — d4–d100 with modifier field ✓
-- Campaign Setup tab — four-step PHB-inspired onboarding ✓
-- World tab — World State | Operations sub-tabs ✓
-- Module tracker — Hoard of the Dragon Queen, 8 episodes, AI updates via module_episode: ✓
-- OOC + Party chat — live ledger injected on every send (no more context drift) ✓
-- Context Refresh — queues scene snapshot silently for next AI DM message ✓
-- Re-sync AI State — injects full ledger + visible confirmation in main chat ✓
-- Quest dedup — quest_add skips near-identical quests ✓
-- NPC dedup — npc_add updates existing instead of duplicating ✓
-- primary_mission: mechanic — AI can set/update main quest ✓
-- quest_fail: mechanic ✓
-- Income/NPC/Quest contracts — strict no-exceptions enforcement ✓
-- Story Thread — 📖 Read mode with collapsible TOC + chapter sections ✓
-- Per-message ✕ delete in Narrative chat ✓
-- Scroll controls — ↑ Top / ↓ Bottom standardized across all chat surfaces ✓
-- Quest hidden:false default — Drop 6 prereq in place ✓
-- Flag system — dev flags auto-resolve when captured in roadmap ✓
+- HUD mosaic — PC tiles (HP/AC/conditions), Grit tile, Familiar (Pip) tile ✓
+- Quick Actions — bottom-sheet redesign, 2-col card grid, morphing FAB, custom icon ✓
+- Dice roller — character select, roll type, modifier, ±delta row, d4–d% grid ✓
+- Flag system — floating ⚑ FAB, z-index fixed, panel auto-injection, iOS zoom fixed ✓
+- spell_add mechanic — auto-populates spellbook from AI response ✓
+- Town Rep in Wagon tab ✓
+- Session tab — During/Between/Module sub-tabs ✓
+- Story Chronicle — chapter system, 📖 read mode ✓
+- Module tracker — Hoard of the Dragon Queen, 8 episodes ✓
+- OOC + Party chat — live ledger injected on every send ✓
+- Level-up wizard — Fighter/Rogue/Bard L2–L5 ✓
+- Quest + NPC dedup ✓
+- NPC list — sort active/departed/deceased, disposition color ✓
+- Quest list — sort active/failed/done, active count header ✓
+- Setup Wizard with campaignLaunched lock ✓
+- Scroll controls across all chat surfaces ✓
+- Rolling AI summary (summarizeAndPrune at 75 messages) ✓
+- AbortController + 25s timeout + free-model fallback in callAI() ✓
 
 ---
 
 ## OPEN ISSUES (Active)
 
-**Gameplay loop:**
-- Income/Expense Log silent — AI narrates transactions but doesn't call log functions
-- NPC log silent — AI introduces NPCs but doesn't persist them via state functions
-- Tab navigation blindness — state changes don't surface visually to the DM
-
-**UI/UX:**
-- Travel Log full rework — needs visual map layer, day-progress bar (large feature, Drop 4+)
-- Party chat → narrative ping — player OOC messages should notify the AI DM
-- Message lock — reading a message while new prompt arrives should keep it open
+1. AI compliance gap — AI narrates gold/NPC/item events but doesn't always emit mechanic lines. detectUnloggedGold() chip exists; NPC and item equivalents needed.
+2. Contracts in DOM — AI contracts are DOM textareas, not in state. Can't Firebase-sync. DR-6 fixes this.
+3. Income/Expense log silent — consequence of #1
+4. NPC log silent — consequence of #1
 
 ---
 
 ## ROAD TO DROP 4
 
-**Phase 1 — Pre-Drop 4 (one remaining item):**
-- Vite migration — split single HTML file into component structure before Drop 4 adds complexity
-
-**Recommended before Vite:**
-Fix income/NPC log silent issues (#6/#7) so the codebase is stable and correct before splitting it.
+1. Refine recent rework (QA menu, flag system, HUD polish)
+2. Close AI compliance gap — detectUnloggedNPC + detectUnloggedItem chips
+3. DR-6: contracts → state.aiContracts{} with Firebase sync
+4. Visual Redesign v2 — 4-tab bottom nav (Adventure / Logistics / Sheet / Systems)
+5. Drop 4 — Zone combat map (slots into new nav)
 
 ---
 
@@ -104,11 +100,11 @@ Tinkle's Tinctures remains the active session tool until the new app reaches fea
 
 ## THE CHARACTERS (Canon)
 
-**Slasher** — Black Dragonborn Fighter L1. STR 17, CON 16, AC 16 (Chain Mail), HP 13. Great Weapon Fighting. Second Wind. Smith's Tools. Greatsword. Genuinely believes the operation is a legitimate apothecary. The AI must never reveal the con to him.
+**Slasher** — Black Dragonborn Fighter L3. STR 17, CON 16, AC 16 (Chain Mail), HP 13. Great Weapon Fighting. Second Wind. Smith's Tools. Greatsword. Genuinely believes the operation is a legitimate apothecary. The AI must never reveal the con to him.
 
-**Tinkle** — Tortle Rogue L1. AC 17 (Natural Armor). Blowgun + Torpor Poison (DC 15). Expertise: Deception/Investigation. Shell Defense. Mastermind.
+**Tinkle** — Tortle Rogue L3. AC 17 (Natural Armor). Blowgun + Torpor Poison (DC 15). Expertise: Deception/Investigation. Shell Defense. Mastermind.
 
-**Pebble** — Goliath Bard L1. CHA 17. Stone's Endurance (2/SR). Lucky Points (3/LR). Spell slots 2. Sleep, Hideous Laughter, Charm Person, Healing Word. Pitchman.
+**Pebble** — Goliath Bard L3. CHA 17. Stone's Endurance (2/SR). Lucky Points (3/LR). Spell slots 2. Sleep, Hideous Laughter, Charm Person, Healing Word. Pitchman.
 
 **Grit** — The ox. HP 15. Bonded to Tinkle. Raised from a calf. Has been a test subject. Stoic. Skittish around loud magic.
 
