@@ -279,7 +279,7 @@ details.bs[open] summary::before{content:"\25BC  ";}
 
 .town-row.neutral{border-left:3px solid var(--border);}
 .secret-row{padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;}
-.qa-fab{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom, 0px));right:16px;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:transform .15s;}
+.qa-fab{position:fixed;bottom:calc(155px + env(safe-area-inset-bottom, 0px));right:16px;width:54px;height:54px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:transform .15s;}
 .qa-fab:active{transform:scale(.92);}
 .qa-menu{position:fixed;bottom:150px;right:16px;background:var(--surface);border:1px solid var(--border-bright);border-radius:var(--radius);box-shadow:0 8px 40px rgba(0,0,0,.7);z-index:201;min-width:230px;max-width:300px;max-height:70vh;overflow-y:auto;display:none;}
 .qa-menu.open{display:block;}
@@ -1584,7 +1584,7 @@ button.fab{
 }
 
 /* ═══ NEW INTERFACE — HUD + DRAWER + DOCK ═══ */
-body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;}
+body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0!important;overflow:hidden;}
 .app-header{display:none!important;}
 .main-tabs{display:none!important;}
 /* Global HUD */
@@ -1624,18 +1624,18 @@ body{display:flex;flex-direction:column;height:100dvh;overflow:hidden;}
 .drawer-body>.tab-section{display:none;padding:14px!important;padding-bottom:20px!important;}
 .drawer-body>.tab-section.active{display:block;}
 /* Bottom dock */
-.lower-dock{background:var(--surface);border-top:2px solid var(--border);z-index:700;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px);}
+.lower-dock{background:var(--surface);border-top:2px solid var(--border);z-index:700;flex-shrink:0;}
 .step-bar{display:flex;border-bottom:1px solid var(--border);}
 .step-btn{flex:1;height:40px;background:transparent;border:none;border-right:1px solid var(--border);font-family:var(--mono);font-size:15px;font-weight:700;cursor:pointer;transition:background .12s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 .step-btn:last-child{border-right:none;}
 .step-btn:active{background:var(--surface2);}
 .step-btn.dec{color:var(--red);}
 .step-btn.inc{color:var(--green);}
-.chat-quick-bar{display:flex;padding:6px 10px;gap:6px;background:var(--bg);align-items:center;}
+.chat-quick-bar{display:flex;padding:5px 10px;gap:6px;background:var(--bg);align-items:center;}
 .chat-quick-input{flex:1;height:36px;background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:0 10px;font-family:var(--sans);color:var(--text);font-size:13px;-webkit-appearance:none;}
 .chat-quick-input:focus{outline:none;border-color:var(--gold-dim);}
 .chat-quick-send{width:36px;height:36px;background:var(--gold);border:none;border-radius:6px;color:var(--bg);font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;-webkit-tap-highlight-color:transparent;}
-.nav-dock{display:flex;height:50px;border-top:1px solid var(--border);}
+.nav-dock{display:flex;height:54px;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px);}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:var(--text-dim);gap:2px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .15s,background .15s;touch-action:manipulation;}
 .nav-btn-icon{font-size:18px;line-height:1;}
 .nav-btn-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
