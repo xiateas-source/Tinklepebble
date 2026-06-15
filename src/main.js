@@ -3199,16 +3199,11 @@ function parseMechanics(responseText){
         const pts=val.split(',').map(p=>p.trim());
         const tgt=pts[0]?.toLowerCase();const nm=pts[1]||'Item';const qty=parseInt(pts[2])||1;const type=pts[3]||'misc';const weight=parseFloat(pts[4])||0;
         const item={name:nm,qty,weight,type,notes:'',ts:state.worldData.time,location:state.worldData.location};
-        if(tgt==='wagon'||tgt==='cargo'){if(!state.wagon.cargo)state.wagon.cargo=[];state.wagon.cargo.push(item);}
-        else if(tgt==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];state.wagon.hoard.push(item);}
-        else if(tgt==='party'){if(!state.partyInventory)state.partyInventory=[];state.partyInventory.push(item);}
-        else{const pc=findPC(tgt);if(pc){if(!pc.inventory)pc.inventory=[];
-          // Deduplicate: if same item added within last 10 seconds, skip
-          const recent=pc.inventory.filter(i=>i.name===nm&&i.ts===item.ts);
-          if(!recent.length)pc.inventory.push(item);
-          else{changes.push({text:'Skipped duplicate: '+nm});return;}
-        }}
-        changes.push({text:'Added '+nm+' to '+(pts[0]||'?')});
+        const stackOrAdd=(list)=>{const ex=list.find(i=>i.name.toLowerCase()===nm.toLowerCase());if(ex){ex.qty=(ex.qty||1)+qty;return true;}list.push(item);return false;};
+        if(tgt==='wagon'||tgt==='cargo'){if(!state.wagon.cargo)state.wagon.cargo=[];const stacked=stackOrAdd(state.wagon.cargo);changes.push({text:(stacked?nm+' ×+'+qty:'+'+nm)+' → wagon'});}
+        else if(tgt==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];const stacked=stackOrAdd(state.wagon.hoard);changes.push({text:(stacked?nm+' ×+'+qty:'+'+nm)+' → hoard'});}
+        else if(tgt==='party'){if(!state.partyInventory)state.partyInventory=[];const stacked=stackOrAdd(state.partyInventory);changes.push({text:(stacked?nm+' ×+'+qty:'+'+nm)+' → party'});}
+        else{const pc=findPC(tgt);if(pc){if(!pc.inventory)pc.inventory=[];const stacked=stackOrAdd(pc.inventory);changes.push({text:(stacked?nm+' ×+'+qty:'+'+nm)+' → '+pc.name});}}
       }else if(key==='item_remove'){
         const pts=val.split(',').map(p=>p.trim());const tgt=pts[0]?.toLowerCase();const nm=pts[1]||'';const qty=parseInt(pts[2])||1;
         const remFrom=(list,n)=>{const i=list.findIndex(item=>item.name.toLowerCase()===n.toLowerCase());if(i>-1){list[i].qty-=qty;if(list[i].qty<=0)list.splice(i,1);return true;}return false;};
