@@ -732,6 +732,34 @@ function renderAll(){
   // Render relationships for active edit tab
   if(state.pcs[state.activeEditTab||0])renderRelationships(state.activeEditTab||0);
   injectPanelFlags();
+  renderContextStrip();
+}
+
+// ═══ CONTEXT STRIP ═══
+function renderContextStrip(){
+  const el=document.getElementById('context-strip');if(!el)return;
+  if(state.combat&&state.combat.active&&(state.combat.list||[]).length){
+    const round=state.combat.round||1;
+    const cur=state.combat.list[state.combat.currentIdx||0];
+    const curName=cur?cur.name:'—';
+    el.innerHTML=`<span style="color:var(--red);font-weight:600">⚔ Round ${round}</span><span style="color:var(--border)">·</span><span style="color:var(--text-dim)">${esc(curName)}'s turn</span>`;
+  }else{
+    const loc=state.worldData&&state.worldData.location?state.worldData.location:'—';
+    const scene=state.worldData&&state.worldData.scene_title?state.worldData.scene_title:'';
+    el.innerHTML=`<span style="cursor:pointer;color:var(--gold)" onclick="showTab('tab-world')">${esc(loc)}</span>`+(scene?`<span style="color:var(--border)">·</span><span style="color:var(--text-dim)">${esc(scene)}</span>`:'');
+  }
+}
+
+// ═══ COPY CONTRACTS ═══
+function copyContracts(){
+  const ids=['ai-persona','ai-never','ai-actions','ai-continuity','ai-multi'];
+  const labels=['DM Persona','Never Do','Actions','Continuity','Multi-Player'];
+  let out='AI CONTRACTS\n\n';
+  ids.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el&&el.value.trim())out+=labels[i]+':\n'+el.value.trim()+'\n\n';
+  });
+  copyText(out,'✓ Contracts copied');
 }
 
 // ═══ ESC HTML ═══
@@ -2722,6 +2750,16 @@ function migrate(s){
     if(pc.familiar===undefined)pc.familiar=null;
     if(!pc.death_saves)pc.death_saves={successes:0,failures:0};
     if(pc.inspiration===undefined)pc.inspiration=false;
+    // Character sheet rework state fields (no SAVE_VERSION bump)
+    if(pc.hp_temp===undefined)pc.hp_temp=0;
+    if(pc.exhaustion===undefined)pc.exhaustion=0;
+    if(pc.hd_used===undefined)pc.hd_used=0;
+    if(pc.personality===undefined)pc.personality='';
+    if(pc.ideals===undefined)pc.ideals='';
+    if(pc.bonds===undefined)pc.bonds='';
+    if(pc.flaws===undefined)pc.flaws='';
+    if(!Array.isArray(pc.languages))pc.languages=[];
+    if(pc.sheetLocked===undefined)pc.sheetLocked=true;
     // Seed Tinkle's rat familiar (Find Familiar active per Contract 2)
     if(pc.name==='Tinkle'&&!pc.familiar){
       pc.familiar={name:'Pip',type:'Rat (Find Familiar)',hp:1,hp_max:1,ac:10,speed:'20 ft.',
@@ -4434,6 +4472,7 @@ function renderSpellbook(idx){
         <button class="btn sm red icon-btn" onclick="event.stopPropagation();remSpell(${idx},${si})" style="flex-shrink:0">&times;</button>
       </summary>
       <div class="bs-body">
+        <div style="font-size:12px;color:${sp.desc?'var(--text)':'var(--text-dim)'};font-style:${sp.desc?'normal':'italic'};line-height:1.5;margin-bottom:10px;padding:6px 8px;background:var(--surface);border-radius:4px;white-space:pre-wrap">${sp.desc?esc(sp.desc):'No description yet'}</div>
         <div class="form-row" style="margin-bottom:8px">
           <div style="width:58px"><label class="field-label">Level</label><input type="number" min="0" max="9" value="${sp.level||0}" onchange="updSpell(${idx},${si},'level',parseInt(this.value)||0)"></div>
           <div class="fg"><label class="field-label">School</label><input type="text" value="${esc(sp.school||'')}" placeholder="Enchantment" onchange="updSpell(${idx},${si},'school',this.value)"></div>
@@ -4445,7 +4484,7 @@ function renderSpellbook(idx){
           <div class="fg"><label class="field-label">Components</label><input type="text" value="${esc(sp.components||'')}" placeholder="V, S" onchange="updSpell(${idx},${si},'components',this.value)"></div>
         </div>
         <div class="form-group"><label class="field-label">Spell Name</label><input type="text" value="${esc(sp.name||'')}" onchange="updSpell(${idx},${si},'name',this.value)"></div>
-        <div class="form-group"><label class="field-label">Description &amp; Rules</label><textarea id="spell-desc-${idx}-${si}" onchange="updSpell(${idx},${si},'desc',this.value)" style="min-height:90px;font-size:13px;line-height:1.5"></textarea></div>
+        <div class="form-group"><label class="field-label">Description &amp; Rules</label><textarea id="spell-desc-${idx}-${si}" onchange="updSpell(${idx},${si},'desc',this.value)" style="min-height:90px;font-size:13px;line-height:1.5" placeholder="Spell description, rules, and notes..."></textarea></div>
       </div>`;
     c.appendChild(d);
     const ta=d.querySelector('#spell-desc-'+idx+'-'+si);if(ta)ta.value=sp.desc||'';
@@ -5342,6 +5381,28 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.12',date:'June 2026',notes:[
+      'Theme fix: --ivory variable was undefined, breaking stat values, dice results, and modal titles across all modes',
+      'Night mode readability overhaul — text, gold, and border values raised for legibility',
+      'Hybrid parchment light mode — warm #f5efe1 background with filigree panel borders',
+      'Flag export compact format — [category|verdict] note per line, drops emoji/location/labels (~70% shorter)',
+      'Bug fix: narrative chat scroll-freeze on tab switch — requestAnimationFrame scroll-to-bottom on showChatTab',
+      'Bug fix: QA FAB z-index raised so menu no longer appears behind the dock',
+      'Bug fix: QA menu stuck open — closeQAMenu() called on showTab() and openDrawer()',
+      'Bug fix: flag save button untappable — modal z-index 1600, iOS safe-area padding added',
+      'Cantrips sub-tab (Level 0) added to Spellbook filter',
+      'Quest entries expand/collapse inline via <details> — tap to reveal full detail',
+      'Cargo/inventory multi-category filter — comma-separated item types now match across tags',
+      'Dice picker buttons now open full Roll & Submit sheet (char select, modifier, send to chat)',
+      'Context strip above HP bar — shows location · scene title; swaps to combat round/combatant during fights',
+      'Spell descriptions added inline — tap row to expand full spell text',
+      'AI Contracts: Copy All button concatenates all 5 contract textareas to clipboard',
+      'Character sheet rework: 6-tab digital sheet (Core / Skills / Combat / Spells / Gear / Features)',
+      'Sheet lock/unlock — all fields read-only during play; deliberate unlock to edit; auto-locks on close',
+      'Hit Dice pip track — tap to spend (rolls die, heals, toasts result); tap spent pip to refund',
+      'Exhaustion 0–6 pip track, Temp HP field, Death Save hearts/skulls always interactive',
+      'Languages as tap chips with + Add in Features tab; Character Soul section (Personality/Ideals/Bonds/Flaws)',
+    ]},
     {ver:'v1.11',date:'June 2026',notes:[
       'DR-7: Rolling AI summary — at 75 messages, oldest 30 are auto-summarized in background and pruned',
       'Summary stored as prevSessionSummary and injected into every AI system prompt as "CAMPAIGN HISTORY"',
@@ -5981,6 +6042,8 @@ function closeDrawer(){
     document.getElementById('nav-btn-'+k)?.classList.toggle('active',k==='log');
   });
   currentTab='tab-dm';
+  // Auto-lock all character sheets on drawer close
+  if(Array.isArray(state.pcs)){state.pcs.forEach(p=>{p.sheetLocked=true;});save();}
   renderQAMenu();
 }
 
@@ -6005,8 +6068,10 @@ function chatKeyQuick(e){
 }
 
 var _overviewIdx=null;
+var _charSheetTab=0; // 0=Core 1=Skills 2=Combat 3=Spells 4=Gear 5=Features
 function openPCOverview(idx){
   _overviewIdx=idx;
+  _charSheetTab=0;
   setStepTarget('pc',idx);
   renderPCOverview();
   const bd=document.getElementById('pc-overview-backdrop');
@@ -6014,141 +6079,384 @@ function openPCOverview(idx){
   if(bd)bd.style.display='block';
   if(sh){sh.style.display='flex';sh.style.flexDirection='column';requestAnimationFrame(()=>sh.style.transform='translateY(0)');}
 }
+function setCharSheetTab(n){_charSheetTab=n;renderPCOverview();}
+function toggleSheetLock(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  pc.sheetLocked=!pc.sheetLocked;
+  save();renderPCOverview();
+}
 function closePCOverview(){
   const bd=document.getElementById('pc-overview-backdrop');
   const sh=document.getElementById('pc-overview-sheet');
   if(sh){sh.style.transform='translateY(100%)';setTimeout(()=>{if(sh)sh.style.display='none';},260);}
   if(bd)bd.style.display='none';
+  // Auto-lock all character sheets on overview close
+  if(Array.isArray(state.pcs)){state.pcs.forEach(p=>{p.sheetLocked=true;});save();}
   _overviewIdx=null;
+  _charSheetTab=0;
 }
 function renderPCOverview(){
   const idx=_overviewIdx;if(idx===null)return;
   const pc=state.pcs[idx];if(!pc)return;
-  const lvl=pc.level||1;
-  const prof=Math.floor((lvl-1)/4)+2;
-  const mod=s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);return(m>=0?'+':'')+m;};
-  const modN=s=>{const n=parseInt(pc[s])||10;return Math.floor((n-10)/2);};
+  const locked=pc.sheetLocked!==false;
   const pct=Math.max(0,Math.min(100,(pc.hp/(pc.hp_max||1))*100));
-  const hpCol=pc.hp<=0?'var(--red)':pct<25?'#c04a3a':pct<50?'var(--gold)':'var(--green)';
-
-  // Header
-  document.getElementById('po-name').textContent=pc.name||'Character';
-  document.getElementById('po-class').textContent='Lv '+lvl+' '+esc(pc.race||'')+' '+esc(pc.class||'')+(pc.subclass?' · '+esc(pc.subclass):'');
-
-  let badge='<span class="status-badge ok">OK</span>';
-  if(pc.hp<=0)badge='<span class="status-badge dead">DOWN</span>';
-  else if(pct<50||(pc.conditions||[]).length>0)badge='<span class="status-badge warn">HURT</span>';
-  document.getElementById('po-badge').innerHTML=badge;
-
-  // Body
-  const pcConds=pc.conditions||[];
-  let condHtml='<div style="display:flex;flex-wrap:wrap;gap:4px;margin:8px 0">';
-  pcConds.forEach(c=>{condHtml+=`<span class="cond-chip active" onclick="toggleCond(${idx},'${c}');renderPCOverview()">${c} ✕</span>`;});
-  condHtml+=`<select class="mini-select" onchange="addCondFromPicker(${idx},this);setTimeout(renderPCOverview,50)"><option value="">＋ condition…</option>${ALL_CONDS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>`;
-  condHtml+='</div>';
-  const concBadge=pc.concentrating?`<div style="font-size:10px;color:var(--purple-bright);margin-bottom:6px">⬤ Concentrating: ${esc(pc.concentrating)} <button onclick="upd(${idx},'concentrating','');renderPCOverview()" style="font-size:9px;padding:1px 5px;background:none;border:1px solid var(--purple);color:var(--purple-bright);cursor:pointer;border-radius:2px;margin-left:4px">end</button></div>`:'';
-
-  let attackHtml='';
-  if((pc.attacks||[]).length){
-    attackHtml='<div style="margin:8px 0"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Attacks</div><div style="display:flex;flex-wrap:wrap;gap:5px">';
-    const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);
-    pc.attacks.forEach((a,ai)=>{
-      const b=(a.proficient!==false?prof:0)+sm(a.stat||'str')+(parseInt(a.attackBonus)||0);
-      const ds=a.damageStat==='none'?0:sm(a.damageStat||a.stat||'str');
-      const db=ds+(parseInt(a.damageBonus)||0);
-      attackHtml+=`<div onclick="rollAttack(${idx},${ai});closePCOverview()" style="background:var(--surface3);border:1px solid var(--border-bright);border-radius:5px;padding:5px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation"><div style="font-size:11px;font-weight:600;color:var(--text-bright)">${esc(a.name||'Attack')}</div><div style="font-size:10px;color:var(--gold-bright)">${b>=0?'+':''}${b} to hit &nbsp;·&nbsp; ${a.damageDie||'1d6'}${db===0?'':db>0?'+'+db:db}</div></div>`;
-    });
-    attackHtml+='</div></div>';
+  // Update fixed header elements
+  const nameEl=document.getElementById('po-name');if(nameEl)nameEl.textContent=pc.name||'Character';
+  const classEl=document.getElementById('po-class');if(classEl)classEl.textContent=(pc.class||'')+(pc.subclass?' ('+pc.subclass+')':'')+(pc.level?' Lv.'+pc.level:'')+(pc.race?' — '+pc.race:'');
+  const badgeEl=document.getElementById('po-badge');
+  if(badgeEl){
+    let badge='<span class="status-badge ok">OK</span>';
+    if(pc.hp<=0)badge='<span class="status-badge dead">DOWN</span>';
+    else if(pct<50||(pc.conditions||[]).length>0)badge='<span class="status-badge warn">HURT</span>';
+    badgeEl.innerHTML=badge+'<button class="sheet-lock-btn '+(locked?'locked':'unlocked')+'" onclick="toggleSheetLock('+idx+')" title="'+(locked?'Unlock to edit':'Lock sheet')+'" style="margin-left:8px">'+(locked?'🔒':'🔓')+'</button>';
   }
-
-  let resHtml='';
-  if((pc.resources||[]).length){
-    resHtml='<div style="margin:8px 0"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Resources</div><div style="display:flex;flex-wrap:wrap;gap:8px">';
-    pc.resources.forEach((res,ri)=>{
-      const rem=res.max-res.used;
-      let pips='';
-      for(let i=0;i<res.max;i++)pips+=`<span onclick="useResource(${idx},${ri},${i});renderPCOverview()" style="width:16px;height:16px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid var(--purple);background:${i<res.used?'var(--surface3)':'var(--purple)'}"></span>`;
-      resHtml+=`<div><div style="font-size:9px;color:var(--text-dim);margin-bottom:2px">${esc(res.name)} ${rem}/${res.max}</div><div style="display:flex;gap:3px">${pips}</div></div>`;
-    });
-    resHtml+='</div></div>';
+  const body=document.getElementById('pc-overview-body');if(!body)return;
+  body.innerHTML=renderCharSheet(idx,locked);
+  // Set textarea values after innerHTML (mobile textarea reliability)
+  if(!locked){
+    const setTA=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
+    setTA('cs-personality-'+idx,pc.personality);
+    setTA('cs-ideals-'+idx,pc.ideals);
+    setTA('cs-bonds-'+idx,pc.bonds);
+    setTA('cs-flaws-'+idx,pc.flaws);
   }
-
-  let slotHtml='';
-  if((pc.slots||[]).length){
-    slotHtml='<div style="margin:8px 0"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Spell Slots</div><div class="spell-slots">';
-    pc.slots.forEach((s,si)=>{if(!s||typeof s.max!=='number')return;slotHtml+=`<div class="slot-level"><div class="sl-label">${SPELL_LVLS[si]}</div><div class="slot-pips">`;for(let i=0;i<s.max;i++)slotHtml+=`<span class="slot-pip ${i<(s.used||0)?'used':''}" onclick="toggleSlot(${idx},${si},${i});renderPCOverview()"></span>`;slotHtml+='</div></div>';});
-    slotHtml+='</div></div>';
-  }
-
-  // Proficient skills quick view — tappable to roll
-  let topSkillsHtml='';
-  {
-    const profs=Array.isArray(pc.skillProfs)?pc.skillProfs:[];
-    const ALL_CHECKS=[['Athletics','str'],['Acrobatics','dex'],['Sleight of Hand','dex'],['Stealth','dex'],['Perception','wis'],['Insight','wis'],['Medicine','wis'],['Animal Handling','wis'],['Survival','wis'],['Persuasion','cha'],['Deception','cha'],['Intimidation','cha'],['Performance','cha'],['Arcana','int'],['History','int'],['Investigation','int'],['Nature','int'],['Religion','int']];
-    const fmtM=v=>(v>=0?'+':'')+v;
-    const profChecks=ALL_CHECKS.filter(([n])=>profs.includes(n));
-    if(profChecks.length){
-      topSkillsHtml='<div style="margin:6px 0 8px"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Proficient Skills <span style="color:var(--text-dim);font-weight:400;text-transform:none">(tap to roll)</span></div><div style="display:flex;flex-wrap:wrap;gap:4px">';
-      profChecks.forEach(([n,s])=>{
-        const score=parseInt(pc[s])||10;
-        const bonus=Math.floor((score-10)/2)+prof;
-        topSkillsHtml+=`<div onclick="rollStatCheck(${idx},'${s}','${n}')" style="font-size:10px;background:var(--surface3);border:1px solid var(--gold-dim);border-radius:4px;padding:2px 8px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation"><span style="color:var(--text-bright)">${n}</span> <span style="color:var(--gold);font-weight:700">${fmtM(bonus)}</span></div>`;
-      });
-      topSkillsHtml+='</div></div>';
-    }
-  }
-
-  // Magic overview from pc.magic text (Item 17)
-  let magicHtml='';
-  if(pc.magic&&pc.magic!=='None'&&pc.magic.trim()){
-    magicHtml=`<details style="margin:8px 0"><summary style="list-style:none;cursor:pointer;font-size:9px;font-weight:700;color:var(--purple-bright);text-transform:uppercase;letter-spacing:.7px;display:flex;align-items:center;gap:4px"><span>✨ Spells &amp; Magic</span></summary><div style="font-size:10px;color:var(--text-dim);margin-top:5px;white-space:pre-line;line-height:1.7;padding:4px 0">${esc(pc.magic)}</div></details>`;
-  }
-  // Spellbook entries with tap-to-expand descriptions (Item 13)
-  let spellbookHtml='';
-  const book=pc.spellbook||[];
-  if(book.length){
-    const LVLS=['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
-    spellbookHtml='<div style="margin:6px 0"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Spellbook ('+book.length+')</div>';
-    book.forEach(sp=>{
-      const lvl=sp.level===0?'Cantrip':(LVLS[sp.level]||sp.level+'th');
-      spellbookHtml+=`<details style="margin-bottom:3px"><summary style="list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;font-weight:600;color:var(--text-bright)">${esc(sp.name||'?')}</span><span style="font-size:9px;color:var(--purple-bright);background:rgba(138,94,106,.18);padding:1px 6px;border-radius:3px">${esc(lvl)}</span></summary><div style="font-size:10px;color:var(--text-dim);padding:5px 0 4px;line-height:1.5">${sp.castTime?'<span style="color:var(--text)">'+esc(sp.castTime)+'</span>':''}${sp.range?' · '+esc(sp.range):''}${sp.duration?' · '+esc(sp.duration):''}${sp.components?'<br>'+esc(sp.components):''}${sp.desc?'<br><span style="color:var(--text);margin-top:3px;display:block">'+esc(sp.desc)+'</span>':''}</div></details>`;
-    });
-    spellbookHtml+='</div>';
-  }
-
-  document.getElementById('pc-overview-body').innerHTML=`
-    <div style="margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
-      <div onclick="setStepTarget('pc',${idx})" class="hp-tap" style="font-size:22px;font-weight:700;color:${hpCol};font-family:var(--mono)">${pc.hp}<span style="font-size:14px;color:var(--text-dim)"> / ${pc.hp_max} HP</span></div>
-      <div style="display:flex;gap:4px"><input type="number" id="po-hpamt" style="width:52px;text-align:center;padding:4px;font-size:12px" placeholder="Amt"><button class="btn sm green" onclick="(function(){const v=parseInt(document.getElementById('po-hpamt').value);if(!v)return;state.pcs[${idx}].hp=Math.min(state.pcs[${idx}].hp_max,state.pcs[${idx}].hp+v);document.getElementById('po-hpamt').value='';saveRefresh();renderPCOverview();renderHUD();})()" style="padding:3px 8px">+</button><button class="btn sm red" onclick="(function(){const v=parseInt(document.getElementById('po-hpamt').value);if(!v)return;state.pcs[${idx}].hp=Math.max(0,state.pcs[${idx}].hp-v);document.getElementById('po-hpamt').value='';saveRefresh();renderPCOverview();renderHUD();})()" style="padding:3px 8px">−</button></div>
-    </div>
-    <div class="hp-bar-wrap" style="margin-bottom:5px"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
-    ${(()=>{const xp=pc.xp||0;const nxt=XP_T[Math.min(lvl,19)];const xpPct=nxt?Math.min(100,(xp/nxt)*100):100;return`<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><div style="flex:1;height:3px;background:var(--surface3);border-radius:2px"><div style="height:3px;width:${xpPct.toFixed(1)}%;background:var(--gold-dim);border-radius:2px;transition:width .3s"></div></div><span style="font-size:9px;color:var(--text-dim);white-space:nowrap">${xp.toLocaleString()} / ${nxt.toLocaleString()} XP</span></div>`;})()}
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:6px;text-align:center">
-      ${(()=>{const saveNames=['STR Save','DEX Save','CON Save','INT Save','WIS Save','CHA Save'];const profs=Array.isArray(pc.skillProfs)?pc.skillProfs:[];return['str','dex','con','int','wis','cha'].map((s,si)=>{const sp=profs.includes(saveNames[si]);return`<div onclick="rollStatCheck(${idx},'${s}')" style="background:var(--surface2);border-radius:5px;padding:4px 2px;border:1px solid ${sp?'var(--gold-dim)':'var(--border)'};cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation"><div style="font-size:8px;font-weight:700;color:var(--text-dim);text-transform:uppercase">${s}${sp?'<span style="color:var(--gold);margin-left:1px">●</span>':''}</div><div style="font-size:18px;font-weight:800;color:var(--gold-bright);line-height:1.1;font-family:var(--mono)">${mod(s)}</div><div style="font-size:9px;color:var(--text-dim)">${parseInt(pc[s])||10}</div></div>`;}).join('');})()}
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px;font-size:10px;text-align:center">
-      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">AC</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.ac}</div></div>
-      <div onclick="rollInitiative(${idx})" style="background:var(--surface2);padding:5px 2px;border-radius:4px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Init ⚄</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${(parseInt(pc.initiative)||0)>=0?'+':''}${parseInt(pc.initiative)||0}</div></div>
-      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Spd</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${pc.speed||30}</div></div>
-      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">PP</div><div style="font-size:15px;font-weight:700;color:var(--text-bright)">${(()=>{const ps=Array.isArray(pc.skillProfs)?pc.skillProfs:[];const wm=Math.floor((parseInt(pc.wis)||10-10)/2);return 10+wm+(ps.includes('Perception')?prof:0);})()}</div></div>
-      <div style="background:var(--surface2);padding:5px 2px;border-radius:4px"><div style="color:var(--text-dim);font-size:8px;font-weight:700;text-transform:uppercase">Prof</div><div style="font-size:15px;font-weight:700;color:var(--gold)">+${prof}</div></div>
-    </div>
-    <div id="po-roll-result" style="display:none;background:var(--surface2);border:1px solid var(--border-bright);border-radius:5px;padding:5px 8px;margin-bottom:6px;font-size:12px;align-items:center"></div>
-    ${(()=>{const eq=(pc.inventory||[]).filter(i=>GEAR_TYPES.has(i.type));return eq.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">'+eq.map(i=>`<span style="font-size:10px;background:var(--surface3);border:1px solid var(--border-bright);border-radius:3px;padding:2px 7px;color:var(--text-bright)">⚔ ${esc(i.name||'?')}</span>`).join('')+'</div>':''})()}
-    ${condHtml}${concBadge}
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <div onclick="toggleInspiration(${idx});renderPCOverview()" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:4px 10px;border-radius:5px;border:1px solid ${pc.inspiration?'var(--gold)':'var(--border)'};background:${pc.inspiration?'var(--gold-dim)':'transparent'};-webkit-tap-highlight-color:transparent;touch-action:manipulation"><span style="font-size:14px">${pc.inspiration?'⭐':'☆'}</span><span style="font-size:10px;color:${pc.inspiration?'var(--gold-bright)':'var(--text-dim)'}">Inspiration</span></div>
-      <div style="font-size:10px;color:var(--text-dim)">Prof +${prof}</div>
-    </div>
-    ${pc.hp<=0?`<div style="margin:6px 0 8px;padding:8px;background:rgba(139,58,42,.18);border:1px solid var(--red);border-radius:6px"><div style="font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Death Saves</div><div style="display:flex;gap:20px"><div><div style="font-size:8px;color:var(--green);margin-bottom:3px">Successes</div><div style="display:flex;gap:5px">${[0,1,2].map(i=>`<span onclick="toggleDeathSave(${idx},'success',${i})" style="font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;opacity:${i<(pc.death_saves?.successes||0)?1:0.2}">♥</span>`).join('')}</div></div><div><div style="font-size:8px;color:var(--red);margin-bottom:3px">Failures</div><div style="display:flex;gap:5px">${[0,1,2].map(i=>`<span onclick="toggleDeathSave(${idx},'failure',${i})" style="font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;opacity:${i<(pc.death_saves?.failures||0)?1:0.2}">💀</span>`).join('')}</div></div></div></div>`:''}
-    ${topSkillsHtml}${attackHtml}${resHtml}${slotHtml}${magicHtml}${spellbookHtml}
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn sm" style="flex:1" onclick="closePCOverview();state.activeEditTab=${idx};const d=document.getElementById('char-editor-details');if(d)d.open=true;openDrawer('tab-party')">✎ Edit Sheet</button>
-      <button class="btn sm red" onclick="if(confirm('Delete '+(state.pcs[${idx}]?.name||'character')+'?')){closePCOverview();delChar(${idx})}" style="padding:4px 10px" title="Delete character">🗑</button>
-    </div>
-  `;
+  // Roll result strip (persists across re-renders via id)
+  const rr=document.getElementById('po-roll-result');
+  if(rr)rr.style.display='none';
 }
 
+function renderCharSheet(idx,locked){
+  const pc=state.pcs[idx];if(!pc)return'';
+  const lvl=pc.level||1;
+  const prof=Math.floor((lvl-1)/4)+2;
+  const modN=s=>{const n=parseInt(pc[s])||10;return Math.floor((n-10)/2);};
+  const fmtM=v=>(v>=0?'+':'')+v;
+  const pct=Math.max(0,Math.min(100,(pc.hp/(pc.hp_max||1))*100));
+  const hpCol=pc.hp<=0?'var(--red)':pct<25?'#c04a3a':pct<50?'var(--gold)':'var(--green)';
+  const profs=Array.isArray(pc.skillProfs)?pc.skillProfs:[];
+  const ALL_SKILLS=[['Athletics','str'],['Acrobatics','dex'],['Sleight of Hand','dex'],['Stealth','dex'],['Perception','wis'],['Insight','wis'],['Medicine','wis'],['Animal Handling','wis'],['Survival','wis'],['Persuasion','cha'],['Deception','cha'],['Intimidation','cha'],['Performance','cha'],['Arcana','int'],['History','int'],['Investigation','int'],['Nature','int'],['Religion','int']];
+  const SAVES=[['STR Save','str'],['DEX Save','dex'],['CON Save','con'],['INT Save','int'],['WIS Save','wis'],['CHA Save','cha']];
+  // Get class hit die
+  const cls=(pc.class||'fighter').toLowerCase().trim();
+  const classKey=Object.keys(LEVEL_UP_DATA).find(k=>cls.includes(k));
+  const hitDie=classKey?LEVEL_UP_DATA[classKey].hit_die:8;
+  // Passive perception & insight
+  const wisMod=modN('wis');const intMod=modN('int');
+  const passPerc=10+wisMod+(profs.includes('Perception')?prof:0);
+  const passIns=10+wisMod+(profs.includes('Insight')?prof:0);
+  // XP
+  const xp=pc.xp||0;const nxtXp=XP_T[Math.min(lvl,19)];
+  const xpPct=nxtXp?Math.min(100,(xp/nxtXp)*100):100;
+
+  // ── ALWAYS-VISIBLE HEADER STRIP ──
+  const tempBadge=pc.hp_temp>0?`<span style="font-size:10px;color:var(--blue-bright);background:rgba(96,130,120,.2);border:1px solid var(--blue);border-radius:4px;padding:1px 5px;margin-left:4px">+${pc.hp_temp} temp</span>`:'';
+  const hdTotal=lvl;const hdUsed=pc.hd_used||0;const hdRem=Math.max(0,hdTotal-hdUsed);
+  const dsRow=pc.hp<=0?`<span style="font-size:11px;margin-left:6px">${[0,1,2].map(i=>`<span onclick="toggleDeathSave(${idx},'success',${i});renderPCOverview()" style="cursor:pointer;opacity:${i<(pc.death_saves?.successes||0)?1:.25}">♥</span>`).join('')}${[0,1,2].map(i=>`<span onclick="toggleDeathSave(${idx},'failure',${i});renderPCOverview()" style="cursor:pointer;opacity:${i<(pc.death_saves?.failures||0)?1:.25}">💀</span>`).join('')}</span>`:'';
+  const inspoBtn=`<span onclick="toggleInspiration(${idx});renderPCOverview()" style="cursor:pointer;font-size:14px;-webkit-tap-highlight-color:transparent">${pc.inspiration?'⭐':'☆'}</span>`;
+
+  const headerStrip=`
+  <div class="sheet-section" style="padding:8px 0 6px;border-bottom:1px solid var(--border);margin-bottom:0">
+    <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:5px">
+      <span style="font-size:13px;font-weight:700;color:${hpCol};font-family:var(--mono)" onclick="(function(){const v=parseInt(prompt('Set current HP (max ${pc.hp_max}):','${pc.hp}'));if(isNaN(v))return;state.pcs[${idx}].hp=Math.max(0,Math.min(state.pcs[${idx}].hp_max,v));saveRefresh();renderPCOverview();})()" style="cursor:pointer">${pc.hp}<span style="font-size:10px;color:var(--text-dim)">/${pc.hp_max}</span></span>${tempBadge}
+      <span style="font-size:10px;color:var(--text-dim)">HP</span>
+      <span style="width:1px;height:12px;background:var(--border);margin:0 3px"></span>
+      <span style="font-size:10px;color:var(--text-dim)">AC</span><span style="font-size:13px;font-weight:700;color:var(--text-bright)">${pc.ac}</span>
+      <span style="width:1px;height:12px;background:var(--border);margin:0 3px"></span>
+      <span style="font-size:10px;color:var(--text-dim)">Init</span><span style="font-size:13px;font-weight:700;color:var(--text-bright)">${fmtM(parseInt(pc.initiative)||0)}</span>
+      <span style="width:1px;height:12px;background:var(--border);margin:0 3px"></span>
+      <span style="font-size:10px;color:var(--text-dim)">Spd</span><span style="font-size:13px;font-weight:700;color:var(--text-bright)">${pc.speed||30}ft</span>
+      <span style="width:1px;height:12px;background:var(--border);margin:0 3px"></span>
+      ${inspoBtn}<span style="font-size:10px;color:${pc.inspiration?'var(--gold)':'var(--text-dim)'};margin-left:2px">Inspiration</span>
+    </div>
+    <div class="hp-bar-wrap" style="margin:3px 0 4px"><div class="hp-bar-fill" style="width:${pct.toFixed(1)}%;background:${hpCol}"></div></div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px;color:var(--text-dim)">
+      <span>HD: ${hdRem}/${hdTotal}d${hitDie}</span>
+      <span>Prof: <strong style="color:var(--gold)">+${prof}</strong></span>
+      <span>PP: ${passPerc}</span>
+      <span style="flex:1;height:2px;background:var(--surface3);border-radius:1px"><span style="display:block;height:2px;width:${xpPct.toFixed(1)}%;background:var(--gold-dim);border-radius:1px"></span></span>
+      <span>${xp.toLocaleString()} XP</span>
+      ${dsRow}
+    </div>
+  </div>`;
+
+  // ── ROLL RESULT STRIP (always rendered, hidden by default) ──
+  const rollResultStrip='<div id="po-roll-result" style="display:none;background:var(--surface2);border:1px solid var(--border-bright);border-radius:5px;padding:5px 8px;margin-top:6px;font-size:12px;align-items:center"></div>';
+
+  // ── TAB ROW ──
+  const TAB_NAMES=['Core','Skills','Combat','Spells','Gear','Features'];
+  const tabRow='<div class="sheet-tab-row">'+TAB_NAMES.map((t,i)=>`<button class="sheet-tab-btn${i===_charSheetTab?' active':''}" onclick="setCharSheetTab(${i})">${t}</button>`).join('')+'</div>';
+
+  // ── CORE TAB ──
+  function coreTab(){
+    const abilityTiles=['str','dex','con','int','wis','cha'].map(s=>{
+      const score=parseInt(pc[s])||10;const m=modN(s);
+      return`<div class="ability-tile" onclick="rollStatCheck(${idx},'${s}')" style="cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation">
+        <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600">${s}</div>
+        <div style="font-size:26px;font-weight:800;color:var(--text-bright);font-family:var(--mono);line-height:1.1">${locked?score:`<input type="number" value="${score}" onchange="upd(${idx},'${s}',parseInt(this.value)||10);renderPCOverview()" style="width:46px;text-align:center;font-size:22px;font-weight:800;font-family:var(--mono);background:none;border:none;border-bottom:1px solid var(--gold-dim);color:var(--text-bright);padding:0" onclick="event.stopPropagation()">`}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--gold)">${fmtM(m)}</div>
+      </div>`;
+    }).join('');
+    const savesHtml=SAVES.map(([n,s])=>{const b=modN(s);const p=profs.includes(n);const tot=p?b+prof:b;
+      return`<div class="save-row" onclick="rollStatCheck(${idx},'${s}','${n}')" style="cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation">
+        <span class="prof-dot ${p?'filled':''}" title="${p?'Proficient':'Not proficient'}"></span>
+        <span style="flex:1;font-size:11px;color:var(--text)">${n}</span>
+        <span style="font-size:12px;font-weight:700;color:${p?'var(--gold)':'var(--text-bright)'}">${fmtM(tot)}</span>
+      </div>`;
+    }).join('');
+    return`<div class="sheet-section">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">${abilityTiles}</div>
+      <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:5px">Saving Throws</div>
+      <div style="margin-bottom:12px">${savesHtml}</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:5px 10px;text-align:center;min-width:60px"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Pass. Perc.</div><div style="font-size:18px;font-weight:700;color:var(--text-bright)">${passPerc}</div></div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:5px 10px;text-align:center;min-width:60px"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Pass. Insight</div><div style="font-size:18px;font-weight:700;color:var(--text-bright)">${passIns}</div></div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:5px 10px;text-align:center;min-width:60px"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Prof Bonus</div><div style="font-size:18px;font-weight:700;color:var(--gold)">+${prof}</div></div>
+      </div>
+    </div>`;
+  }
+
+  // ── SKILLS TAB ──
+  function skillsTab(){
+    const rows=ALL_SKILLS.map(([n,s])=>{const b=modN(s);const p=profs.includes(n);const tot=p?b+prof:b;
+      return`<div class="skill-row" onclick="rollStatCheck(${idx},'${s}','${n}')" style="cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation">
+        <span class="prof-dot ${p?'filled':''}"></span>
+        <span style="flex:1;font-size:11px;color:var(--text)">${n}</span>
+        <span style="font-size:9px;color:var(--text-dim);margin-right:4px;text-transform:uppercase">${s}</span>
+        <span style="font-size:12px;font-weight:700;color:${p?'var(--gold)':'var(--text-bright)'}">${fmtM(tot)}</span>
+      </div>`;
+    }).join('');
+    return`<div class="sheet-section">${rows}</div>`;
+  }
+
+  // ── COMBAT TAB ──
+  function combatTab(){
+    // Conditions
+    const pcConds=pc.conditions||[];
+    let condHtml='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">';
+    pcConds.forEach(c=>{condHtml+=`<span class="cond-chip active" onclick="toggleCond(${idx},'${c}');renderPCOverview()">${c} ✕</span>`;});
+    condHtml+=`<select class="mini-select" onchange="addCondFromPicker(${idx},this);setTimeout(renderPCOverview,50)"><option value="">＋ condition…</option>${ALL_CONDS.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>`;
+    // Concentration
+    const concBadge=pc.concentrating?`<div style="font-size:10px;color:var(--purple-bright);margin-bottom:8px">⬤ Concentrating: ${esc(pc.concentrating)} <button onclick="upd(${idx},'concentrating','');renderPCOverview()" style="font-size:9px;padding:1px 5px;background:none;border:1px solid var(--purple);color:var(--purple-bright);cursor:pointer;border-radius:2px;margin-left:4px">end</button></div>`:'';
+    // HP controls
+    const hpControls=`<div style="margin-bottom:12px">
+      <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:5px">Hit Points</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="font-size:24px;font-weight:800;color:${hpCol};font-family:var(--mono)">${pc.hp}<span style="font-size:14px;color:var(--text-dim)">/${pc.hp_max}</span></div>
+        <div style="display:flex;gap:4px"><input type="number" id="po-hpamt" style="width:52px;text-align:center;padding:4px;font-size:12px" placeholder="Amt">
+          <button class="btn sm green" onclick="(function(){const v=parseInt(document.getElementById('po-hpamt').value);if(!v)return;state.pcs[${idx}].hp=Math.min(state.pcs[${idx}].hp_max,state.pcs[${idx}].hp+v);document.getElementById('po-hpamt').value='';saveRefresh();renderPCOverview();renderHUD();})()" style="padding:3px 8px">+</button>
+          <button class="btn sm red" onclick="(function(){const v=parseInt(document.getElementById('po-hpamt').value);if(!v)return;state.pcs[${idx}].hp=Math.max(0,state.pcs[${idx}].hp-v);document.getElementById('po-hpamt').value='';saveRefresh();renderPCOverview();renderHUD();})()" style="padding:3px 8px">−</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px"><label style="font-size:10px;color:var(--text-dim)">Temp HP:</label><input type="number" value="${pc.hp_temp||0}" min="0" style="width:52px;font-size:12px;padding:4px" onchange="state.pcs[${idx}].hp_temp=parseInt(this.value)||0;save();renderPCOverview()"></div>
+      </div>
+      <div class="hp-bar-wrap" style="margin-top:6px"><div class="hp-bar-fill" style="width:${pct.toFixed(1)}%;background:${hpCol}"></div></div>
+    </div>`;
+    // Death saves (always shown in combat tab)
+    const deathSaves=`<div style="margin-bottom:12px;padding:8px;background:rgba(139,58,42,.12);border:1px solid var(--red);border-radius:6px">
+      <div style="font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Death Saves</div>
+      <div style="display:flex;gap:20px">
+        <div><div style="font-size:8px;color:var(--green);margin-bottom:3px">Successes</div><div style="display:flex;gap:5px">${[0,1,2].map(i=>`<span onclick="toggleDeathSave(${idx},'success',${i});renderPCOverview()" style="font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;opacity:${i<(pc.death_saves?.successes||0)?1:0.22}">♥</span>`).join('')}</div></div>
+        <div><div style="font-size:8px;color:var(--red);margin-bottom:3px">Failures</div><div style="display:flex;gap:5px">${[0,1,2].map(i=>`<span onclick="toggleDeathSave(${idx},'failure',${i});renderPCOverview()" style="font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;opacity:${i<(pc.death_saves?.failures||0)?1:0.22}">💀</span>`).join('')}</div></div>
+      </div>
+    </div>`;
+    // Hit dice pips
+    const hdUsedN=pc.hd_used||0;
+    const conMod=modN('con');
+    const healAmt=Math.max(1,Math.floor(hitDie/2)+conMod);
+    let hdPips='';for(let i=0;i<lvl;i++)hdPips+=`<span onclick="csSpendHD(${idx},${i})" style="width:22px;height:22px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid var(--green);background:${i<hdUsedN?'var(--surface3)':'var(--green)'};margin:1px;transition:background .15s;-webkit-tap-highlight-color:transparent" title="${i<hdUsedN?'Spent':'Spend for ~'+healAmt+' HP'}"></span>`;
+    const hdSection=`<div style="margin-bottom:12px"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:4px">Hit Dice (${Math.max(0,lvl-hdUsedN)} of ${lvl}d${hitDie} remaining) — tap to spend</div><div style="display:flex;flex-wrap:wrap;gap:2px">${hdPips}</div></div>`;
+    // Exhaustion pips
+    const exhaust=pc.exhaustion||0;
+    let exPips='';for(let i=0;i<6;i++)exPips+=`<span onclick="csSetExhaustion(${idx},${i})" style="width:20px;height:20px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid var(--red);background:${i<exhaust?'var(--red)':'var(--surface3)'};margin:1px;transition:background .15s;-webkit-tap-highlight-color:transparent"></span>`;
+    const exhaustSection=`<div style="margin-bottom:12px"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:4px">Exhaustion (${exhaust}/6)</div><div style="display:flex;gap:2px">${exPips}</div></div>`;
+    // Resources
+    let resHtml='';
+    if((pc.resources||[]).length){
+      resHtml='<div style="margin-bottom:12px"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:5px">Class Resources</div><div style="display:flex;flex-wrap:wrap;gap:8px">';
+      pc.resources.forEach((res,ri)=>{
+        const rem=res.max-res.used;
+        let pips='';for(let i=0;i<res.max;i++)pips+=`<span onclick="useResource(${idx},${ri},${i});renderPCOverview()" style="width:16px;height:16px;border-radius:50%;display:inline-block;cursor:pointer;border:2px solid var(--purple);background:${i<res.used?'var(--surface3)':'var(--purple)'};-webkit-tap-highlight-color:transparent"></span>`;
+        resHtml+=`<div><div style="font-size:9px;color:var(--text-dim);margin-bottom:2px">${esc(res.name)} ${rem}/${res.max}</div><div style="display:flex;gap:3px">${pips}</div></div>`;
+      });
+      resHtml+='</div></div>';
+    }
+    // Attacks table
+    let atkHtml='';
+    if((pc.attacks||[]).length){
+      const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);
+      atkHtml='<div style="margin-bottom:10px"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:5px">Attacks</div>';
+      pc.attacks.forEach((a,ai)=>{
+        const b=(a.proficient!==false?prof:0)+sm(a.stat||'str')+(parseInt(a.attackBonus)||0);
+        const ds=a.damageStat==='none'?0:sm(a.damageStat||a.stat||'str');
+        const db=ds+(parseInt(a.damageBonus)||0);
+        atkHtml+=`<div onclick="rollAttack(${idx},${ai})" style="background:var(--surface3);border:1px solid var(--border-bright);border-radius:5px;padding:6px 10px;cursor:pointer;margin-bottom:5px;-webkit-tap-highlight-color:transparent;touch-action:manipulation"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;font-weight:600;color:var(--text-bright)">${esc(a.name||'Attack')}</span><span style="font-size:10px;color:var(--gold-bright)">${b>=0?'+':''}${b} to hit</span></div><div style="font-size:10px;color:var(--text-dim)">${a.damageDie||'1d6'}${db===0?'':db>0?'+'+db:db} ${a.notes?'· '+esc(a.notes):''}</div></div>`;
+      });
+      atkHtml+='</div>';
+    }
+    return`<div class="sheet-section">${hpControls}${deathSaves}${hdSection}${exhaustSection}${condHtml}${concBadge}${resHtml}${atkHtml}</div>`;
+  }
+
+  // ── SPELLS TAB ──
+  function spellsTab(){
+    let slotHtml='';
+    if((pc.slots||[]).length){
+      slotHtml='<div style="margin-bottom:12px"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:5px">Spell Slots</div><div class="spell-slots">';
+      pc.slots.forEach((s,si)=>{if(!s||typeof s.max!=='number')return;slotHtml+=`<div class="slot-level"><div class="sl-label">${SPELL_LVLS[si]}</div><div class="slot-pips">`;for(let i=0;i<s.max;i++)slotHtml+=`<span class="slot-pip ${i<(s.used||0)?'used':''}" onclick="toggleSlot(${idx},${si},${i});renderPCOverview()"></span>`;slotHtml+='</div></div>';});
+      slotHtml+='</div></div>';
+    }
+    const book=pc.spellbook||[];
+    let bookHtml='';
+    if(book.length){
+      const LVLS=['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
+      // Group by level
+      const byLvl={};book.forEach(sp=>{const k=sp.level||0;if(!byLvl[k])byLvl[k]=[];byLvl[k].push(sp);});
+      Object.keys(byLvl).sort((a,b)=>+a-+b).forEach(k=>{
+        const lvlLabel=k==='0'?'Cantrips':(LVLS[+k]||k+'th')+' Level';
+        bookHtml+=`<div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin:10px 0 4px;border-bottom:1px solid var(--border);padding-bottom:3px">${lvlLabel}</div>`;
+        byLvl[k].forEach(sp=>{
+          bookHtml+=`<details style="margin-bottom:3px"><summary style="list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;font-weight:600;color:var(--text-bright)">${esc(sp.name||'?')}</span><span style="font-size:9px;color:var(--purple-bright);background:rgba(138,94,106,.18);padding:1px 6px;border-radius:3px">${k==='0'?'Cantrip':LVLS[+k]||k+'th'}</span></summary><div style="font-size:10px;color:var(--text-dim);padding:5px 0 4px;line-height:1.5">${sp.castTime?'<span style="color:var(--text)">'+esc(sp.castTime)+'</span>':''}${sp.range?' · '+esc(sp.range):''}${sp.duration?' · '+esc(sp.duration):''}${sp.components?'<br>'+esc(sp.components):''}${sp.desc?'<br><span style="color:var(--text);margin-top:3px;display:block">'+esc(sp.desc)+'</span>':''}</div></details>`;
+        });
+      });
+    } else {bookHtml='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No spells in spellbook.</div>';}
+    if(pc.magic&&pc.magic!=='None'&&pc.magic.trim()){
+      bookHtml=`<details style="margin-bottom:8px"><summary style="list-style:none;cursor:pointer;font-size:10px;font-weight:600;color:var(--purple-bright)">✨ Spellcasting Notes</summary><div style="font-size:10px;color:var(--text-dim);margin-top:5px;white-space:pre-line;line-height:1.7">${esc(pc.magic)}</div></details>`+bookHtml;
+    }
+    return`<div class="sheet-section">${slotHtml}${bookHtml}</div>`;
+  }
+
+  // ── GEAR TAB ──
+  function gearTab(){
+    const inv=pc.inventory||[];
+    const gear=inv.filter(i=>GEAR_TYPES.has(i.type));
+    const carried=inv.filter(i=>!GEAR_TYPES.has(i.type));
+    const mkItem=(item,ii)=>{
+      if(locked){
+        const tag=item.type?`<span class="inv-tag ${item.type}" style="font-size:9px">${item.type}</span>`:'';
+        return`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border)">
+          <span style="flex:1;font-size:11px;color:var(--text-bright)">${esc(item.name||'?')}</span>
+          ${tag}<span style="font-size:10px;color:var(--text-dim)">×${item.qty||1}</span>
+          ${item.notes?`<span style="font-size:10px;color:var(--text-dim)">${esc(item.notes)}</span>`:''}
+        </div>`;
+      }else{
+        const typeOpts=PC_ITEM_TYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('');
+        return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:6px 8px;margin-bottom:5px">
+          <div style="display:flex;gap:5px;align-items:center;margin-bottom:4px">
+            <input type="text" value="${esc(item.name||'')}" style="flex:1;font-size:12px;font-weight:600" placeholder="Item" onchange="updPcItem(${idx},${ii},'name',this.value)">
+            <button class="btn sm red icon-btn" onclick="remPcItemSheet(${idx},${ii})">&times;</button>
+          </div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;font-size:11px">
+            <select style="font-size:10px;padding:2px 4px" onchange="updPcItem(${idx},${ii},'type',this.value)">${typeOpts}</select>
+            <span style="color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updPcItem(${idx},${ii},'qty',parseInt(this.value)||1)">
+            <input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updPcItem(${idx},${ii},'notes',this.value)">
+          </div>
+        </div>`;
+      }
+    };
+    let gearHtml='';
+    if(gear.length){gearHtml='<div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">⚔ Equipped</div>'+gear.map(item=>mkItem(item,inv.indexOf(item))).join('');}
+    if(carried.length){gearHtml+='<div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin:'+(gear.length?'12px':'0')+' 0 6px">🎒 Carried</div>'+carried.map(item=>mkItem(item,inv.indexOf(item))).join('');}
+    if(!inv.length)gearHtml='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No items yet.</div>';
+    if(!locked)gearHtml+=`<button class="btn sm gold" onclick="addPcItem(${idx})" style="margin-top:8px">+ Add Item</button>`;
+    // Currency (display from treasury, link)
+    const coins=state.treasuryData?.coins||state.treasuryData||{};
+    const gp=state.treasuryData?.gp||0;const sp=state.treasuryData?.sp||0;const cp=state.treasuryData?.cp||0;const pp=state.treasuryData?.pp||0;const ep=state.treasuryData?.ep||0;
+    const coinHtml=`<div style="margin-top:14px"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px">Party Currency <button onclick="closePCOverview();openTreasury()" style="font-size:9px;color:var(--gold);background:none;border:none;cursor:pointer;padding:0 4px">→ Treasury</button></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${[['CP',cp,'#a06040'],['SP',sp,'#a0a0b0'],['EP',ep,'#90a0a0'],['GP',gp,'#c8a040'],['PP',pp,'#b090c0']].map(([l,v,c])=>`<div style="background:var(--surface2);border:1px solid ${c};border-radius:6px;padding:4px 8px;text-align:center;min-width:38px"><div style="font-size:9px;color:${c};font-weight:700">${l}</div><div style="font-size:13px;font-weight:700;color:var(--text-bright)">${v}</div></div>`).join('')}
+      </div></div>`;
+    return`<div class="sheet-section">${gearHtml}${coinHtml}</div>`;
+  }
+
+  // ── FEATURES TAB ──
+  function featuresTab(){
+    // Features list
+    let featHtml='';
+    const featsRaw=pc.features||'';
+    if(featsRaw.trim()){
+      featHtml=`<details class="bs" style="margin-bottom:8px" open><summary>📜 Class Features &amp; Feats</summary><div class="bs-body"><div style="font-size:11px;color:var(--text);white-space:pre-line;line-height:1.6">${esc(featsRaw)}</div></div></details>`;
+    }
+    // Languages
+    const langs=Array.isArray(pc.languages)?pc.languages:[];
+    let langHtml=`<div style="margin-bottom:12px"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Languages</div><div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">`;
+    langs.forEach((l,li)=>{langHtml+=`<span style="font-size:11px;background:var(--surface3);border:1px solid var(--border-bright);border-radius:10px;padding:2px 8px;color:var(--text-bright)">${esc(l)}${!locked?` <button onclick="csRemLang(${idx},${li})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:0 2px;font-size:10px">✕</button>`:''}</span>`;});
+    if(!locked)langHtml+=`<button onclick="csAddLang(${idx})" class="btn sm" style="padding:2px 8px;min-height:24px;font-size:11px">+ Add</button>`;
+    langHtml+='</div></div>';
+    // Proficiencies & Skills (text)
+    const skillsRaw=pc.skills||'';
+    let skillsHtml='';
+    if(skillsRaw.trim()||!locked){
+      skillsHtml=`<div style="margin-bottom:12px"><div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px">Equipment Proficiencies &amp; Notes</div>${locked?`<div style="font-size:11px;color:var(--text);white-space:pre-line;line-height:1.6">${esc(skillsRaw)||'—'}</div>`:`<textarea id="cs-equip-profs-${idx}" onchange="upd(${idx},'skills',this.value)" style="min-height:60px"></textarea>`}</div>`;
+    }
+    // Character Soul (Personality/Ideals/Bonds/Flaws)
+    const hasSoul=pc.personality||pc.ideals||pc.bonds||pc.flaws;
+    const soulContent=locked?
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${[['Personality',pc.personality],['Ideals',pc.ideals],['Bonds',pc.bonds],['Flaws',pc.flaws]].map(([l,v])=>`<div><div style="font-size:9px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${l}</div><div style="font-size:11px;color:var(--text);line-height:1.5">${esc(v)||'—'}</div></div>`).join('')}
+      </div>`
+      :`<div style="display:flex;flex-direction:column;gap:8px">
+        ${[['Personality','cs-personality-'+idx,'personality'],['Ideals','cs-ideals-'+idx,'ideals'],['Bonds','cs-bonds-'+idx,'bonds'],['Flaws','cs-flaws-'+idx,'flaws']].map(([l,id,k])=>`<div><label class="field-label">${l}</label><textarea id="${id}" onchange="upd(${idx},'${k}',this.value)" style="min-height:50px"></textarea></div>`).join('')}
+      </div>`;
+    const soulHtml=`<details class="bs" ${hasSoul?'open':''}><summary>🧠 Character Soul</summary><div class="bs-body">${soulContent}</div></details>`;
+    // Inspiration + Prof
+    const inspoHtml=`<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <div onclick="toggleInspiration(${idx});renderPCOverview()" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;padding:4px 10px;border-radius:5px;border:1px solid ${pc.inspiration?'var(--gold)':'var(--border)'};background:${pc.inspiration?'var(--gold-dim)':'transparent'};-webkit-tap-highlight-color:transparent;touch-action:manipulation"><span style="font-size:14px">${pc.inspiration?'⭐':'☆'}</span><span style="font-size:10px;color:${pc.inspiration?'var(--gold-bright)':'var(--text-dim)'}">Inspiration</span></div>
+      <div style="font-size:11px;color:var(--text-dim)">Proficiency Bonus: <strong style="color:var(--gold)">+${prof}</strong></div>
+    </div>`;
+    return`<div class="sheet-section">${inspoHtml}${featHtml}${langHtml}${skillsHtml}${soulHtml}</div>`;
+  }
+
+  // ── ACTION ROW ──
+  const actionRow=`<div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+    <button class="btn sm" style="flex:1" onclick="closePCOverview();state.activeEditTab=${idx};const d=document.getElementById('char-editor-details');if(d)d.open=true;openDrawer('tab-party')">✎ Edit</button>
+    <button class="btn sm red" onclick="if(confirm('Delete '+(state.pcs[${idx}]?.name||'character')+'?')){closePCOverview();delChar(${idx})}" style="padding:4px 10px" title="Delete">🗑</button>
+  </div>`;
+
+  // ── ASSEMBLE ──
+  const tabContents=[coreTab,skillsTab,combatTab,spellsTab,gearTab,featuresTab];
+  const activeTab=tabContents[_charSheetTab]?tabContents[_charSheetTab]():'';
+  return headerStrip+rollResultStrip+tabRow+activeTab+actionRow;
+}
+
+
+// ═══ CHARACTER SHEET REWORK — HELPER FUNCTIONS ═══
+function csSpendHD(idx,pipIdx){
+  const pc=state.pcs[idx];if(!pc)return;
+  const hdUsed=pc.hd_used||0;const lvl=pc.level||1;
+  const cls=(pc.class||'fighter').toLowerCase().trim();
+  const classKey=Object.keys(LEVEL_UP_DATA).find(k=>cls.includes(k));
+  const hitDie=classKey?LEVEL_UP_DATA[classKey].hit_die:8;
+  const conMod=Math.floor((parseInt(pc.con)||10-10)/2);
+  if(pipIdx<hdUsed){
+    // Click on spent pip = un-spend (refund)
+    pc.hd_used=Math.max(0,hdUsed-1);
+  }else{
+    // Spend a hit die = heal
+    if(hdUsed>=lvl){toast('No hit dice remaining!');return;}
+    const roll=Math.ceil(Math.random()*hitDie);
+    const heal=Math.max(1,roll+conMod);
+    pc.hp=Math.min(pc.hp_max,(pc.hp||0)+heal);
+    pc.hd_used=hdUsed+1;
+    toast('Hit Die: d'+hitDie+'('+roll+')+'+conMod+' = '+heal+' HP healed!',2500);
+  }
+  save();renderPCOverview();renderHUD();
+}
+function csSetExhaustion(idx,pipIdx){
+  const pc=state.pcs[idx];if(!pc)return;
+  const cur=pc.exhaustion||0;
+  // Toggle: clicking the current last pip removes it; clicking new pip sets new level
+  pc.exhaustion=cur===pipIdx+1?pipIdx:pipIdx+1;
+  save();renderPCOverview();
+}
+function csAddLang(idx){
+  const lang=prompt('Add language:','');
+  if(!lang||!lang.trim())return;
+  if(!Array.isArray(state.pcs[idx].languages))state.pcs[idx].languages=[];
+  state.pcs[idx].languages.push(lang.trim());
+  save();renderPCOverview();
+}
+function csRemLang(idx,li){
+  state.pcs[idx].languages.splice(li,1);
+  save();renderPCOverview();
+}
 
 // ═══ EXPOSE ALL FUNCTIONS NEEDED BY HTML EVENT HANDLERS ═══
 // These are global because HTML onclick/oninput/etc. attributes need them
@@ -6199,4 +6507,7 @@ Object.assign(window, {
   renderStepBar, setHpStep,
   openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview,
   rsAdjMod, rsRollDice, _buildRsPills,
+  renderCharSheet, toggleSheetLock, setCharSheetTab,
+  csSpendHD, csSetExhaustion, csAddLang, csRemLang,
+  renderContextStrip, copyContracts,
 });

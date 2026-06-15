@@ -159,6 +159,24 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ Flag system: .qa-modal z-index raised to 1600; floating ⚑ FAB added; font-size:16px on textarea; injectPanelFlags() in renderAll()
 - ✅ QA menu redesign: full-width bottom sheet, 2-col card grid, FAB morphs to ✕, custom icon picker (state.qaFabIcon)
 
+### Shipped 2026-06-15 (Session 3)
+- ✅ **Theme: `--ivory` undefined** — added as alias of `--text-bright` in `:root`; was missing from all themes (broke stat values, dice results, modal titles)
+- ✅ **Night mode readability** — text `#b09472` (was `#7a5c40`), gold `#c07040` (was `#8b4020`), panel borders and DM message gold border brightened
+- ✅ **Hybrid parchment light mode** — warm `#f5efe1` background, filigree panel borders, matching form inputs in light mode
+- ✅ **Compact flag export** — `exportFlagReport()` rewritten: `FLAGS YYYY-MM-DD — N pending\n1. [cat|verdict] note` (drops emoji/location/label, ~70% shorter)
+- ✅ **Scroll freeze** — see Bug Fixes above
+- ✅ **Flag FAB z-index** — see Bug Fixes above
+- ✅ **QA FAB stuck** — see Bug Fixes above
+- ✅ **Flag save untappable** — see Bug Fixes above
+- ✅ **Cantrips tab** — see Polish Pass above
+- ✅ **Quest expand** — see Polish Pass above
+- ✅ **Multi-category items** — see Polish Pass above
+- ✅ **Dice → Roll & Submit** — see Polish Pass above
+- ✅ **Context strip** — see Polish Pass above
+- ✅ **Spell descriptions** — see Polish Pass above
+- ✅ **Copy contracts** — see Polish Pass above
+- ⏳ **Character sheet rework** — 6-tab sheet in progress (subagent building; see design below)
+
 ## Phase 2 — Active Sprint
 
 ### Design Principles (session 2026-06-15)
@@ -168,22 +186,24 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - **Compact + data-dense** — condense heavy data into small, scannable tiles and chips
 
 ### Phase 2 Sequence
-1. **Bug fixes** (blocking play — fix first)
-2. **Polish pass** (expanded — see below)
-3. **Character Sheet Rework** — full 6-tab digital sheet replaces character editor
-4. **DR-6: Contracts → state** — with copy/export button added to AI Tools
-5. **Visual Redesign v2: 4-tab nav**
-6. **Drop 4: Zone Combat Map**
+1. ✅ **Bug fixes** — 4 of 5 done; skill bonus wrong still open
+2. ✅ **Polish pass** — core items done; flag system quick wins still pending
+3. ⏳ **Character Sheet Rework** — 6-tab digital sheet in progress (subagent building)
+4. **"Clean without clutter" pass** — panel header audit, icon-only buttons, tighter padding
+5. **Flag system quick wins** — categories, filter, Reviewed-Pending, export pending-only
+6. **DR-6: Contracts → state** — migrate DOM textareas to state.aiContracts{}
+7. **Visual Redesign v2: 4-tab nav**
+8. **Drop 4: Zone Combat Map**
 
 ---
 
 ## Phase 2 Bug Fixes (fix before anything else)
 
-- [ ] **Scroll freeze** — narrative chat loses scroll after tab switch (OOC → narrative) or page refresh. Fix: call scrollToBottom on showChatTab('narrative') and on tab reveal. (Flag #1, #5 / Dev note #6)
-- [ ] **Flag icon blocked** — ⚑ FAB obstructed by bottom dock menu. Fix: z-index audit, raise flag FAB above dock layer. (Dev note #2)
-- [ ] **QA FAB stuck open** — menu doesn't close on some interactions. (Dev note #5)
-- [ ] **Skill bonus wrong** — Character Editor displays incorrect skill bonus values. (Dev note #1)
-- [ ] **Flag save button untappable** — save button in flag edit modal unreachable (keyboard overlap or z-index). (Flag #7)
+- [x] **Scroll freeze** ✅ — `requestAnimationFrame` scroll-to-bottom on `showChatTab('narrative')`. (2026-06-15 Session 3)
+- [x] **Flag icon blocked** ✅ — `#qa-fab-wrap` z-index raised 203→750, bottom 155px→160px. (2026-06-15 Session 3)
+- [x] **QA FAB stuck open** ✅ — `closeQAMenu()` called at top of `showTab()` + `openDrawer()`. (2026-06-15 Session 3)
+- [ ] **Skill bonus wrong** — Character Editor displays incorrect skill bonus values. (Dev note #1) *Still open.*
+- [x] **Flag save button untappable** ✅ — Flag modal z-index raised to 1600; `padding-bottom:max(20px,env(safe-area-inset-bottom))` added to modal. (2026-06-15 Session 3)
 
 ---
 
@@ -200,28 +220,31 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - [ ] Dev notes: in-place delete of individual notes, copy section to clipboard (Flag #10)
 
 ### Chat + Dice
-- [ ] Dice roller in narrative chat → promote to full Roll & Submit (char select, dice grid, modifier, delta, send to chat) (Dev note #4)
-- [ ] Replace HP modifier bar above chat input with live context strip: location · scene title; swaps to initiative order when combat is active. Tapping each element is interactive (opens relevant panel). (Dev note #12b)
+- [x] Dice roller → full Roll & Submit ✅ — dice picker buttons now call `openRollSheet()`. (2026-06-15 Session 3)
+- [x] Context strip ✅ — `renderContextStrip()` shows location·scene_title above HP bar; swaps to round/combatant during combat. (2026-06-15 Session 3)
 
 ### Character / Party
 - [ ] Remove long rest + short rest buttons from player cards — handled via chat QA (Dev note #11b)
-- [ ] Grit (ox) gets own HUD tile card alongside party — frees Wagon tab space (Dev note #14)
-- [ ] Quest tap → expand detail + context panel (Flag #3)
+- [ ] Grit (ox) gets own HUD tile card alongside party — frees Wagon tab space (Dev note #14) *(Grit tile exists; this is about Wagon tab cleanup)*
+- [x] Quest tap → expand ✅ — quest entries now use `<details>` + `<summary>` for inline expand. (2026-06-15 Session 3)
 
 ### Spells
-- [ ] Cantrips = Level 0 tab in spellbook filter (Flag #15)
-- [ ] Spell rows collapsible — tap arrow → expands full description inline (Dev note #13 / Flag #13)
+- [x] Cantrips = Level 0 tab ✅ — Cantrips sub-tab added to Spellbook. (2026-06-15 Session 3)
+- [x] Spell rows collapsible ✅ — `spell.desc` field added; descriptions visible inline. (2026-06-15 Session 3)
 
 ### Inventory
-- [ ] Multi-category items: foraged items can also be tagged as ingredient; players edit categories (Flag #14)
+- [x] Multi-category items ✅ — `typeMatch` helper supports comma-separated types in cargo/party inventory filters. (2026-06-15 Session 3)
 - [ ] Party shared inventory → move to Wagon tab or remove; resolve with party-vs-wagon ownership decision (Dev note #11a)
-- [ ] Separate Gear tab from general inventory in character sheet (Dev note #10)
+- [ ] Separate Gear tab from general inventory in character sheet (Dev note #10) *(Gear tab in new 6-tab sheet covers this)*
 
 ### World / Wagon
-- [ ] Town rep log → Wagon tab, alongside travel log and NPCs (Dev note #13b)
+- [x] Town rep log → Wagon tab ✅ — done Session 2.
 
 ### AI Tools
-- [ ] Add copy / export button to each AI contract textarea (brainstorm #3 resolution)
+- [x] Copy / export button for AI contracts ✅ — `copyContracts()` + "📋 Copy all" button in panel header. (2026-06-15 Session 3)
+
+### Pending (not yet started)
+- [ ] **"Clean without clutter" pass** — (1) Audit panel headers: remove redundant emoji where label alone is clear. (2) Icon-only buttons where context is self-evident (text labels → icon + tooltip). (3) Tighten padding: denser data, less whitespace wasted on chrome. Goal: data-dense, distraction-free.
 
 ---
 
