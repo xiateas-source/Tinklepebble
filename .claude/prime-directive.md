@@ -132,4 +132,4 @@ Every contract addition is a rule the AI violated in actual play. The contracts 
 
 ## THE GOAL
 
-A session terminal so complete that opening a browser is all that's needed. The wagon is loaded. Grit is hitched. The contracts are signed. The first canon session is the next thing on the list.
+A session terminal so complete that opening a browser is all that's needed. The wagon is loaded. Grit is hitched. The contracts are signed. Drop 4 puts the party on the map.

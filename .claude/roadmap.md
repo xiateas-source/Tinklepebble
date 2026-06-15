@@ -14,7 +14,7 @@ This fragment must survive every refactor. When contracts-to-state migration hap
 ---
 
 ## App Architecture
-- Single HTML file (`index.html`) — all CSS, JS, HTML inline (~7,600 lines)
+- Vite-based build: `src/main.js` + `src/style.css` → `index.html` → builds to `docs/` (deployed via GitHub Pages). `index.html` is the lean entry point; all logic lives in `src/`.
 - GitHub Pages deployment from `main` branch
 - Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` persisted to `localStorage('tt_v1')` and Firebase
@@ -52,6 +52,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - **Firebase sync** (`fbInit/fbStartListening/fbLoad/fbSave`) — clean, correct, leave it
 - **`sendMsg()` / `buildPrompt()` core loop** — `_ctxInject` injection is elegant
 - **Quick Action underlying logic** (`executeQA`, `openQASheet`) — switch dispatch + bottom-sheet is correct
+- **QA menu bottom-sheet animation and grid layout** — just shipped, let it settle before touching
 - **Checkpoint / rewind stack** — `triggerChk()` call sites are all appropriate
 - **OOC channel split** — two separate history arrays, separate context injection
 - **TTS dual-provider layer** — browser / ElevenLabs branching is clean
@@ -112,8 +113,9 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 ---
 
 ## Phase 1 — Active Sprint
+*Phase 1 COMPLETE as of 2026-06-15.*
 - [x] Context Refresh / Re-sync protocol rework
-- [ ] **Visual redesign** — D&D Beyond / Demiplane mobile style (see Visual Redesign v2). CSS pass first, then nav restructure.
+- [x] **Visual redesign** — D&D Beyond / Demiplane mobile style (see Visual Redesign v2). CSS pass first, then nav restructure.
 - [x] **Character sheet swappable tabs** — Skills / Features / Attacks / Spells / Spellbook / Gear (done 2026-06-14)
 - [x] **Auto-modifier calculation** — saves + skills live-calculated from ability scores + skillProfs (done 2026-06-15)
 - [x] Vite migration — src/style.css + src/main.js + lean index.html, builds to docs/ (done 2026-06-15)
@@ -139,31 +141,37 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ item_add mechanic stacks quantity on exact name match (Issue 21 partial)
 - ✅ Party tab: character editor open by default (`<details open>`)
 
-### Pending — Next Build (2026-06-15 session 2)
-These were discussed but not yet implemented. Implement in order:
+### Shipped 2026-06-15 (Session 2)
+- ✅ HP step customization (state.hpSteps, renderStepBar, setHpStep)
+- ✅ AI contract textareas auto-resize (field-sizing:content, JS resize on input)
+- ✅ Drawer party tab glitch fix (renderCharTabs + renderSheets on openDrawer)
+- ✅ Delete party member from PC overview (🗑 button in action row)
+- ✅ Familiar HUD tile — Pip (Tinkle's rat), purple border, opens familiar bottom sheet
+- ✅ Grit HUD tile — ox from state.wagon.ox, green border, opens Grit bottom sheet
+- ✅ Pip familiar seeded in migrate() structural guard (no SAVE_VERSION bump)
+- ✅ HUD scroll-fade gradient (::after on .global-hud)
+- ✅ Town Rep → Wagon tab
+- ✅ spell_add mechanic in parseMechanics()
+- ✅ Dice roller upgrade (screenshot-matching: char select, roll type, modifier, ±delta, d4–d%)
+- ✅ Bug 4: Firebase error toast → friendly message
+- ✅ Bug 5: closeDrawer() resets currentTab → renderQAMenu()
+- ✅ Familiar/Grit bottom sheets fixed (were rendering inline; now position:fixed transform-based)
+- ✅ Flag system: .qa-modal z-index raised to 1600; floating ⚑ FAB added; font-size:16px on textarea; injectPanelFlags() in renderAll()
+- ✅ QA menu redesign: full-width bottom sheet, 2-col card grid, FAB morphs to ✕, custom icon picker (state.qaFabIcon)
 
-1. **HP step customization** — dock ±1/±5 buttons should use `state.hpSteps=[1,5]`. Tap the step amounts to change via prompt(). Render step bar dynamically from state. Update `renderSceneLabel()` label text. Expose `setHpStep(which)` function.
+## Phase 2 — Active Sprint
 
-2. **AI contracts readable (item 16)** — Textareas in the AI Tools tab accordion are scroll boxes. Fix: auto-size the textareas to full height (no scroll) by applying JS-based auto-resize on init and on input. Also: add `field-sizing:content` CSS. The `<textarea>` elements keep their IDs (genLedger reads them). No structural change needed — just remove min-height and let them expand.
-
-3. **Drawer glitches on party tab** — `openDrawer('tab-party')` should call `renderAll()` to ensure char-tabs and edit-sheets are freshly populated. Also ensure `renderCharTabs()` + `renderSheets()` fire whenever the party drawer opens (currently relies on stale DOM). Fix: add `renderCharTabs();renderSheets();` call inside `openDrawer()` when `tabId==='tab-party'`.
-
-4. **Delete party member accessible** — `delChar(idx)` already exists and is wired in edit-sheet header. Problem: user can't find it. Add a 🗑 Delete button to `renderPCOverview()` bottom action row (next to Edit Sheet). Use `if(confirm())` guard already present in delChar.
-
-5. **Familiar HUD tile** — If any PC has `pc.familiar`, add a compact tile to `#hud-mosaic` AFTER the PC tiles. Tile shows familiar name + HP. Tap opens a familiar bottom sheet (similar to PC overview but simpler). The familiar for this campaign is Tinkle's rat from Find Familiar. HUD tile class: `hud-tile fam-tile`. Bottom sheet: `#familiar-overview`.
-
-6. **Grit profile tile in HUD** — Add Grit (the ox, `state.wagon.ox`) as a tile in `#hud-mosaic` after PC tiles and familiar tile. Shows Grit's name + HP. Tap opens a Grit info bottom sheet with HP editor, feed status, conditions, backstory, quirks. Element: `#grit-overview`.
-
-7. **Town Rep → Wagon tab** — Move `#town-rep-list` and its Add button from World tab (Operations panel) to Wagon tab, placed between Travel Log and NPCs section. Keep `renderTownRep()`, `addTownRep()`, `updTown()`, `delTown()` functions unchanged. Just move the HTML block.
-
-8. **spell_add mechanic** — In `parseMechanics()`, handle `spell_add: PCname|SpellName|level|castTime|range|duration|components|desc`. Find PC by name (case-insensitive partial match), push to `pc.spellbook[]` if not already present. Dedup on exact name match. Toast confirmation.
-
-9. **Dice roller upgrade** — Match the screenshot: Character dropdown (top), Roll Type dropdown (skill/ability/attack/custom) + Modifier number input side-by-side, pre-filled modifier pills from active roll context, quick ±delta row (-5/-1/+1/+5 same as dock), dice grid (d4 d6 d8 d10 d12 d20 d% +0). The Roll & Submit QA sheet (`#qa-roll-submit-sheet`) needs this layout. Character selection auto-fills stat modifiers into Roll Type choices.
+### Sequence
+1. **Polish pass** — QA menu card sizing/spacing on real device; flag panel header coverage audit; HUD tile tap targets
+2. **AI compliance chips** — detectUnloggedNPC() + detectUnloggedItem() confirm-chips (mirrors detectUnloggedGold pattern)
+3. **DR-6: Contracts → state** — Migrate #ai-persona, #ai-never, #ai-actions, #ai-continuity, #ai-multi from DOM textareas to state.aiContracts{}. Update buildPrompt() to read from state. Firebase-sync via STATE_KEYS. CRITICAL: Contract 1 must always include "He does not know the operation is a con. Never tell him." — validate in buildPrompt() and throw hard error if missing.
+4. **Visual Redesign v2: 4-tab nav** — Replace top tab bar with bottom nav: ⚔ Adventure (AI DM) / 📦 Logistics (World + Wagon + Combat) / 📜 Sheet (Party) / ⚙ Systems (AI Tools + Session + Dev + Setup). This is prerequisite for Drop 4.
+5. **Drop 4: Zone Combat Map** — Replaces Combat tab. 6 spatial zones. AI emits zone_move: mechanic. Mobile-first zone grid with token tiles.
 
 ---
 
 ## Visual Redesign v2 — D&D Beyond / Demiplane Mobile
-*Reference: ec66b7c1-Preview.html (provided 2026-06-14). Confirmed approach: CSS pass first, nav restructure second.*
+*In progress — 4-tab nav is the first deliverable. Card styling and bottom sheet animations already live from QA menu redesign.*
 
 **Key visual patterns:**
 - Cards: `border-left: 3px solid var(--accent-brass)` + `border-radius: 8px` + drop shadow
@@ -195,6 +203,7 @@ These were discussed but not yet implemented. Implement in order:
 - ✅ Spell/inventory filter sliders — Spellbook level filter done 2026-06-15; wagon already had type filters
 - **Expand term glossary** — Add 50+ more terms (class features, conditions, action types). Low effort.
 - **Compendium quick-lookup** — Search bar in Rules tab or as modal; offline SRD snippets.
+- **Inventory UX overhaul (Issue 21)** — subcategories, fuzzy dedup at item_add, name truncation fix.
 
 ### Medium-term
 - **Character Builder wizard** — Guided: race → class → background → stats → skills → equipment. Reuses level-up wizard architecture. Medium effort.
@@ -267,3 +276,19 @@ Fix: Setup steps become deep-links into World tab when `campaignLaunched`.
 - SHEET_FIELDS double-clobber — FIXED 2026-06-14 (both loadState + fbStartListening)
 - Subclass display on cards + sheet — DONE 2026-06-14
 - Current HP field on sheet — DONE 2026-06-14
+- HP step customization (state.hpSteps, renderStepBar, setHpStep) — DONE 2026-06-15 (Session 2)
+- AI contract textareas auto-resize (field-sizing:content, JS resize on input) — DONE 2026-06-15 (Session 2)
+- Drawer party tab glitch (renderCharTabs + renderSheets on openDrawer) — FIXED 2026-06-15 (Session 2)
+- Delete party member from PC overview (🗑 button in action row) — DONE 2026-06-15 (Session 2)
+- Familiar HUD tile — Pip (Tinkle's rat), purple border, opens familiar bottom sheet — DONE 2026-06-15 (Session 2)
+- Grit HUD tile — ox from state.wagon.ox, green border, opens Grit bottom sheet — DONE 2026-06-15 (Session 2)
+- Pip familiar seeded in migrate() structural guard (no SAVE_VERSION bump) — DONE 2026-06-15 (Session 2)
+- HUD scroll-fade gradient (::after on .global-hud) — DONE 2026-06-15 (Session 2)
+- Town Rep moved to Wagon tab — DONE 2026-06-15 (Session 2)
+- spell_add mechanic in parseMechanics() — DONE 2026-06-15 (Session 2)
+- Dice roller upgrade (char select, roll type, modifier, ±delta, d4–d%) — DONE 2026-06-15 (Session 2)
+- Bug 4: Firebase error toast → friendly message — FIXED 2026-06-15 (Session 2)
+- Bug 5: closeDrawer() resets currentTab → renderQAMenu() — FIXED 2026-06-15 (Session 2)
+- Familiar/Grit bottom sheets fixed (were rendering inline; now position:fixed transform-based) — FIXED 2026-06-15 (Session 2)
+- Flag system: .qa-modal z-index raised to 1600; floating ⚑ FAB added; font-size:16px on textarea; injectPanelFlags() in renderAll() — DONE 2026-06-15 (Session 2)
+- QA menu redesign: full-width bottom sheet, 2-col card grid, FAB morphs to ✕, custom icon picker (state.qaFabIcon) — DONE 2026-06-15 (Session 2)
