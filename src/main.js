@@ -4522,6 +4522,12 @@ function renderQAMenu(){
   if(titleEl)titleEl.textContent=tabLabels[currentTab]||'Quick Actions';
   const actions=(state.quickActions||[]).filter(a=>(a.context||[]).includes(currentTab));
   body.innerHTML='';
+  // Permanent flag card — always first regardless of context
+  const flagCard=document.createElement('div');
+  flagCard.className='qa-card qa-flag-card';
+  flagCard.innerHTML='<span class="qa-card-icon">⚑</span><span class="qa-card-label">Flag This Moment</span>';
+  flagCard.onclick=()=>{closeQAMenu();openFlagModal(-1,'');};
+  body.appendChild(flagCard);
   if(!actions.length){body.innerHTML='<div style="padding:20px;font-size:12px;color:var(--text-dim);text-align:center">No actions for this tab.<br><em style="font-size:11px">Add some in AI Tools → Quick Actions.</em></div>';return;}
   const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘️',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'🎲',roleplay_npc:'🗣️',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',module_checkin:'📋',custom:'⚙️'};
   const PINNED=['qa_8','qa_13','qa_11'];
@@ -5721,6 +5727,22 @@ function setHpStep(which){
   state.hpSteps[which]=v;
   save();renderStepBar();renderSceneLabel();
 }
+function openStepConfig(){
+  const [sm,lg]=(state.hpSteps&&state.hpSteps.length===2)?state.hpSteps:[1,5];
+  openQASheet('⚙ Configure HP Steps',`
+    <div class="form-row">
+      <div class="fg"><label class="field-label">Small step (inner buttons)</label><input type="number" id="sc-sm" value="${sm}" min="1" max="99" style="font-size:20px;text-align:center;padding:8px"></div>
+      <div class="fg"><label class="field-label">Large step (outer buttons)</label><input type="number" id="sc-lg" value="${lg}" min="1" max="999" style="font-size:20px;text-align:center;padding:8px"></div>
+    </div>
+    <p style="font-size:11px;color:var(--text-dim);margin-top:8px">Common: 1&amp;5 for fine control · 5&amp;10 for boss fights · 1&amp;10 for ranged skirmishes</p>`,
+    ()=>{
+      const s=parseInt(document.getElementById('sc-sm').value)||1;
+      const l=parseInt(document.getElementById('sc-lg').value)||5;
+      state.hpSteps=[Math.min(s,l),Math.max(s,l)];
+      save();renderStepBar();renderSceneLabel();closeQAModal();
+      toast('✓ HP steps set to ±'+state.hpSteps[0]+' / ±'+state.hpSteps[1]);
+    });
+}
 function openFamiliarOverview(pcIdx){
   const pc=state.pcs[pcIdx];if(!pc||!pc.familiar)return;
   const f=pc.familiar;
@@ -5837,6 +5859,7 @@ function openDrawer(tabId){
   if(tabId==='tab-session'){showSessionMode('play');}
   clearTabBadge(tabId);
   renderQAMenu();
+  setTimeout(injectPanelFlags,150);
 }
 
 function closeDrawer(){
@@ -6030,7 +6053,7 @@ Object.assign(window, {
   handlePluginCmd, importConfig, importFromPaste, justSave, launchCampaign,
   loadPreset, lockPremise, logTurn, markChkDone,
   navTo, nextTurn, oocKey, openDashboard, openDrawer, openFlagModal,
-  openLevelUpWizard, openPCOverview, openTreasury, partyKey,
+  openLevelUpWizard, openPCOverview, openRollSheet, openStepConfig, openTreasury, partyKey,
   pcLongRest, pcShortRest, prevTurn, quickD20, quickRoll,
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,

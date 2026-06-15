@@ -1034,12 +1034,15 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 </div>
 <!-- BOTTOM DOCK -->
 <footer class="lower-dock">
-  <div id="step-target-label" class="step-target-label" style="display:block">Tap a name above to select · then ±1 / ±5 adjusts HP</div>
-  <div id="step-bar" class="step-bar">
+  <div id="step-target-label" class="step-target-label" style="display:block">Tap a name above to select · then adjust HP below</div>
+  <div style="display:flex;align-items:center;gap:4px">
+  <div id="step-bar" class="step-bar" style="flex:1">
     <button class="step-btn dec" onclick="executeStep(-5)">-5</button>
     <button class="step-btn dec" onclick="executeStep(-1)">-1</button>
     <button class="step-btn inc" onclick="executeStep(1)">+1</button>
     <button class="step-btn inc" onclick="executeStep(5)">+5</button>
+  </div>
+  <button onclick="openStepConfig()" title="Configure HP steps" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:13px;color:var(--text-dim);cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent">⚙</button>
   </div>
   <div id="dock-dice-panel" style="display:none;flex-wrap:wrap;gap:4px;padding:7px 10px;background:var(--bg);border-bottom:1px solid var(--border)">
     <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;width:100%">
@@ -1056,7 +1059,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
   </div>
   <div class="chat-quick-bar">
     <button class="btn sm" onclick="justSave()" title="Save game" style="padding:5px 9px;min-height:36px;flex-shrink:0">💾</button>
-    <button class="btn sm" onclick="toggleDockDice()" title="Dice" id="dice-picker-btn" style="padding:5px 9px;min-height:36px;flex-shrink:0">🎲</button>
+    <button class="btn sm" onclick="openRollSheet()" title="Roll & Submit" id="dice-picker-btn" style="padding:5px 9px;min-height:36px;flex-shrink:0">🎲</button>
     <input type="text" class="chat-quick-input" id="chat-quick-input" placeholder="Command AI DM…" onkeydown="chatKeyQuick(event)">
     <button class="chat-quick-send" onclick="sendMsgQuick()">▶</button>
   </div>
@@ -1131,7 +1134,6 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 </div>
 <div id="qa-fab-wrap" style="position:fixed;bottom:calc(155px + env(safe-area-inset-bottom,0px));right:16px;z-index:203;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none;user-select:none">
   <button class="qa-fab" id="qa-fab" onclick="toggleQAMenu()" title="Quick Actions">⚡</button>
-  <button class="qa-fab-flag" id="flag-fab" onclick="openFlagModal(-1,'')" title="Flag This Moment">⚑</button>
 </div>
 
 <!-- LEVEL UP MODAL (bottom sheet) -->
