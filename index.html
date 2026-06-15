@@ -1601,8 +1601,7 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
 .hud-spark.warn{background:#cc8b3c;}
 .hud-spark.danger{background:var(--red);}
 .hud-meta{display:flex;align-items:center;gap:7px;flex-shrink:0;}
-.hud-gp{font-family:var(--mono);background:var(--surface2);padding:4px 8px;border-radius:4px;font-size:11px;color:var(--gold);cursor:pointer;border:1px solid var(--border);font-weight:600;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
-.hud-gp.active-target{border-color:var(--gold);box-shadow:0 0 0 2px rgba(176,88,48,.3);}
+.hud-gp{font-family:var(--mono);background:var(--surface2);padding:4px 8px;border-radius:4px;font-size:11px;color:var(--gold);cursor:pointer;border:1px solid var(--gold-dim);font-weight:600;white-space:nowrap;-webkit-tap-highlight-color:transparent;transition:background .15s;}
 /* Main canvas — tab-dm always fills remaining space */
 #tab-dm{display:flex!important;flex-direction:column;flex:1;overflow:hidden;padding:0!important;animation:none!important;min-height:0;}
 #tab-dm .grid-1{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
@@ -1771,7 +1770,7 @@ details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-web
 <header class="global-hud">
   <div class="hud-mosaic" id="hud-mosaic"></div>
   <div class="hud-meta">
-    <div class="hud-gp" id="hud-gp" onclick="setStepTarget('gp',0)">0gp</div>
+    <div class="hud-gp" id="hud-gp" onclick="openTreasury()">0gp</div>
     <span class="autosave-dot" id="as-dot"></span>
     <span id="as-lbl" style="display:none"></span>
     <span id="fb-status-mini" style="display:none"></span>
@@ -1870,37 +1869,16 @@ details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-web
     </div>
     <div class="grid-2">
       <div class="col">
-        <div class="panel">
-          <div class="panel-title">Environment</div>
-          <div class="form-row"><div class="fg"><label class="field-label">Time</label><input type="text" id="w_time" oninput="sw('time',this.value)"></div><div class="fg"><label class="field-label">Season</label><input type="text" id="w_season" oninput="sw('season',this.value)"></div></div>
-          <div class="form-row"><div class="fg"><label class="field-label">Weather</label><input type="text" id="w_weather" oninput="sw('weather',this.value)"></div><div class="fg"><label class="field-label">Illumination</label><input type="text" id="w_illum" oninput="sw('illum',this.value)"></div></div>
-          <div class="form-group"><label class="field-label">Current Location</label><input type="text" id="w_location" oninput="sw('location',this.value)"></div>
-          <div class="form-group"><label class="field-label">Location Description</label><textarea id="w_loc_desc" oninput="sw('loc_desc',this.value)"></textarea></div>
-          <div class="form-group"><label class="field-label">Campaign Setting / World Notes</label><textarea id="w_setting" style="min-height:60px" oninput="sw('setting',this.value)" placeholder="Unknown — discovering as we play..."></textarea></div>
-        </div>
-        <div class="panel">
-          <div class="panel-title">Treasury</div>
-          <div class="form-row">
-            <div class="fg"><label class="field-label">PP</label><input type="number" id="t_pp" oninput="st('pp',this.value)"></div>
-            <div class="fg"><label class="field-label">GP</label><input type="number" id="t_gp" oninput="st('gp',this.value)"></div>
-            <div class="fg"><label class="field-label">EP</label><input type="number" id="t_ep" oninput="st('ep',this.value)"></div>
-            <div class="fg"><label class="field-label">SP</label><input type="number" id="t_sp" oninput="st('sp',this.value)"></div>
-            <div class="fg"><label class="field-label">CP</label><input type="number" id="t_cp" oninput="st('cp',this.value)"></div>
+        <details class="panel">
+          <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Environment</summary>
+          <div style="margin-top:8px">
+            <div class="form-row"><div class="fg"><label class="field-label">Time</label><input type="text" id="w_time" oninput="sw('time',this.value)"></div><div class="fg"><label class="field-label">Season</label><input type="text" id="w_season" oninput="sw('season',this.value)"></div></div>
+            <div class="form-row"><div class="fg"><label class="field-label">Weather</label><input type="text" id="w_weather" oninput="sw('weather',this.value)"></div><div class="fg"><label class="field-label">Illumination</label><input type="text" id="w_illum" oninput="sw('illum',this.value)"></div></div>
+            <div class="form-group"><label class="field-label">Current Location</label><input type="text" id="w_location" oninput="sw('location',this.value)"></div>
+            <div class="form-group"><label class="field-label">Location Description</label><textarea id="w_loc_desc" oninput="sw('loc_desc',this.value)"></textarea></div>
+            <div class="form-group"><label class="field-label">Campaign Setting / World Notes</label><textarea id="w_setting" style="min-height:60px" oninput="sw('setting',this.value)" placeholder="Unknown — discovering as we play..."></textarea></div>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 2px;font-size:11px">
-            <span id="treasury-total" style="color:var(--gold);font-weight:600"></span>
-            <span id="session-pl" style="color:var(--text-dim)"></span>
-          </div>
-          <div class="form-group"><label class="field-label">Lifestyle</label><input type="text" id="t_lifestyle" oninput="st('lifestyle',this.value)"></div>
-          <div class="panel-title" style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;margin-bottom:6px">Income / Expense Log</div>
-          <div id="income-log" style="max-height:160px;overflow-y:auto;margin-bottom:8px;"></div>
-          <div class="form-row" style="align-items:flex-end">
-            <div class="fg"><label class="field-label">Description</label><input type="text" id="inc-desc" placeholder="Sold mushrooms..."></div>
-            <div style="width:70px"><label class="field-label">GP</label><input type="number" id="inc-amt" placeholder="5"></div>
-            <select id="inc-type" style="width:90px;padding:6px"><option value="in">Income</option><option value="out">Expense</option></select>
-            <button class="btn sm green" onclick="addIncome()">Add</button>
-          </div>
-        </div>
+        </details>
       </div>
       <div class="col">
         <div class="panel"><div class="panel-title">NPCs <button class="btn sm" style="margin-left:auto" onclick="addNPC()">+ Add</button></div><div id="npc-list"></div></div>
@@ -2616,6 +2594,36 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 </div>
 </div>
 
+<!-- TREASURY MODAL (floating panel, opened via GP icon) -->
+<div id="treasury-modal" style="display:none;position:fixed;top:58px;right:8px;width:min(320px,calc(100vw - 16px));background:var(--surface);border:1px solid var(--gold-dim);border-radius:10px;padding:14px;z-index:850;box-shadow:0 10px 40px rgba(0,0,0,.75);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span style="font-family:var(--serif);font-size:14px;color:var(--gold);font-weight:600">💰 Treasury</span>
+    <div style="display:flex;gap:5px;align-items:center">
+      <span id="treasury-total" style="font-size:11px;color:var(--gold);font-weight:600"></span>
+      <button class="btn sm" onclick="closeTreasury()">✕</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:8px">
+    <div><label class="field-label" style="font-size:9px">PP</label><input type="number" id="t_pp" oninput="st('pp',this.value)" style="text-align:center;padding:4px;font-size:12px"></div>
+    <div><label class="field-label" style="font-size:9px">GP</label><input type="number" id="t_gp" oninput="st('gp',this.value)" style="text-align:center;padding:4px;font-size:12px;border-color:var(--gold-dim)"></div>
+    <div><label class="field-label" style="font-size:9px">EP</label><input type="number" id="t_ep" oninput="st('ep',this.value)" style="text-align:center;padding:4px;font-size:12px"></div>
+    <div><label class="field-label" style="font-size:9px">SP</label><input type="number" id="t_sp" oninput="st('sp',this.value)" style="text-align:center;padding:4px;font-size:12px"></div>
+    <div><label class="field-label" style="font-size:9px">CP</label><input type="number" id="t_cp" oninput="st('cp',this.value)" style="text-align:center;padding:4px;font-size:12px"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:11px">
+    <span id="session-pl" style="color:var(--text-dim);flex:1"></span>
+    <label class="field-label" style="margin:0;font-size:10px">Lifestyle</label>
+    <input type="text" id="t_lifestyle" oninput="st('lifestyle',this.value)" style="width:90px;font-size:11px;padding:3px 5px">
+  </div>
+  <div id="income-log" style="max-height:120px;overflow-y:auto;margin-bottom:8px;border-top:1px solid var(--border);padding-top:6px"></div>
+  <div style="display:flex;gap:4px;align-items:flex-end">
+    <input type="text" id="inc-desc" placeholder="Description…" style="flex:1;font-size:11px;padding:4px">
+    <input type="number" id="inc-amt" placeholder="GP" style="width:50px;font-size:11px;padding:4px">
+    <select id="inc-type" style="width:64px;font-size:11px;padding:4px"><option value="in">In</option><option value="out">Out</option></select>
+    <button class="btn sm green" onclick="addIncome()">Add</button>
+  </div>
+</div>
+
 <!-- DRAWER OVERLAY -->
 <div id="drawer-backdrop" class="drawer-backdrop" onclick="closeDrawer()"></div>
 <div id="drawer-sheet" class="drawer-sheet">
@@ -2636,9 +2644,22 @@ When the party travels through wilderness, arrives at a new outdoor location, or
     <button class="step-btn inc" onclick="executeStep(1)">+1</button>
     <button class="step-btn inc" onclick="executeStep(5)">+5</button>
   </div>
+  <div id="dock-dice-panel" style="display:none;flex-wrap:wrap;gap:4px;padding:7px 10px;background:var(--bg);border-bottom:1px solid var(--border)">
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;width:100%">
+      <button class="btn sm gold" onclick="quickRoll(4,'dock-dice-mod','dock-dice-result')" style="min-width:32px;padding:4px 6px">d4</button>
+      <button class="btn sm gold" onclick="quickRoll(6,'dock-dice-mod','dock-dice-result')" style="min-width:32px;padding:4px 6px">d6</button>
+      <button class="btn sm gold" onclick="quickRoll(8,'dock-dice-mod','dock-dice-result')" style="min-width:32px;padding:4px 6px">d8</button>
+      <button class="btn sm gold" onclick="quickRoll(10,'dock-dice-mod','dock-dice-result')" style="min-width:34px;padding:4px 6px">d10</button>
+      <button class="btn sm gold" onclick="quickRoll(12,'dock-dice-mod','dock-dice-result')" style="min-width:34px;padding:4px 6px">d12</button>
+      <button class="btn sm gold" onclick="quickRoll(20,'dock-dice-mod','dock-dice-result')" style="min-width:34px;padding:4px 6px">d20</button>
+      <button class="btn sm gold" onclick="quickRoll(100,'dock-dice-mod','dock-dice-result')" style="min-width:36px;padding:4px 6px">d%</button>
+      <input type="number" id="dock-dice-mod" placeholder="+0" style="width:44px;padding:3px 4px;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px" title="Modifier">
+    </div>
+    <div id="dock-dice-result" style="width:100%;text-align:center;font-family:var(--mono);font-size:16px;font-weight:bold;min-height:20px;margin-top:2px;color:var(--text-bright)"></div>
+  </div>
   <div class="chat-quick-bar">
     <button class="btn sm" onclick="justSave()" title="Save game" style="padding:5px 9px;min-height:36px;flex-shrink:0">💾</button>
-    <button class="btn sm" onclick="toggleDicePicker()" title="Dice" id="dice-picker-btn" style="padding:5px 9px;min-height:36px;flex-shrink:0">🎲</button>
+    <button class="btn sm" onclick="toggleDockDice()" title="Dice" id="dice-picker-btn" style="padding:5px 9px;min-height:36px;flex-shrink:0">🎲</button>
     <input type="text" class="chat-quick-input" id="chat-quick-input" placeholder="Command AI DM…" onkeydown="chatKeyQuick(event)">
     <button class="chat-quick-send" onclick="sendMsgQuick()">▶</button>
   </div>
@@ -3139,6 +3160,37 @@ window.addEventListener('DOMContentLoaded',()=>{
       if(el)drawerBody.appendChild(el);
     });
   }
+  // Swipe-down to close drawer (on handle + header area only)
+  (()=>{
+    const sheet=document.getElementById('drawer-sheet');
+    if(!sheet)return;
+    let _sy=0,_tracking=false;
+    const handles=['.drawer-handle','.drawer-hdr'];
+    handles.forEach(sel=>{
+      const el=sheet.querySelector(sel);
+      if(!el)return;
+      el.addEventListener('touchstart',e=>{_sy=e.touches[0].clientY;_tracking=true;},{passive:true});
+    });
+    sheet.addEventListener('touchmove',e=>{
+      if(!_tracking)return;
+      const dy=e.touches[0].clientY-_sy;
+      if(dy>0)sheet.style.transform='translateY('+dy+'px)';
+    },{passive:true});
+    sheet.addEventListener('touchend',e=>{
+      if(!_tracking)return;
+      _tracking=false;
+      const dy=e.changedTouches[0].clientY-_sy;
+      if(dy>80){closeDrawer();}
+      else{sheet.style.transform='';}
+    },{passive:true});
+    sheet.addEventListener('touchcancel',()=>{_tracking=false;sheet.style.transform='';},{passive:true});
+  })();
+  // Close treasury when clicking outside
+  document.addEventListener('click',e=>{
+    const m=document.getElementById('treasury-modal');
+    const gp=document.getElementById('hud-gp');
+    if(m&&m.style.display!=='none'&&!m.contains(e.target)&&e.target!==gp){m.style.display='none';}
+  });
   renderAll();genLedger();
   renderQAMenu();
   showSessionMode('play'); // set initial session mode
@@ -3682,7 +3734,8 @@ function renderTreasuryTotal(){
   const td=state.treasuryData;
   const total=(parseFloat(td.pp)||0)*10+(parseFloat(td.gp)||0)+(parseFloat(td.ep)||0)*0.5+(parseFloat(td.sp)||0)*0.1+(parseFloat(td.cp)||0)*0.01;
   const el=document.getElementById('treasury-total');
-  if(el)el.textContent=total>0?'≈ '+total.toFixed(total%1===0?0:1)+' gp total':'';
+  if(el)el.textContent=total>0?'≈ '+total.toFixed(total%1===0?0:1)+' gp':'';
+  renderHUD();
   renderSessionPL();
 }
 function renderSessionPL(){
@@ -6228,8 +6281,9 @@ function toggleDicePicker(){
   p.style.pointerEvents=open?'none':'auto';
   if(b)b.style.background=open?'':'var(--gold-dim)';
 }
-function quickRoll(sides){
-  const modEl=document.getElementById('dice-mod-quick');
+function quickRoll(sides,modId,resultId){
+  modId=modId||'dice-mod-quick';resultId=resultId||'dice-result';
+  const modEl=document.getElementById(modId);
   const modRaw=(modEl?.value||'').trim().replace(/^\+/,'');
   const mod=parseInt(modRaw)||0;
   const roll=Math.floor(Math.random()*sides)+1;
@@ -6238,13 +6292,8 @@ function quickRoll(sides){
   const modStr=mod!==0?(mod>0?' + '+mod+' = '+total:' - '+Math.abs(mod)+' = '+total):'';
   const result='🎲 d'+sides+': '+roll+modStr+(nat?' ('+nat+')':'');
   const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  // haptic on the landing
   if(navigator.vibrate)try{navigator.vibrate(roll===sides||roll===1?[10,30,10]:[8,24]);}catch(e){}
-  // tactile button press
-  const btn=document.querySelector('#dice-picker-panel button[onclick="quickRoll('+sides+')"]');
-  if(btn&&!reduce){btn.style.transition='transform .12s ease';btn.style.transform='scale(1.18)';setTimeout(()=>{btn.style.transform='scale(1)';},120);}
-  // slot-machine flicker, then settle on the real number with a color cue
-  const disp=document.getElementById('dice-result');
+  const disp=document.getElementById(resultId);
   if(disp){
     const col=roll===sides?'var(--gold-bright)':(roll===1?'var(--red)':'var(--text-bright)');
     const settle=()=>{
@@ -6268,6 +6317,30 @@ function quickRoll(sides){
   saveRefresh();
   const cm=document.getElementById('chat-msgs');
   if(cm)cm.scrollTop=cm.scrollHeight;
+}
+function toggleDockDice(){
+  const p=document.getElementById('dock-dice-panel');
+  const b=document.getElementById('dice-picker-btn');
+  if(!p)return;
+  const open=p.style.display!=='none';
+  p.style.display=open?'none':'flex';
+  if(b)b.style.background=open?'':'var(--gold-dim)';
+}
+function openTreasury(){
+  const m=document.getElementById('treasury-modal');
+  if(!m)return;
+  const isOpen=m.style.display!=='none';
+  if(isOpen){m.style.display='none';return;}
+  // Sync current values
+  const td=state.treasuryData||{};
+  ['pp','gp','ep','sp','cp'].forEach(k=>{const el=document.getElementById('t_'+k);if(el)el.value=td[k]||0;});
+  const lf=document.getElementById('t_lifestyle');if(lf)lf.value=td.lifestyle||'';
+  renderTreasuryTotal();renderIncome();
+  m.style.display='block';
+}
+function closeTreasury(){
+  const m=document.getElementById('treasury-modal');
+  if(m)m.style.display='none';
 }
 function quickD20(){const r=Math.floor(Math.random()*20)+1;const inp=document.getElementById('chat-input');if(inp){inp.value=inp.value+(inp.value?' ':'')+'[d20 = '+r+']';}}
 
@@ -8056,10 +8129,7 @@ function renderHUD(){
   // GP
   const gp=parseFloat((state.treasuryData||{}).gp)||0;
   const gpEl=document.getElementById('hud-gp');
-  if(gpEl){
-    gpEl.textContent=(gp%1===0?Math.round(gp):gp.toFixed(1))+'gp';
-    gpEl.classList.toggle('active-target',!!(_stepTarget&&_stepTarget.type==='gp'));
-  }
+  if(gpEl)gpEl.textContent=(gp%1===0?Math.round(gp):gp.toFixed(1))+'gp';
   // Sync dot
   const syncDot=document.getElementById('as-dot');
   // (already managed by existing save() / justSave() code via class toggles)
@@ -8067,27 +8137,18 @@ function renderHUD(){
 
 function setStepTarget(type,idx){
   _stepTarget={type:type,idx:idx};
-  // Update HUD tile highlights
   document.querySelectorAll('.hud-tile').forEach(t=>t.classList.remove('active-target'));
-  const gpEl=document.getElementById('hud-gp');
-  if(gpEl)gpEl.classList.remove('active-target');
   if(type==='pc'){
     const tile=document.getElementById('hud-tile-'+idx);
     if(tile)tile.classList.add('active-target');
     const pc=state.pcs[idx];
-    // Update step label
     const lbl=document.getElementById('step-target-label');
-    if(lbl){lbl.style.display='block';lbl.textContent='Target: '+(pc?.name||'PC')+' HP ('+( parseInt(pc?.hp)||0)+'/'+(parseInt(pc?.hp_max)||1)+')';}
-  } else if(type==='gp'){
-    if(gpEl)gpEl.classList.add('active-target');
-    const lbl=document.getElementById('step-target-label');
-    const gp=parseFloat((state.treasuryData||{}).gp)||0;
-    if(lbl){lbl.style.display='block';lbl.textContent='Target: Gold Pieces ('+gp+'gp)';}
+    if(lbl){lbl.style.display='block';lbl.textContent='Target: '+(pc?.name||'PC')+' HP ('+(parseInt(pc?.hp)||0)+'/'+(parseInt(pc?.hp_max)||1)+')';}
   }
 }
 
 function executeStep(delta){
-  if(!_stepTarget){toast('Tap a party tile or GP to set target');return;}
+  if(!_stepTarget){toast('Tap a party tile to set HP target');return;}
   const t=_stepTarget;
   if(t.type==='pc'){
     const pc=state.pcs[t.idx];
@@ -8098,21 +8159,8 @@ function executeStep(delta){
     pc.hp=hp;
     const lbl=document.getElementById('step-target-label');
     if(lbl)lbl.textContent='Target: '+(pc.name||'PC')+' HP ('+hp+'/'+max+')';
-    renderHUD();
-    renderCards();
-    save();
+    renderHUD();renderCards();save();
     toast((pc.name||'PC')+': '+hp+'/'+max+' HP');
-  } else if(t.type==='gp'){
-    if(!state.treasuryData)state.treasuryData={};
-    let gp=(parseFloat(state.treasuryData.gp)||0)+delta;
-    gp=Math.max(0,gp);
-    state.treasuryData.gp=gp;
-    const lbl=document.getElementById('step-target-label');
-    if(lbl)lbl.textContent='Target: Gold Pieces ('+gp+'gp)';
-    renderHUD();
-    renderTreasuryTotal();
-    save();
-    toast('GP: '+gp);
   }
 }
 
