@@ -4528,7 +4528,7 @@ function renderQAMenu(){
   flagCard.innerHTML='<span class="qa-card-icon">⚑</span><span class="qa-card-label">Flag This Moment</span>';
   flagCard.onclick=()=>{closeQAMenu();openFlagModal(-1,'');};
   body.appendChild(flagCard);
-  if(!actions.length){body.innerHTML='<div style="padding:20px;font-size:12px;color:var(--text-dim);text-align:center">No actions for this tab.<br><em style="font-size:11px">Add some in AI Tools → Quick Actions.</em></div>';return;}
+  if(!actions.length){const noActions=document.createElement('div');noActions.style.cssText='padding:20px;font-size:12px;color:var(--text-dim);text-align:center';noActions.innerHTML='No actions for this tab.<br><em style="font-size:11px">Add some in AI Tools → Quick Actions.</em>';body.appendChild(noActions);return;}
   const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘️',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'🎲',roleplay_npc:'🗣️',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',module_checkin:'📋',custom:'⚙️'};
   const PINNED=['qa_8','qa_13','qa_11'];
   const CAT_MAP={'Party & Combat':['hp','condition_add','condition_clear','resource_use','shell_defense_toggle','combat_next','short_rest','roll_submit'],'World & Story':['time_advance','surroundings','town_rep','random_event','roleplay_npc','char_moment','send_scene','item_add_foraged','ox_feed','log_entry'],'AI & System':['context_refresh','context_refresh_btn','resync_ai','module_checkin','state_fix','save_game','custom']};
@@ -6053,7 +6053,7 @@ Object.assign(window, {
   handlePluginCmd, importConfig, importFromPaste, justSave, launchCampaign,
   loadPreset, lockPremise, logTurn, markChkDone,
   navTo, nextTurn, oocKey, openDashboard, openDrawer, openFlagModal,
-  openLevelUpWizard, openPCOverview, openRollSheet, openStepConfig, openTreasury, partyKey,
+  openLevelUpWizard, openPCOverview, openQASheet, openRollSheet, openStepConfig, openTreasury, partyKey,
   pcLongRest, pcShortRest, prevTurn, quickD20, quickRoll,
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
