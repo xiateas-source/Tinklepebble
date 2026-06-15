@@ -192,6 +192,45 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 ---
 
+## Character Sheet Rework — Reference Design
+
+Inspired by D&D Beyond digital sheet + official WotC physical sheet. This is the canonical information hierarchy players expect:
+
+**Identity row** (always visible at top):
+Name · Class & Level · Race · Background · Alignment · XP/XP-to-next
+
+**Vital stats row** (always visible, HUD-style):
+AC · Initiative · Speed · HP (current/max/temp) · Hit Dice · Death Saves (3 success hearts / 3 failure skulls)
+
+**Proficiency Bonus** · **Inspiration** toggle
+
+**Sheet tabs (horizontal scroll):**
+| Tab | Contents |
+|---|---|
+| **Stats** | 6 ability scores (score + modifier circle) · Saving throws (6, prof dots) |
+| **Skills** | 18 skills with proficiency dot + calculated modifier (stat-based auto-calc) |
+| **Combat** | Attacks & Spellcasting (weapon name, ATK bonus, damage/type) · Conditions |
+| **Spells** | Spell slots by level (bubbles) · Spells known list |
+| **Inventory** | Items list · Currency (CP/SP/EP/GP/PP) |
+| **Features** | Class features · Racial traits · Feats · Proficiencies & Languages |
+
+**Key UX from D&D Beyond:**
+- Ability score = large circle with score inside, modifier displayed prominently below
+- Saving throw = small dot (filled=proficient, empty=not) + calculated value
+- Skill = same dot system, stat abbreviation, total modifier
+- Death saves = hearts (successes) and skulls (failures), tap to toggle
+- Attacks show: Name · Range · Hit/DC · Damage · Notes
+- Currency shown as 5 coin types in labeled bubbles (CP/SP/EP/GP/PP)
+
+**Implementation notes:**
+- Most data already in state (stats, skills, attacks, spells, inventory, currency)
+- Death saves: state.pcs[i].death_saves = {successes:0, failures:0} — add to migrate() structural guard
+- Inspiration: state.pcs[i].inspiration (boolean) — add to migrate()
+- Currency is already state.treasuryData.coins (GP/SP/CP) — EP/PP optional
+- This rework is part of Visual Redesign v2 (Phase 2, step 4)
+
+---
+
 ## Feature Backlog
 *Inspired by D&D Beyond + Demiplane mobile UX. Prioritized by effort vs daily-use value.*
 
