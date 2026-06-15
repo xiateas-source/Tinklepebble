@@ -3273,6 +3273,7 @@ function renderPcInv(idx){
 
 // ═══ EDIT SHEETS ═══
 var _pcSheetTab=0;
+var _piFilter='all';
 function setSheetTab(n){_pcSheetTab=n;renderSheets();}
 function renderSheets(){
   const c=document.getElementById('edit-sheets');if(!c)return;c.innerHTML='';
@@ -3410,11 +3411,12 @@ function remResource(idx,ri){state.pcs[idx].resources.splice(ri,1);save();render
 function renderPcInvEditor(idx){
   const c=document.getElementById('inv-ed-'+idx);if(!c)return;c.innerHTML='';
   const pc=state.pcs[idx];if(!pc)return;
-  if(!Array.isArray(pc.inventory)||!pc.inventory.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No items. Click + Add Item to add.</div>';return;}
-  pc.inventory.forEach((item,ii)=>{
-    const d=document.createElement('div');d.className='inv-item';
-    const tag=item.type?`<span class="inv-tag ${item.type}">${item.type}</span>`:'';
-    d.innerHTML=`<input type="text" value="${esc(item.name||'')}" style="flex:2;min-width:70px" placeholder="Item" onchange="updPcItem(${idx},${ii},'name',this.value)">${tag}<input type="number" value="${item.qty||1}" style="width:42px" onchange="updPcItem(${idx},${ii},'qty',parseInt(this.value)||1)"><input type="number" value="${item.weight||0}" style="width:50px" placeholder="lb" onchange="updPcItem(${idx},${ii},'weight',parseFloat(this.value)||0)"><select style="width:80px;font-size:11px;padding:3px" onchange="updPcItem(${idx},${ii},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px" placeholder="Notes" onchange="updPcItem(${idx},${ii},'notes',this.value)"><button class="btn sm red icon-btn" onclick="remPcItemSheet(${idx},${ii})">&times;</button>`;
+  const inv=pc.inventory||[];
+  if(!inv.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No items. Tap + Add Item.</div>';return;}
+  inv.forEach((item,ii)=>{
+    const d=document.createElement('div');
+    d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:8px 10px;margin-bottom:6px';
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updPcItem(${idx},${ii},'name',this.value)"><button class="btn sm red icon-btn" onclick="remPcItemSheet(${idx},${ii})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updPcItem(${idx},${ii},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updPcItem(${idx},${ii},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updPcItem(${idx},${ii},'weight',parseFloat(this.value)||0)"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updPcItem(${idx},${ii},'notes',this.value)"></div>`;
     c.appendChild(d);
   });
 }
@@ -3588,11 +3590,25 @@ function remQ(i){state.quests.splice(i,1);saveRefresh();}
 // ═══ PARTY INVENTORY ═══
 function renderPartyInv(){
   const c=document.getElementById('party-inv');if(!c)return;c.innerHTML='';
-  if(!(state.partyInventory||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No party items.</div>';return;}
-  state.partyInventory.forEach((item,idx)=>{
-    const d=document.createElement('div');d.className='inv-item';
-    const tag=item.type?`<span class="inv-tag ${item.type}">${item.type}</span>`:'';
-    d.innerHTML=`<input type="text" value="${esc(item.name||'')}" style="flex:2;min-width:80px" placeholder="Item" onchange="updPI(${idx},'name',this.value)">${tag}<input type="number" value="${item.qty||1}" style="width:45px" onchange="updPI(${idx},'qty',parseInt(this.value)||1)"><input type="number" value="${item.weight||0}" style="width:52px" placeholder="lb" onchange="updPI(${idx},'weight',parseFloat(this.value)||0)"><select style="width:85px;font-size:11px;padding:3px" onchange="updPI(${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px" placeholder="Notes" onchange="updPI(${idx},'notes',this.value)"><button class="btn sm red icon-btn" onclick="remPI(${idx})">&times;</button>`;
+  const all=state.partyInventory||[];
+  const filters=['all','supply','loot','trade','ingredient','misc'];
+  const bar=document.createElement('div');
+  bar.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px';
+  filters.forEach(f=>{
+    const b=document.createElement('button');
+    b.textContent=f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1);
+    b.style.cssText=`font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid ${_piFilter===f?'var(--gold)':'var(--border)'};background:${_piFilter===f?'var(--gold-dim)':'none'};color:${_piFilter===f?'var(--gold-bright)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans)`;
+    b.onclick=()=>{_piFilter=f;renderPartyInv();};
+    bar.appendChild(b);
+  });
+  c.appendChild(bar);
+  const visible=_piFilter==='all'?all:all.filter(i=>i.type===_piFilter);
+  if(!visible.length){const e=document.createElement('div');e.style.cssText='color:var(--text-dim);font-size:11px;padding:6px 0';e.textContent=_piFilter==='all'?'No party items. Tap + Add Item.':'No '+_piFilter+' items.';c.appendChild(e);return;}
+  visible.forEach(item=>{
+    const idx=all.indexOf(item);
+    const d=document.createElement('div');
+    d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:8px 10px;margin-bottom:6px';
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updPI(${idx},'name',this.value)"><button class="btn sm red icon-btn" onclick="remPI(${idx})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updPI(${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updPI(${idx},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updPI(${idx},'weight',parseFloat(this.value)||0)"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updPI(${idx},'notes',this.value)"></div>`;
     c.appendChild(d);
   });
 }
@@ -3712,10 +3728,10 @@ function renderHoard(){
 }
 
 function renderInvRow(container,item,idx,listType){
-  const d=document.createElement('div');d.className='inv-item';
-  const tag=item.type?`<span class="inv-tag ${item.type}">${item.type}</span>`:'';
-  const sellBtn=listType==='cargo'?`<button class="btn sm gold" onclick="quickSellItem(${idx})" style="font-size:10px;padding:2px 6px" title="Quick sell">💰</button>`:'';
-  d.innerHTML=`<input type="text" value="${esc(item.name||'')}" style="flex:2;min-width:70px;font-size:11px" placeholder="Item" onchange="updWItem('${listType}',${idx},'name',this.value)">${tag}<input type="number" value="${item.qty||1}" style="width:42px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><input type="number" value="${item.weight||0}" style="width:50px;font-size:11px" placeholder="lb" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><select style="width:85px;font-size:11px;padding:3px" onchange="updWItem('${listType}',${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:50px;font-size:11px" placeholder="Notes" onchange="updWItem('${listType}',${idx},'notes',this.value)">${sellBtn}<button class="btn sm red icon-btn" onclick="remWItem('${listType}',${idx})">&times;</button>`;
+  const d=document.createElement('div');
+  d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:8px 10px;margin-bottom:6px';
+  const sellBtn=listType==='cargo'?`<button class="btn sm gold" onclick="quickSellItem(${idx})" style="font-size:10px;padding:2px 7px;border-radius:8px;flex-shrink:0" title="Quick sell">💰</button>`:'';
+  d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updWItem('${listType}',${idx},'name',this.value)">${sellBtn}<button class="btn sm red icon-btn" onclick="remWItem('${listType}',${idx})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updWItem('${listType}',${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:50px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updWItem('${listType}',${idx},'notes',this.value)"></div>`;
   container.appendChild(d);
 }
 function addWagonItem(list,type){
