@@ -161,12 +161,121 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 ## Phase 2 — Active Sprint
 
-### Sequence
-1. **Polish pass** — QA menu card sizing/spacing on real device; flag panel header coverage audit; HUD tile tap targets
-2. **AI compliance chips** — detectUnloggedNPC() + detectUnloggedItem() confirm-chips (mirrors detectUnloggedGold pattern)
-3. **DR-6: Contracts → state** — Migrate #ai-persona, #ai-never, #ai-actions, #ai-continuity, #ai-multi from DOM textareas to state.aiContracts{}. Update buildPrompt() to read from state. Firebase-sync via STATE_KEYS. CRITICAL: Contract 1 must always include "He does not know the operation is a con. Never tell him." — validate in buildPrompt() and throw hard error if missing.
-4. **Visual Redesign v2: 4-tab nav** — Replace top tab bar with bottom nav: ⚔ Adventure (AI DM) / 📦 Logistics (World + Wagon + Combat) / 📜 Sheet (Party) / ⚙ Systems (AI Tools + Session + Dev + Setup). This is prerequisite for Drop 4.
-5. **Drop 4: Zone Combat Map** — Replaces Combat tab. 6 spatial zones. AI emits zone_move: mechanic. Mobile-first zone grid with token tiles.
+### Design Principles (session 2026-06-15)
+- **Interactive-first** — every UI element should have a function; no decorative-only components
+- **Minimize scrolling** — tap, swipe, and collapse over long vertical lists everywhere possible
+- **Lock/unlock editing** — character data is read-only during play; deliberate unlock to edit
+- **Compact + data-dense** — condense heavy data into small, scannable tiles and chips
+
+### Phase 2 Sequence
+1. **Bug fixes** (blocking play — fix first)
+2. **Polish pass** (expanded — see below)
+3. **Character Sheet Rework** — full 6-tab digital sheet replaces character editor
+4. **DR-6: Contracts → state** — with copy/export button added to AI Tools
+5. **Visual Redesign v2: 4-tab nav**
+6. **Drop 4: Zone Combat Map**
+
+---
+
+## Phase 2 Bug Fixes (fix before anything else)
+
+- [ ] **Scroll freeze** — narrative chat loses scroll after tab switch (OOC → narrative) or page refresh. Fix: call scrollToBottom on showChatTab('narrative') and on tab reveal. (Flag #1, #5 / Dev note #6)
+- [ ] **Flag icon blocked** — ⚑ FAB obstructed by bottom dock menu. Fix: z-index audit, raise flag FAB above dock layer. (Dev note #2)
+- [ ] **QA FAB stuck open** — menu doesn't close on some interactions. (Dev note #5)
+- [ ] **Skill bonus wrong** — Character Editor displays incorrect skill bonus values. (Dev note #1)
+- [ ] **Flag save button untappable** — save button in flag edit modal unreachable (keyboard overlap or z-index). (Flag #7)
+
+---
+
+## Phase 2 Polish Pass (expanded)
+
+**Bugs already logged above. Polish pass = quick wins below.**
+
+### Flag System
+- [ ] Scroll-to-bottom button in narrative chat (Flag #2)
+- [ ] "Idea / Feature Request" as a flag category option (Flag #6)
+- [ ] Filter flags by category type in Dev tab (Flag #8)
+- [ ] Add "Reviewed-Pending" verdict state (cycles: pending → fail → reviewed → resolved). Update export to include it. (Flag #9)
+- [ ] Export pending-only flags button (Flag #11)
+- [ ] Dev notes: in-place delete of individual notes, copy section to clipboard (Flag #10)
+
+### Chat + Dice
+- [ ] Dice roller in narrative chat → promote to full Roll & Submit (char select, dice grid, modifier, delta, send to chat) (Dev note #4)
+- [ ] Replace HP modifier bar above chat input with live context strip: location · scene title; swaps to initiative order when combat is active. Tapping each element is interactive (opens relevant panel). (Dev note #12b)
+
+### Character / Party
+- [ ] Remove long rest + short rest buttons from player cards — handled via chat QA (Dev note #11b)
+- [ ] Grit (ox) gets own HUD tile card alongside party — frees Wagon tab space (Dev note #14)
+- [ ] Quest tap → expand detail + context panel (Flag #3)
+
+### Spells
+- [ ] Cantrips = Level 0 tab in spellbook filter (Flag #15)
+- [ ] Spell rows collapsible — tap arrow → expands full description inline (Dev note #13 / Flag #13)
+
+### Inventory
+- [ ] Multi-category items: foraged items can also be tagged as ingredient; players edit categories (Flag #14)
+- [ ] Party shared inventory → move to Wagon tab or remove; resolve with party-vs-wagon ownership decision (Dev note #11a)
+- [ ] Separate Gear tab from general inventory in character sheet (Dev note #10)
+
+### World / Wagon
+- [ ] Town rep log → Wagon tab, alongside travel log and NPCs (Dev note #13b)
+
+### AI Tools
+- [ ] Add copy / export button to each AI contract textarea (brainstorm #3 resolution)
+
+---
+
+## Character Sheet Rework — Confirmed Design (2026-06-15)
+
+**Access:** Tap character name in HUD → full sheet bottom sheet. Tap party button in nav → same sheet. Character cards removed from default Party tab view.
+
+**Lock / Unlock:**
+- Locked (play mode): all fields read-only styled values. Only HP +/−, death save hearts/skulls, and condition chips are interactive.
+- Unlocked (edit mode): fields become inputs in-place. No separate editor panel.
+- **Auto-lock on close** — drawer closing = locking. Reopening always starts locked.
+
+**Always-visible header strip:**
+Name · Class/Subclass Lv.N · Race · Background · Player name (display-only)
+AC · Initiative · Speed · HP (current / max / temp HP badge) · Hit Dice pips · Death Saves
+
+**Proficiency bonus** (auto-calc, never editable) · **Inspiration toggle** (coin/flame)
+
+**6 Sheet Tabs:**
+| Tab | Contents |
+|---|---|
+| **Core** | 6 ability score circles (score + modifier) · 6 saving throws (prof dot + value) · Passive Perception · Passive Insight · Proficiency bonus |
+| **Skills** | 18 skills: prof dot · stat tag · auto-calc modifier · tap to roll |
+| **Combat** | HP (full controls) · Temp HP field · Hit Dice pips (tap to spend) · Death Saves · Conditions · Exhaustion 0–6 pip track · Attacks table |
+| **Spells** | Spell slots by level (pip bubbles) · Spells list, each row tap-to-expand full description · Cantrips as level 0 |
+| **Gear** | Equipment list · Currency bubbles (CP/SP/EP/GP/PP) — separate from party treasury |
+| **Features** | Class features · Racial traits · Feats · Languages (tap chips) · Tool proficiencies · Personality / Ideals / Bonds / Flaws (collapsible "Character Soul" section) |
+
+**New state fields required (add to migrate() structural guard — no SAVE_VERSION bump needed):**
+- `pc.hp_temp: 0` — Temporary HP
+- `pc.exhaustion: 0` — Exhaustion level 0–6
+- `pc.hd_used: 0` — Hit dice spent (max = level)
+- `pc.personality: ""` — Personality Traits
+- `pc.ideals: ""` — Ideals
+- `pc.bonds: ""` — Bonds
+- `pc.flaws: ""` — Flaws
+- `pc.languages: []` — Languages as structured array
+
+**New AI mechanics to add:**
+- `exhaustion: pcname+1 | pcname-1`
+- `hp_temp: pcname=N`
+
+---
+
+## Deferred / Brainstorm Later
+
+### Blackburner (Business Profile → Treasury)
+*Collecting more game data before designing. Intent: business profile moves to Treasury, reworked as at-a-glance banking/portfolio view — income log as transaction history, stock as portfolio view. Codename: Blackburner.*
+
+### Claude Code Plugin in Flag Log (Flag #12)
+*Scope unclear. Potential: in-app AI analysis of flags using Claude API, or context-export link. Needs dedicated design session.*
+
+### AI DM Testing Chat (Flag #13)
+*Isolated sandbox session separate from campaign history. Design questions: shared contracts? separate AI key? export format for test sessions? Needs dedicated design session.*
 
 ---
 
