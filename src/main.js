@@ -1153,12 +1153,26 @@ function renderQuests(){
   const active=state.quests.filter(q=>q.status==='active').length;
   if(active){const h=document.createElement('div');h.style.cssText='font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px';h.textContent='⬤ '+active+' Active';c.appendChild(h);}
   sorted.forEach(({q,i:idx})=>{
-    const d=document.createElement('div');d.style.cssText='display:flex;gap:6px;margin-bottom:5px;align-items:center';
+    const det=document.createElement('details');det.style.cssText='margin-bottom:6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2)';
     const qst=q.status||'active';
     const qcol=qst==='done'?'var(--text-dim)':qst==='failed'?'var(--red)':'var(--green)';
-    const hiddenStyle=q.hidden?'opacity:.55':'';
-    d.innerHTML=`<select style="width:78px;font-size:10px;padding:3px 4px;border-color:${qcol};color:${qcol}" onchange="updQ(${idx},'status',this.value)"><option value="active" ${qst==='active'?'selected':''}>🟢 Active</option><option value="done" ${qst==='done'?'selected':''}>✓ Done</option><option value="failed" ${qst==='failed'?'selected':''}>✗ Failed</option></select><input type="text" style="flex:1;font-size:12px;${qst==='done'?'text-decoration:line-through;color:var(--text-dim)':qst==='failed'?'color:var(--text-dim)':''};${hiddenStyle}" value="${esc(q.text)}" onchange="updQ(${idx},'text',this.value)"><button title="${q.hidden?'Reveal quest':'Hide from players'}" onclick="updQ(${idx},'hidden',${!q.hidden})" style="font-size:11px;padding:2px 5px;background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:${q.hidden?'var(--gold)':'var(--text-dim)'}">${q.hidden?'👁':'👁'}</button><button class="btn sm red icon-btn" onclick="remQ(${idx})">&times;</button>`;
-    c.appendChild(d);
+    const hiddenBadge=q.hidden?`<span style="font-size:9px;background:rgba(139,58,42,.2);color:var(--gold);border:1px solid var(--gold-dim);border-radius:3px;padding:1px 5px;margin-left:6px;flex-shrink:0">DM Only</span>`:'';
+    const statusIcon=qst==='done'?'✓ Done':qst==='failed'?'✗ Failed':'🟢 Active';
+    det.innerHTML=`<summary style="list-style:none;cursor:pointer;padding:8px 10px;display:flex;align-items:center;gap:6px">
+      <span style="font-size:10px;color:${qcol};font-weight:700;flex-shrink:0">${statusIcon}</span>
+      <span style="flex:1;font-size:12px;${qst==='done'?'text-decoration:line-through;color:var(--text-dim)':qst==='failed'?'color:var(--text-dim)':''};${q.hidden?'opacity:.7':''}">${esc(q.text||'(unnamed quest)')}</span>
+      ${hiddenBadge}
+    </summary>
+    <div style="padding:8px 10px;border-top:1px solid var(--border)">
+      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
+        <select style="width:90px;font-size:10px;padding:3px 4px;border-color:${qcol};color:${qcol}" onchange="updQ(${idx},'status',this.value)"><option value="active" ${qst==='active'?'selected':''}>🟢 Active</option><option value="done" ${qst==='done'?'selected':''}>✓ Done</option><option value="failed" ${qst==='failed'?'selected':''}>✗ Failed</option></select>
+        <button title="${q.hidden?'Reveal quest':'Hide from players'}" onclick="updQ(${idx},'hidden',${!q.hidden})" style="font-size:11px;padding:2px 7px;background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:${q.hidden?'var(--gold)':'var(--text-dim)'}">${q.hidden?'👁 DM Only':'👁 Visible'}</button>
+        <button class="btn sm red icon-btn" onclick="remQ(${idx})" style="margin-left:auto">&times; Delete</button>
+      </div>
+      <div class="form-group" style="margin-bottom:6px"><label class="field-label">Quest Text</label><input type="text" value="${esc(q.text||'')}" style="font-size:12px" onchange="updQ(${idx},'text',this.value)"></div>
+      ${q.notes!==undefined?`<div class="form-group" style="margin-bottom:0"><label class="field-label">Notes</label><textarea style="min-height:50px;font-size:11px" onchange="updQ(${idx},'notes',this.value)">${esc(q.notes||'')}</textarea></div>`:''}
+    </div>`;
+    c.appendChild(det);
   });
 }
 function addQuest(){state.quests.push({text:'',status:'active',hidden:false});saveRefresh();}
@@ -1180,7 +1194,8 @@ function renderPartyInv(){
     bar.appendChild(b);
   });
   c.appendChild(bar);
-  const visible=_piFilter==='all'?all:all.filter(i=>i.type===_piFilter);
+  const piTypeMatch=(t,filter)=>{if(filter==='all')return true;if(!t)return false;return t.split(',').map(s=>s.trim()).includes(filter);};
+  const visible=_piFilter==='all'?all:all.filter(i=>piTypeMatch(i.type,_piFilter));
   if(!visible.length){const e=document.createElement('div');e.style.cssText='color:var(--text-dim);font-size:11px;padding:6px 0';e.textContent=_piFilter==='all'?'No party items. Tap + Add Item.':'No '+_piFilter+' items.';c.appendChild(e);return;}
   visible.forEach(item=>{
     const idx=all.indexOf(item);
@@ -1292,7 +1307,8 @@ function remCell(i){state.wagon.cells.splice(i,1);save();renderCells();renderCap
 function renderCargo(){
   const c=document.getElementById('wagon-cargo');if(!c)return;c.innerHTML='';
   const f=state.wagonFilter||'all';
-  const items=(state.wagon.cargo||[]).filter((_,i)=>f==='all'||(state.wagon.cargo[i].type===f));
+  const typeMatch=(t,filter)=>{if(filter==='all')return true;if(!t)return false;return t.split(',').map(s=>s.trim()).includes(filter);};
+  const items=(state.wagon.cargo||[]).filter(item=>typeMatch(item.type,f));
   if(!items.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No cargo.</div>';return;}
   items.forEach(item=>{
     const rawIdx=(state.wagon.cargo||[]).indexOf(item);
@@ -4392,7 +4408,9 @@ function renderSpellbook(idx){
   const filterBar=document.createElement('div');filterBar.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px';
   const mkFBtn=(f,label)=>{const b=document.createElement('button');const active=_spellFilter===f;b.textContent=label;b.style.cssText=`font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid ${active?'var(--purple)':'var(--border)'};background:${active?'rgba(138,94,106,.25)':'none'};color:${active?'var(--purple-bright)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans)`;b.onclick=()=>setSpellFilter(f);return b;};
   filterBar.appendChild(mkFBtn('all','All ('+book.length+')'));
-  usedLevels.forEach(lv=>filterBar.appendChild(mkFBtn(String(lv),LVLS[lv]||(lv+'th'))));
+  // Always show Cantrips tab first, then the rest of the levels
+  if(!usedLevels.includes(0))filterBar.appendChild(mkFBtn('0','Cantrips'));
+  usedLevels.forEach(lv=>filterBar.appendChild(mkFBtn(String(lv),lv===0?'Cantrips':(LVLS[lv]||(lv+'th')))));
   c.appendChild(filterBar);
   const visible=_spellFilter==='all'?book:book.filter(sp=>String(sp.level||0)===_spellFilter);
   if(!visible.length){const e=document.createElement('div');e.style.cssText='color:var(--text-dim);font-size:12px;padding:10px 0;text-align:center';e.textContent='No spells at this level.';c.appendChild(e);return;}
