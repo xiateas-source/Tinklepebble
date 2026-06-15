@@ -1119,8 +1119,9 @@ When the party travels through wilderness, arrives at a new outdoor location, or
     <button onclick="closeQAMenu();navTo('ait')">✎ Customize actions &amp; icon…</button>
   </div>
 </div>
-<div id="qa-fab-wrap" style="position:fixed;bottom:calc(155px + env(safe-area-inset-bottom,0px));right:16px;z-index:203;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none;user-select:none">
+<div id="qa-fab-wrap" style="position:fixed;bottom:calc(160px + env(safe-area-inset-bottom,0px));right:16px;z-index:750;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none;user-select:none">
   <button class="qa-fab" id="qa-fab" onclick="toggleQAMenu()" title="Quick Actions">⚡</button>
+  <button class="qa-fab" id="flag-fab" onclick="openFlagModal(-1,'')" title="Flag This Moment" style="width:44px;height:44px;font-size:18px;background:var(--surface2);color:var(--gold);border:2px solid var(--gold-dim)">⚑</button>
 </div>
 
 <!-- LEVEL UP MODAL (bottom sheet) -->
@@ -1134,7 +1135,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 
 <!-- FLAG MODAL (bottom sheet) -->
 <div class="qa-modal" id="flag-modal">
-  <div class="qa-sheet" style="max-width:560px">
+  <div class="qa-sheet" style="max-width:560px;padding-bottom:max(20px,env(safe-area-inset-bottom,20px))">
     <div class="qa-sheet-title">⚑ Flag This Moment <button class="btn sm" onclick="closeFlagModal()">✕</button></div>
     <div id="flag-context-display" class="flag-context-box" style="display:none"></div>
     <div class="sec-label" style="margin-bottom:8px">What went wrong?</div>
