@@ -273,13 +273,6 @@
       <p style="font-size:11px;color:var(--text-dim);margin:8px 0">DM-only plot threads. The AI references these for character moments and story hooks.</p>
       <div id="campaign-secrets-list"></div>
     </details>
-    <details class="panel green">
-      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Town Reputation Log
-        <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addTownRep()">+ Add Town</button>
-      </summary>
-      <p style="font-size:11px;color:var(--text-dim);margin:8px 0">Track which towns have been visited and whether it's safe to return. The AI will not suggest returning to burned towns.</p>
-      <div id="town-rep-list"></div>
-    </details>
     <div class="panel purple" style="padding:10px 14px;display:flex;align-items:center;gap:10px">
       <span style="font-size:13px">🏪</span>
       <span style="font-size:12px;color:var(--text-dim);flex:1">Business Profile moved to Treasury</span>
@@ -353,6 +346,13 @@
         <div class="panel-title">Travel Log</div>
         <div id="travel-log-visual" style="padding:4px 0;max-height:280px;overflow-y:auto"></div>
       </div>
+      <details class="panel green" open>
+        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Town Reputation Log
+          <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addTownRep()">+ Add Town</button>
+        </summary>
+        <p style="font-size:11px;color:var(--text-dim);margin:8px 0">Track which towns are safe to return to.</p>
+        <div id="town-rep-list"></div>
+      </details>
     </div>
   </div>
 </div>
@@ -1006,10 +1006,22 @@ When the party travels through wilderness, arrives at a new outdoor location, or
   <div class="drawer-body" id="drawer-body"></div>
 </div>
 
+<!-- FAMILIAR OVERVIEW SHEET -->
+<div id="familiar-ov-bd" class="drawer-backdrop" onclick="closeFamiliarOverview()"></div>
+<div id="familiar-ov" class="qa-sheet" style="z-index:950">
+  <div class="qa-sheet-hdr"><span id="familiar-ov-title" style="font-size:13px;font-weight:600;color:var(--purple-bright)">🦉 Familiar</span><button class="btn sm" onclick="closeFamiliarOverview()">✕</button></div>
+  <div class="qa-sheet-body" id="familiar-ov-body"></div>
+</div>
+<!-- GRIT OVERVIEW SHEET -->
+<div id="grit-ov-bd" class="drawer-backdrop" onclick="closeGritOverview()"></div>
+<div id="grit-ov" class="qa-sheet" style="z-index:950">
+  <div class="qa-sheet-hdr"><span id="grit-ov-title" style="font-size:13px;font-weight:600;color:var(--green)">🐂 Grit</span><button class="btn sm" onclick="closeGritOverview()">✕</button></div>
+  <div class="qa-sheet-body" id="grit-ov-body"></div>
+</div>
 <!-- BOTTOM DOCK -->
 <footer class="lower-dock">
   <div id="step-target-label" class="step-target-label" style="display:block">Tap a name above to select · then ±1 / ±5 adjusts HP</div>
-  <div class="step-bar">
+  <div id="step-bar" class="step-bar">
     <button class="step-btn dec" onclick="executeStep(-5)">-5</button>
     <button class="step-btn dec" onclick="executeStep(-1)">-1</button>
     <button class="step-btn inc" onclick="executeStep(1)">+1</button>

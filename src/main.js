@@ -579,6 +579,13 @@ window.addEventListener('DOMContentLoaded',()=>{
   showSessionMode('play'); // set initial session mode
   injectPanelFlags();
   setInterval(renderStatusMini,60000);
+  // Auto-resize AI contract textareas
+  ['ai-persona','ai-never','ai-actions','ai-continuity','ai-multi'].forEach(id=>{
+    const ta=document.getElementById(id);if(!ta)return;
+    const resize=()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';};
+    ta.addEventListener('input',resize);
+    setTimeout(resize,200);
+  });
 });
 
 function updatePlayerLbl(){
@@ -3315,6 +3322,22 @@ function parseMechanics(responseText){
         if(existing){existing.disposition=pts[1]||existing.disposition;existing.lastSeen=state.worldData.location;changes.push({text:'NPC updated: '+nname});}
         else{state.npcs.push({name:nname,disposition:pts[1]||'Neutral',details:pts[2]||'',status:'active',hp:0,lastSeen:state.worldData.location});changes.push({text:'New NPC: '+nname});}
       }
+      else if(key==='spell_add'){
+        // Format: PCname|SpellName|level|castTime|range|duration|components|desc
+        const parts=(val).split('|').map(s=>s.trim());
+        const pcName=parts[0],spName=parts[1];
+        if(!pcName||!spName)return;
+        const lvl=parseInt(parts[2])||0;
+        const spData={name:spName,level:lvl,castTime:parts[3]||'',range:parts[4]||'',duration:parts[5]||'',components:parts[6]||'',desc:parts[7]||''};
+        const tpc=state.pcs.find(p=>p.name.toLowerCase().includes(pcName.toLowerCase()));
+        if(tpc){
+          if(!Array.isArray(tpc.spellbook))tpc.spellbook=[];
+          if(!tpc.spellbook.find(s=>s.name.toLowerCase()===spName.toLowerCase())){
+            tpc.spellbook.push(spData);
+            changes.push({text:'Spell added: '+spName+(lvl?' ('+lvl+'th lvl)':' (cantrip)')+' → '+tpc.name});
+          }
+        }
+      }
       else if(key==='pc_update'){
         const pts=val.split(',').map(p=>p.trim());const pc=findPC(pts[0]);const field=pts[1];const nv=pts.slice(2).join(',');
         const fields=['name','race','class','level','background','alignment','initiative','speed','passive_perception','passive_insight','xp','str','dex','con','int','wis','cha','skills','features','magic','backstory_origin','backstory_motivation','backstory_secret','ac','hp_max'];
@@ -3864,50 +3887,86 @@ function openRollSheet(){
   const pcOpts=state.pcs.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
   const rollTypes=Object.keys(ROLL_STATS).map(t=>`<option value="${t}">${t}</option>`).join('');
   openQASheet('🎲 Roll & Submit',`
-    <div class="form-group"><label class="field-label">Character</label>
+    <div class="form-group" style="margin-bottom:8px"><label class="field-label">Character</label>
       <select id="rs-pc" onchange="updateRollMod()" style="font-size:13px">${pcOpts}</select>
     </div>
-    <div class="form-row">
-      <div class="fg"><label class="field-label">Roll Type</label>
-        <select id="rs-type" onchange="updateRollMod()" style="font-size:13px"><option value="">— Select —</option>${rollTypes}</select>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <div style="flex:1"><label class="field-label">Roll Type</label>
+        <select id="rs-type" onchange="updateRollMod()" style="font-size:12px;width:100%"><option value="">— Select —</option>${rollTypes}</select>
       </div>
-      <div style="width:80px"><label class="field-label">Modifier</label>
-        <input type="number" id="rs-mod" value="0" style="padding:5px;font-size:13px">
+      <div style="width:72px"><label class="field-label">Modifier</label>
+        <input type="number" id="rs-mod" value="0" style="padding:5px;font-size:16px;font-weight:700;text-align:center;width:100%">
       </div>
     </div>
-    <div class="form-group"><label class="field-label">Dice</label>
-      <select id="rs-formula" style="font-size:13px">
-        <option value="1d20">d20 (normal)</option>
-        <option value="2d20h">d20 Advantage</option>
-        <option value="2d20l">d20 Disadvantage</option>
-        <option value="1d6">1d6</option>
-        <option value="1d8">1d8</option>
-        <option value="1d4">1d4</option>
-        <option value="1d12">1d12</option>
-        <option value="2d6">2d6</option>
-      </select>
+    <div id="rs-pills" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;min-height:4px"></div>
+    <div style="display:flex;gap:4px;margin-bottom:10px">
+      <button onclick="rsAdjMod(-5)" style="flex:1;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--red);cursor:pointer;-webkit-tap-highlight-color:transparent">-5</button>
+      <button onclick="rsAdjMod(-1)" style="flex:1;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--red);cursor:pointer;-webkit-tap-highlight-color:transparent">-1</button>
+      <button onclick="rsAdjMod(1)" style="flex:1;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--green);cursor:pointer;-webkit-tap-highlight-color:transparent">+1</button>
+      <button onclick="rsAdjMod(5)" style="flex:1;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--green);cursor:pointer;-webkit-tap-highlight-color:transparent">+5</button>
     </div>
-    <div class="form-group"><label class="field-label">What are they trying to do?</label>
-      <input type="text" id="rs-action" placeholder="Pick the lock, attack the goblin..." style="font-size:13px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
+      <button class="btn gold" onclick="rsRollDice(4)" style="height:44px;font-size:15px;font-weight:700;font-family:var(--mono)">d4</button>
+      <button class="btn gold" onclick="rsRollDice(6)" style="height:44px;font-size:15px;font-weight:700;font-family:var(--mono)">d6</button>
+      <button class="btn gold" onclick="rsRollDice(8)" style="height:44px;font-size:15px;font-weight:700;font-family:var(--mono)">d8</button>
+      <button class="btn gold" onclick="rsRollDice(10)" style="height:44px;font-size:15px;font-weight:700;font-family:var(--mono)">d10</button>
+      <button class="btn gold" onclick="rsRollDice(12)" style="height:44px;font-size:15px;font-weight:700;font-family:var(--mono)">d12</button>
+      <button class="btn gold" onclick="rsRollDice(20)" style="height:44px;font-size:15px;font-weight:700;font-family:var(--mono)">d20</button>
+      <button class="btn gold" onclick="rsRollDice(100)" style="height:44px;font-size:15px;font-weight:700;font-family:var(--mono)">d%</button>
+      <button class="btn" onclick="rsRollDice(0)" style="height:44px;font-size:13px;font-weight:700;font-family:var(--mono);border-color:var(--border-bright)">+0</button>
+    </div>
+    <div id="rs-result" style="min-height:40px;text-align:center;font-family:var(--mono);font-size:20px;font-weight:bold;color:var(--text-bright);margin-bottom:8px;padding:6px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;justify-content:center"></div>
+    <div class="form-group" style="margin-bottom:4px"><label class="field-label">Context (optional)</label>
+      <input type="text" id="rs-action" placeholder="Attack the goblin, pick the lock..." style="font-size:12px">
     </div>`,
     ()=>{
-      const pcId=document.getElementById('rs-pc').value;
-      const rt=document.getElementById('rs-type').value||'Check';
-      const formula=document.getElementById('rs-formula').value;
-      const mod=parseInt(document.getElementById('rs-mod').value)||0;
-      const act=document.getElementById('rs-action').value.trim();
-      const pc=findPC(pcId);
-      let total=0,detail='';
-      const doRoll=(sides)=>{const r=Math.floor(Math.random()*sides)+1;return r;};
-      if(formula==='1d20'){const r=doRoll(20);total=r+mod;detail='d20['+r+']'+(mod>=0?'+'+mod:''+mod)+'='+total;}
-      else if(formula==='2d20h'){const r1=doRoll(20),r2=doRoll(20),h=Math.max(r1,r2);total=h+mod;detail='Adv['+r1+','+r2+']'+(mod>=0?'+'+mod:''+mod)+'='+total;}
-      else if(formula==='2d20l'){const r1=doRoll(20),r2=doRoll(20),l=Math.min(r1,r2);total=l+mod;detail='Dis['+r1+','+r2+']'+(mod>=0?'+'+mod:''+mod)+'='+total;}
-      else{const[cnt,sides]=formula.split('d').map(Number);let rolls=[];let sum=0;for(let i=0;i<cnt;i++){const r=doRoll(sides);rolls.push(r);sum+=r;}total=sum+mod;detail=formula+'['+rolls.join(',')+']'+(mod>=0?'+'+mod:''+mod)+'='+total;}
-      const t='['+( pc?.name||'Party')+' — '+rt+']: '+detail+(act?' | "'+act+'"':'');
+      const resEl=document.getElementById('rs-result');
+      const rt=document.getElementById('rs-type')?.value||'Roll';
+      const act=document.getElementById('rs-action')?.value?.trim()||'';
+      const pc=findPC(document.getElementById('rs-pc')?.value);
+      if(!resEl||!resEl.dataset.sendTxt){toast('Roll a die first!');return;}
+      const t='['+(pc?.name||'Party')+(rt?' — '+rt:'')+'] '+resEl.dataset.sendTxt+(act?' — "'+act+'"':'');
       closeQAModal();
       const inp=document.getElementById('chat-input');if(inp){inp.value=t;sendMsg();}
     });
-  setTimeout(updateRollMod,50);
+  setTimeout(()=>{updateRollMod();_buildRsPills();},60);
+}
+function rsAdjMod(delta){
+  const el=document.getElementById('rs-mod');if(!el)return;
+  el.value=(parseInt(el.value)||0)+delta;
+}
+function rsRollDice(sides){
+  const mod=parseInt(document.getElementById('rs-mod')?.value)||0;
+  const res=document.getElementById('rs-result');if(!res)return;
+  if(sides===0){
+    const modStr=(mod>=0?'+':'')+mod;
+    res.innerHTML='<span style="color:var(--gold)">Modifier: <strong>'+modStr+'</strong></span>';
+    res.dataset.sendTxt='modifier '+modStr;
+    return;
+  }
+  const roll=Math.floor(Math.random()*sides)+1;
+  const total=roll+mod;
+  const isMax=roll===sides,isMin=roll===1&&sides>1;
+  const col=isMax?'var(--gold-bright)':isMin?'var(--red)':'var(--text-bright)';
+  const nat=isMax?'⚡ MAX':isMin?'💀 MIN':'';
+  const modStr=mod===0?'':(mod>0?'+'+mod:''+mod);
+  res.innerHTML='<span style="color:'+col+'">d'+sides+'['+roll+']'+modStr+' = <strong>'+total+'</strong>'+(nat?' '+nat:'')+'</span>';
+  res.dataset.sendTxt='d'+sides+'['+roll+']'+modStr+'='+total+(nat?' ('+nat+')':'');
+  if(navigator.vibrate)try{navigator.vibrate(isMax||isMin?[10,30,10]:[8,20]);}catch(e){}
+}
+function _buildRsPills(){
+  const c=document.getElementById('rs-pills');if(!c)return;c.innerHTML='';
+  const items=[];
+  const loc=state.worldData?.location;const scene=state.worldData?.scene_title;
+  if(loc)items.push(loc);
+  if(scene&&scene!==loc)items.push(scene);
+  items.slice(0,3).forEach(lbl=>{
+    const b=document.createElement('button');
+    b.style.cssText='font-size:10px;padding:3px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text-dim);cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;overflow:hidden;max-width:180px;text-overflow:ellipsis';
+    b.textContent=lbl;b.title=lbl;
+    b.onclick=()=>{const ai=document.getElementById('rs-action');if(ai)ai.value=(ai.value?ai.value+' · ':'')+lbl;};
+    c.appendChild(b);
+  });
 }
 function updateRollMod(){
   const pcId=document.getElementById('rs-pc')?.value;
@@ -5563,6 +5622,35 @@ function renderHUD(){
       +'<div class="hud-spark '+sparkCls+'" style="width:'+pct.toFixed(1)+'%"></div>';
     mosaic.appendChild(tile);
   });
+  // Familiar tiles
+  state.pcs.forEach((pc,pi)=>{
+    if(!pc.familiar)return;
+    const f=pc.familiar;
+    const fhp=parseInt(f.hp)||0,fmax=parseInt(f.hp_max)||1;
+    const fpct=Math.max(0,Math.min(100,(fhp/fmax)*100));
+    const fsparkCls=fpct<20?'danger':fpct<55?'warn':'ok';
+    const tile=document.createElement('div');
+    tile.className='hud-tile fam-tile';
+    tile.onclick=(function(idx){return function(){openFamiliarOverview(idx);};})(pi);
+    tile.innerHTML='<div class="hud-name" style="color:var(--purple-bright)">🦉 '+esc(f.name||'Familiar')+'</div>'
+      +'<div class="hud-val">'+fhp+'<span style="font-size:9px;color:var(--text-dim)">/'+fmax+'</span></div>'
+      +'<div class="hud-spark '+fsparkCls+'" style="width:'+fpct.toFixed(1)+'%"></div>';
+    mosaic.appendChild(tile);
+  });
+  // Grit tile
+  const ox=state.wagon&&state.wagon.ox;
+  if(ox){
+    const ghp=parseInt(ox.hp)||0,gmax=parseInt(ox.hp_max)||15;
+    const gpct=Math.max(0,Math.min(100,(ghp/gmax)*100));
+    const gsparkCls=gpct<20?'danger':gpct<55?'warn':'ok';
+    const gritTile=document.createElement('div');
+    gritTile.className='hud-tile grit-tile';
+    gritTile.onclick=openGritOverview;
+    gritTile.innerHTML='<div class="hud-name" style="color:var(--green)">🐂 '+esc(ox.name||'Grit')+'</div>'
+      +'<div class="hud-val">'+ghp+'<span style="font-size:9px;color:var(--text-dim)">/'+gmax+'</span></div>'
+      +'<div class="hud-spark '+gsparkCls+'" style="width:'+gpct.toFixed(1)+'%"></div>';
+    mosaic.appendChild(gritTile);
+  }
   // GP
   const gp=parseFloat((state.treasuryData||{}).gp)||0;
   const gpEl=document.getElementById('hud-gp');
@@ -5602,6 +5690,71 @@ function setHpStep(which){
   state.hpSteps[which]=v;
   save();renderStepBar();renderSceneLabel();
 }
+function openFamiliarOverview(pcIdx){
+  const pc=state.pcs[pcIdx];if(!pc||!pc.familiar)return;
+  const f=pc.familiar;
+  const hp=parseInt(f.hp)||0,max=parseInt(f.hp_max)||1;
+  const pct=Math.max(0,Math.min(100,(hp/max)*100));
+  const hpCol=hp<=0?'var(--red)':pct<25?'#c04a3a':pct<50?'var(--gold)':'var(--green)';
+  const titleEl=document.getElementById('familiar-ov-title');
+  const bodyEl=document.getElementById('familiar-ov-body');
+  if(titleEl)titleEl.textContent='🦉 '+(f.name||'Familiar')+' · '+esc(pc.name)+"'s Familiar";
+  if(bodyEl)bodyEl.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <span style="font-size:11px;color:var(--text-dim)">${esc(f.type||'Familiar')} · AC ${f.ac||10} · ${esc(f.speed||'20 ft.')}</span>
+      <span style="font-size:20px;font-weight:700;color:${hpCol};font-family:var(--mono);margin-left:auto">${hp}<span style="font-size:12px;color:var(--text-dim)">/${max}</span></span>
+    </div>
+    <div class="hp-bar-wrap" style="margin-bottom:8px"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
+    ${f.notes?`<div style="font-size:10px;color:var(--text-dim);white-space:pre-line;line-height:1.5;margin-bottom:10px">${esc(f.notes)}</div>`:''}
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="font-size:11px;color:var(--text-dim)">HP:</span>
+      <input type="number" id="fov-amt" style="width:52px;text-align:center;padding:4px;font-size:12px" placeholder="Amt">
+      <button class="btn sm green" onclick="(function(){const v=parseInt(document.getElementById('fov-amt').value);if(!v)return;state.pcs[${pcIdx}].familiar.hp=Math.min(state.pcs[${pcIdx}].familiar.hp_max,(state.pcs[${pcIdx}].familiar.hp||0)+v);document.getElementById('fov-amt').value='';save();openFamiliarOverview(${pcIdx});renderHUD();})()" style="padding:3px 10px">Heal</button>
+      <button class="btn sm red" onclick="(function(){const v=parseInt(document.getElementById('fov-amt').value);if(!v)return;state.pcs[${pcIdx}].familiar.hp=Math.max(0,(state.pcs[${pcIdx}].familiar.hp||0)-v);document.getElementById('fov-amt').value='';save();openFamiliarOverview(${pcIdx});renderHUD();})()" style="padding:3px 10px">Dmg</button>
+    </div>
+  `;
+  document.getElementById('familiar-ov')?.classList.add('is-open');
+  document.getElementById('familiar-ov-bd')?.classList.add('is-open');
+}
+function closeFamiliarOverview(){
+  document.getElementById('familiar-ov')?.classList.remove('is-open');
+  document.getElementById('familiar-ov-bd')?.classList.remove('is-open');
+}
+function openGritOverview(){
+  const ox=state.wagon&&state.wagon.ox;if(!ox)return;
+  const hp=parseInt(ox.hp)||0,max=parseInt(ox.hp_max)||15;
+  const pct=Math.max(0,Math.min(100,(hp/max)*100));
+  const hpCol=hp<=0?'var(--red)':pct<25?'#c04a3a':pct<50?'var(--gold)':'var(--green)';
+  const feedEmoji={fed:'✅',hungry:'⚠',starving:'🔴'}[ox.feed||'fed']||'✅';
+  const titleEl=document.getElementById('grit-ov-title');
+  const bodyEl=document.getElementById('grit-ov-body');
+  if(titleEl)titleEl.textContent='🐂 '+esc(ox.name||'Grit');
+  if(bodyEl)bodyEl.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+      <span style="font-size:11px;color:var(--text-dim)">AC ${ox.ac||11} · ${feedEmoji} ${ox.feed||'fed'} · ${esc(ox.conditions||'No conditions')}</span>
+      <span style="font-size:20px;font-weight:700;color:${hpCol};font-family:var(--mono);margin-left:auto">${hp}<span style="font-size:12px;color:var(--text-dim)">/${max}</span></span>
+    </div>
+    <div class="hp-bar-wrap" style="margin-bottom:10px"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
+    ${ox.personality?`<div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-bottom:8px;line-height:1.4">${esc(ox.personality)}</div>`:''}
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px">
+      <span style="font-size:11px;color:var(--text-dim)">HP:</span>
+      <input type="number" id="gov-amt" style="width:52px;text-align:center;padding:4px;font-size:12px" placeholder="Amt">
+      <button class="btn sm green" onclick="(function(){const v=parseInt(document.getElementById('gov-amt').value);if(!v)return;state.wagon.ox.hp=Math.min(state.wagon.ox.hp_max,(state.wagon.ox.hp||0)+v);document.getElementById('gov-amt').value='';save();openGritOverview();renderHUD();})()" style="padding:3px 10px">Heal</button>
+      <button class="btn sm red" onclick="(function(){const v=parseInt(document.getElementById('gov-amt').value);if(!v)return;state.wagon.ox.hp=Math.max(0,(state.wagon.ox.hp||0)-v);document.getElementById('gov-amt').value='';save();openGritOverview();renderHUD();})()" style="padding:3px 10px">Dmg</button>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn sm" onclick="state.wagon.ox.feed='fed';save();openGritOverview();renderHUD()" style="flex:1;border-color:var(--green);color:var(--green)">✅ Fed</button>
+      <button class="btn sm" onclick="state.wagon.ox.feed='hungry';save();openGritOverview();renderHUD()" style="flex:1;border-color:var(--gold);color:var(--gold-bright)">⚠ Hungry</button>
+      <button class="btn sm" onclick="state.wagon.ox.feed='starving';save();openGritOverview();renderHUD()" style="flex:1;border-color:var(--red);color:var(--red)" style="flex:1">🔴 Starving</button>
+    </div>
+  `;
+  document.getElementById('grit-ov')?.classList.add('is-open');
+  document.getElementById('grit-ov-bd')?.classList.add('is-open');
+}
+function closeGritOverview(){
+  document.getElementById('grit-ov')?.classList.remove('is-open');
+  document.getElementById('grit-ov-bd')?.classList.remove('is-open');
+}
 function setStepTarget(type,idx){
   _stepTarget={type:type,idx:idx};
   document.querySelectorAll('.hud-tile').forEach(t=>t.classList.remove('active-target'));
@@ -5636,6 +5789,7 @@ function openDrawer(tabId){
   // Show the requested tab
   const target=document.getElementById(tabId);
   if(target)target.classList.add('active');
+  if(tabId==='tab-party'){renderCharTabs();renderSheets();}
   // Update title
   const titleEl=document.getElementById('drawer-title');
   if(titleEl)titleEl.textContent=_DRAWER_TITLES[tabId]||tabId;
@@ -5816,6 +5970,7 @@ function renderPCOverview(){
     ${condHtml}${concBadge}${topSkillsHtml}${attackHtml}${resHtml}${slotHtml}${magicHtml}${spellbookHtml}
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn sm" style="flex:1" onclick="closePCOverview();state.activeEditTab=${idx};const d=document.getElementById('char-editor-details');if(d)d.open=true;openDrawer('tab-party')">✎ Edit Sheet</button>
+      <button class="btn sm red" onclick="if(confirm('Delete '+esc(state.pcs[${idx}].name)+'?')){closePCOverview();delChar(${idx})}" style="padding:4px 10px" title="Delete character">🗑</button>
     </div>
   `;
 }
@@ -5866,4 +6021,7 @@ Object.assign(window, {
   sendRollToChat, addPartyItem, remPI, updPI,
   showTermTip, rollStatCheck, rollInitiative,
   _expandedMsgs, setSpellFilter,
+  renderStepBar, setHpStep,
+  openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview,
+  rsAdjMod, rsRollDice, _buildRsPills,
 });
