@@ -277,10 +277,8 @@
       <p style="font-size:11px;color:var(--text-dim);margin:8px 0">DM-only plot threads. The AI references these for character moments and story hooks.</p>
       <div id="campaign-secrets-list"></div>
     </details>
-    <div class="panel purple" style="padding:10px 14px;display:flex;align-items:center;gap:10px">
-      <span style="font-size:13px">🏪</span>
-      <span style="font-size:12px;color:var(--text-dim);flex:1">Business Profile moved to Treasury</span>
-      <button class="btn sm" onclick="openTreasury()" style="border-color:var(--purple);color:var(--purple-bright)">Open 💰</button>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:4px">
+      <button class="btn sm" onclick="openTreasury()" style="border-color:var(--purple);color:var(--purple-bright);font-size:11px" title="Business Profile is in Treasury">🏪 Business Profile →</button>
     </div>
   </div>
 </div>
@@ -436,7 +434,6 @@
           <button class="btn sm" onclick="scrollStoryBottom()" title="Scroll to bottom">↓ Bottom</button>
           <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Chapter</button>
         </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">AI-managed story chronicle. Tap ✨ Chapter to generate a new chapter from recent events.</p>
         <div id="story-thread-read" style="overflow-y:auto;max-height:520px;padding:16px 4px;font-size:14px;line-height:1.85;color:var(--text)"></div>
       </div>
       <div class="panel">
@@ -480,8 +477,8 @@
           <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">The <b style="color:var(--gold)">active scene</b> is injected into AI context automatically. Paste room descriptions, read-aloud text, encounter notes.</p>
           <div id="scene-list"></div>
           <div class="btn-row" style="margin-top:8px">
-            <button class="btn full" onclick="sendSceneToDM()">📨 Send Active Scene to Chat</button>
-            <button class="btn purple" onclick="speakActiveScene()">🔊 Speak Scene</button>
+            <button class="btn full" onclick="sendSceneToDM()" title="Send active scene to narrative chat">📨 Send to Chat</button>
+            <button class="btn purple" onclick="speakActiveScene()" title="Read active scene aloud via TTS">🔊 Speak</button>
           </div>
         </div>
         <div class="panel danger">
@@ -537,13 +534,12 @@
     </div>
     <div id="error-log-list"><p style="font-size:11px;color:var(--text-dim)">No flags yet this session.</p></div>
     <div id="error-log-audit-row" style="display:none;margin-top:10px">
-      <button class="btn red full" onclick="auditWithAI()">📤 Export Failures</button>
+      <button class="btn red full" onclick="auditWithAI()">🤖 AI Audit</button>
     </div>
   </div>
   <div class="panel" style="margin-top:12px">
     <div class="panel-title">⚡ Ops Debrief</div>
-    <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Compiles execution data — copy and paste to dev.</p>
-    <button class="btn gold full" onclick="sessionRecap()">⚡ Compile Ops Debrief</button>
+    <button class="btn gold full" onclick="sessionRecap()">⚡ Compile</button>
     <div id="dev-recap-out" style="display:none;margin-top:10px">
       <textarea id="dev-recap-text" readonly style="min-height:160px;font-size:10px;font-family:var(--mono);color:var(--text-dim);border-color:var(--gold)"></textarea>
       <button class="btn gold full" style="margin-top:6px" onclick="copyText(document.getElementById('dev-recap-text').value,'✓ Ops report copied!')">📋 Copy — Paste to Dev</button>
@@ -667,7 +663,7 @@
   <div class="grid-2">
     <div class="col">
       <div class="panel accent">
-        <div class="panel-title">AI System Prompt Contracts <span style="font-size:9px;font-weight:400;color:var(--text-dim);text-transform:none;letter-spacing:0">Tap to expand · changes auto-save</span><button class="btn sm" onclick="copyContracts()" style="margin-left:auto;font-size:10px;padding:2px 8px;flex-shrink:0">📋 Copy all</button></div>
+        <div class="panel-title">AI System Prompt Contracts <button class="btn sm" onclick="copyContracts()" style="margin-left:auto;font-size:10px;padding:2px 8px;flex-shrink:0" title="Copy all contracts to clipboard">📋 Copy all</button></div>
         <details class="bs" open style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--gold)">①</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">DM Persona &amp; Tone</span><span style="font-size:9px;color:var(--text-dim)">Character voices, tone, Slasher con-protection</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-persona" style="min-height:70px" oninput="saveContract('persona',this.value)">You are the Dungeon Master for Tinkle's Tinctures, a D&D 5e campaign. Narrate immersively, enforce strict RAW mechanics, and treat every player action seriously. Maintain consistent narrator voice — do not drift more casual or formal over time.
 
 Tone: Gritty traveling-con-artist fantasy. Grounded, low-magic, darkly comic. The operation is morally grey and everyone knows it. Dry wit welcome. Melodrama earned, not given.
