@@ -5,40 +5,50 @@
 - Ask for confirmation before: Firebase config changes, STATE_KEYS/SAVE_VERSION bumps, save() structure changes, breaking data model changes, refactors >50 lines
 
 ## Session Start Protocol
-1. Read `.claude/roadmap.md` — source of truth for architecture, active palette, pending work, completed items
-2. Read `.claude/features.md` — comprehensive map of every tab, function, state field, mechanic, QA type, and element ID
-3. Read `.claude/prime-directive.md` — project philosophy, character canon, AI contract history, VTT drops plan
-4. **Vision alignment check** — after reading all three files, flag any tension between the proposed work and the Prime Directive (e.g. a feature that adds complexity without serving session play, or a bug fix that isn't core-loop-critical while core-loop bugs are open). State it once, briefly — don't block work, just surface it.
-5. Resume from where the last session left off
-6. Work on branch `claude/plugins-installation-kgnzt5` (never push to main without explicit instruction)
+1. Read `.claude/session-log.md` — handoff note from last session: what was built, what's in progress, decisions made, and next steps. This is the fastest path to resuming work.
+2. Read `.claude/roadmap.md` — architecture, active palette, pending work, completed phases
+3. Read `.claude/features.md` — every tab, function, state field, mechanic, QA type, element ID
+4. Read `.claude/prime-directive.md` — project philosophy, character canon, AI contract history, VTT drops
+5. **Vision alignment check** — flag any tension between the proposed work and the Prime Directive. State it once, briefly — don't block work, just surface it.
+6. Check `git branch` and `git log --oneline -5` — confirm which branch you're on and what the last commits were. Work on the feature branch assigned in the environment config (never push to main without explicit instruction).
+7. Greet the user with a one-line summary of where things stand, based on the session log.
 
 ## Session End Protocol
 Before ending any session:
-1. Commit all changes with a clear message describing what was built
-2. Push the feature branch: `git push -u origin claude/plugins-installation-gikz6l`
+1. **Commit** all changes with a clear message describing what was built
+2. **Push** the feature branch: `git push -u origin <current-branch>`
 3. If the user asks to go live: merge to main and push `origin main`
-4. Update `.claude/roadmap.md` — mark completed items ✓, add any new pending items
-5. **Start a new chat for the next session** — do not continue in the same chat across separate work sessions
+4. **Update `.claude/roadmap.md`** — mark completed items, add any new pending items
+5. **Update `.claude/features.md`** — if new functions, state fields, mechanics, or UI elements were added
+6. **Write `.claude/session-log.md`** — overwrite with a fresh handoff note covering:
+   - **Session date** and session number (increment from last)
+   - **Shipped** — bullet list of what was built and deployed this session
+   - **Decisions made** — any design choices, user preferences, or constraints established
+   - **Known issues** — bugs found, regressions, things that need follow-up
+   - **In progress** — anything started but not finished (include file + line context)
+   - **Next up** — what the user indicated they want next, or logical next steps
+   - **Branch state** — current branch name, whether it's ahead of main, last commit hash
+7. Commit and push the `.claude/` file updates
+8. **Start a new chat for the next session** — do not continue in the same chat across work sessions
 
 ## Token Management
-- Open a new chat at the start of every work session (even same day, if you've stepped away)
-- A fresh chat re-reads CLAUDE.md + roadmap.md and is fully oriented in seconds
-- Long chat history burns tokens re-reading context that's already captured in these files
-- Never cut mid-feature: finish the task, commit, push, THEN start a new chat
-- The `.claude/` files are the memory — nothing is lost by starting fresh
+- Open a new chat at the start of every work session (even same day)
+- The `.claude/` files ARE the memory — session-log.md is the bridge between chats
+- A fresh chat reads 4 small files and is fully oriented in seconds; long chat history burns tokens re-reading context already captured in these files
+- Never cut mid-feature: finish the task, commit, push, write session log, THEN end
+- If context is running low: finish current task, write the session log, tell the user to start fresh
 
 ## Architecture
-- Single HTML file: `index.html` — all CSS, JS, HTML inline (~7,600 lines)
-- GitHub Pages from `main` branch
-- Firebase Realtime Database for real-time sync
+- Vite build: `src/main.js` + `src/style.css` → `index.html` → builds to `docs/` (GitHub Pages from `main`)
+- Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` persisted to `localStorage('tt_v1')` and Firebase
-- Single active `:root` CSS block (dead CSS blocks 1 & 2 removed 2026-06-14)
 - `SAVE_VERSION=11` — increment + add `migrate()` gate for any state structure changes
-- `migrate()` = version-gated engine: structural guards → v8 gate → v9 gate → v10 gate → v11 gate → canonical QA → core defaults
+- `migrate()` = version-gated engine: structural guards → v8–v11 gates → canonical QA → core defaults
 - `renderAll()` = central render; `renderChat()` = narrative chat only
-- `parseMechanics()` = parses AI mechanic blocks after each response
+- `parseMechanics()` = 36+ handlers; `_MECH_KEYS` controls display stripping
 - `genLedger()` + `buildPrompt()` = build AI system prompt
 - `sendMsg()` = main chat send; `_ctxInject` = system prompt injection for next send only
+- Firebase sync: `_mergeChatHistories()` = clock-independent chat merge (prevents vanishing messages)
 
 ## Active Palette (Visual Redesign v2 — Soft Autumn / D&D Beyond mobile)
 ```css
@@ -59,7 +69,6 @@ Before ending any session:
 ## Architecture Warnings
 - Do NOT refactor Combat tab — Drop 4 replaces it entirely
 - Do NOT push to main without explicit user instruction
-- Vite migration should happen before Drop 4
 - State visibility split is prerequisite for Drop 6
 - NEVER add level-dependent fields (hp_max, class, features, magic, skills, slots, resources) to SHEET_FIELDS in loadState() or fbStartListening() — migrate() owns those fields
 - Slasher must NEVER learn the operation is a con — Contract 1 (#ai-persona) must always contain: "He does not know the operation is a con. Never tell him."
