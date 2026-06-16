@@ -1712,6 +1712,7 @@ details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-web
 .skill-row:active{background:rgba(255,255,255,.03);}
 .prof-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--border-bright);flex-shrink:0;transition:background .15s,border-color .15s;}
 .prof-dot.filled{background:var(--gold);border-color:var(--gold);}
+.prof-dot.expertise{background:var(--gold-bright);border-color:var(--gold-bright);outline:2px solid var(--gold-dim);outline-offset:1px;}
 .sheet-lock-btn{padding:4px 9px;font-size:12px;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer;min-height:28px;color:var(--text-dim);-webkit-tap-highlight-color:transparent;transition:border-color .15s,color .15s;}
 .sheet-lock-btn.locked{border-color:var(--red-dim);color:var(--red);}
 .sheet-lock-btn.unlocked{border-color:var(--green);color:var(--green);}

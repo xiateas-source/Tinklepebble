@@ -3348,7 +3348,8 @@ Rules:
 - location_add: Name | Type | Description — create a new location entry. Types: town/city/camp/ruin/dungeon/waypoint. Use when the party first arrives at a new named place. Example: location_add: Greenest | town | Small farming town under dragon attack
 - location_visit: Name — mark a known location as visited and update its last-visited timestamp. Use on return trips. Example: location_visit: Greenest
 - location_history: Name | Text | dmOnly — add an event entry to a location's history. Set dmOnly to true for secret events. Example: location_history: Greenest | Governor Nighthill paid 250gp for the party's help | false
-- location_investment: Name | Description | Amount — record a party investment at a location. Example: location_investment: Greenest | Mill stake | 50`;
+- location_investment: Name | Description | Amount — record a party investment at a location. Example: location_investment: Greenest | Mill stake | 50
+- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). Use whenever a player action triggers a check BEFORE narrating the outcome. Example: roll_request: Persuasion | 14 | Tinkle`;
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
   const secretsSection=state.dmSecrets?'\nCONTRACT 7 — SECRET DM NOTES (NEVER reveal to players):\n'+state.dmSecrets+'\n':'';
   const snipsSection=activeSnips?'\nCONTRACT 8 — REFERENCE MATERIAL:\n'+activeSnips+'\n':'';
@@ -3358,7 +3359,7 @@ Rules:
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
-const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|none';
+const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|none';
 const _NAKED_MECH_RE=new RegExp('^('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
@@ -3645,6 +3646,20 @@ function parseMechanics(responseText, pendingMsgId=null){
           changes.push({text:'Investment @ '+liLoc.name});
         }
       }
+      else if(key==='roll_request'){
+        // Format: Skill|DC|PCname (PCname optional)
+        const rp=val.split('|').map(s=>s.trim());
+        const skill=rp[0]||'Check',dc=rp[1]||'',pcname=rp[2]||'';
+        const label=(pcname?pcname+': ':'')+skill+(dc?' DC '+dc:'');
+        const sub=pcname?'':'Roll and send your result to the DM.';
+        const banner=document.getElementById('roll-request-banner');
+        const lbl=document.getElementById('roll-request-label');
+        const subEl=document.getElementById('roll-request-sub');
+        if(banner){banner.style.display='block';}
+        if(lbl)lbl.textContent='🎲 '+label;
+        if(subEl)subEl.textContent=sub||'Roll and send your result.';
+        changes.push({text:'Roll requested: '+label});
+      }
       else if(key==='spell_add'){
         // Format: PCname|SpellName|level|castTime|range|duration|components|desc
         const parts=(val).split('|').map(s=>s.trim());
@@ -3773,6 +3788,51 @@ function detectUnloggedGold(prose,changes){
   const spent=/\b(pay|paid|pays|spend|spent|spends|cost|costs?|owe|owes|fee|buy|bought|buys|purchase|purchased)\b/.test(ctx);
   confirmLedgerChip(amt,spent?'out':'in');
 }
+function detectUnloggedNPC(prose,changes){
+  if(!prose||prose.length<60)return;
+  // Skip if npc_add already fired this turn
+  if((changes||[]).some(c=>/NPC added/i.test(c.text||'')))return;
+  // Known names (PC names + existing NPC names)
+  const pcNames=new Set((state.pcs||[]).map(p=>p.name.toLowerCase()));
+  const npcNames=new Set((state.npcs||[]).map(n=>n.name.toLowerCase()));
+  const known=new Set([...pcNames,...npcNames]);
+  // Attribution patterns: "Name said/replied/etc" or quoted speech with name
+  const VERBS='said|replied|asked|whispered|nodded|smiled|frowned|laughed|sighed|called|announced|warned|barked|muttered|snapped|shook|gestured|bowed|raised';
+  const attrRe=new RegExp('\\b([A-Z][a-z]{2,16})(?:\\s+[A-Z][a-z]+)?\\s+(?:'+VERBS+')','g');
+  const candidates=new Map();
+  let m;
+  while((m=attrRe.exec(prose))!==null){
+    const name=m[1];
+    if(['The','A','An','He','She','They','It','His','Her','Their','You','We','Your','Our'].includes(name))continue;
+    const low=name.toLowerCase();
+    if(known.has(low))continue;
+    candidates.set(name,(candidates.get(name)||0)+1);
+  }
+  // Only flag names that appear ≥2 times (reduces false positives)
+  const hits=[...candidates.entries()].filter(([,c])=>c>=2).map(([n])=>n);
+  if(!hits.length)return;
+  // Show a single chip for the first unlogged name
+  const topName=hits[0];
+  let c=document.getElementById('mech-toast');
+  if(!c){c=document.createElement('div');c.id='mech-toast';c.style.cssText='position:fixed;right:12px;bottom:96px;z-index:9998;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none;max-width:80vw';document.body.appendChild(c);}
+  const chip=document.createElement('div');
+  chip.style.cssText='pointer-events:auto;display:flex;align-items:center;gap:8px;font-size:12px;background:var(--surface2);color:var(--text-bright);border:1px solid var(--purple);border-left:3px solid var(--purple);border-radius:3px;padding:6px 8px 6px 10px;box-shadow:0 2px 10px rgba(0,0,0,.5);opacity:0;transform:translateX(14px);transition:opacity .25s ease,transform .25s ease';
+  const close=()=>{chip.style.opacity='0';chip.style.transform='translateX(14px)';setTimeout(()=>chip.remove(),300);};
+  const txt=document.createElement('span');txt.textContent='👤 Log NPC "'+topName+'"?';
+  const yes=document.createElement('button');yes.textContent='✓';yes.style.cssText='cursor:pointer;border:none;border-radius:3px;background:var(--purple);color:#fff;font-weight:bold;padding:2px 9px;font-size:13px';
+  const no=document.createElement('button');no.textContent='✕';no.style.cssText='cursor:pointer;border:1px solid var(--border);border-radius:3px;background:transparent;color:var(--text-dim);padding:2px 8px;font-size:13px';
+  yes.onclick=()=>{
+    if(!Array.isArray(state.npcs))state.npcs=[];
+    state.npcs.push({id:'npc_'+Date.now(),name:topName,race:'',occupation:'',disposition:'neutral',location:state.worldData?.location||'',lastSeen:state.worldData?.time||'',notes:'',history:[],aiOnly:false});
+    save();renderNPCs();
+    txt.textContent='✓ '+topName+' added to NPCs';chip.style.borderColor='var(--green)';chip.style.borderLeftColor='var(--green)';
+    yes.remove();no.remove();setTimeout(close,1400);
+  };
+  no.onclick=close;
+  chip.append(txt,yes,no);c.appendChild(chip);
+  requestAnimationFrame(()=>{chip.style.opacity='1';chip.style.transform='translateX(0)';});
+  setTimeout(close,9000);
+}
 function confirmLedgerChip(amt,dir){
   let c=document.getElementById('mech-toast');
   if(!c){
@@ -3825,24 +3885,6 @@ function _showChip(icon,label,borderColor,onConfirm){
   c.appendChild(chip);
   setTimeout(()=>{chip.style.opacity='1';chip.style.transform='translateX(0)';},40);
   setTimeout(()=>{if(chip.isConnected)close();},12000);
-}
-function detectUnloggedNPC(prose,changes){
-  if(!prose)return;
-  if((changes||[]).some(c=>/npc_add:/i.test(c.text||'')))return;
-  const m=prose.match(/\b(?:meet[s]?|encounter[s]?|introduce[sd]?|approach(?:es)?|enter[s]?)\b[^.!?]{0,60}?\b([A-Z][a-z]{2,18})\b/);
-  if(!m)return;
-  const name=(m[1]||'').trim();
-  if(!name||name.length<3)return;
-  const skip=new Set(['The','You','They','She','He','It','We','This','That','Your','His','Her','Its','Our','When','Then','After','Before','During','While','There','Here','With','From','Into','Upon','Down','Each','Some','Many','Most','More','Just','Even','Also','Very']);
-  if(skip.has(name))return;
-  if((state.npcs||[]).some(n=>(n.name||'').toLowerCase()===name.toLowerCase()))return;
-  _showChip('👤','Log "'+name+'" as NPC?','var(--blue)',
-    (txt,yes,no)=>{
-      if(!Array.isArray(state.npcs))state.npcs=[];
-      state.npcs.push({id:'npc_'+Date.now(),name,disposition:'Neutral',status:'active',notes:'',tags:[]});
-      saveRefresh();renderNPCs();
-      txt.textContent='✓ '+name+' logged';yes.remove();no.remove();
-    });
 }
 function detectUnloggedItem(prose,changes){
   if(!prose)return;
@@ -3949,6 +3991,7 @@ async function summarizeAndPrune(){
   }
 }
 function clearChat(){if(confirm('Clear narrative chat and Rules channel? Log unaffected.')){state.chatHistory=[];state.oocHistory=[];showChatTab('narrative');saveRefresh();}}
+function dismissRollRequest(){const b=document.getElementById('roll-request-banner');if(b)b.style.display='none';}
 
 // ═══ CHAT TABS ═══
 let _activeTab='narrative';
@@ -6569,6 +6612,95 @@ function deleteLocation(id){
   state.locations=state.locations.filter(l=>l.id!==id);
   closeLocDetail();save();renderLocations();
 }
+
+function openLocationSeed(){
+  // Collect location names from all sources
+  const known=new Map(); // lowercase name → {name, type, disposition, npcs[], source[]}
+  const merge=(name,patch)=>{
+    const k=name.trim().toLowerCase();
+    if(!k||k.length<2)return;
+    const entry=known.get(k)||{name:name.trim(),type:'town',disposition:'neutral',npcs:[],sources:[]};
+    if(patch.type)entry.type=patch.type;
+    if(patch.disposition)entry.disposition=patch.disposition;
+    if(patch.npc&&!entry.npcs.includes(patch.npc))entry.npcs.push(patch.npc);
+    if(patch.src&&!entry.sources.includes(patch.src))entry.sources.push(patch.src);
+    if(!known.has(k))entry.name=name.trim(); // preserve first-seen casing
+    known.set(k,entry);
+  };
+  // Current location
+  const cur=state.worldData?.location||'';
+  if(cur)merge(cur,{type:'town',src:'current location'});
+  // Travel log: "Day 3: Millhaven → Thornbury | note"
+  (state.worldData?.travelLog||[]).forEach(line=>{
+    const m=line.match(/:\s*(.+?)\s*→\s*(.+?)(\s*\||\s*$)/);
+    if(m){merge(m[1].trim(),{type:'town',src:'travel log'});merge(m[2].split('|')[0].trim(),{type:'town',src:'travel log'});}
+  });
+  // Town reputation
+  (state.worldData?.townReputation||[]).forEach(t=>{
+    const disp=t.status==='friendly'?'friendly':t.status==='allied'?'allied':t.status==='burned'||t.status==='fled'?'hostile':'neutral';
+    merge(t.town,{type:'town',disposition:disp,src:'town rep'});
+  });
+  // NPC lastSeen
+  (state.npcs||[]).forEach(n=>{
+    if(n.lastSeen)merge(n.lastSeen,{type:'town',npc:n.name,src:'NPC lastSeen'});
+  });
+  // Filter out names already in state.locations
+  const existingNames=new Set((state.locations||[]).map(l=>l.name.toLowerCase()));
+  const drafts=[...known.values()].filter(d=>!existingNames.has(d.name.toLowerCase()));
+  // Set current status on the current-location entry
+  drafts.forEach(d=>{if(d.sources?.includes('current location'))d.isCurrent=true;});
+
+  const el=document.getElementById('loc-seed');
+  const body=document.getElementById('loc-seed-body');
+  if(!el||!body)return;
+  if(!drafts.length){
+    body.innerHTML='<p style="text-align:center;color:var(--text-dim);font-size:12px;padding:24px 0">All known locations are already in the journal.</p>';
+  } else {
+    body.innerHTML=`<p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Found ${drafts.length} location${drafts.length===1?'':'s'} not yet in your journal. Uncheck any you want to skip, then tap Add.</p>`+
+      `<div id="loc-seed-list">`+
+      drafts.map((d,i)=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">`+
+        `<input type="checkbox" id="lsd${i}" checked style="margin-top:3px;flex-shrink:0">`+
+        `<label for="lsd${i}" style="flex:1;font-size:12px">`+
+        `<div style="font-weight:600;color:var(--text-bright)">${esc(d.name)}${d.isCurrent?'<span style="color:var(--gold);font-size:10px;margin-left:5px">● current</span>':''}</div>`+
+        `<div style="font-size:10px;color:var(--text-dim);margin-top:1px">${d.sources.join(', ')}${d.npcs.length?' · NPCs: '+d.npcs.slice(0,3).join(', '):''}</div>`+
+        `</label>`+
+        `<select id="lsd-type${i}" style="font-size:11px;padding:3px 5px;width:80px">`+
+        ['town','city','camp','ruin','dungeon','waypoint'].map(t=>`<option value="${t}"${t===d.type?' selected':''}>${t}</option>`).join('')+
+        `</select></div>`).join('')+
+      `</div>`+
+      `<button class="btn gold full" style="margin-top:14px" onclick="confirmLocationSeed(${JSON.stringify(drafts).replace(/</g,'\\u003c')})">Add Selected to Journal</button>`;
+  }
+  document.getElementById('loc-seed-bd').classList.add('is-open');
+  el.classList.add('is-open');
+}
+function closeLocSeed(){
+  document.getElementById('loc-seed-bd')?.classList.remove('is-open');
+  document.getElementById('loc-seed')?.classList.remove('is-open');
+}
+function confirmLocationSeed(drafts){
+  const list=document.getElementById('loc-seed-list');
+  const added=[];
+  drafts.forEach((d,i)=>{
+    const chk=document.getElementById('lsd'+i);
+    if(!chk||!chk.checked)return;
+    const typeEl=document.getElementById('lsd-type'+i);
+    const type=typeEl?typeEl.value:d.type;
+    const status=d.isCurrent?'current':'visited';
+    (state.locations||[]).push({
+      id:'loc_'+Date.now()+'_'+i,
+      name:d.name,type,status,
+      rep:{disposition:d.disposition||'neutral',notes:''},
+      npcs:d.npcs.slice(0,5),
+      investments:[],history:[],
+      dmNotes:'',playerNotes:'',mapPos:null,
+      lastVisited:d.isCurrent?state.worldData?.time||'':''
+    });
+    added.push(d.name);
+  });
+  save();closeLocSeed();renderLocations();
+  toast(`✓ Added ${added.length} location${added.length===1?'':'s'} to journal.`);
+}
+
 function openGritOverview(){
   const ox=state.wagon&&state.wagon.ox;if(!ox)return;
   const hp=parseInt(ox.hp)||0,max=parseInt(ox.hp_max)||15;
@@ -6940,12 +7072,23 @@ function renderCharSheet(idx,locked){
 
   // ── SKILLS TAB ──
   function skillsTab(){
-    const rows=ALL_SKILLS.map(([n,s])=>{const b=modN(s);const p=profs.includes(n);const tot=p?b+prof:b;
+    // Derive effective proficiencies: use skillProfs array if populated,
+    // else fall back to scanning the skills text for known skill names.
+    const skillsText=pc.skills||'';
+    const inferredProfs=profs.length>0?profs:
+      ALL_SKILLS.filter(([n])=>new RegExp('\\b'+n+'\\b','i').test(skillsText)).map(([n])=>n);
+    // Expertise: skills text contains "(Expertise)" near the skill name → double prof
+    const hasExpertise=(n)=>new RegExp(n+'[^\\n]*Expertise','i').test(skillsText);
+    const rows=ALL_SKILLS.map(([n,s])=>{
+      const b=modN(s);const p=inferredProfs.includes(n);
+      const expert=p&&hasExpertise(n);
+      const tot=expert?b+(prof*2):p?b+prof:b;
+      const dotClass=expert?'filled expertise':p?'filled':'';
       return`<div class="skill-row" onclick="rollStatCheck(${idx},'${s}','${n}')" style="cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation">
-        <span class="prof-dot ${p?'filled':''}"></span>
+        <span class="prof-dot ${dotClass}" title="${expert?'Expertise':''}"></span>
         <span style="flex:1;font-size:11px;color:var(--text)">${n}</span>
         <span style="font-size:9px;color:var(--text-dim);margin-right:4px;text-transform:uppercase">${s}</span>
-        <span style="font-size:12px;font-weight:700;color:${p?'var(--gold)':'var(--text-bright)'}">${fmtM(tot)}</span>
+        <span style="font-size:12px;font-weight:700;color:${expert?'var(--gold-bright)':p?'var(--gold)':'var(--text-bright)'}">${fmtM(tot)}</span>
       </div>`;
     }).join('');
     return`<div class="sheet-section">${rows}</div>`;
@@ -7234,8 +7377,8 @@ Object.assign(window, {
   openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview,
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
-  setLocStatus, deleteLocation,
-  openSheetPicker,
+  setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
+  openSheetPicker, dismissRollRequest,
   renderSessionArchive,
   verifyContracts, clearFlagNote,
   rsAdjMod, rsRollDice, _buildRsPills,
