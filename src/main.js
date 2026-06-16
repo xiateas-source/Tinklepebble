@@ -4093,7 +4093,7 @@ async function sendMsg(){
     .replace(/---MECHANICS---[\s\S]*$/,'')
     .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
     // Strip any naked mechanic lines the AI put directly in the response body
-    .replace(new RegExp('^('+_MECH_KEYS+'): .+$','mgm'),'')
+    .replace(new RegExp('^('+_MECH_KEYS+'): .+$','gm'),'')
     .replace(/\n{3,}/g,'\n\n')
     .trim();
     detectUnloggedGold(displayText,mechanics);
@@ -6766,7 +6766,7 @@ Object.assign(window, {
   buildAISummary, buildRawSummary,
   chatKey, chatKeyQuick, checkResetConfirm, clearChat, clearChkHist,
   clearLog, clearPartyBadge, clearResolvedFlags,
-  closeDrawer, closeFlagModal, closeHeaderMenu, closeLevelUpModal, closeModal,
+  closeDrawer, closeFlagModal, closeHeaderMenu, closeLevelUpModal, closeModal, openModal,
   closePCOverview, closeQAMenu, closeQAModal, closeTabOverflow, closeTreasury,
   completeSetup, connectFirebase, copyIdx, copyStateCompact, copyText,
   delChar, deleteChatMsg, deleteFlag, doLongRest, doQAHP, doShortRest,
