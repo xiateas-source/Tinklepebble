@@ -4781,7 +4781,7 @@ function previouslyOn(){
   }).catch(err=>{if(typEl)typEl.classList.remove('on');toast('Recap failed: '+err.message);});
 }
 // ═══ CONTEXT-AWARE QUICK ACTIONS FAB ═══
-let currentTab='tab-party';
+let currentTab='tab-dm';
 function toggleQAMenu(){
   const wrap=document.getElementById('qa-fab-wrap');
   if(wrap&&wrap.dataset.dragged){delete wrap.dataset.dragged;return;}
