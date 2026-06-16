@@ -9,500 +9,93 @@
 ## ⚠ SECURITY CONSTRAINT (non-negotiable, permanent)
 **Slasher (Black Dragonborn Fighter) must NEVER learn the operation is a con.**
 Contract 1 (`#ai-persona`) must always contain: *"He does not know the operation is a con. Never tell him."*
-This fragment must survive every refactor. When contracts-to-state migration happens, `buildPrompt()` must validate this fragment before every send and throw a hard error if it's missing.
+This fragment must survive every refactor. `buildPrompt()` validates this fragment before every send and throws a hard error if missing.
 
 ---
 
 ## App Architecture
-- Vite-based build: `src/main.js` + `src/style.css` → `index.html` → builds to `docs/` (deployed via GitHub Pages). `index.html` is the lean entry point; all logic lives in `src/`.
-- GitHub Pages deployment from `main` branch
+- Vite-based build: `src/main.js` + `src/style.css` → `index.html` → builds to `docs/` (GitHub Pages from `main`)
 - Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` persisted to `localStorage('tt_v1')` and Firebase
-- Single active `:root` CSS block (blocks 1 & 2 removed 2026-06-14)
-- `SAVE_VERSION=11` — v11 gate: re-patches L3 data that v10 gate set but SHEET_FIELDS bug then clobbered. v10 gate: canonical L3 sync. v9 gate: campaignLaunched backfill. v8 gate: storyChapters seed, module init.
-- `migrate()` = version-gated engine: structural guards → v8 → v9 → v10 → v11 gates → canonical QA → core defaults
+- `SAVE_VERSION=11` — `migrate()` = structural guards → v8–v11 gates → canonical QA → core defaults
 - `renderAll()` = central render; `renderChat()` = narrative chat
 - `callAI()` = retry wrapper (2x, 1.2s/2.4s, 5xx only) + OpenRouter free-model fallback
-- `summarizeAndPrune()` = rolling AI summary at 75 messages; prunes oldest 30 only on confirmed summary
-- AI contracts live in `state.aiContracts{persona,never,actions,continuity,multi}` — Firebase-synced, validated in `buildPrompt()` (DR-6 ✅ 2026-06-15)
+- `summarizeAndPrune()` = rolling AI summary at 75 msgs → appends to `sessionArchive[]` (50-cap), `prevSessionSummary` = last 3 batches joined
+- `parseMechanics()` = 36+ handlers; `_MECH_KEYS` controls display stripping
+- `buildPrompt()` / `genLedger()` = AI system prompt assembly
 - Navigation: 4-tab bottom nav (AI DM / Sheet / Logistics / Systems) with composite drawers; `navTo()` routes all tab access
-- Body layout: `display:flex; flex-direction:column; height:100dvh` — `#tab-dm{flex:1}` fills viewport between HUD and dock
+- Body layout: `display:flex; flex-direction:column; height:100dvh` — `#tab-dm{flex:1}` fills viewport
+- Firebase sync guard: chatHistory merge prevents vanishing messages from concurrent device writes (Session 10)
 
 ## ⚠ SHEET_FIELDS Rule (permanent)
-Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `resources`, or `concentrating` to SHEET_FIELDS in `loadState()` or `fbStartListening()`. `migrate()` owns all level-dependent fields. `getCanonicalPCs()` reads from `state.pcs` which may be demo/Level-1 data on a fresh device.
+Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `resources`, or `concentrating` to SHEET_FIELDS in `loadState()` or `fbStartListening()`. `migrate()` owns all level-dependent fields.
 
-## Active Palette (Visual Redesign v2 — Soft Autumn, deployed 2026-06-14)
+## Active Palette (Soft Autumn — deployed 2026-06-14)
 ```
---bg:#1a0c07        near-black chocolate
---surface:#2c1a10   dark chocolate
---surface2:#3c2618  medium chocolate
---surface3:#4c3222  lighter chocolate
---gold:#b05830      cinnamon — primary accent
---gold-dim:#70381a
---gold-bright:#d07845
---red:#8b3a2a       deep chocolate red — danger
---green:#788a73     sage grey — status / success
---blue:#608278      muted sage-teal — player messages
---text:#c4a88a      warm beige body text
---text-bright:#e8d9c4  champagne beige — headings / bright text
+--bg:#1a0c07        --surface:#2c1a10    --surface2:#3c2618   --surface3:#4c3222
+--gold:#b05830      --gold-dim:#70381a   --gold-bright:#d07845
+--red:#8b3a2a       --green:#788a73      --blue:#608278
+--text:#c4a88a      --text-bright:#e8d9c4
 ```
-*(Soft Autumn palette: chocolate bg + cinnamon accents + sage grey status + champagne text)*
 
 ---
 
 ## What to Leave Alone (stable — high regression risk)
-- **Firebase sync** (`fbInit/fbStartListening/fbLoad/fbSave`) — clean, correct, leave it
-- **`sendMsg()` / `buildPrompt()` core loop** — `_ctxInject` injection is elegant
-- **Quick Action underlying logic** (`executeQA`, `openQASheet`) — switch dispatch + bottom-sheet is correct
-- **QA menu bottom-sheet animation and grid layout** — just shipped, let it settle before touching
-- **Checkpoint / rewind stack** — `triggerChk()` call sites are all appropriate
-- **OOC channel split** — two separate history arrays, separate context injection
-- **TTS dual-provider layer** — browser / ElevenLabs branching is clean
-- **`parseMechanics()` business logic** — 35 handlers are correct; only the if/else chain structure needs refactoring (not yet)
-- **`toast()` / `mechToast()`** — stacking feed is working well
+- Firebase sync (`fbInit/fbStartListening/fbLoad/fbSave`)
+- `sendMsg()` / `buildPrompt()` core loop
+- Quick Action logic (`executeQA`, `openQASheet`)
+- Checkpoint / rewind stack
+- OOC channel split
+- TTS dual-provider layer
+- `parseMechanics()` business logic (refactor via DR-5, not piecemeal)
+- `toast()` / `mechToast()` stacking feed
+
+## Design Principles
+- **Interactive-first** — every UI element should have a function
+- **Minimize scrolling** — tap, swipe, and collapse over long vertical lists
+- **Lock/unlock editing** — character data is read-only during play; deliberate unlock to edit
+- **Compact + data-dense** — condense into small, scannable tiles and chips
 
 ---
 
-## Completed Work (Phase 0 + Deep Refactors)
+## Completed Summary (Phases 0–3)
 
-### Quick Wins — ALL DONE 2026-06-14
-- QW-1 ✅ Delete CSS Block 2 — dead weight removed
-- QW-2 ✅ Delete CSS Block 1, move font vars to Block 3
-- QW-3 ✅ Compact ledger default
-- QW-4 ✅ storyThread confirmed out of STATE_KEYS
-- QW-5 ✅ `note:` QA redirects to storyChapters[] "Field Notes"
-- QW-6 ✅ QA menu grouped by category + ⭐ pinned top 3
-- QW-7 ✅ Count badges on World/Session/Wagon tabs
-- QW-8 ✅ AbortController + 25s timeout in callAI()
-- QW-9 ✅ "⚙ Systems" → "❓ Rules"; OOC channel labels updated
-- QW-10 ✅ Tab bar: AI DM first, overflow ⋮ menu for AI Tools/Dev/Setup
+**Phase 0** (2026-06-14): CSS cleanup, QW 1–10, level-up wizard, migrate v8–v11, SHEET_FIELDS fix, all core mechanics.
 
-### Deep Refactors
-- DR-1 ✅ Version-gated `migrate()` — 3-section structure, now at v11
-- DR-2 ✅ `storyThread` complete elimination
-- DR-3 ✅ Setup Wizard lock (`campaignLaunched` flag, SAVE_VERSION 9)
-- DR-4 ✅ `callAI()` retry + provider fallback wrapper
-- DR-5 ⬜ `parseMechanics()` → dispatch table registry (High risk, week+)
-- DR-6 ✅ Contracts → `state.aiContracts{}` with Firebase sync + Slasher security validation (2026-06-15)
-- DR-7 ✅ Rolling AI summary — `summarizeAndPrune()` at 75 messages
+**Phase 1** (2026-06-15): Visual redesign v2, 4-tab nav, character sheet 6-tab rework, auto-modifier calc, Vite migration, 50+ UI features, dice roller, HUD tiles, context strip, term tooltips, message lock.
+
+**Phase 2** (2026-06-15–16, Sessions 2–9): DR-6 contracts→state, consequence engine, flag system, clutter pass, UX Pass 2, AI contract health check, reputation ripple, Location Journal v1 (Node Map + detail sheet + AI mechanics), NPC read-mode cards, combat/scene/grit collapse, testing chat, quest announcement system, stability fixes.
+
+**Phase 3** (2026-06-16, Session 10): Session Archive (50-cap append-based), Location Seed (🌱 from travelLog/townRep/NPCs), `roll_request:` mechanic + banner, narrative NPC audit (attribution-verb scanner), skill proficiency inference + expertise detection, customizable ☰ header shortcuts, vanishing-message Firebase fix, cleanup pass (removed: Active Scene, Travel Log, Session Log, Quick Log Entry, Build Raw panels).
+
+### Open Deep Refactors
+- DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
 
-### Phase 0 Shipping Items — ALL DONE 2026-06-14
-- ✅ Header stretch fix
-- ✅ 🎲 Roll & Submit button in header
-- ✅ Remove Dice Roller from Combat tab
-- ✅ Remove #party-status-mini from header
-- ✅ syncWorld() + syncBP() Setup↔World sync
-- ✅ World tab: World State | Operations sub-tabs
-- ✅ Quest + NPC dedup
-- ✅ primary_mission + quest_fail mechanics
-- ✅ Income/NPC/Quest contract enforcement
-- ✅ OOC + party chat: live ledger on every send
-- ✅ Session Summary readability
-- ✅ Scroll controls: ↑↓ on all chat panels
-- ✅ Story Thread ebook read mode (📖)
-- ✅ Story Chronicle chapter system (SAVE_VERSION 8)
-- ✅ Quest model: hidden:false default
-- ✅ Module tracker (Hoard of the Dragon Queen, 8 episodes)
-- ✅ Context Refresh / Re-sync protocol rework
-- ✅ Level-up wizard (Fighter/Rogue/Bard L2–L5, LEVEL_UP_DATA, BARD_SPELLS)
-- ✅ Canonical L3 character sync (SAVE_VERSION 10→11)
-- ✅ SHEET_FIELDS double-clobber fix (loadState + fbStartListening)
-- ✅ Subclass display on character cards + sheet
-- ✅ Current HP editable field on sheet
-- ✅ Flag context: `_buildFlagUIContext()` captures tab/channel/sub-panel at flag creation
-
 ---
 
-## Phase 1 — Active Sprint
-*Phase 1 COMPLETE as of 2026-06-15.*
-- [x] Context Refresh / Re-sync protocol rework
-- [x] **Visual redesign** — D&D Beyond / Demiplane mobile style (see Visual Redesign v2). CSS pass first, then nav restructure.
-- [x] **Character sheet swappable tabs** — Skills / Features / Attacks / Spells / Spellbook / Gear (done 2026-06-14)
-- [x] **Auto-modifier calculation** — saves + skills live-calculated from ability scores + skillProfs (done 2026-06-15)
-- [x] Vite migration — src/style.css + src/main.js + lean index.html, builds to docs/ (done 2026-06-15)
-
-### Shipped 2026-06-15
-- ✅ Playwright bug fixes: header menu z-index, dead renderCards(), Firebase offline banner
-- ✅ Base URL fix: /Tinklepebble/ for GitHub Pages subdirectory deployment
-- ✅ Tap-to-roll ability checks in PC overview (all 6 stats + initiative)
-- ✅ Roll result strip with 📨 Send to chat button in PC overview
-- ✅ Save-proficiency dots on stat grid (gold ● + gold border if save is proficient)
-- ✅ Proficient skills panel in PC overview — tappable pills to roll skill checks
-- ✅ Auto-calculated Passive Perception from WIS + Perception prof
-- ✅ XP progress bars in party list rows and PC overview
-- ✅ Equipped gear tag pills in PC overview
-- ✅ D&D term tooltips in narrative chat (27 terms, tap for definition popup)
-- ✅ Message lock — expanded "Read more" messages stay expanded across re-renders
-- ✅ Spellbook level filter tabs (dynamic per available levels)
-- ✅ Bug fix: addSpell() was switching to Gear tab instead of Spellbook tab
-- ✅ NPC list: sort active→departed→deceased, disposition select with color, deceased dimmed
-- ✅ Quest list: sort active→failed→done, active count header, hidden toggle button
-- ✅ HUD tiles: red dot for conditions, purple dot for concentration
-- ✅ Party PC rows: AC displayed alongside HP
-- ✅ item_add mechanic stacks quantity on exact name match (Issue 21 partial)
-- ✅ Party tab: character editor open by default (`<details open>`)
-
-### Shipped 2026-06-15 (Session 2)
-- ✅ HP step customization (state.hpSteps, renderStepBar, setHpStep)
-- ✅ AI contract textareas auto-resize (field-sizing:content, JS resize on input)
-- ✅ Drawer party tab glitch fix (renderCharTabs + renderSheets on openDrawer)
-- ✅ Delete party member from PC overview (🗑 button in action row)
-- ✅ Familiar HUD tile — Pip (Tinkle's rat), purple border, opens familiar bottom sheet
-- ✅ Grit HUD tile — ox from state.wagon.ox, green border, opens Grit bottom sheet
-- ✅ Pip familiar seeded in migrate() structural guard (no SAVE_VERSION bump)
-- ✅ HUD scroll-fade gradient (::after on .global-hud)
-- ✅ Town Rep → Wagon tab
-- ✅ spell_add mechanic in parseMechanics()
-- ✅ Dice roller upgrade (screenshot-matching: char select, roll type, modifier, ±delta, d4–d%)
-- ✅ Bug 4: Firebase error toast → friendly message
-- ✅ Bug 5: closeDrawer() resets currentTab → renderQAMenu()
-- ✅ Familiar/Grit bottom sheets fixed (were rendering inline; now position:fixed transform-based)
-- ✅ Flag system: .qa-modal z-index raised to 1600; floating ⚑ FAB added; font-size:16px on textarea; injectPanelFlags() in renderAll()
-- ✅ QA menu redesign: full-width bottom sheet, 2-col card grid, FAB morphs to ✕, custom icon picker (state.qaFabIcon)
-
-### Shipped 2026-06-15 (Session 3)
-- ✅ **Theme: `--ivory` undefined** — added as alias of `--text-bright` in `:root`; was missing from all themes (broke stat values, dice results, modal titles)
-- ✅ **Night mode readability** — text `#b09472` (was `#7a5c40`), gold `#c07040` (was `#8b4020`), panel borders and DM message gold border brightened
-- ✅ **Hybrid parchment light mode** — warm `#f5efe1` background, filigree panel borders, matching form inputs in light mode
-- ✅ **Compact flag export** — `exportFlagReport()` rewritten: `FLAGS YYYY-MM-DD — N pending\n1. [cat|verdict] note` (drops emoji/location/label, ~70% shorter)
-- ✅ **Scroll freeze** — see Bug Fixes above
-- ✅ **Flag FAB z-index** — see Bug Fixes above
-- ✅ **QA FAB stuck** — see Bug Fixes above
-- ✅ **Flag save untappable** — see Bug Fixes above
-- ✅ **Cantrips tab** — see Polish Pass above
-- ✅ **Quest expand** — see Polish Pass above
-- ✅ **Multi-category items** — see Polish Pass above
-- ✅ **Dice → Roll & Submit** — see Polish Pass above
-- ✅ **Context strip** — see Polish Pass above
-- ✅ **Spell descriptions** — see Polish Pass above
-- ✅ **Copy contracts** — see Polish Pass above
-- ✅ **Character sheet rework** — 6-tab sheet (Core/Skills/Combat/Spells/Gear/Features) with lock/unlock, auto-lock on close (subagent, 2026-06-15)
-
-### Shipped 2026-06-15 (Session 4)
-- ✅ **4-tab nav** — AI DM / Sheet (📜) / Logistics (📦) / Systems (⚙) replacing 9-tab top bar
-- ✅ **Composite drawers** — Logistics: World/Wagon/Combat subnav; Systems: Session/AI Tools/Dev/Setup subnav
-- ✅ **Nav dots** — gold activity dots on Logistics/Systems buttons when AI triggers state changes
-- ✅ **DR-6: Contracts → state** — `state.aiContracts{}` + Firebase sync; `buildPrompt()` validates Slasher security fragment; hard-error blocks send if missing
-- ✅ **Flag system: Idea category, filter pills, Reviewed verdict, dev notes copy** — `FLAG_CATS` + `idea` cat + 8-pill filter row + `reviewed` badge cycle + `copyDevNotes()`
-- ✅ **Patch notes v1.12** — `renderChangelog()` updated with 21-item session 3 summary
-
-### Shipped 2026-06-16 (Session 8)
-- ✅ **Flag 18: navToast clickable + specific quest navigation** — tapping "New Quest" chip opens Logistics/World drawer, scrolls to and gold-highlights the specific new quest `<details>`; quest `<details>` elements get `id="quest-det-N"`
-- ✅ **Quest chat anchor (msgId system)** — each AI message gets `msgId = 'cm_<ts>_<rand>'`; `parseMechanics()` receives `pendingMsgId` and stores as `quest.chatMsgId`; `renderChat()` stamps `data-msg-id`; `viewQuestInChat(msgId)` queries by attribute; if pruned shows toast "That chat moment was archived in the session summary"
-- ✅ **tab-ait-chk restored** — orphaned Checkpoints tab wired into Systems drawer as "⏪ Tools"; Rewind Stack, QA Editor, FAB icon picker, Firebase config, Checkpoint History now accessible again
-- ✅ **Playwright audit fixes** (already in branch, confirmed deployed): header-menu z-index 1000, HUD z-index 850, closeDrawer resets currentTab, placeholder updates per channel
-- ✅ **no-cache meta tags** — added to `index.html` to prevent browser caching of stale deployments on GitHub Pages
-- ✅ **AI DM Testing Chat (Flag 19)** — `⚗ Test Mode` toggle in Systems → AI Tools; isolated `_testHistory` (never saved); `sendTestMsg()` uses real contracts + test addendum; `previewMechanics()` shows dry-run mechanic preview below DM message without writing state; `clearTestChat()` + Clear button; tab hidden until enabled
-- ✅ **Patch notes v1.17**
-
-### Shipped 2026-06-16 (Session 5 — Stability Pass)
-- ✅ **Layout broken** — `body` made `display:flex; flex-direction:column; height:100dvh`; `#tab-dm{flex:1}` now fills viewport correctly
-- ✅ **tab-party double-render** — Removed stale `active` class from `#tab-party` in HTML; it was rendering party content above AI DM, crushing chat
-- ✅ **tab-dm hidden** — Added `class="active"` to `#tab-dm` in HTML; `closeDrawer()` now explicitly re-activates it
-- ✅ **OOC/party inputs scrolled away** — Removed in-pane textarea inputs; unified context-aware quick bar now routes to correct channel (`_activeTab` switch)
-- ✅ **Quick bar placeholder** — Updates to "Ask a rules question…" / "Message party…" / "Command AI DM…" on tab switch
-- ✅ **Ask DM button** — Moved to party pane top bar (was buried in scrolled input row)
-- ✅ **↑ Top / ↓ Bottom missing** — Added to narrative chat pane (OOC and party already had them)
-
-### Shipped 2026-06-16 (Session 7)
-- ✅ **Patch notes comprehensive** — v1.13–v1.16 added to renderChangelog() covering 4-tab nav, layout fixes, scroll fixes, contracts, quest system
-- ✅ **Cache busting** — Vite config changed to content-hashed filenames (app.[hash].js); GitHub Pages was serving stale builds
-- ✅ **Naked mechanic fallback** — parseMechanics() now catches `quest_add:` and other keys written directly in AI response body without `---MECHANICS---` header; also strips them from displayed chat text
-- ✅ **openModal missing from window exports** — provider ⚙ button, TTS 🔊, dashboard, and all modal triggers were silently broken in module mode; fixed by adding openModal to Object.assign(window,{...})
-- ✅ **RegExp 'mgm' invalid flags** — introduced by naked-mechanic strip; caused every AI send to throw; fixed to 'gm'
-- ✅ **currentTab default wrong** — initialized as 'tab-party'; changed to 'tab-dm' so QA menu shows correct context on fresh load
-- ✅ **HUD z-index below backdrop** — .global-hud raised from z-index:100 to z-index:850 so HUD tile buttons stay tappable while drawer backdrop (z-index:800) is active
-
-### Shipped 2026-06-16 (Session 6)
-- ✅ **Scroll freeze (flags 1+4)** — `showChatTab()` uses `display:flex` (not `block`) for `#chat-pane-narrative`; flex chain preserved, chat-msgs-wrap scrolls without page refresh. Added `-webkit-overflow-scrolling:touch; touch-action:pan-y`.
-- ✅ **Flag save button (flag 5)** — Flag modal restructured with scrollable body + pinned footer; "Flag It" always visible regardless of keyboard state
-- ✅ **Contract clauses auto-append (flags 11/14/15/16)** — `migrate()` appends `DUNGEON SECRETS`, `PLAYER AGENCY`, `SKILL CHECKS` to `#ai-never` on load if missing; idempotent
-- ✅ **Quest announcement system (flag #17)** — `navToast()` tappable chip; `quest_add` captures discovery paragraph from AI prose into `quest.discovery{text,ts}`; 📖 Discovery chapter in quest `<details>`; tap navigates to World tab
-
-
-
-### Design Principles (session 2026-06-15)
-- **Interactive-first** — every UI element should have a function; no decorative-only components
-- **Minimize scrolling** — tap, swipe, and collapse over long vertical lists everywhere possible
-- **Lock/unlock editing** — character data is read-only during play; deliberate unlock to edit
-- **Compact + data-dense** — condense heavy data into small, scannable tiles and chips
-
-### Phase 2 Sequence
-1. ✅ **Bug fixes** — 5 of 5 done; skill bonus fixed (proficiency inference from skills text + expertise detection, Session 10)
-2. ✅ **Polish pass** — core items done; flag system quick wins still pending
-3. ✅ **Character Sheet Rework** — 6-tab sheet (Core/Skills/Combat/Spells/Gear/Features), lock/unlock, auto-lock on close (subagent, 2026-06-15)
-4. ✅ **DR-6: Contracts → state** — `state.aiContracts{}` + Firebase sync + Slasher security validation in buildPrompt() (2026-06-15)
-5. ✅ **Visual Redesign v2: 4-tab nav** — AI DM / Sheet / Logistics / Systems with composite drawers + subnav + nav dots (2026-06-15)
-6. ✅ **World Consequence Engine** — `state.consequences[]`, AI mechanics `consequence_add/resolve`, injected into buildPrompt() (shipped by Session 8)
-7. ✅ **"Previously On…"** — QA action `qa_24`, `previouslyOn()` AI call, 2-sentence recap (shipped by Session 8)
-8. ✅ **Flag system quick wins** — FLAG_CATS, 8 filter pills, verdict cycle (null→fail→reviewed→resolved), `exportFlagReport(mode)` pending-only (shipped by Session 8)
-9. ✅ **"Clean without clutter" pass** — Conditions Reference collapsible, redundant labels removed, panel padding tightened, Town Rep collapsed by default, Story Chronicle icon buttons (Session 9, 2026-06-16)
-10. ✅ **UX Pass 2: Bury the dead weight** — Combat drawer collapse, Active Scene collapse, Grit compress, Party Shared Inventory remove, NPC read-mode cards (Session 9, 2026-06-16)
-11. ✅ **AI Contract Health Check** — "Verify Contracts" button in Systems › AI Tools (Session 9)
-12. ✅ **Reputation Ripple** — burned town auto-consequence + REPUTATION RIPPLE section in genLedger() (Session 9)
-13. ⏸ **Con Scorecard** — `state.slasherOI=0`, income log parsed by snake_oil/real_stock, town survival stats — *paused, needs design discussion*
-14. ✅ **Location Journal v1** — `state.locations[]`, Node Map SVG, location detail bottom sheet, AI mechanics, Player/DM toggle, 🌱 Seed from campaign data (Session 9+10)
-15. ⏸ **Drop 4: Zone Combat Map** — *paused, integrating with Chronicle View / Location Journal architecture first*
-
-### Phase 3 — Session 10 (2026-06-16)
-- ✅ **Session Archive** — `state.sessionArchive[]`, append-based (50-entry cap), `prevSessionSummary` = last 3 batches joined, Chronicle Archive panel in Between Sessions
-- ✅ **Location seed** — 🌱 Seed button parses travelLog + townReputation + NPC.lastSeen → draft preview → confirm to populate locations[]
-- ✅ **roll_request mechanic** — `roll_request: Skill|DC|PCname` in parseMechanics() + persistent gold banner above chat input + AI mechanic docs
-- ✅ **Narrative NPC audit** — attribution-verb scanner (said/replied/smiled etc), ≥2 occurrences filter, purple confirm chip
-- ✅ **Skill proficiency fix** — infer profs from `pc.skills` text when `skillProfs[]` empty; Expertise detection → double-prof + visual ring dot
-
-### Cleanup Pass — Session 10 (2026-06-16)
-- ✅ **Active Scene panel removed** — context strip + Location Journal current-location replaces it; state fields preserved
-- ✅ **Travel Log panel removed** from Wagon — Location Journal node map is the replacement
-- ✅ **Session Log panel removed** from Between Sessions — Chronicle Archive replaces it
-- ✅ **Quick Log Entry panel removed** from During Session — nobody uses manual log during fast play
-- ✅ **"Build Raw" button removed** — AI Narrative generates from sessionArchive; raw build was unused
-
----
-
-## Pending UX Decisions (Session 9 — answer before building UX Pass 2)
-
-### ✅ RESOLVED — Location Journal Visual Direction
-**Decision (2026-06-16):** C — Node Map. Abstract circles connected by lines, tap node → location file slides up. Current location highlighted. Lines = routes taken. Node color = rep (green/neutral/red). Zero rework when Drop 5 adds image renderer — same nodes become map pins.
-
-### ✅ RESOLVED — 📔 Sheet button
-**Decision (2026-06-16):** 
-- 📔 Sheet nav button → opens character sheet directly (6-tab: Core/Skills/Combat/Spells/Gear/Features)
-- HUD PC tile → quick HP/conditions view only (not the full sheet)
-- Icon changed from 📜 → 📔 (notebook)
-- Implementation: next session UX Pass 2
-
-### Combat Drawer
-User feedback (2026-06-16): Initiative Tracker never used, always in the way when navigating to quests/loot/module. Rests never used from Combat tab. Encounter Presets never used.
-**Decision needed:** Collapse all three panels by default, or hide Combat drawer entirely unless `state.combat.active === true`? Hiding is cleaner but riskier. Collapsing is safer.
-
-### Active Scene (World State)
-User feedback: good for reference but tone dropdown never changes automatically, takes too much space. "Useless."
-**Decision needed:** Convert to collapsible `<details>`, or remove entirely? Scene Title is referenced in the context strip — keep the data, just hide the panel.
-
-### Grit — The Ox (Wagon tab)
-User feedback: always scrolled past. Status checked via Grit HUD tile in Party instead.
-**Decision needed:** Remove the full ox profile from Wagon tab. Keep just a mini status row (name + HP bar + feed status) or remove entirely and rely on HUD tile.
-
-### Party Shared Inventory (Wagon tab)
-User feedback: never used or updated. Unclear where inventory lives.
-**Decision:** Remove from Wagon tab. Wagon → General Cargo IS the inventory. Add a clear label: "Party Cargo / Inventory."
-
-### NPC List redesign
-User feedback: names cut off, no location/when-met context, feels like a relic against the rest of the app.
-**Decision:** Full redesign as part of Location Journal — NPCs display as read-mode cards pinned to locations. Separate from inline-edit form mode. This is tied to Location Journal v1.
-
-### 📜 Sheet button (nav)
-User feedback: "Sheet feels like it should actually open up the character sheets that are located at the top, and the character sheets at the top should open to display what is currently housed in sheet."
-**Interpretation:** Tapping 📜 Sheet nav → opens character sheet directly (6-tab sheet). Tapping HUD PC tile → quick HP/conditions view only (not the full sheet).
-**Decision pending — user to confirm interpretation before implementing.**
-
----
-
-## Phase 2 Bug Fixes (fix before anything else)
-
-- [x] **Scroll freeze** ✅ — `requestAnimationFrame` scroll-to-bottom on `showChatTab('narrative')`. (2026-06-15 Session 3)
-- [x] **Flag icon blocked** ✅ — `#qa-fab-wrap` z-index raised 203→750, bottom 155px→160px. (2026-06-15 Session 3)
-- [x] **QA FAB stuck open** ✅ — `closeQAMenu()` called at top of `showTab()` + `openDrawer()`. (2026-06-15 Session 3)
-- [x] **Skill bonus wrong** ✅ — Skills tab infers proficiencies from `pc.skills` text when `skillProfs[]` is empty; Expertise detection applies double-prof. (Session 10)
-- [x] **tab-ait-chk orphaned** ✅ — wired into Systems drawer as ⏪ Tools (Session 8)
-- [x] **Flag save button untappable** ✅ — Flag modal z-index raised to 1600; `padding-bottom:max(20px,env(safe-area-inset-bottom))` added to modal. (2026-06-15 Session 3)
-
----
-
-## Phase 2 Polish Pass (expanded)
-
-**Bugs already logged above. Polish pass = quick wins below.**
-
-### Flag System
-- [ ] Scroll-to-bottom button in narrative chat (Flag #2)
-- [ ] "Idea / Feature Request" as a flag category option (Flag #6)
-- [ ] Filter flags by category type in Dev tab (Flag #8)
-- [ ] Add "Reviewed-Pending" verdict state (cycles: pending → fail → reviewed → resolved). Update export to include it. (Flag #9)
-- [ ] Export pending-only flags button (Flag #11)
-- [ ] Dev notes: in-place delete of individual notes, copy section to clipboard (Flag #10)
-
-### Chat + Dice
-- [x] Dice roller → full Roll & Submit ✅ — dice picker buttons now call `openRollSheet()`. (2026-06-15 Session 3)
-- [x] Context strip ✅ — `renderContextStrip()` shows location·scene_title above HP bar; swaps to round/combatant during combat. (2026-06-15 Session 3)
-
-### Character / Party
-- [ ] Remove long rest + short rest buttons from player cards — handled via chat QA (Dev note #11b)
-- [ ] Grit (ox) gets own HUD tile card alongside party — frees Wagon tab space (Dev note #14) *(Grit tile exists; this is about Wagon tab cleanup)*
-- [x] Quest tap → expand ✅ — quest entries now use `<details>` + `<summary>` for inline expand. (2026-06-15 Session 3)
-
-### Spells
-- [x] Cantrips = Level 0 tab ✅ — Cantrips sub-tab added to Spellbook. (2026-06-15 Session 3)
-- [x] Spell rows collapsible ✅ — `spell.desc` field added; descriptions visible inline. (2026-06-15 Session 3)
-
-### Inventory
-- [x] Multi-category items ✅ — `typeMatch` helper supports comma-separated types in cargo/party inventory filters. (2026-06-15 Session 3)
-- [ ] Party shared inventory → move to Wagon tab or remove; resolve with party-vs-wagon ownership decision (Dev note #11a)
-- [ ] Separate Gear tab from general inventory in character sheet (Dev note #10) *(Gear tab in new 6-tab sheet covers this)*
-
-### World / Wagon
-- [x] Town rep log → Wagon tab ✅ — done Session 2.
-
-### AI Tools
-- [x] Copy / export button for AI contracts ✅ — `copyContracts()` + "📋 Copy all" button in panel header. (2026-06-15 Session 3)
-
-### Pending (not yet started)
-- [ ] **"Clean without clutter" pass** — (1) Audit panel headers: remove redundant emoji where label alone is clear. (2) Icon-only buttons where context is self-evident (text labels → icon + tooltip). (3) Tighten padding: denser data, less whitespace wasted on chrome. Goal: data-dense, distraction-free.
-
----
-
-## Character Sheet Rework — Confirmed Design (2026-06-15)
-
-**Access:** Tap character name in HUD → full sheet bottom sheet. Tap party button in nav → same sheet. Character cards removed from default Party tab view.
-
-**Lock / Unlock:**
-- Locked (play mode): all fields read-only styled values. Only HP +/−, death save hearts/skulls, and condition chips are interactive.
-- Unlocked (edit mode): fields become inputs in-place. No separate editor panel.
-- **Auto-lock on close** — drawer closing = locking. Reopening always starts locked.
-
-**Always-visible header strip:**
-Name · Class/Subclass Lv.N · Race · Background · Player name (display-only)
-AC · Initiative · Speed · HP (current / max / temp HP badge) · Hit Dice pips · Death Saves
-
-**Proficiency bonus** (auto-calc, never editable) · **Inspiration toggle** (coin/flame)
-
-**6 Sheet Tabs:**
-| Tab | Contents |
-|---|---|
-| **Core** | 6 ability score circles (score + modifier) · 6 saving throws (prof dot + value) · Passive Perception · Passive Insight · Proficiency bonus |
-| **Skills** | 18 skills: prof dot · stat tag · auto-calc modifier · tap to roll |
-| **Combat** | HP (full controls) · Temp HP field · Hit Dice pips (tap to spend) · Death Saves · Conditions · Exhaustion 0–6 pip track · Attacks table |
-| **Spells** | Spell slots by level (pip bubbles) · Spells list, each row tap-to-expand full description · Cantrips as level 0. Each spell carries a `desc` field — manually seeded now, compendium-backed in Drop 7. |
-| **Gear** | Equipment list · Currency bubbles (CP/SP/EP/GP/PP) — separate from party treasury |
-| **Features** | Class features · Racial traits · Feats · Languages (tap chips) · Tool proficiencies · Personality / Ideals / Bonds / Flaws (collapsible "Character Soul" section) |
-
-**New state fields required (add to migrate() structural guard — no SAVE_VERSION bump needed):**
-- `pc.hp_temp: 0` — Temporary HP
-- `pc.exhaustion: 0` — Exhaustion level 0–6
-- `pc.hd_used: 0` — Hit dice spent (max = level)
-- `pc.personality: ""` — Personality Traits
-- `pc.ideals: ""` — Ideals
-- `pc.bonds: ""` — Bonds
-- `pc.flaws: ""` — Flaws
-- `pc.languages: []` — Languages as structured array
-
-**New AI mechanics to add:**
-- `exhaustion: pcname+1 | pcname-1`
-- `hp_temp: pcname=N`
-
----
-
-## Deferred / Brainstorm Later
-
-### ⭐ The Chronicle View (Long-range — major redesign)
-*All world-state information should live in one unified, interconnected view. Currently fragmented across World State, Operations, Wagon, and Session tabs.*
-
-*Elements that belong together (player-identified, Session 9):*
-- Location Journal (persistent file per city/camp/dungeon — the anchor for everything else)
-- NPC tracker — pinned to their location, not a flat list
-- Travel log — the route between locations
-- Active scene / Environment — the current location's live state
-- Town Reputation Log — per-location, not a separate list
-- World Consequences — per-location where they originated
-- Quest Log — location-anchored (given here, leads there)
-- (Future) Map — location nodes rendered visually, travel log = route line
-
-*Design intent: one screen that answers "where are we, who have we met, what's happening, what do we need to do." Spatial and temporal — a living campaign journal, not a collection of edit forms.*
-
-**Visual direction (decided 2026-06-16):** C — Node Map. Abstract circles connected by lines. Current location = highlighted gold node. Lines = routes taken. Node color = rep. Tap node → location file slides up from bottom. Becomes real image map in Drop 5 with zero rework — same node positions become map pins over the uploaded image.
-
-**Clutter strategy:** Build new features first, remove old ones after. Each new feature absorbs and replaces the scattered panels it unifies:
-- Location Journal absorbs: Active Scene, Environment, Town Reputation Log, NPC list, Travel Log → those panels get removed once Location Journal is live
-- Chronicle View (with map) absorbs: everything above + World Consequences, Quest Log → World drawer collapses to just the Chronicle View + Operations (DM meta)
-- Result: the Logistics drawer goes from 3 dense sub-tabs (World/Wagon/Combat) to 2 clean ones (Chronicle/Cargo)
-
-**Architecture insight:** The Chronicle View = Location Journal (data) + Area Map (renderer). Same data, two presentations:
-- Now (Drop 4–5 era): vertical timeline / node list, each location is a collapsible file
-- Drop 5+: abstract node map with pins → real image map with pins in Drop 7
-
-**Three visual concepts discussed (Session 9) — decision pending:**
-- A: Journey Timeline — vertical nodes connected by route line (travel log as visual spine)
-- B: Location Switcher — horizontal carousel, swipe between cities like passport pages
-- C: Node Map — abstract circles connected by lines, tap node → file slides up ← **recommended** (zero rework when Drop 5 adds image renderer)
-
-**Data model (designed now, forward-compatible with map):**
-```js
-state.locations = [{
-  id: 'loc_greenest',
-  name: 'Greenest',
-  type: 'town',           // town|city|camp|ruin|dungeon|waypoint
-  status: 'visited',      // current|visited|known|unknown
-  firstVisited: 'Day 1, 9:00 AM',
-  lastVisited: 'Day 3, 2:00 PM',
-  rep: { disposition: 'Friendly', notes: '' },
-  npcs: [],               // NPC names now → IDs when NPC system gets IDs
-  investments: [{ desc:'Mill stake', amount:50, startDay:'Day 1', notes:'' }],
-  history: [{ ts:'Day 1', text:'Dragon attack', dmOnly:false }],
-  dmNotes: '',
-  playerNotes: '',
-  mapPos: null            // {x,y} — null until Drop 5 places the pin
-}]
-```
-
-**AI mechanics to add:**
-- `location_add: Name | Type | Description`
-- `location_visit: Name` — marks visited, logs timestamp, calculates elapsed time
-- `location_history: Name | Text | dmOnly` — adds history entry
-- `location_investment: Name | Description | Amount | PerDay`
-
-**Investment accrual:** Log start day + amount. AI references elapsed time and generates narrative update on return. No auto-math yet — AI handles the narration. Auto-calc possible once proper time parsing exists.
-
-**Drop sequence integration:**
-- Location Journal v1 (data + list UI) → Phase 2 item 14, next session
-- Drop 4: Zone Combat Map (unchanged — Combat Map scale, not Area Map)
-- Drop 5: Area Map renderer sits on top of Location Journal data (location nodes → map pins, travel log → route line)
-- Drop 6: Player/DM toggle becomes real Firebase-synced split
-
-*Codename: **The Chronicle View**. Prerequisites: Location Journal v1 data model (buildable now). Map renderer: Drop 5.*
-
-### Replace, Don't Hide — Full Removal Plan (Session 9 analysis)
-
-Each item below gets removed only when its replacement is live.
-
-**Remove immediately (UX Pass 2 — no replacement needed):**
-- Party Shared Inventory from Wagon tab → rename General Cargo to "Cargo & Inventory"
-- Long Rest / Short Rest buttons from player cards → QA actions handle this
-- Quick Log Entry panel (Session tab) → nobody types log entries during fast play
-
-**Remove when Session Archive ships:**
-- Session Log manual entries panel → replaced by auto-appended sessionArchive[] batches
-- "Build Raw" button → replaced by auto-build from sessionArchive
-- Between Sessions sub-tab → repurposed as "Session Archive" (scrollable archive batches + Story Chronicle)
-
-**Remove when Location Journal v1 ships:**
-- Active Scene panel → Location Journal "current location" + context strip covers this
-- Environment panel (time/weather/illum) → data stays in state, AI maintains via mechanics
-- NPC list → replaced by location-pinned NPC cards in Location Journal
-- Town Reputation list (Wagon) → moves into Location Journal per-location rep field
-- Travel Log (Wagon) → becomes the route line between Location Journal nodes
-- Secret DM Notes global textarea → replaced by per-location dmNotes in Location Journal
-
-**Remove when Location Journal + Operations cleaned:**
-- Campaign Premise textarea → move entirely to Setup (set once, locked, never edited during play)
-- Plot & Lore panel → World Consequences IS the plot thread tracker; timers → location history entries
-- Operations tab → becomes only: Campaign Secrets + "→ Setup" deep-link
-
-**Remove when Drop 4 ships:**
-- Combat tab entirely → Zone Map replaces it
-- Encounter Presets panel (zone system supersedes)
-
-**Move (not remove):**
-- Reference Snippets: Session > Module → Systems > AI Tools (directly affects AI prompt, belongs there)
-
-**Dead code — remove now:**
-- `state.relationships[]` — defined, never rendered, no mechanics, wasting Firebase sync bandwidth
-- `renderNPCList()` reference in features.md — function doesn't exist; only `renderNPCs()`
-
-**End state after all replacements:**
+## Next Up — Pending Work
+
+### Still Open (small)
+- **Inventory UX overhaul (Issue 21)** — subcategories, fuzzy dedup at item_add, name truncation
+- **Expand term glossary** — add 50+ more D&D terms to tooltip system
+- ⏸ **Con Scorecard** — `state.slasherOI`, income parsing, town survival stats (needs design)
+
+### Panel Removal Queue (replace, don't hide)
+Panels to remove once their replacement matures:
+- Environment panel → Location Journal current-location covers time/weather; keep for now (manual override)
+- NPC flat list → Location Journal NPC cards; keep for now (edit interface)
+- Town Rep list (Wagon) → Location Journal per-location rep; keep for now (parseMechanics writes here)
+- Campaign Premise → move to Setup (set once, locked)
+- Plot & Lore → World Consequences covers this
+- Operations tab → simplify to Campaign Secrets + Setup deep-link
+- Combat tab → Drop 4 replaces entirely
+- Reference Snippets → move from Session > Module to Systems > AI Tools
+
+### End-state Navigation Target
 ```
 AI DM        — narrative chat, always-visible
-📔 Sheet     — character sheet directly (Core/Skills/Combat/Spells/Gear/Features)
+📔 Sheet     — character sheet (Core/Skills/Combat/Spells/Gear/Features)
 📦 Logistics
   ├── Chronicle  — Location Journal (node map → image map), quests, consequences
   └── Cargo      — wagon cargo & inventory, holding cells, Pebble's Hoard
@@ -512,386 +105,68 @@ AI DM        — narrative chat, always-visible
   ├── Dev        — Flags
   └── Setup      — one-time wizard, locked after launch
 ```
-Combat tab → gone (Drop 4 puts combat inside Chronicle as a combat map layer)
-
-### Session Archive — Architecture (decided Session 9)
-*Current issue: `summarizeAndPrune()` overwrites `state.prevSessionSummary` on each prune. Previous batches are lost.*
-
-**Fix:**
-- Add `state.sessionArchive: []` to migrate() structural guard (no SAVE_VERSION bump)
-- Each entry: `{ ts, gameTs, summary, msgCount }`
-- `summarizeAndPrune()` → appends to sessionArchive, sets `prevSessionSummary = sessionArchive.at(-1).summary`
-- `buildPrompt()` unchanged — still reads prevSessionSummary for AI context
-- Between Sessions tab → renamed "Session Archive": scrollable list of archived batches + Story Chronicle chapters
-- "AI Narrative" button stays (generates narrative from most recent batch)
-- "Previously On…" QA: draws from prevSessionSummary when chatHistory is thin (after pruning)
-
-### Blackburner (Business Profile → Treasury)
-*Collecting more game data before designing. Intent: business profile moves to Treasury, reworked as at-a-glance banking/portfolio view — income log as transaction history, stock as portfolio view. Codename: Blackburner.*
-
-### Claude Code Plugin in Flag Log (Flag #12)
-*Scope unclear. Potential: in-app AI analysis of flags using Claude API, or context-export link. Needs dedicated design session.*
-
-### AI DM Testing Chat (Flag #8 / Flag #19)
-*Isolated sandbox AI channel — separate from narrative/OOC/party. No game-state writes in test mode. Design resolved 2026-06-16:*
-- *Separate chat history array, not persisted to Firebase or localStorage campaign state*
-- *parseMechanics() skips all state writes when test mode active (mechanics shown as preview only)*
-- *Shares AI contracts (so you can test contract compliance) but has its own "test system prompt" addendum*
-- *"⚗ TEST" label in chat pane header; toggle button in Systems › AI Tools*
-- *OOC channel CORRECTLY refuses narrative tasks — testing chat is the right fix, not relaxing OOC restrictions*
-- *Triggered by user screenshot: OOC refused "generate test quest anchor" — that's working as designed*
 
 ---
 
-## Compendium Integration — Long-range Architecture (Drop 6+)
+## ⭐ The Chronicle View (Long-range)
+Location Journal (data) + Area Map (renderer). One screen answering "where are we, who have we met, what's happening, what do we need to do."
 
-**Vision:** The app imports PDFs/epubs (PHB, Xanathar's, sourcebooks), parses them into structured compendium data, and uses that data to inject accurate rule context into every AI send. The AI gets the source text; the game gets AI-interpreted output. A bidirectional grounding loop.
+**Already built:** Location Journal v1 (Node Map SVG, location detail bottom sheet, AI mechanics, seed from campaign data, DM/player toggle).
 
-**Data flow:**
-```
-PDF/epub import → parse → structured compendium (spells, items, features, rules)
-                                    ↓
-              pc.magic[] / pc.inventory[] reference compendium entries by ID
-                                    ↓
-              buildPrompt() injects relevant entries as context per send
-              (active spells, current conditions, queried terms)
-                                    ↓
-              AI responds with source-grounded narration + mechanics
-```
-
-**Storage:** IndexedDB (not Firebase/localStorage — source data is too large). Compendium IDs live in state; full text lives in IndexedDB.
-
-**What already supports this:**
-- `state.snippets[]` — manual proto-compendium; active snippets already inject into every prompt. Same architecture, hand-authored.
-- `state.magic[]` per PC — spell lists already tracked; need description field added now.
-- `buildPrompt()` / `genLedger()` injection pipeline already exists.
-
-**Seed now (before Drop 6), don't redesign later:**
-- Each spell in `pc.magic[]` should carry a `desc` field (short description). Populated manually for now; replaced by compendium parser later.
-- `state.snippets[]` is the manual compendium for custom rules, house rules, module-specific content — keep expanding it.
-- Compendium injection logic: only inject entries relevant to the current context (active spells, applied conditions, referenced items) — not the full SRD every send.
-
-**Parse targets (priority order):**
-1. Spells (name, level, school, casting time, range, components, duration, description)
-2. Conditions (name, effect text) — already partially in ALL_CONDS
-3. Class features (name, level, description)
-4. Items / equipment (name, type, properties, description)
-5. Full rulebook chapters (for term lookup / compendium browse)
-
-**Drop sequence:**
-- Drop 6 prerequisites: state visibility split, player view
-- Drop 7: Full compendium import + injection pipeline (IndexedDB, PDF parser, context-aware injection)
-
----
-
-## Visual Redesign v2 — D&D Beyond / Demiplane Mobile
-*✅ SHIPPED 2026-06-15/16 — 4-tab nav live, composite drawers live, body flex layout fixed.*
-
-**Delivered:**
-- 4-tab bottom nav: AI DM / 📜 Sheet / 📦 Logistics / ⚙ Systems
-- Composite drawers: Logistics (World/Wagon/Combat subnav), Systems (Session/AI Tools/Dev/Setup subnav)
-- Nav activity dots (gold ●) on Logistics/Systems when AI pushes state changes
-- Context-aware quick bar (routes to narrative/OOC/party based on active chat tab)
-- Body flex column layout (height:100dvh) giving chat area true viewport fill
-
-**Remaining visual patterns (next pass):**
-- Chat bubbles: DM dark-left / player brass-right / roll result centered copper-dashed
-- Action pills: horizontal scroll row above chat input (replaces FAB menu) — deferred
-- Card border-left accent: `border-left: 3px solid var(--gold)` pass on panels
-
----
-
-## Character Sheet Rework — Reference Design
-
-Inspired by D&D Beyond digital sheet + official WotC physical sheet. This is the canonical information hierarchy players expect:
-
-**Identity row** (always visible at top):
-Name · Class & Level · Race · Background · Alignment · XP/XP-to-next
-
-**Vital stats row** (always visible, HUD-style):
-AC · Initiative · Speed · HP (current/max/temp) · Hit Dice · Death Saves (3 success hearts / 3 failure skulls)
-
-**Proficiency Bonus** · **Inspiration** toggle
-
-**Sheet tabs (horizontal scroll):**
-| Tab | Contents |
-|---|---|
-| **Stats** | 6 ability scores (score + modifier circle) · Saving throws (6, prof dots) |
-| **Skills** | 18 skills with proficiency dot + calculated modifier (stat-based auto-calc) |
-| **Combat** | Attacks & Spellcasting (weapon name, ATK bonus, damage/type) · Conditions |
-| **Spells** | Spell slots by level (bubbles) · Spells known list |
-| **Inventory** | Items list · Currency (CP/SP/EP/GP/PP) |
-| **Features** | Class features · Racial traits · Feats · Proficiencies & Languages |
-
-**Key UX from D&D Beyond:**
-- Ability score = large circle with score inside, modifier displayed prominently below
-- Saving throw = small dot (filled=proficient, empty=not) + calculated value
-- Skill = same dot system, stat abbreviation, total modifier
-- Death saves = hearts (successes) and skulls (failures), tap to toggle
-- Attacks show: Name · Range · Hit/DC · Damage · Notes
-- Currency shown as 5 coin types in labeled bubbles (CP/SP/EP/GP/PP)
-
-**Implementation notes:**
-- Most data already in state (stats, skills, attacks, spells, inventory, currency)
-- Death saves: state.pcs[i].death_saves = {successes:0, failures:0} — add to migrate() structural guard
-- Inspiration: state.pcs[i].inspiration (boolean) — add to migrate()
-- Currency is already state.treasuryData.coins (GP/SP/CP) — EP/PP optional
-- This rework is part of Visual Redesign v2 (Phase 2, step 4)
-
----
-
-## Feature Backlog
-*Inspired by D&D Beyond + Demiplane mobile UX. Prioritized by effort vs daily-use value.*
-
-### Near-term
-- ✅ Sheet swappable tabs — done 2026-06-14
-- ✅ Auto-modifier calculation — done 2026-06-15
-- ✅ Dice rolling in sheet — tap stats / attacks, roll + send to chat (done 2026-06-15)
-- ✅ Chat term tooltips — 27 D&D terms, tap for popup, DM messages only (done 2026-06-15)
-- ✅ Spell/inventory filter sliders — Spellbook level filter done 2026-06-15; wagon already had type filters
-- **Expand term glossary** — Add 50+ more terms (class features, conditions, action types). Low effort.
-- **Compendium quick-lookup** — Search bar in Rules tab or as modal; offline SRD snippets.
-- **Inventory UX overhaul (Issue 21)** — subcategories, fuzzy dedup at item_add, name truncation fix.
-
-### Medium-term
-- **Character Builder wizard** — Guided: race → class → background → stats → skills → equipment. Reuses level-up wizard architecture. Medium effort.
-- **Offline Compendium snippets** — Curated rules in `state.snippets` (already exists), browseable + searchable. Conditions, spell descriptions, class features. Low-medium effort.
-
-### Long-term / Drop-level
-- **Maps** — Drop 4 (Zone combat map). Do NOT touch Combat tab until then.
-- **Full offline rulebook storage** — PDFs/epubs via IndexedDB + in-document search. High effort; Drop 6–7.
-- **Full spell/item compendium** — Complete SRD with school/level/class/cost filtering. Needs data pipeline. High effort.
+**Next steps:**
+- Anchor NPCs, quests, and consequences to specific locations
+- Collapse World drawer: Chronicle + Operations → just Chronicle View + Campaign Secrets
+- Logistics drawer: 3 sub-tabs → 2 (Chronicle / Cargo)
 
 ---
 
 ## VTT Drops
-- **Drop 4**: Zone combat map (replaces Combat tab entirely — do NOT refactor Combat tab)
-- **Drop 5**: Shared dice feed + image maps (Firebase Storage; token overlay on uploaded map images)
-- **Drop 6**: Player View — needs World State/Operations split + state visibility audit first
-  - `buildPlayerView()` computes player-safe snapshot → Firebase `/session/playerView`
-- **Drop 7**: Handout/image cards + full VTT layer (grid snap, fog of war, room reveals)
+
+| Drop | Feature | Prerequisites |
+|------|---------|--------------|
+| **4** | Zone Combat Map — abstract 6-zone grid, AI `zone_move:` mechanic | None (replaces Combat tab) |
+| **5** | Image Maps + Token Overlay — uploaded maps, grid calibration, fog of war, spell overlays | Firebase Storage config |
+| **6** | Player View — `buildPlayerView()` → Firebase `/session/playerView` | State visibility split |
+| **7** | Full VTT layer — grid snap, room reveals, handout cards, compendium | Drops 4–6 |
+
+### Drop 4 Spec (Zone Combat)
+Six zones: Frontline / Backline / Left Flank / Right Flank / Air / Rear. Tokens = colored tiles. AI mechanics: `zone_move:`, `zone_add_enemy:`, `zone_remove:`, `zone_effect:`. State: `state.combat.zones[]`.
+
+### Drop 5 Spec (Image Maps)
+`position:relative` parent + `position:absolute` tokens (same as Roll20/Foundry). Grid calibration via two-tap corners. Token positions as `{row, col}`. Single-layer fog of war (boolean grid). Spell effect SVG overlays scaled to grid.
 
 ---
 
-## Map Architecture
-
-Three tiers, built incrementally:
-
-**Tier 1 — Drop 4: Zone Combat (abstract)**
-No image. Six named zones as a styled 2×3 grid. Tokens are colored tiles. AI controls position via `zone_move:` mechanic. Replaces Combat tab. Ships fast, works without a map image.
-
-**Tier 2 — Drop 5: Image Maps + Token Overlay**
-Upload any image (screenshot, photo of book map, PDF-extracted map). Tokens placed on image with tap-to-move. Firebase Storage for image URLs. Module maps become playable.
-
-**Drop 5 full scope (expanded 2026-06-16):**
-- Token overlay on uploaded map image (position:relative/absolute CSS layering)
-- Grid calibration: two-tap (tap first corner, tap second known point → derive offset + square size). Covers untrimmed maps. Auto-detect skipped — too fragile, manual is nearly as fast.
-- **Single-layer fog of war** — 2D boolean grid, tap cell to toggle revealed/fogged. Simple, fast, works on mobile. No multi-layer complexity (Foundry-style fog is overkill).
-- **Spell effect overlays** — SVG shapes keyed to calibrated grid size: circle (fireball = 4sq radius), cone (breath weapon), line (lightning bolt). Radius auto-scales from grid calibration. Positioned by tapping origin cell.
-- Pre-combat token placement ("plan an ambush") — place tokens before fight starts; AI can pre-position via `token_place:` mechanics
-- `token_move: Name|row,col` AI mechanic (moves token to grid coordinate)
-
-**CSS rendering technique (validated from PbP research, 2026-06-16):**
-Standard VTT approach — `position:relative` parent (map image) + `position:absolute` children (tokens). This is exactly how Roll20/Foundry work at the DOM level. Our abstraction on top:
-- Token positions stored as `{row, col}` in state (not raw pixels)
-- Grid calibration: user taps two corners once → pixel-per-square derived automatically
-- Pixel position calculated at render time: `top = row * squareSize`, `left = col * squareSize`
-- Drag-to-move updates `{row, col}` in state; AI moves via `token_move: Name|row,col`
-- Maps rarely have clean edges — calibration tool handles offset and trim automatically
-- Token size = grid square size (1:1 ratio, same insight as PbP technique)
-
-```html
-<!-- Drop 5 render structure -->
-<div style="position:relative;display:inline-block">
-  <img src="{mapUrl}" style="width:100%" />
-  <!-- fog cells: semi-transparent dark rect per fogged grid cell -->
-  <!-- spell effect: SVG circle/cone/line overlay -->
-  <!-- token for each combatant with state.combat.tokens[i].row/col -->
-  <div style="position:absolute;top:{row*sq}px;left:{col*sq}px;width:{sq}px;height:{sq}px">
-    {token — PC color circle or enemy icon}
-  </div>
-</div>
-```
-
-**Tier 3 — Drop 7+: Full VTT Layer**
-Grid snap, fog of war room reveals, freehand drawing layer (canvas overlay for patrol routes / ambush planning), auto grid detection (computer vision — deferred, manual calibration covers 95% of cases). Full Roll20 feature set. Tiers 1 and 2 architecture grows naturally into this.
-
-**Three Map Types (same renderer, different data):**
-| Type | Use Case | Scale | AI mechanic |
-|---|---|---|---|
-| Combat Map | Active fight — zones or battle image | Room | `zone_move:` / `token_move:` |
-| Dungeon Map | Room exploration, reveals as entered | Building | `room_reveal:` / `room_enter:` |
-| Area/World Map | Overworld travel, wagon routes, regions | Regional | `travel_to:` / `waypoint_add:` |
-
-The wagon tracker IS a map (Area scale). Waypoints = towns/camps. Wagon position = current location. Travel log entries anchor to map positions.
-
-**Drop 4 Scope — Option A: zone only (fast)**
-Abstract 6-zone grid ships first. Image maps follow in Drop 5. Firebase Storage config required before image maps — confirm before touching.
-
-**Zone definitions:**
-| Zone | Role |
-|---|---|
-| Frontline | Melee range, high danger — fighters, tanks, aggressive enemies |
-| Backline | Ranged/support range — bards, rogues, archers |
-| Left Flank | Flanking position |
-| Right Flank | Flanking position |
-| Air | Elevated/flying — flying enemies, area spells |
-| Rear | Behind enemy lines — sneak attack, ambush |
-
-**New AI mechanics for Drop 4 (add to parseMechanics):**
-- `zone_move: CharName|ZoneName`
-- `zone_add_enemy: Name|HP|AC|ZoneName`
-- `zone_remove: Name`
-- `zone_effect: ZoneName|Description`
-
-**State addition (`state.combat.zones`):**
-Each zone is an array of `{ name, type:'pc'|'enemy', hp, hp_max, ac, color }`. Initialize in migrate() structural guard.
-
----
-
-## QA Testing Checklist (Session 2 rework)
-
-Run on-device before merging Phase 2 to main:
-
-**QA Menu Redesign**
-- [ ] Tap ⚡ — bottom sheet slides up, 2-col card grid visible
-- [ ] Cards show correct icons and labels for current tab
-- [ ] FAB shows ✕ when menu is open
-- [ ] Tap ✕ or backdrop — menu slides down, FAB icon restores
-- [ ] AI Tools → Quick Actions → FAB Icon input — type emoji, FAB updates immediately
-- [ ] Preset icon buttons (🎲🗡🔮 etc.) update FAB
-- [ ] Reload — custom icon persists
-
-**Flag System**
-- [ ] Tap ⚑ (small gold circle below ⚡) — flag modal opens
-- [ ] Tap text box — keyboard appears, no iOS zoom
-- [ ] Panel headers have faint ⚑ buttons
-- [ ] Flag modal opens above the drawer when drawer is open
-
-**HUD Tiles**
-- [ ] Pip (familiar) tile visible in HUD after PC tiles
-- [ ] Grit tile visible after Pip
-- [ ] Tap Pip — familiar bottom sheet slides up
-- [ ] Tap Grit — Grit overview slides up
-- [ ] HUD scrolls horizontally if tiles overflow screen
-
-**Dice Roller**
-- [ ] Roll & Submit sheet: character dropdown + dice grid visible
-- [ ] ±delta buttons adjust modifier value
-- [ ] Roll d20 — result shows with nat-20/nat-1 detection
-- [ ] Send to chat posts result to narrative
-
-**Other**
-- [ ] Wagon tab has Town Rep section (NOT in World tab)
-- [ ] Party drawer opens with character editor panel visible by default
-- [ ] HP ± dock buttons use customizable step values
+## Compendium Integration (Drop 6+)
+PDF/epub → parse → structured data (IndexedDB) → `buildPrompt()` injects relevant entries per send. Already seeded: `state.snippets[]` (manual), `spell.desc` field, compendium injection pipeline. Parse priority: Spells → Conditions → Class features → Items → Rulebook chapters.
 
 ---
 
 ## State Visibility (for Drop 6)
-PUBLIC: `pcs[*]` (name/color/hp/hp_max/ac/conditions — NOT backstory_secret), worldData (time/season/weather/location/scene_title/travelLog/premise/primaryMission), quests (hidden!==true), chatHistory, combat.list, treasuryData coins.
-DM-ONLY: worldData.secrets/plot/timers/campaignSecrets, dmSecrets, pcs[*].backstory_secret, businessProfile.realStock/snakeOil.
+**PUBLIC:** pcs (identity/HP/AC/conditions), worldData (time/weather/location/premise), quests (hidden!==true), chatHistory, combat.list, treasuryData coins.
+**DM-ONLY:** secrets, plot, timers, campaignSecrets, dmSecrets, backstory_secret, businessProfile internals.
 
-Open questions (answer before Drop 6):
-1. Town reputation — player-visible?
-2. Income log — player-visible?
-3. NPC dispositions — DM-only meta?
-4. Hidden quests — DM-planted objectives?
+Open questions: Town rep visible? Income log visible? NPC dispositions DM-only? Hidden quests?
 
 ---
 
-## Open Gameplay Issues
-4. Tab navigation on state change — ADDRESSED (tab-flash + count badges)
-5. Chat log archive — DONE (summarizeAndPrune, DR-7)
-6. Income/Expense Log silent — PARTIALLY ADDRESSED (detectUnloggedGold confirm-chip). Root cause: AI compliance gap, not parser.
-7. NPC log silent — Same compliance pattern. Deferred until gold chip proves the pattern.
-8. Quest "Primary Goal" rename — ✅ DONE (already says "Main Quest")
-9. Travel Log — ✅ DONE (in Wagon tab)
-15. Party chat → narrative ping — ✅ DONE (ooc_echo bar in narrative feed)
-16. Message lock — ✅ DONE (2026-06-15, _expandedMsgs Set)
-21. **Inventory UX overhaul** — Three interlocked problems:
-    - Name truncation in party + PC inventory
-    - No subcategories/grouping (wagon cargo has filter tabs; party inventory has nothing)
-    - Semantic duplicate gap (e.g. "Sedative Bolt" vs "Tranquilizer Darts" created as separate items). Need fuzzy dedup at item_add: similar to npc_add dedup.
+## Open Flags
 
----
-
-## Recurring AI Failure Patterns
-**Pattern 1 — State Drift:** AI narrates events but doesn't emit matching mechanics lines. Root cause: AI compliance gap, not parser. Fix: `detectUnloggedGold()` confirm-chip at point of miss. Extend to items/NPCs later.
-**Pattern 2 — Navigation Blindness:** State changes in background tabs not visible. Fix: tab-flash + count badges (shipped).
+| # | Description | Status |
+|---|-------------|--------|
+| 3 | Foraged items not populating | ✅ FIXED Session 9 — item_add target inference |
+| 6 | Dev notes per-note delete | ✅ FIXED Session 9 — clearFlagNote() |
+| 13 | Treasure log audit — catch duplicate loot | OPEN — needs reconcile/dedup design |
+| 19 | AI DM Testing Chat | ✅ SHIPPED Session 8 — ⚗ Test Mode |
 
 ---
 
 ## Key Redundancies (to resolve)
-1. `state.worldData.premise` — written by Setup→Session Zero AND World tab textarea
-2. `state.worldData.setting` — written by Setup AND World tab
-3. Business Profile — Setup step 3 AND World tab bp_* panel
+1. `state.worldData.premise` — Setup AND World tab
+2. `state.worldData.setting` — Setup AND World tab
+3. Business Profile — Setup step 3 AND World tab
 Fix: Setup steps become deep-links into World tab when `campaignLaunched`.
 
----
-
-## Flag Registry (Error Log Cross-Reference)
-
-All flags captured in `state.errorLog[]` via the in-app ⚑ system. Integrated here for roadmap planning.
-
-| # | Category | Description | Status |
-|---|---|---|---|
-| 1 | infra | Narrative chat scroll freezes — required page refresh | ✅ FIXED 2026-06-16 (Session 6) — `display:flex` fix + `-webkit-overflow-scrolling:touch` |
-| 2 | infra | Quest tap → show detail and context | ✅ DONE 2026-06-16 — `<details>` expand + 📖 Discovery chapter |
-| 3 | infra | Foraged items not populating in inventory | **OPEN** — parser format check needed |
-| 4 | infra | Tab to OOC and back freezes narrative scroll | ✅ FIXED 2026-06-16 (Session 6) — same root cause as flag 1 |
-| 5 | infra | Flag save button untappable | ✅ FIXED 2026-06-16 (Session 6) — pinned footer in flag modal |
-| 6 | infra | Dev notes: delete individual note, copy sections | ⚠ PARTIAL — copy done; per-note delete still open |
-| 8 | infra | AI DM Testing Chat (sandbox, export button) | **DEFERRED** — needs design session |
-| 10 | rule | Cantrips = Level 0 in spellbooks | ✅ DONE 2026-06-15 (Session 3) — Cantrips tab added |
-| 11 | other | AI revealed loot/dungeon secrets (contract violation) | ✅ FIXED 2026-06-16 — `DUNGEON SECRETS` clause auto-appended to #ai-never |
-| 13 | idea | Treasure log audit — catch duplicate loot on-the-spot | **OPEN** — design: reconcile/dedup function in income log |
-| 14 | story | AI progressed to stables without asking players | ✅ FIXED 2026-06-16 — `PLAYER AGENCY` clause auto-appended to #ai-never |
-| 15 | story | AI progressed story/escape without asking players | ✅ FIXED 2026-06-16 — `PLAYER AGENCY` clause covers this |
-| 16 | rule | No skill checks performed | ✅ FIXED 2026-06-16 — `SKILL CHECKS` clause auto-appended to #ai-never |
-| 17 | idea | Quest announcement → tappable toast → quest log with discovery chapter | ✅ DONE 2026-06-16 (Session 6) — `navToast()` + `quest.discovery` + 📖 chapter render |
-| 18 | infra | navToast not firing on quest_add — chip never appears in narrative chat even when parseMechanics() processes quest_add | ✅ FULLY RESOLVED 2026-06-16 (Session 8) — (1) chip appears and is tappable; tap opens World/Logistics drawer, scrolls to & opens the specific quest `<details>`, briefly gold-highlights it. Quest `<details>` elements have `id="quest-det-N"` keyed to state index. (2) "↗ Chat" anchor fixed: each AI message now gets a `msgId` (`cm_<ts>_<rand>`) stamped on chatHistory entry; `parseMechanics()` receives `pendingMsgId` and stores it as `quest.chatMsgId`; `renderChat()` attaches `data-msg-id` attribute; `viewQuestInChat(msgId)` queries by attribute instead of fragile array position; if message was pruned, shows toast "That chat moment was archived in the session summary." Old quests without `chatMsgId` hide the ↗ Chat button gracefully (no null crash). |
-| 19 | idea | AI DM Testing Chat — isolated sandbox AI channel separate from narrative/OOC/party. Use case: probe mechanics (quest_add, item_add, etc.), test contract edge cases, generate sample anchors — without affecting game state, polluting chat history, or being blocked by OOC channel contract restrictions. Design notes: separate chatHistory array (not persisted to Firebase), no game-state writes from parseMechanics() in test mode, toggle "test mode" flag, clearly labelled "⚗ TEST" in UI. OOC channel correctly refuses narrative tasks (screenshot 2026-06-16) — testing chat is the right fix, not relaxing OOC restrictions. | **OPEN** — design needed; Flag #8 upgraded with full spec |
-
-**FLAG_CATS (current):** roll / rule / ai / story / infra / idea / other  
-**Verdict cycle:** `null` (pending) → `fail` → `reviewed` → `resolved`  
-**Filter:** 8 pills (All + each category) live in Dev tab  
-**Still open:** Flag 3 (foraged items — fixed Session 9, item_add target inference), Flag 6 (dev notes delete), Flag 13 (treasure audit)
-
-**⚠ Numbering conflict:** Polish Pass uses its own local #2 ("Scroll-to-bottom button in narrative chat") which is DIFFERENT from Flag Registry #2 ("Quest tap → expand", ✅ done). Do not confuse them. Polish Pass numbers are local; Flag Registry numbers are the canonical IDs in state.errorLog[].
-
----
-
-## Dead Code / Bug Fixes Log
-- Theme editor block — REMOVED 2026-06-14
-- CSS Blocks 1 & 2 — REMOVED 2026-06-14
-- `state.storyThread` — ELIMINATED 2026-06-14
-- ⋮ overflow menu clipping — FIXED 2026-06-14
-- Header menu stuck-open on mobile — FIXED 2026-06-14
-- Flag context blind spot — FIXED 2026-06-14 (`_buildFlagUIContext()`)
-- Canonical L3 character sync — DONE 2026-06-14 (SAVE_VERSION 10→11)
-- SHEET_FIELDS double-clobber — FIXED 2026-06-14 (both loadState + fbStartListening)
-- Subclass display on cards + sheet — DONE 2026-06-14
-- Current HP field on sheet — DONE 2026-06-14
-- HP step customization (state.hpSteps, renderStepBar, setHpStep) — DONE 2026-06-15 (Session 2)
-- AI contract textareas auto-resize (field-sizing:content, JS resize on input) — DONE 2026-06-15 (Session 2)
-- Drawer party tab glitch (renderCharTabs + renderSheets on openDrawer) — FIXED 2026-06-15 (Session 2)
-- Delete party member from PC overview (🗑 button in action row) — DONE 2026-06-15 (Session 2)
-- Familiar HUD tile — Pip (Tinkle's rat), purple border, opens familiar bottom sheet — DONE 2026-06-15 (Session 2)
-- Grit HUD tile — ox from state.wagon.ox, green border, opens Grit bottom sheet — DONE 2026-06-15 (Session 2)
-- Pip familiar seeded in migrate() structural guard (no SAVE_VERSION bump) — DONE 2026-06-15 (Session 2)
-- HUD scroll-fade gradient (::after on .global-hud) — DONE 2026-06-15 (Session 2)
-- Town Rep moved to Wagon tab — DONE 2026-06-15 (Session 2)
-- spell_add mechanic in parseMechanics() — DONE 2026-06-15 (Session 2)
-- Dice roller upgrade (char select, roll type, modifier, ±delta, d4–d%) — DONE 2026-06-15 (Session 2)
-- Bug 4: Firebase error toast → friendly message — FIXED 2026-06-15 (Session 2)
-- Bug 5: closeDrawer() resets currentTab → renderQAMenu() — FIXED 2026-06-15 (Session 2)
-- Familiar/Grit bottom sheets fixed (were rendering inline; now position:fixed transform-based) — FIXED 2026-06-15 (Session 2)
-- Flag system: .qa-modal z-index raised to 1600; floating ⚑ FAB added; font-size:16px on textarea; injectPanelFlags() in renderAll() — DONE 2026-06-15 (Session 2)
-- QA menu redesign: full-width bottom sheet, 2-col card grid, FAB morphs to ✕, custom icon picker (state.qaFabIcon) — DONE 2026-06-15 (Session 2)
-- Body flex layout missing: display:flex;flex-direction:column;height:100dvh added to body — FIXED 2026-06-16 (Session 5)
-- tab-party active class: stale `active` on #tab-party was double-rendering party above AI DM chat — FIXED 2026-06-16 (Session 5)
-- tab-dm hidden: missing `active` class on load + closeDrawer() not re-activating — FIXED 2026-06-16 (Session 5)
-- OOC/party inputs scroll-buried: in-pane textarea inputs removed; quick bar now context-aware — FIXED 2026-06-16 (Session 5)
-- Narrative chat missing ↑ Top / ↓ Bottom buttons (OOC and party had them) — FIXED 2026-06-16 (Session 5)
-- 4-tab nav: openDrawer() navMap/subnav, closeDrawer() button IDs, flashTab() nav dots — FIXED 2026-06-16 (Session 5)
+## Recurring AI Failure Patterns
+**State Drift:** AI narrates but skips mechanics. Fix: `detectUnloggedGold()` + `detectUnloggedNPC()` + `detectUnloggedItem()` confirm-chips.
+**Navigation Blindness:** Background tab changes invisible. Fix: tab-flash + count badges (shipped).
