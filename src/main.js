@@ -1216,19 +1216,18 @@ function renderQuests(){
         <button class="btn sm red icon-btn" onclick="remQ(${idx})" style="margin-left:auto">&times; Delete</button>
       </div>
       <div class="form-group" style="margin-bottom:6px"><label class="field-label">Quest Text</label><input type="text" value="${esc(q.text||'')}" style="font-size:12px" onchange="updQ(${idx},'text',this.value)"></div>
-      ${q.discovery?`<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg);border-radius:4px;border-left:3px solid var(--gold-dim)"><div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>📖 Discovery · ${esc(q.discovery.ts||'')}</span>${q.chatIdx!==undefined?`<button onclick="viewQuestInChat(${q.chatIdx})" style="font-size:9px;background:none;border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);padding:1px 5px;cursor:pointer" title="Jump to discovery moment in chat">↗ Chat</button>`:''}</div><div style="font-size:11px;color:var(--text);line-height:1.5;font-style:italic">${esc(q.discovery.text||'')}</div></div>`:''}
+      ${q.discovery?`<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg);border-radius:4px;border-left:3px solid var(--gold-dim)"><div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>📖 Discovery · ${esc(q.discovery.ts||'')}</span>${q.chatMsgId?`<button onclick="viewQuestInChat(${JSON.stringify(q.chatMsgId)})" style="font-size:9px;background:none;border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);padding:1px 5px;cursor:pointer" title="Jump to discovery moment in chat">↗ Chat</button>`:''}</div><div style="font-size:11px;color:var(--text);line-height:1.5;font-style:italic">${esc(q.discovery.text||'')}</div></div>`:''}
       ${q.notes!==undefined?`<div class="form-group" style="margin-bottom:0"><label class="field-label">Notes</label><textarea style="min-height:50px;font-size:11px" onchange="updQ(${idx},'notes',this.value)">${esc(q.notes||'')}</textarea></div>`:''}
     </div>`;
     c.appendChild(det);
   });
 }
 function addQuest(){state.quests.push({text:'',status:'active',hidden:false});saveRefresh();}
-function viewQuestInChat(chatIdx){
+function viewQuestInChat(msgId){
   navTo('log');
   setTimeout(()=>{
-    const msgs=document.querySelectorAll('#chat-msgs .chat-msg');
-    const el=msgs[chatIdx];
-    if(!el){scrollActiveChatBottom();return;}
+    const el=msgId?document.querySelector('[data-msg-id="'+msgId+'"]'):null;
+    if(!el){toast('That chat moment was archived in the session summary.');return;}
     el.scrollIntoView({behavior:'smooth',block:'center'});
     el.style.outline='2px solid var(--gold)';
     el.style.borderRadius='4px';
@@ -2553,7 +2552,7 @@ function migrate(s){
   }
   // Normalize NPCs, quests
   s.npcs.forEach(n=>{if(n.hp===undefined)n.hp=0;});
-  s.quests.forEach(q=>{if(!q.status){q.status=q.done?'done':'active';}if(q.hidden===undefined)q.hidden=false;if(q.discovery===undefined)q.discovery=null;});
+  s.quests.forEach(q=>{if(!q.status){q.status=q.done?'done':'active';}if(q.hidden===undefined)q.hidden=false;if(q.discovery===undefined)q.discovery=null;if(!q.chatMsgId)q.chatMsgId=null;});
   if(s.quests.length>0){
     const seen=new Set();
     s.quests=s.quests.filter(q=>{
@@ -3277,7 +3276,7 @@ Rules:
 // All recognized mechanic keys — used by parseMechanics and display stripping
 const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|none';
 const _NAKED_MECH_RE=new RegExp('^('+_MECH_KEYS+'): .+','m');
-function parseMechanics(responseText){
+function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
   let match=null;
   const cleanText=responseText.replace(/\*\*/g,'').replace(/\*/g,''); // strip bold/italic
@@ -3478,7 +3477,7 @@ function parseMechanics(responseText){
             const hits=sentences.filter(s=>titleWords.some(w=>s.toLowerCase().includes(w)));
             discovery=hits.length?hits.slice(0,3).join(' ').trim().slice(0,400):proseOnly.slice(0,300).trim();
           }
-          const questObj={text:val,status:'active',hidden:false,discovery:discovery?{text:discovery,ts:new Date().toLocaleString()}:null,chatIdx:state.chatHistory.length};
+          const questObj={text:val,status:'active',hidden:false,discovery:discovery?{text:discovery,ts:new Date().toLocaleString()}:null,chatMsgId:pendingMsgId||null};
           state.quests.push(questObj);
           const newQuestIdx=state.quests.length-1;
           changes.push({text:'New quest: '+val.slice(0,30)});
@@ -3753,6 +3752,7 @@ function renderChat(){
     const isChk=msg.isCheckpoint||false;
     const isInit=msg.isInitiative||false;
     d.className='chat-msg '+(isInit?'init-msg':isChk?'chk-msg':isSys?'sys':isDM?'dm':'player');
+    if(msg.msgId)d.dataset.msgId=msg.msgId;
     const sender=isSys?'System':isDM?'Dungeon Master':(msg.playerName||playerName||'Party')+(msg.playerChar?' ('+msg.playerChar+')':'');
     // Store in lookup map — avoids quote/newline breakage in onclick attributes
     msgMap[msgIdx]=msg.content||'';
@@ -4093,7 +4093,8 @@ async function sendMsg(){
       content:(m.playerName&&m.role!=='assistant'?'['+m.playerName+' playing '+m.playerChar+']: ':'')+m.content
     }));
     const responseText=await callAI(histForApi,sysProm,1400);
-    const mechanics=parseMechanics(responseText);
+    const pendingMsgId='cm_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+    const mechanics=parseMechanics(responseText,pendingMsgId);
     // Strip mechanics block from display - handle with or without ---END---
   let displayText=responseText
     .replace(/---MECHANICS---[\s\S]*?---END---/g,'')
@@ -4108,7 +4109,7 @@ async function sendMsg(){
     detectUnloggedItem(displayText,mechanics);
     cacheResp(text,displayText);
     if(localStorage.getItem('tt_tts_auto')==='1'&&typeof speechSynthesis!=='undefined')speak(displayText);
-    state.chatHistory.push({role:'assistant',content:displayText,mechanics,ts,realTs:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+    state.chatHistory.push({role:'assistant',content:displayText,mechanics,ts,realTs:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),msgId:pendingMsgId});
     // Auto-checkpoint on message count
     state.msgsSinceChk=(state.msgsSinceChk||0)+1;
     if(state.msgsSinceChk>=(state.autoChkInterval||8)){
