@@ -6016,8 +6016,8 @@ function renderSuperpowers(){
 // ═══ NEW INTERFACE — HUD + DRAWER + DOCK ═══
 
 var _stepTarget=null; // {type:'pc',idx:N} or {type:'gp'}
-const _DRAWER_TABS=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dev','tab-setup'];
-const _DRAWER_TITLES={'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dev':'Dev','tab-setup':'Setup'};
+const _DRAWER_TABS=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-ait-chk','tab-dev','tab-setup'];
+const _DRAWER_TITLES={'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-ait-chk':'Tools','tab-dev':'Dev','tab-setup':'Setup'};
 
 function renderHUD(){
   const mosaic=document.getElementById('hud-mosaic');
@@ -6253,7 +6253,7 @@ function openDrawer(tabId){
   document.getElementById('drawer-backdrop')?.classList.add('is-open');
   document.getElementById('drawer-sheet')?.classList.add('is-open');
   // Sync nav
-  const navMap={'tab-party':'party','tab-world':'logistics','tab-wagon':'logistics','tab-combat':'logistics','tab-session':'systems','tab-ait':'systems','tab-dev':'systems','tab-setup':'systems'};
+  const navMap={'tab-party':'party','tab-world':'logistics','tab-wagon':'logistics','tab-combat':'logistics','tab-session':'systems','tab-ait':'systems','tab-ait-chk':'systems','tab-dev':'systems','tab-setup':'systems'};
   const navKey=navMap[tabId]||null;
   ['log','party','logistics','systems'].forEach(k=>{
     document.getElementById('nav-btn-'+k)?.classList.toggle('active',k===navKey);
@@ -6288,7 +6288,7 @@ function navTo(key){
   if(key==='logistics'){openLogisticsDrawer();return;}
   if(key==='systems'){openSystemsDrawer();return;}
   if(['world','wagon','combat'].includes(key)){openLogisticsDrawer(key);return;}
-  if(['session','ait','dev','setup'].includes(key)){openSystemsDrawer(key);return;}
+  if(['session','ait','ait-chk','dev','setup'].includes(key)){openSystemsDrawer(key);return;}
   openDrawer('tab-'+key);
 }
 function _setNavActive(key){
@@ -6316,7 +6316,7 @@ function openSystemsDrawer(sub){
   const sn=document.getElementById('drawer-subnav');
   if(sn){
     sn.style.display='flex';
-    sn.innerHTML=[['session','📅 Session'],['ait','🤖 AI Tools'],['dev','🔧 Dev'],['setup','⚙ Setup']]
+    sn.innerHTML=[['session','📅 Session'],['ait','🤖 AI Tools'],['ait-chk','⏪ Tools'],['dev','🔧 Dev'],['setup','⚙ Setup']]
       .map(([k,lbl])=>`<button class="drawer-subnav-btn${k===sub?' active':''}" onclick="switchSystemsTab('${k}')">${lbl}</button>`).join('');
   }
   const t=document.getElementById('drawer-title');if(t)t.textContent='Systems';
@@ -6338,7 +6338,7 @@ function switchLogisticsTab(sub){
 }
 function switchSystemsTab(sub){
   _systemsTab=sub;
-  ['tab-session','tab-ait','tab-dev','tab-setup'].forEach(id=>{document.getElementById(id)?.classList.remove('active');});
+  ['tab-session','tab-ait','tab-ait-chk','tab-dev','tab-setup'].forEach(id=>{document.getElementById(id)?.classList.remove('active');});
   document.getElementById('tab-'+sub)?.classList.add('active');
   document.querySelectorAll('#drawer-subnav .drawer-subnav-btn').forEach(b=>{
     b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+sub+"'"));
