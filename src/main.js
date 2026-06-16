@@ -3810,6 +3810,8 @@ function clearChat(){if(confirm('Clear narrative chat and Rules channel? Log una
 
 // ═══ CHAT TABS ═══
 let _activeTab='narrative';
+let _testMode=false;
+let _testHistory=[];
 function updatePartyBadge(){
   const b=document.getElementById('party-badge');
   if(!b)return;
@@ -3836,7 +3838,7 @@ function scrollActiveChatTop(){
 }
 function showChatTab(tab){
   _activeTab=tab;
-  ['narrative','ooc','party'].forEach(t=>{
+  ['narrative','ooc','party','test'].forEach(t=>{
     const pane=document.getElementById('chat-pane-'+t);
     const btn=document.getElementById('chat-tab-'+t);
     if(pane)pane.style.display=(t===tab)?'flex':'none';
@@ -3846,8 +3848,10 @@ function showChatTab(tab){
   if(qi){
     if(tab==='ooc')qi.placeholder='Ask a rules question…';
     else if(tab==='party')qi.placeholder='Message party…';
+    else if(tab==='test')qi.placeholder='⚗ Test a mechanic or prompt…';
     else qi.placeholder='Command AI DM…';
   }
+  if(tab==='test')renderTestChat();
   requestAnimationFrame(()=>scrollActiveChatBottom());
 }
 function renderOOC(){
@@ -3878,6 +3882,84 @@ function oocKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendOOCMs
 function scrollToOOCMsg(id){
   const el=document.getElementById('oocmsg_'+id);
   if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.outline='2px solid var(--blue)';setTimeout(()=>el.style.outline='',1200);}
+}
+
+// ═══ TEST CHANNEL ═══
+function toggleTestMode(){
+  _testMode=!_testMode;
+  const tabBtn=document.getElementById('chat-tab-test');
+  const toggleBtn=document.getElementById('test-mode-toggle');
+  if(tabBtn)tabBtn.style.display=_testMode?'':'none';
+  if(toggleBtn){toggleBtn.textContent=_testMode?'⚗ Exit Test Mode':'Enable Test Mode';toggleBtn.classList.toggle('gold',_testMode);}
+  if(_testMode){renderTestChat();showChatTab('test');}
+  else showChatTab('narrative');
+}
+function clearTestChat(){_testHistory=[];renderTestChat();}
+function renderTestChat(){
+  const c=document.getElementById('test-msgs');if(!c)return;c.innerHTML='';
+  if(!_testHistory.length){
+    c.innerHTML='<div class="chat-msg sys"><div class="chat-msg-text" style="font-size:11px">⚗ Test sandbox — messages here use real AI contracts but never touch game state. Mechanics blocks are shown as dry-run previews only.</div></div>';
+    return;
+  }
+  _testHistory.forEach(msg=>{
+    const isDM=msg.role==='assistant';const isSys=msg.role==='system';
+    const d=document.createElement('div');
+    d.className='chat-msg '+(isSys?'sys':isDM?'dm':'player');
+    let text=esc(msg.content||'');
+    text=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/\n/g,'<br>');
+    let mechHtml='';
+    if(isDM&&msg.preview&&msg.preview.length){
+      mechHtml='<div style="margin-top:6px;padding:6px 8px;background:rgba(176,88,48,.12);border:1px solid var(--gold-dim);border-radius:4px">'
+        +'<div style="font-size:9px;font-weight:700;color:var(--gold-bright);letter-spacing:.5px;margin-bottom:4px">⚗ MECHANIC PREVIEW — not applied</div>'
+        +msg.preview.map(p=>'<div style="font-size:10px;font-family:var(--mono);margin-bottom:2px"><span style="color:var(--gold)">'+esc(p.key)+':</span> <span style="color:var(--text)">'+esc(p.val)+'</span></div>').join('')
+        +'</div>';
+    }
+    d.innerHTML='<div class="msg-hdr"><span style="font-weight:bold">'+(isDM?'⚗ DM (Test)':isSys?'System':'You')+'</span><span style="margin-left:auto;font-size:10px;color:var(--text-dim)">'+esc(msg.ts||'')+'</span></div><div class="chat-msg-text">'+text+'</div>'+mechHtml;
+    c.appendChild(d);
+  });
+  requestAnimationFrame(()=>{const el=document.getElementById('test-msgs');if(el)el.scrollTop=el.scrollHeight;});
+}
+function previewMechanics(responseText){
+  const clean=responseText.replace(/\*\*/g,'').replace(/\*/g,'');
+  let block='';
+  const m=clean.match(/---MECHANICS---([\s\S]*?)(?:---END---|$)/i);
+  if(m)block=m[1];
+  if(!block)return[];
+  const validKeys=new Set(_MECH_KEYS.split('|'));
+  return block.split('\n').map(l=>l.trim()).filter(l=>l&&l.includes(':')).map(l=>{
+    const ci=l.indexOf(':');const key=l.slice(0,ci).trim().toLowerCase();const val=l.slice(ci+1).trim();
+    return validKeys.has(key)?{key,val}:null;
+  }).filter(Boolean);
+}
+async function sendTestMsg(text){
+  if(!getKey()){toast('Set an API key first — tap ⚙ in the AI DM header.');return;}
+  const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  _testHistory.push({role:'user',content:text,ts});
+  renderTestChat();
+  const typEl=document.getElementById('test-typing-ind');
+  if(typEl)typEl.classList.add('on');
+  try{
+    const useLedger=document.getElementById('chat-ledger')?.checked;
+    if(useLedger)genLedger();
+    const ledger=useLedger?(document.getElementById('ledger-out')?.value||''):'';
+    const sysProm=buildPrompt(ledger)+'\n\n⚗ TEST MODE: This is a sandbox dry-run. Generate realistic mechanics blocks as you normally would. These will be shown as preview only — no state changes will be applied to the game. Feel free to generate any mechanic type including quest_add, item_add, npc_add, etc.';
+    const histForApi=_testHistory.filter(m=>m.role!=='system').map(m=>({
+      role:m.role==='assistant'?'assistant':'user',content:m.content
+    }));
+    const responseText=await callAI(histForApi,sysProm,1400);
+    const preview=previewMechanics(responseText);
+    const displayText=responseText
+      .replace(/---MECHANICS---[\s\S]*?---END---/g,'')
+      .replace(/---MECHANICS---[\s\S]*$/,'')
+      .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
+      .replace(new RegExp('^('+_MECH_KEYS+'): .+$','gm'),'')
+      .replace(/\n{3,}/g,'\n\n').trim();
+    _testHistory.push({role:'assistant',content:displayText,preview,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+  }catch(err){
+    _testHistory.push({role:'system',content:'⚠ Error: '+err.message,ts});
+  }
+  if(typEl)typEl.classList.remove('on');
+  renderTestChat();
 }
 
 // ═══ PARTY CHANNEL ═══
@@ -6369,6 +6451,7 @@ function sendMsgQuick(){
   if(!getKey()){toast('Set an API key first — tap ⚙ in the AI DM header.');return;}
   qi.value='';
   if(channel==='ooc'){sendOOCMsg(val);return;}
+  if(channel==='test'){sendTestMsg(val);return;}
   const ci=document.getElementById('chat-input');
   if(ci){ci.value=val;sendMsg();}
 }
@@ -6824,6 +6907,7 @@ Object.assign(window, {
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, copyContracts,
   navToast, scrollActiveChatBottom, scrollActiveChatTop,
+  toggleTestMode, clearTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,
 });

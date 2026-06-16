@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.CxmSZebR.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.BkzYrUUT.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.8tMU80UV.css">
 </head>
 <body>
@@ -671,6 +671,10 @@
 <div id="tab-ait" class="tab-section">
   <div class="grid-2">
     <div class="col">
+      <div class="panel" style="margin-bottom:8px">
+        <div class="panel-title">⚗ AI DM Sandbox <button id="test-mode-toggle" class="btn sm" onclick="toggleTestMode()" style="margin-left:auto;font-size:10px;padding:2px 10px">Enable Test Mode</button></div>
+        <p style="font-size:11px;color:var(--text-dim);margin:0">Isolated sandbox channel — probe mechanics, test contract compliance, generate sample events. No state writes. History cleared on reload.</p>
+      </div>
       <div class="panel accent">
         <div class="panel-title">AI System Prompt Contracts <button class="btn sm" onclick="copyContracts()" style="margin-left:auto;font-size:10px;padding:2px 8px;flex-shrink:0" title="Copy all contracts to clipboard">📋 Copy all</button></div>
         <details class="bs" open style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--gold)">①</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">DM Persona &amp; Tone</span><span style="font-size:9px;color:var(--text-dim)">Character voices, tone, Slasher con-protection</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-persona" style="min-height:70px" oninput="saveContract('persona',this.value)">You are the Dungeon Master for Tinkle's Tinctures, a D&D 5e campaign. Narrate immersively, enforce strict RAW mechanics, and treat every player action seriously. Maintain consistent narrator voice — do not drift more casual or formal over time.
@@ -923,6 +927,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button class="chat-tab-btn active" id="chat-tab-narrative" onclick="showChatTab('narrative')">📖 Narrative</button>
           <button class="chat-tab-btn" id="chat-tab-ooc" onclick="showChatTab('ooc')">❓ Rules</button>
           <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party');clearPartyBadge()">🗨️ OOC <span id="party-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
+          <button class="chat-tab-btn" id="chat-tab-test" onclick="showChatTab('test')" style="display:none;color:var(--gold-bright)">⚗ Test</button>
         </div>
         <div id="chat-pane-narrative">
         <div id="chat-msgs" class="chat-msgs-wrap"></div>
@@ -964,6 +969,14 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <div id="party-msgs" class="chat-msgs-wrap"></div>
           <div class="typing-ind" id="party-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
         </div><!-- end chat-pane-party -->
+        <div id="chat-pane-test" style="display:none">
+          <div style="display:flex;gap:6px;padding:0 0 6px;flex-shrink:0;align-items:center">
+            <span style="font-size:10px;color:var(--gold);font-weight:700;letter-spacing:.5px">⚗ TEST MODE — mechanics preview only, no state changes</span>
+            <button class="btn sm red" onclick="clearTestChat()" style="margin-left:auto;padding:2px 8px;min-height:26px;font-size:11px">Clear</button>
+          </div>
+          <div id="test-msgs" class="chat-msgs-wrap"></div>
+          <div class="typing-ind" id="test-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
+        </div><!-- end chat-pane-test -->
       </div>
     </div>
 </div>
