@@ -196,7 +196,13 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ **Ask DM button** — Moved to party pane top bar (was buried in scrolled input row)
 - ✅ **↑ Top / ↓ Bottom missing** — Added to narrative chat pane (OOC and party already had them)
 
-## Phase 2 — Active Sprint
+### Shipped 2026-06-16 (Session 6)
+- ✅ **Scroll freeze (flags 1+4)** — `showChatTab()` uses `display:flex` (not `block`) for `#chat-pane-narrative`; flex chain preserved, chat-msgs-wrap scrolls without page refresh. Added `-webkit-overflow-scrolling:touch; touch-action:pan-y`.
+- ✅ **Flag save button (flag 5)** — Flag modal restructured with scrollable body + pinned footer; "Flag It" always visible regardless of keyboard state
+- ✅ **Contract clauses auto-append (flags 11/14/15/16)** — `migrate()` appends `DUNGEON SECRETS`, `PLAYER AGENCY`, `SKILL CHECKS` to `#ai-never` on load if missing; idempotent
+- ✅ **Quest announcement system (flag #17)** — `navToast()` tappable chip; `quest_add` captures discovery paragraph from AI prose into `quest.discovery{text,ts}`; 📖 Discovery chapter in quest `<details>`; tap navigates to World tab
+
+
 
 ### Design Principles (session 2026-06-15)
 - **Interactive-first** — every UI element should have a function; no decorative-only components
@@ -589,20 +595,25 @@ All flags captured in `state.errorLog[]` via the in-app ⚑ system. Integrated h
 
 | # | Category | Description | Status |
 |---|---|---|---|
-| 1 | infra | Skill bonus wrong in Character Editor | **OPEN** — listed in Phase 2 bug fixes |
-| 2 | infra | Scroll-to-bottom button missing in narrative chat | ✅ FIXED — ↑/↓ buttons added 2026-06-16 |
-| 6 | idea | "Idea / Feature Request" as a flag category | ✅ DONE — `idea` added to FLAG_CATS 2026-06-15 |
-| 8 | idea | Filter flags by category in Dev tab | ✅ DONE — 8-pill filter row added 2026-06-15 |
-| 9 | idea | "Reviewed-Pending" verdict state | ✅ DONE — cycle: pending→fail→reviewed→resolved 2026-06-15 |
-| 10 | idea | Dev notes: in-place delete + copy section | ⚠ PARTIAL — copy done; per-note delete still open |
-| 11 | idea | Export pending-only flags | **OPEN** |
-| 12 | idea | Claude Code Plugin in Flag Log | **DEFERRED** — needs dedicated design |
-| 13 | idea | AI DM Testing Chat (sandbox session) | **DEFERRED** — needs design session |
-| 14 | infra | Grit tile / Wagon tab cleanup | ⚠ PARTIAL — Grit tile done; Wagon tab cleanup pending |
+| 1 | infra | Narrative chat scroll freezes — required page refresh | ✅ FIXED 2026-06-16 (Session 6) — `display:flex` fix + `-webkit-overflow-scrolling:touch` |
+| 2 | infra | Quest tap → show detail and context | ✅ DONE 2026-06-16 — `<details>` expand + 📖 Discovery chapter |
+| 3 | infra | Foraged items not populating in inventory | **OPEN** — parser format check needed |
+| 4 | infra | Tab to OOC and back freezes narrative scroll | ✅ FIXED 2026-06-16 (Session 6) — same root cause as flag 1 |
+| 5 | infra | Flag save button untappable | ✅ FIXED 2026-06-16 (Session 6) — pinned footer in flag modal |
+| 6 | infra | Dev notes: delete individual note, copy sections | ⚠ PARTIAL — copy done; per-note delete still open |
+| 8 | infra | AI DM Testing Chat (sandbox, export button) | **DEFERRED** — needs design session |
+| 10 | rule | Cantrips = Level 0 in spellbooks | ✅ DONE 2026-06-15 (Session 3) — Cantrips tab added |
+| 11 | other | AI revealed loot/dungeon secrets (contract violation) | ✅ FIXED 2026-06-16 — `DUNGEON SECRETS` clause auto-appended to #ai-never |
+| 13 | idea | Treasure log audit — catch duplicate loot on-the-spot | **OPEN** — design: reconcile/dedup function in income log |
+| 14 | story | AI progressed to stables without asking players | ✅ FIXED 2026-06-16 — `PLAYER AGENCY` clause auto-appended to #ai-never |
+| 15 | story | AI progressed story/escape without asking players | ✅ FIXED 2026-06-16 — `PLAYER AGENCY` clause covers this |
+| 16 | rule | No skill checks performed | ✅ FIXED 2026-06-16 — `SKILL CHECKS` clause auto-appended to #ai-never |
+| 17 | idea | Quest announcement → tappable toast → quest log with discovery chapter | ✅ DONE 2026-06-16 (Session 6) — `navToast()` + `quest.discovery` + 📖 chapter render |
 
 **FLAG_CATS (current):** roll / rule / ai / story / infra / idea / other  
 **Verdict cycle:** `null` (pending) → `fail` → `reviewed` → `resolved`  
-**Filter:** 8 pills (All + each category) live in Dev tab
+**Filter:** 8 pills (All + each category) live in Dev tab  
+**Still open:** Flag 3 (foraged items), Flag 6 (dev notes delete), Flag 8 (testing chat), Flag 13 (treasure audit), skill bonus wrong
 
 ---
 
