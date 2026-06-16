@@ -7,13 +7,12 @@ export default defineConfig({
     // Output to docs/ so GitHub Pages can serve it from branch root /docs
     outDir: 'docs',
     emptyOutDir: true,
-    // Keep asset names predictable (no hash on index.html)
     rollupOptions: {
       output: {
-        // Single JS bundle
-        entryFileNames: 'assets/app.js',
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: 'assets/[name][extname]',
+        // Content-hashed filenames bust browser cache on every deploy
+        entryFileNames: 'assets/app.[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash][extname]',
       }
     }
   },
