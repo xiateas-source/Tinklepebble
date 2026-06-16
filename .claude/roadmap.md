@@ -592,6 +592,14 @@ No image. Six named zones as a styled 2×3 grid. Tokens are colored tiles. AI co
 **Tier 2 — Drop 5: Image Maps + Token Overlay**
 Upload any image (screenshot, photo of book map, PDF-extracted map). Tokens placed on image with tap-to-move. Firebase Storage for image URLs. Module maps become playable.
 
+**Drop 5 full scope (expanded 2026-06-16):**
+- Token overlay on uploaded map image (position:relative/absolute CSS layering)
+- Grid calibration: two-tap (tap first corner, tap second known point → derive offset + square size). Covers untrimmed maps. Auto-detect skipped — too fragile, manual is nearly as fast.
+- **Single-layer fog of war** — 2D boolean grid, tap cell to toggle revealed/fogged. Simple, fast, works on mobile. No multi-layer complexity (Foundry-style fog is overkill).
+- **Spell effect overlays** — SVG shapes keyed to calibrated grid size: circle (fireball = 4sq radius), cone (breath weapon), line (lightning bolt). Radius auto-scales from grid calibration. Positioned by tapping origin cell.
+- Pre-combat token placement ("plan an ambush") — place tokens before fight starts; AI can pre-position via `token_place:` mechanics
+- `token_move: Name|row,col` AI mechanic (moves token to grid coordinate)
+
 **CSS rendering technique (validated from PbP research, 2026-06-16):**
 Standard VTT approach — `position:relative` parent (map image) + `position:absolute` children (tokens). This is exactly how Roll20/Foundry work at the DOM level. Our abstraction on top:
 - Token positions stored as `{row, col}` in state (not raw pixels)
@@ -605,6 +613,8 @@ Standard VTT approach — `position:relative` parent (map image) + `position:abs
 <!-- Drop 5 render structure -->
 <div style="position:relative;display:inline-block">
   <img src="{mapUrl}" style="width:100%" />
+  <!-- fog cells: semi-transparent dark rect per fogged grid cell -->
+  <!-- spell effect: SVG circle/cone/line overlay -->
   <!-- token for each combatant with state.combat.tokens[i].row/col -->
   <div style="position:absolute;top:{row*sq}px;left:{col*sq}px;width:{sq}px;height:{sq}px">
     {token — PC color circle or enemy icon}
@@ -613,7 +623,7 @@ Standard VTT approach — `position:relative` parent (map image) + `position:abs
 ```
 
 **Tier 3 — Drop 7+: Full VTT Layer**
-Grid snap, fog of war, room reveals. Full Roll20 feature set. Tiers 1 and 2 architecture grows naturally into this.
+Grid snap, fog of war room reveals, freehand drawing layer (canvas overlay for patrol routes / ambush planning), auto grid detection (computer vision — deferred, manual calibration covers 95% of cases). Full Roll20 feature set. Tiers 1 and 2 architecture grows naturally into this.
 
 **Three Map Types (same renderer, different data):**
 | Type | Use Case | Scale | AI mechanic |
