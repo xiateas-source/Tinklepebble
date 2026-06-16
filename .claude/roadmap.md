@@ -327,8 +327,14 @@ AC · Initiative · Speed · HP (current / max / temp HP badge) · Hit Dice pips
 ### Claude Code Plugin in Flag Log (Flag #12)
 *Scope unclear. Potential: in-app AI analysis of flags using Claude API, or context-export link. Needs dedicated design session.*
 
-### AI DM Testing Chat (Flag #13)
-*Isolated sandbox session separate from campaign history. Design questions: shared contracts? separate AI key? export format for test sessions? Needs dedicated design session.*
+### AI DM Testing Chat (Flag #8 / Flag #19)
+*Isolated sandbox AI channel — separate from narrative/OOC/party. No game-state writes in test mode. Design resolved 2026-06-16:*
+- *Separate chat history array, not persisted to Firebase or localStorage campaign state*
+- *parseMechanics() skips all state writes when test mode active (mechanics shown as preview only)*
+- *Shares AI contracts (so you can test contract compliance) but has its own "test system prompt" addendum*
+- *"⚗ TEST" label in chat pane header; toggle button in Systems › AI Tools*
+- *OOC channel CORRECTLY refuses narrative tasks — testing chat is the right fix, not relaxing OOC restrictions*
+- *Triggered by user screenshot: OOC refused "generate test quest anchor" — that's working as designed*
 
 ---
 
@@ -609,11 +615,13 @@ All flags captured in `state.errorLog[]` via the in-app ⚑ system. Integrated h
 | 15 | story | AI progressed story/escape without asking players | ✅ FIXED 2026-06-16 — `PLAYER AGENCY` clause covers this |
 | 16 | rule | No skill checks performed | ✅ FIXED 2026-06-16 — `SKILL CHECKS` clause auto-appended to #ai-never |
 | 17 | idea | Quest announcement → tappable toast → quest log with discovery chapter | ✅ DONE 2026-06-16 (Session 6) — `navToast()` + `quest.discovery` + 📖 chapter render |
+| 18 | infra | navToast not firing on quest_add — chip never appears in narrative chat even when parseMechanics() processes quest_add | **OPEN** — confirmed broken in prod (screenshot 2026-06-16); check that navToast() is called inside the quest_add branch of parseMechanics() and that quest.discovery is populated |
+| 19 | idea | AI DM Testing Chat — isolated sandbox AI channel separate from narrative/OOC/party. Use case: probe mechanics (quest_add, item_add, etc.), test contract edge cases, generate sample anchors — without affecting game state, polluting chat history, or being blocked by OOC channel contract restrictions. Design notes: separate chatHistory array (not persisted to Firebase), no game-state writes from parseMechanics() in test mode, toggle "test mode" flag, clearly labelled "⚗ TEST" in UI. OOC channel correctly refuses narrative tasks (screenshot 2026-06-16) — testing chat is the right fix, not relaxing OOC restrictions. | **OPEN** — design needed; Flag #8 upgraded with full spec |
 
 **FLAG_CATS (current):** roll / rule / ai / story / infra / idea / other  
 **Verdict cycle:** `null` (pending) → `fail` → `reviewed` → `resolved`  
 **Filter:** 8 pills (All + each category) live in Dev tab  
-**Still open:** Flag 3 (foraged items), Flag 6 (dev notes delete), Flag 8 (testing chat), Flag 13 (treasure audit), skill bonus wrong
+**Still open:** Flag 3 (foraged items), Flag 6 (dev notes delete), Flag 8/19 (testing chat), Flag 13 (treasure audit), Flag 18 (navToast broken), skill bonus wrong
 
 ---
 
