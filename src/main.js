@@ -168,6 +168,22 @@ function fbStartListening(){
       if(remoteTs<=localTs)return;
       delete remote._ts;delete remote._device;
       migrate(remote);
+      // Guard: never let remote overwrite local chatHistory if local's latest
+      // message is missing from remote (prevents vanishing-message race condition
+      // when two devices write concurrently with clock skew).
+      var localChat=state.chatHistory||[];
+      var remoteChat=remote.chatHistory||[];
+      if(localChat.length>0){
+        var ll=localChat[localChat.length-1];
+        var llId=ll.msgId||null;
+        var llContent=(ll.content||'').slice(0,80);
+        var found=false;
+        for(var ri=remoteChat.length-1;ri>=Math.max(0,remoteChat.length-10);ri--){
+          var rm=remoteChat[ri];
+          if((llId&&rm.msgId===llId)||(llContent&&(rm.content||'').slice(0,80)===llContent)){found=true;break;}
+        }
+        if(!found)remote.chatHistory=localChat;
+      }
       // Only merge static identity fields — migrate() owns all level-dependent fields.
       // getCanonicalPCs() reads from current state.pcs which may be demo/Level-1 data on a
       // fresh device, so including hp_max/slots/features/etc here causes them to be clobbered.
