@@ -196,6 +196,15 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ **Ask DM button** — Moved to party pane top bar (was buried in scrolled input row)
 - ✅ **↑ Top / ↓ Bottom missing** — Added to narrative chat pane (OOC and party already had them)
 
+### Shipped 2026-06-16 (Session 7)
+- ✅ **Patch notes comprehensive** — v1.13–v1.16 added to renderChangelog() covering 4-tab nav, layout fixes, scroll fixes, contracts, quest system
+- ✅ **Cache busting** — Vite config changed to content-hashed filenames (app.[hash].js); GitHub Pages was serving stale builds
+- ✅ **Naked mechanic fallback** — parseMechanics() now catches `quest_add:` and other keys written directly in AI response body without `---MECHANICS---` header; also strips them from displayed chat text
+- ✅ **openModal missing from window exports** — provider ⚙ button, TTS 🔊, dashboard, and all modal triggers were silently broken in module mode; fixed by adding openModal to Object.assign(window,{...})
+- ✅ **RegExp 'mgm' invalid flags** — introduced by naked-mechanic strip; caused every AI send to throw; fixed to 'gm'
+- ✅ **currentTab default wrong** — initialized as 'tab-party'; changed to 'tab-dm' so QA menu shows correct context on fresh load
+- ✅ **HUD z-index below backdrop** — .global-hud raised from z-index:100 to z-index:850 so HUD tile buttons stay tappable while drawer backdrop (z-index:800) is active
+
 ### Shipped 2026-06-16 (Session 6)
 - ✅ **Scroll freeze (flags 1+4)** — `showChatTab()` uses `display:flex` (not `block`) for `#chat-pane-narrative`; flex chain preserved, chat-msgs-wrap scrolls without page refresh. Added `-webkit-overflow-scrolling:touch; touch-action:pan-y`.
 - ✅ **Flag save button (flag 5)** — Flag modal restructured with scrollable body + pinned footer; "Flag It" always visible regardless of keyboard state
