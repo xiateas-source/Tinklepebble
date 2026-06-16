@@ -5554,6 +5554,42 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.16',date:'June 2026',notes:[
+      'World Consequence Engine: state.consequences[] — AI logs long-term consequences via consequence_add/consequence_resolve mechanics; shown in World tab and injected into every AI prompt',
+      '"Previously On…" QA action: tap to generate a 2-sentence recap of the last 8 messages — fast session-start re-orientation',
+      'Quest chat anchor: quest_add now embeds a tappable 📖 View Quest chip in narrative chat — tap navigates directly to the quest in World tab',
+      'Foraged item descriptions: item_add captures description prose from AI response and stores it on the cargo entry',
+      '"Clean without clutter" pass: redundant helper text, verbose panel labels, and decorative-only chrome trimmed throughout',
+      'Scroll-to-top/bottom buttons streamlined into panel headers on all panes (consistent position, no layout disruption)',
+      'Fix: save() and state globals exposed correctly to submodules; saveEditedNote() added to exports',
+    ]},
+    {ver:'v1.15',date:'June 2026',notes:[
+      'Scroll freeze fixed (flags 1 & 4): narrative chat pane uses display:flex — scrolls correctly after switching to OOC/party and back without needing a page refresh',
+      'iOS scroll fix: -webkit-overflow-scrolling:touch + touch-action:pan-y added to all chat panes',
+      'Flag save button always visible: flag modal restructured with a scrollable body and pinned footer — "Flag It" no longer pushed off-screen by the mobile keyboard',
+      'Auto-injected contract clauses (flags 11, 14, 15, 16): DUNGEON SECRETS, PLAYER AGENCY, and SKILL CHECKS appended to the "What You Never Do" contract on load if missing — idempotent, never duplicates',
+      'Quest announcement chip: when AI fires quest_add, a tappable gold navToast chip appears in narrative chat; tap navigates to World tab quest log',
+      'Quest discovery chapter: quest_add captures the discovery paragraph from AI prose into quest.discovery{text,ts}; visible as 📖 Discovery inside the quest details expand',
+    ]},
+    {ver:'v1.14',date:'June 2026',notes:[
+      'Body layout fixed: display:flex; flex-direction:column; height:100dvh — AI DM chat area now fills the true viewport height between HUD and dock',
+      'AI DM tab always-visible: no longer hidden when drawers open or close; closeDrawer() explicitly re-activates it',
+      'Context-aware quick bar: single input at bottom of screen routes to correct channel (narrative / OOC / party) based on active tab — in-pane textarea inputs removed',
+      'Quick bar placeholder updates dynamically: "Command AI DM…" / "Ask a rules question…" / "Message party…" as you switch tabs',
+      'Ask DM button moved to party pane top bar — no longer buried below the scroll horizon',
+      '↑ Top / ↓ Bottom scroll buttons added to narrative chat pane (OOC and party already had them)',
+    ]},
+    {ver:'v1.13',date:'June 2026',notes:[
+      '4-tab bottom nav replaces the 9-tab top bar: AI DM / 📜 Sheet / 📦 Logistics / ⚙ Systems — cleaner navigation, all play surfaces one tap away',
+      'Composite drawers: Logistics opens with 🌍 World / 🛒 Wagon / ⚔ Combat subnav; Systems opens with 📅 Session / 🤖 AI Tools / 🔧 Dev / ⚙ Setup subnav',
+      'Nav activity dots: gold ● appears on Logistics or Systems button when AI mechanics push a state change on a hidden tab; clears when you visit that tab',
+      'DR-6: AI contracts moved to state.aiContracts{} — all 5 contracts now Firebase-synced; survive device switches and session reloads',
+      'Contract security validation: buildPrompt() validates the Slasher persona fragment before every AI send; hard error blocks the send if it is missing',
+      'Flag system: "Idea" category added for feature requests and design notes distinct from bugs',
+      'Flag filter pills: 8 category pills in Dev tab (All + each category) for fast triage',
+      'Flag verdict "Reviewed" state: Pending → Fail → Reviewed → Resolved — "Reviewed" means acknowledged, not yet acted on',
+      'Dev notes: Copy All button exports full dev notes section to clipboard',
+    ]},
     {ver:'v1.12',date:'June 2026',notes:[
       'Theme fix: --ivory variable was undefined, breaking stat values, dice results, and modal titles across all modes',
       'Night mode readability overhaul — text, gold, and border values raised for legibility',
