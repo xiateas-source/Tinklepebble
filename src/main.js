@@ -648,8 +648,11 @@ function showTab(id){
 function showWorldTab(tab){
   document.getElementById('world-state-panel').style.display=tab==='state'?'':'none';
   document.getElementById('world-ops-panel').style.display=tab==='ops'?'':'none';
+  const lp=document.getElementById('world-locations-panel');if(lp)lp.style.display=tab==='locations'?'':'none';
   document.getElementById('world-btn-state').classList.toggle('active',tab==='state');
   document.getElementById('world-btn-ops').classList.toggle('active',tab==='ops');
+  document.getElementById('world-btn-locs')?.classList.toggle('active',tab==='locations');
+  if(tab==='locations')renderLocations();
 }
 function showSessionMode(mode){
   const playPanel=document.getElementById('sess-play-panel');
@@ -2561,6 +2564,7 @@ function migrate(s){
   if(!Array.isArray(s.oocHistory))s.oocHistory=[];
   if(!Array.isArray(s.partyChat))s.partyChat=[];
   if(!Array.isArray(s.storyChapters))s.storyChapters=[];
+  if(!Array.isArray(s.locations))s.locations=[];
   if(!s.aiContracts||typeof s.aiContracts!=='object')s.aiContracts={persona:'',never:'',actions:'',continuity:'',multi:''};
   // Auto-append missing contract clauses (idempotent — checks for marker text before appending)
   if(s.aiContracts.never&&!s.aiContracts.never.includes('DUNGEON SECRETS')){
@@ -3280,7 +3284,11 @@ Rules:
 - Always update time: when meaningful time has passed (travel, rests, combat)
 - short_rest: [name] restores Bardic Inspiration, Stone's Endurance uses, and other short-rest features
 - consequence_add: [text] | [type] — log a world consequence. Types: background (ambient, slow-burn), faction (NPC group action), personal (affects a PC directly), escalation (urgent, building threat). Use for burned-town fallout, faction retaliation, PC reputation shifts, and ticking threats. Example: consequence_add: Thornhaven guards are now searching for a "tortoiseshell alchemist" | faction
-- consequence_resolve: [partial text] — mark a consequence resolved when the party has addressed it. Example: consequence_resolve: guards searching`;
+- consequence_resolve: [partial text] — mark a consequence resolved when the party has addressed it. Example: consequence_resolve: guards searching
+- location_add: Name | Type | Description — create a new location entry. Types: town/city/camp/ruin/dungeon/waypoint. Use when the party first arrives at a new named place. Example: location_add: Greenest | town | Small farming town under dragon attack
+- location_visit: Name — mark a known location as visited and update its last-visited timestamp. Use on return trips. Example: location_visit: Greenest
+- location_history: Name | Text | dmOnly — add an event entry to a location's history. Set dmOnly to true for secret events. Example: location_history: Greenest | Governor Nighthill paid 250gp for the party's help | false
+- location_investment: Name | Description | Amount — record a party investment at a location. Example: location_investment: Greenest | Mill stake | 50`;
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
   const secretsSection=state.dmSecrets?'\nCONTRACT 7 — SECRET DM NOTES (NEVER reveal to players):\n'+state.dmSecrets+'\n':'';
   const snipsSection=activeSnips?'\nCONTRACT 8 — REFERENCE MATERIAL:\n'+activeSnips+'\n':'';
@@ -3290,7 +3298,7 @@ Rules:
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
-const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|none';
+const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|none';
 const _NAKED_MECH_RE=new RegExp('^('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
@@ -3525,6 +3533,41 @@ function parseMechanics(responseText, pendingMsgId=null){
       }else if(key==='consequence_resolve'){
         const cs=state.consequences.find(c=>!c.resolved&&c.text.toLowerCase().includes(val.toLowerCase()));
         if(cs){cs.resolved=true;cs.resolvedTs=new Date().toLocaleString();changes.push({text:'Consequence resolved: '+cs.text.slice(0,40)});}
+      }
+      else if(key==='location_add'){
+        const parts=val.split('|').map(s=>s.trim());
+        const lname=parts[0],ltype=(parts[1]||'waypoint').toLowerCase(),ldesc=parts[2]||'';
+        if(lname){
+          const existing=state.locations.find(l=>l.name.toLowerCase()===lname.toLowerCase());
+          if(existing){existing.status='visited';existing.lastVisited=state.worldData.time||'';}
+          else{
+            const lid='loc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+            state.locations.push({id:lid,name:lname,type:ltype,status:'visited',firstVisited:state.worldData.time||'',lastVisited:state.worldData.time||'',rep:{disposition:'Neutral',notes:''},npcs:[],investments:[],history:ldesc?[{ts:state.worldData.time||'',text:ldesc,dmOnly:false}]:[],dmNotes:'',playerNotes:'',mapPos:null});
+          }
+          changes.push({text:'Location: '+lname});
+        }
+      }
+      else if(key==='location_visit'){
+        const lv=state.locations.find(l=>l.name.toLowerCase().includes(val.toLowerCase().trim()));
+        if(lv){lv.status='visited';lv.lastVisited=state.worldData.time||'';changes.push({text:'Visited: '+lv.name});}
+      }
+      else if(key==='location_history'){
+        const lhp=val.split('|').map(s=>s.trim());
+        const lhLoc=state.locations.find(l=>l.name.toLowerCase().includes((lhp[0]||'').toLowerCase()));
+        if(lhLoc&&lhp[1]){
+          if(!Array.isArray(lhLoc.history))lhLoc.history=[];
+          lhLoc.history.push({ts:state.worldData.time||'',text:lhp[1],dmOnly:(lhp[2]||'').toLowerCase()==='true'});
+          changes.push({text:'History → '+lhLoc.name});
+        }
+      }
+      else if(key==='location_investment'){
+        const lip=val.split('|').map(s=>s.trim());
+        const liLoc=state.locations.find(l=>l.name.toLowerCase().includes((lip[0]||'').toLowerCase()));
+        if(liLoc&&lip[1]){
+          if(!Array.isArray(liLoc.investments))liLoc.investments=[];
+          liLoc.investments.push({desc:lip[1],amount:parseInt(lip[2])||0,startDay:state.worldData.time||'',notes:''});
+          changes.push({text:'Investment @ '+liLoc.name});
+        }
       }
       else if(key==='spell_add'){
         // Format: PCname|SpellName|level|castTime|range|duration|components|desc
@@ -6287,6 +6330,159 @@ function toggleInspiration(idx){
   if(pc.inspiration&&navigator.vibrate)try{navigator.vibrate([10,30,10]);}catch(e){}
   saveRefresh();
 }
+// ═══ LOCATION JOURNAL ═══
+function renderLocations(){
+  const c=document.getElementById('locations-panel-content');
+  if(!c)return;
+  const locs=state.locations||[];
+  const typeIcon={town:'🏘',city:'🏙',camp:'⛺',ruin:'🏚',dungeon:'🗝',waypoint:'📍'};
+  const repColor=(loc)=>{const d=(loc.rep?.disposition||'').toLowerCase();return d==='friendly'||d==='allied'?'var(--green)':d==='hostile'||d==='burned'?'var(--red)':'var(--text-dim)';};
+  const NODE_R=20,STEP_X=82,PAD_X=38,SVG_H=160,CY=78;
+  const svgW=Math.max(300,PAD_X*2+Math.max(0,locs.length-1)*STEP_X);
+  let svgLines='',svgNodes='';
+  locs.forEach((loc,i)=>{
+    const x=PAD_X+i*STEP_X, y=CY+(i%2===0?-22:22);
+    if(i>0){
+      const px=PAD_X+(i-1)*STEP_X, py=CY+((i-1)%2===0?-22:22);
+      svgLines+=`<line x1="${px}" y1="${py}" x2="${x}" y2="${y}" stroke="var(--surface3)" stroke-width="2" stroke-dasharray="5 3"/>`;
+    }
+    const isCur=loc.status==='current';
+    const fill=isCur?'var(--gold)':'var(--surface3)';
+    const stroke=repColor(loc);
+    const labelY=y+(y<CY?-(NODE_R+8):NODE_R+14);
+    const lbl=loc.name.length>10?loc.name.slice(0,9)+'…':loc.name;
+    svgNodes+=`<g onclick="openLocationDetail('${loc.id}')" style="cursor:pointer">
+      <circle cx="${x}" cy="${y}" r="${NODE_R}" fill="${fill}" stroke="${stroke}" stroke-width="${isCur?3:2}"/>
+      <text x="${x}" y="${y+5}" text-anchor="middle" font-size="13" fill="${isCur?'var(--bg)':'var(--text-bright)'}" pointer-events="none">${typeIcon[loc.type]||'📍'}</text>
+      <text x="${x}" y="${labelY}" text-anchor="middle" font-size="9" fill="${isCur?'var(--gold-bright)':'var(--text)'}" pointer-events="none">${esc(lbl)}</text>
+    </g>`;
+  });
+  const mapHTML=locs.length
+    ?`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px 0 6px"><svg viewBox="0 0 ${svgW} ${SVG_H}" width="${svgW}" height="${SVG_H}" style="display:block;overflow:visible">${svgLines}${svgNodes}</svg></div>`
+    :`<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:36px 20px;line-height:1.8">No locations recorded.<br>The DM logs locations automatically as you explore.</div>`;
+  const listHTML=locs.map(loc=>{
+    const isCur=loc.status==='current';
+    return`<div onclick="openLocationDetail('${loc.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);cursor:pointer;background:${isCur?'var(--surface2)':'transparent'}">
+      <span style="font-size:15px">${typeIcon[loc.type]||'📍'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:${isCur?'var(--gold-bright)':'var(--text-bright)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isCur?'<span style="font-size:7px;vertical-align:middle;margin-right:3px">●</span>':''}${esc(loc.name)}</div>
+        <div style="font-size:10px;color:var(--text-dim)">${loc.type||'waypoint'} · <span style="color:${repColor(loc)}">${loc.rep?.disposition||'Neutral'}</span>${loc.lastVisited?' · '+esc(loc.lastVisited):''}</div>
+      </div>
+      <span style="font-size:12px;color:var(--text-dim)">›</span>
+    </div>`;
+  }).join('');
+  c.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 6px">
+      <div style="font-size:11px;color:var(--text-dim)">${locs.length} location${locs.length===1?'':'s'}</div>
+      <button class="btn sm" onclick="addLocationManual()">+ Add</button>
+    </div>
+    ${mapHTML}
+    ${listHTML?`<div style="border:1px solid var(--border);border-radius:6px;margin-top:6px;overflow:hidden">${listHTML}</div>`:''}
+  `;
+}
+function openLocationDetail(id){
+  const loc=state.locations.find(l=>l.id===id);if(!loc)return;
+  const _dm=state._locDmMode!==false;
+  const typeIcon={town:'🏘',city:'🏙',camp:'⛺',ruin:'🏚',dungeon:'🗝',waypoint:'📍'};
+  const typeLabels={town:'Town',city:'City',camp:'Camp',ruin:'Ruin',dungeon:'Dungeon',waypoint:'Waypoint'};
+  const repC=(loc)=>{const d=(loc.rep?.disposition||'').toLowerCase();return d==='friendly'||d==='allied'?'var(--green)':d==='hostile'||d==='burned'?'var(--red)':'var(--text-dim)';};
+  const visHist=(loc.history||[]).filter(h=>_dm||!h.dmOnly);
+  const histHTML=visHist.length
+    ?visHist.map(h=>`<div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start"><span style="font-size:10px;color:var(--text-dim);min-width:58px;padding-top:1px">${esc(h.ts)}</span><span style="flex:1;font-size:12px;line-height:1.4">${esc(h.text)}</span>${h.dmOnly?'<span style="font-size:9px;padding:1px 4px;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);white-space:nowrap">DM</span>':''}</div>`).join('')
+    :'<div style="font-size:11px;color:var(--text-dim)">No history recorded.</div>';
+  const npcHTML=loc.npcs?.length
+    ?loc.npcs.map(n=>`<span style="display:inline-block;background:var(--surface3);border-radius:10px;padding:2px 8px;font-size:11px;margin:2px 2px 0 0">${esc(n)}</span>`).join('')
+    :'<span style="font-size:11px;color:var(--text-dim)">None recorded</span>';
+  const invHTML=_dm&&loc.investments?.length
+    ?`<details class="panel" style="margin-bottom:8px"><summary style="cursor:pointer;list-style:none;display:flex;align-items:center;font-size:11px;font-weight:600;color:var(--gold)">Investments</summary><div style="margin-top:6px">${loc.investments.map(inv=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;font-size:12px"><span style="flex:1">${esc(inv.desc)}</span><span style="color:var(--gold)">${inv.amount}gp</span><span style="font-size:10px;color:var(--text-dim)">since ${esc(inv.startDay)}</span></div>`).join('')}</div></details>`:'';
+  const titleEl=document.getElementById('loc-ov-title');
+  const bodyEl=document.getElementById('loc-ov-body');
+  if(titleEl)titleEl.innerHTML=`${typeIcon[loc.type]||'📍'} ${esc(loc.name)} <span style="font-size:10px;color:var(--text-dim);font-weight:400;margin-left:4px">${typeLabels[loc.type]||''}</span>`;
+  if(bodyEl)bodyEl.innerHTML=`
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+      <span style="font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--text-dim)">${loc.status||'visited'}</span>
+      <span style="font-size:11px;color:${repC(loc)}">${loc.rep?.disposition||'Neutral'}</span>
+      ${loc.firstVisited?`<span style="font-size:10px;color:var(--text-dim)">First: ${esc(loc.firstVisited)}</span>`:''}
+      ${loc.lastVisited?`<span style="font-size:10px;color:var(--text-dim)">Last: ${esc(loc.lastVisited)}</span>`:''}
+      <button class="btn sm" style="margin-left:auto;font-size:10px;padding:2px 8px" onclick="toggleLocDmMode('${id}')">${_dm?'👁 DM':'👤 Player'}</button>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">NPCs <button class="btn sm" style="font-size:10px;padding:2px 6px;margin-left:6px" onclick="addLocNPC('${id}')">+ Add</button></div>
+      <div>${npcHTML}</div>
+    </div>
+    <details class="panel" style="margin-bottom:8px" open>
+      <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;font-size:11px;font-weight:600;color:var(--gold)">History <button class="btn sm" style="font-size:10px;padding:2px 6px;margin-left:auto" onclick="event.stopPropagation();addLocHistory('${id}')">+ Entry</button></summary>
+      <div style="margin-top:8px">${histHTML}</div>
+    </details>
+    ${invHTML}
+    <div class="panel" style="margin-bottom:8px;padding:8px 10px">
+      <div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">Player Notes</div>
+      <textarea style="width:100%;min-height:55px;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px;box-sizing:border-box;resize:vertical" oninput="updateLocNotes('${id}','player',this.value)" placeholder="Notes visible to players...">${esc(loc.playerNotes||'')}</textarea>
+    </div>
+    ${_dm?`<div class="panel" style="margin-bottom:8px;padding:8px 10px"><div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">DM Notes</div><textarea style="width:100%;min-height:55px;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px;box-sizing:border-box;resize:vertical" oninput="updateLocNotes('${id}','dm',this.value)" placeholder="DM-only notes...">${esc(loc.dmNotes||'')}</textarea></div>`:''}
+    <div style="display:flex;gap:6px;justify-content:space-between;flex-wrap:wrap;margin-top:4px">
+      <button class="btn sm" onclick="setLocStatus('${id}','current')" style="border-color:var(--gold);color:var(--gold)">📍 Set Current</button>
+      <div style="display:flex;gap:6px">${_dm?`<button class="btn sm" onclick="addLocInvestment('${id}')">+ Invest</button>`:''}
+        <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteLocation('${id}')">Delete</button>
+      </div>
+    </div>`;
+  document.getElementById('loc-ov')?.classList.add('is-open');
+  document.getElementById('loc-ov-bd')?.classList.add('is-open');
+}
+function closeLocDetail(){
+  document.getElementById('loc-ov')?.classList.remove('is-open');
+  document.getElementById('loc-ov-bd')?.classList.remove('is-open');
+}
+function toggleLocDmMode(id){state._locDmMode=state._locDmMode===false?true:false;save();openLocationDetail(id);}
+function addLocationManual(){
+  const name=(prompt('Location name:')||'').trim();if(!name)return;
+  const typeStr=(prompt('Type (town/city/camp/ruin/dungeon/waypoint):','waypoint')||'waypoint').toLowerCase().trim();
+  const validTypes=['town','city','camp','ruin','dungeon','waypoint'];
+  const type=validTypes.includes(typeStr)?typeStr:'waypoint';
+  const id='loc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  state.locations.push({id,name,type,status:'visited',firstVisited:state.worldData.time||'',lastVisited:state.worldData.time||'',rep:{disposition:'Neutral',notes:''},npcs:[],investments:[],history:[],dmNotes:'',playerNotes:'',mapPos:null});
+  save();renderLocations();
+}
+function updateLocNotes(id,field,value){
+  const loc=state.locations.find(l=>l.id===id);if(!loc)return;
+  if(field==='player')loc.playerNotes=value;else if(field==='dm')loc.dmNotes=value;
+  save();
+}
+function addLocHistory(id){
+  const text=(prompt('History entry:')||'').trim();if(!text)return;
+  const loc=state.locations.find(l=>l.id===id);if(!loc)return;
+  if(!Array.isArray(loc.history))loc.history=[];
+  const dmOnly=state._locDmMode!==false&&!!confirm('Mark as DM-only?');
+  loc.history.push({ts:state.worldData.time||'',text,dmOnly});
+  save();openLocationDetail(id);
+}
+function addLocNPC(id){
+  const name=(prompt('NPC name:')||'').trim();if(!name)return;
+  const loc=state.locations.find(l=>l.id===id);if(!loc)return;
+  if(!Array.isArray(loc.npcs))loc.npcs=[];
+  if(!loc.npcs.includes(name))loc.npcs.push(name);
+  save();openLocationDetail(id);
+}
+function addLocInvestment(id){
+  const desc=(prompt('Investment description:')||'').trim();if(!desc)return;
+  const amt=parseInt(prompt('Amount in GP:','0')||'0')||0;
+  const loc=state.locations.find(l=>l.id===id);if(!loc)return;
+  if(!Array.isArray(loc.investments))loc.investments=[];
+  loc.investments.push({desc,amount:amt,startDay:state.worldData.time||'',notes:''});
+  save();openLocationDetail(id);
+}
+function setLocStatus(id,status){
+  const loc=state.locations.find(l=>l.id===id);if(!loc)return;
+  if(status==='current')state.locations.forEach(l=>{if(l.status==='current')l.status='visited';});
+  loc.status=status;
+  if(status==='current')loc.lastVisited=state.worldData.time||'';
+  save();openLocationDetail(id);renderLocations();
+}
+function deleteLocation(id){
+  if(!confirm('Delete this location and all its history?'))return;
+  state.locations=state.locations.filter(l=>l.id!==id);
+  closeLocDetail();save();renderLocations();
+}
 function openGritOverview(){
   const ox=state.wagon&&state.wagon.ox;if(!ox)return;
   const hp=parseInt(ox.hp)||0,max=parseInt(ox.hp_max)||15;
@@ -6927,6 +7123,9 @@ Object.assign(window, {
   _expandedMsgs, setSpellFilter,
   renderStepBar, setHpStep,
   openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview,
+  renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
+  addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
+  setLocStatus, deleteLocation,
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,

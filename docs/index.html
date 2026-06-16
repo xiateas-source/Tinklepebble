@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.BvaNqfwT.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.Iqhj4z2K.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.CY6yO8b7.css">
 </head>
 <body>
@@ -214,6 +214,7 @@
 <div id="tab-world" class="tab-section">
   <div style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border);">
     <button class="main-tab active" id="world-btn-state" onclick="showWorldTab('state')" style="font-size:11px;padding:8px 12px">World State</button>
+    <button class="main-tab" id="world-btn-locs" onclick="showWorldTab('locations')" style="font-size:11px;padding:8px 12px">📍 Locations</button>
     <button class="main-tab" id="world-btn-ops" onclick="showWorldTab('ops')" style="font-size:11px;padding:8px 12px">Operations</button>
   </div>
 
@@ -283,6 +284,11 @@
     <div style="display:flex;justify-content:flex-end;margin-bottom:4px">
       <button class="btn sm" onclick="openTreasury()" style="border-color:var(--purple);color:var(--purple-bright);font-size:11px" title="Business Profile is in Treasury">🏪 Business Profile →</button>
     </div>
+  </div>
+
+  <!-- ── LOCATIONS ── -->
+  <div id="world-locations-panel" style="display:none">
+    <div id="locations-panel-content" style="padding:8px 0"></div>
   </div>
 </div>
 
@@ -1031,6 +1037,11 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 <div id="grit-ov" class="qa-sheet" style="z-index:950">
   <div class="qa-sheet-hdr"><span id="grit-ov-title" style="font-size:13px;font-weight:600;color:var(--green)">🐂 Grit</span><button class="btn sm" onclick="closeGritOverview()">✕</button></div>
   <div class="qa-sheet-body" id="grit-ov-body"></div>
+<div id="loc-ov-bd" class="drawer-backdrop" onclick="closeLocDetail()"></div>
+<div id="loc-ov" class="qa-sheet" style="z-index:950">
+  <div class="qa-sheet-hdr"><span id="loc-ov-title" style="font-size:13px;font-weight:600;color:var(--gold-bright)">📍 Location</span><button class="btn sm" onclick="closeLocDetail()">✕</button></div>
+  <div class="qa-sheet-body" id="loc-ov-body"></div>
+</div>
 </div>
 <!-- BOTTOM DOCK -->
 <footer class="lower-dock">
