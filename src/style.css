@@ -39,8 +39,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 @media(max-width:900px){.grid-2,.grid-2-1,.grid-1-2{grid-template-columns:1fr;}.tab-section{padding:12px;padding-bottom:100px;}}
 
 /* ── PANELS ── */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;}
-.panel-title{font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--sans);}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;}
+.panel-title{font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--sans);}
 .panel.accent{border-color:var(--gold-dim);}
 .panel.danger{border-color:var(--red-dim);}
 .panel.purple{border-color:var(--purple);}
@@ -368,12 +368,12 @@ body{font-size:16px;line-height:1.68;}
 /* Panel title — Cinzel brass nameplate, not generic all-caps sans */
 .panel-title{
   font-family:var(--display);font-weight:400;
-  font-size:14px;font-weight:400;
+  font-size:13px;font-weight:400;
   text-transform:none;letter-spacing:.3px;
   color:var(--gold-bright);
   background:linear-gradient(90deg,rgba(200,120,64,.13) 0%,transparent 68%);
-  margin:-10px -12px 10px;
-  padding:9px 12px 8px;
+  margin:-8px -10px 8px;
+  padding:7px 10px 6px;
   border-radius:var(--radius) var(--radius) 0 0;
   border-bottom:1px solid var(--border-bright);
   text-shadow:0 0 20px rgba(200,120,64,.5),0 1px 2px rgba(0,0,0,.75);

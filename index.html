@@ -252,8 +252,6 @@
         <div class="panel">
           <div class="panel-title">Quest Log</div>
           <div class="form-group"><label class="field-label">Main Quest</label><input type="text" id="q_primary" placeholder="Main quest objective..." oninput="state.worldData.primaryMission=this.value;save()"></div>
-          <hr class="divider">
-          <div class="sec-label">Objectives</div>
           <div id="quest-list"></div>
           <button class="btn sm" onclick="addQuest()" style="margin-top:6px">+ Add Objective</button>
         </div>
@@ -279,9 +277,7 @@
       <div id="campaign-secrets-list" style="margin-top:6px"></div>
     </details>
     <details class="panel">
-      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">World Consequences
-        <span style="font-size:10px;color:var(--text-dim);margin-left:8px;font-weight:400">AI-logged ripple effects</span>
-      </summary>
+      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">World Consequences</summary>
       <div id="consequence-list" style="margin-top:8px"></div>
     </details>
     <div style="display:flex;justify-content:flex-end;margin-bottom:4px">
@@ -354,7 +350,7 @@
         <div class="panel-title">Travel Log</div>
         <div id="travel-log-visual" style="padding:4px 0;max-height:280px;overflow-y:auto"></div>
       </div>
-      <details class="panel green" open>
+      <details class="panel green">
         <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Town Reputation Log
           <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addTownRep()">+ Add Town</button>
         </summary>
@@ -378,9 +374,7 @@
           <button class="btn sm red" onclick="endCombat()" style="margin-left:auto">End Combat</button>
         </div>
         <div id="init-list" class="initiative-list"></div>
-        <hr class="divider">
-        <div class="sec-label">Add Combatant</div>
-        <div class="form-row" style="align-items:flex-end">
+        <div class="form-row" style="align-items:flex-end;margin-top:8px">
           <div class="fg"><label class="field-label">Name</label><input type="text" id="new-init-name" placeholder="Goblin"></div>
           <div style="width:60px"><label class="field-label">Init</label><input type="number" id="new-init-val" value="10"></div>
           <div style="width:55px"><label class="field-label">HP</label><input type="number" id="new-init-hp" value="10"></div>
@@ -398,15 +392,14 @@
         <p style="font-size:11px;color:var(--text-dim);margin-top:8px"><b style="color:var(--gold)">Short:</b> Spend Hit Dice. Some features restore.<br><b style="color:var(--purple-bright)">Long:</b> Full HP + spell slots. Auto-checkpoint.</p>
       </div>
       <div class="panel">
-        <div class="panel-title">Encounter Presets <button class="btn sm green" style="margin-left:auto" onclick="addPreset()">+ New</button></div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Format: Name:HP:AC per enemy, comma separated.</p>
+        <div class="panel-title">Encounter Presets <button class="btn sm green" style="margin-left:auto" onclick="addPreset()" title="Format: Name:HP:AC per enemy, comma-separated">+ New</button></div>
         <div id="preset-list"></div>
       </div>
     </div>
     <div class="col">
-      <div class="panel">
-        <div class="panel-title">Conditions Reference</div>
-        <div style="font-size:11px;color:var(--text-dim);line-height:1.8">
+      <details class="panel">
+        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Conditions Reference</summary>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.8;margin-top:8px">
           <b style="color:var(--red)">Blinded:</b> Auto-fail sight checks, attacks vs you have adv.<br>
           <b style="color:var(--red)">Charmed:</b> Can't attack charmer; charmer adv on social checks.<br>
           <b style="color:var(--red)">Frightened:</b> Disadv attacks/checks while source visible.<br>
@@ -418,7 +411,7 @@
           <b style="color:var(--red)">Stunned:</b> Incap, auto-fail Str/Dex, adv attacks vs.<br>
           <b style="color:var(--red)">Unconscious:</b> Incap, prone, crits from 5ft.
         </div>
-      </div>
+      </details>
     </div>
   </div>
 </div>
@@ -435,8 +428,8 @@
     <div id="sess-play-panel">
       <div class="panel">
         <div class="panel-title">Story Chronicle
-          <button class="btn sm" onclick="scrollStoryTop()" title="Scroll to top">↑ Top</button>
-          <button class="btn sm" onclick="scrollStoryBottom()" title="Scroll to bottom">↓ Bottom</button>
+          <button class="btn sm" onclick="scrollStoryTop()" title="Scroll to top" style="padding:3px 7px">↑</button>
+          <button class="btn sm" onclick="scrollStoryBottom()" title="Scroll to bottom" style="padding:3px 7px">↓</button>
           <button class="btn sm purple" style="margin-left:auto" onclick="updateStoryThread()">✨ Chapter</button>
         </div>
         <div id="story-thread-read" style="overflow-y:auto;max-height:520px;padding:16px 4px;font-size:14px;line-height:1.85;color:var(--text)"></div>
