@@ -24,7 +24,22 @@
 
 ---
 
-## Tabs (9 total)
+## Navigation Architecture (4-Tab Nav, shipped 2026-06-15)
+
+Bottom nav: **AI DM** | **📜 Sheet** | **📦 Logistics** | **⚙ Systems**
+
+- **AI DM** (`navTo('log')`) — closes drawer; shows `#tab-dm` (always-visible main canvas)
+- **Sheet** (`navTo('party')`) — opens drawer with `#tab-party`; no subnav
+- **Logistics** (`navTo('logistics')`) — opens drawer with subnav: 🌍 World / 🛒 Wagon / ⚔ Combat
+- **Systems** (`navTo('systems')`) — opens drawer with subnav: 📅 Session / 🤖 AI Tools / 🔧 Dev / ⚙ Setup
+
+Nav functions: `navTo(key)`, `openLogisticsDrawer(sub?)`, `openSystemsDrawer(sub?)`, `switchLogisticsTab(sub)`, `switchSystemsTab(sub)`, `openDrawer(tabId)`, `closeDrawer()`
+
+Nav dots: `#logistics-dot`, `#systems-dot` — gold ● shown via `flashTab(tabId)` when AI triggers state changes
+
+---
+
+## Tabs (content areas — 9 total, accessed via 4-tab nav)
 
 ### 1. Party Tab (`tab-party`)
 - `#party-cards` — Grid of `.pc-card` elements
@@ -102,15 +117,20 @@ Three sub-tabs via `showSessionMode()` / `showSessionTab()`:
 - `#rewind-list` — Last 10 snapshots
 
 ### 7. AI DM Tab (`tab-dm`)
+*Always-visible main canvas — never moves into drawer. `display:flex; flex:1` fills viewport.*
 - `#chat-tab-narrative` — Main narrative feed (📖 Narrative)
-- `#chat-tab-ooc` — Systems channel (⚙ Systems)
+- `#chat-tab-ooc` — Rules/mechanics channel (❓ Rules) — was "⚙ Systems" pre-QW-9
 - `#chat-tab-party` — OOC/party chat (🗨️ OOC with unread badge `#party-badge`)
 - `#chat-msgs` — Chat message display area
-- `#chat-input` — Message input textarea
-- `#send-btn` — Send button
+- `#chat-input` — Hidden input (sendMsg() reads it; sendMsgQuick() copies value into it)
+- `#chat-quick-input` — Visible bottom bar input; routes to narrative/OOC/party via `_activeTab`
 - `#typing-ind` — "DM is writing..." indicator
 - `#offline-banner` — Cached response indicator
 - `#dice-picker-panel` — Dice buttons (d4, d6, d8, d10, d12, d20)
+- `#ooc-msgs` — OOC/Rules message history
+- `#ooc-typing-ind` — OOC "DM is writing..." indicator
+- `#party-msgs` — Party chat message history
+- `#party-dm-btn` — "🧙 Ask DM" button (calls askDMFromParty(); in party pane top bar)
 
 ### 8. Dev Tab (`tab-dev`)
 - `#session-notes` — Developer notes (never sent to AI)
@@ -141,7 +161,18 @@ state = {
     resources: [{name, max, used, restore, desc}],
     conditions: [], slots: [{max, used}], inventory: [],
     backstory_origin, backstory_motivation, backstory_secret,
-    concentrating: "", pending: []
+    concentrating: "", pending: [],
+    // Added in char sheet rework (migrate() structural guard, no SAVE_VERSION bump):
+    hp_temp: 0,          // Temporary HP
+    exhaustion: 0,       // Exhaustion level 0–6
+    hd_used: 0,          // Hit dice spent this day (max = level)
+    personality: "",     // Personality Traits
+    ideals: "",          // Ideals
+    bonds: "",           // Bonds
+    flaws: "",           // Flaws
+    languages: [],       // Language array
+    sheetLocked: true,   // Character sheet read-only in play mode; false = edit mode
+    levelReady: false    // Set by checkLevelUp(); cleared by applyLevelUp()
   }],
 
   worldData: {
@@ -227,7 +258,9 @@ state = {
 
 ## STATE_KEYS (Firebase sync)
 
-Synced: `pcs`, `worldData`, `npcs`, `quests`, `treasuryData`, `partyInventory`, `wagon`, `combat`, `encounterPresets`, `scenes`, `activeSceneIdx`, `snippets`, `dmSecrets`, `logSummary`, `logs`, `activeEditTab`, `turnCount`, `turnsSince`, `chkCount`, `chkMode`, `chkHistory`, `rewindStack`, `wagonFilter`, `chatHistory`, `oocHistory`, `partyChat`, `plugins`, `errorLog`, `sessionNotes`, `storyChapters`, `prevSessionSummary`
+Synced: `pcs`, `worldData`, `npcs`, `quests`, `treasuryData`, `partyInventory`, `wagon`, `combat`, `encounterPresets`, `scenes`, `activeSceneIdx`, `snippets`, `dmSecrets`, `logSummary`, `logs`, `activeEditTab`, `turnCount`, `turnsSince`, `chkCount`, `chkMode`, `chkHistory`, `rewindStack`, `wagonFilter`, `chatHistory`, `oocHistory`, `partyChat`, `plugins`, `errorLog`, `sessionNotes`, `storyChapters`, `prevSessionSummary`, `aiContracts`
+
+`aiContracts` structure: `{persona:'', never:'', actions:'', continuity:'', multi:''}` — 5 AI contract textareas synced via Firebase (DR-6 ✅). Loaded into `buildPrompt()` on every send; validated for Slasher security fragment before send.
 
 Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model selections, TTS settings, player name/character, offline cache.
 
@@ -288,6 +321,24 @@ Device-local only (not synced): API keys (`tt_gk`, `tt_ok`), provider/model sele
 - `renderModuleTracker()` — Module progress & episodes
 - `renderSceneList()` — Module scenes with active marker
 - `syncWorld()` — Refresh all world tab displays
+
+### Navigation
+- `navTo(key)` — Route all navigation: `'log'`→closeDrawer, `'party'`→openDrawer(tab-party), `'logistics'`→openLogisticsDrawer(), `'systems'`→openSystemsDrawer(); sub-keys like `'world'/'wagon'/'combat'` route to logistics drawer with sub-tab
+- `openDrawer(tabId)` — Activate drawer overlay; show subnav if sub-tabs exist; hide `#tab-dm`
+- `closeDrawer()` — Hide drawer; restore `#tab-dm` as active; clear subnav; reset `currentTab='tab-dm'`
+- `openLogisticsDrawer(sub?)` — Open drawer with logistics subnav (🌍 World / 🛒 Wagon / ⚔ Combat); optional `sub` activates specific tab
+- `openSystemsDrawer(sub?)` — Open drawer with systems subnav (📅 Session / 🤖 AI Tools / 🔧 Dev / ⚙ Setup); optional `sub` activates specific tab
+- `switchLogisticsTab(sub)` — Switch between world/wagon/combat within open logistics drawer
+- `switchSystemsTab(sub)` — Switch between session/ait/dev/setup within open systems drawer
+- `flashTab(tabId)` — Show nav dot (`#logistics-dot` or `#systems-dot`) if tab is not visible; clears on `clearTabBadge(tabId)`
+- `clearTabBadge(tabId)` — Hide the corresponding nav dot
+
+### Character Sheet
+- `renderCharSheet(idx)` — Render 6-tab digital sheet for PC at index (Core/Skills/Combat/Spells/Gear/Features)
+- `setCharSheetTab(tabId)` — Switch character sheet sub-tab
+- `toggleSheetLock(idx)` — Toggle `pc.sheetLocked`; auto-locks on drawer close; unlocked = edit mode
+- `renderContracts()` — Populate AI contract textareas from `state.aiContracts{}`
+- `saveContract(key)` — Write textarea value to `state.aiContracts[key]`; call save()
 
 ### Save/Load/Migration
 - `save()` — Serialize state to localStorage + Firebase
@@ -446,6 +497,7 @@ Parsed from AI response blocks in format: `key: value`
 - `short_rest`: `pcname, ...`
 - `town_rep`: `town, status, notes`
 - `save_game` / `save`: Force immediate save
+- `spell_add`: `pcname, spell_name, level` — auto-populates spellbook from AI response
 - `sp_charge`: `pcname=ready | spent` (superpowers plugin)
 
 ---
@@ -535,16 +587,18 @@ Each is a permanent AI instruction in every system prompt:
 
 ## OOC Channels
 
-**1. ⚙ Systems Channel** (`showChatTab('ooc')`)
+**1. ❓ Rules Channel** (`showChatTab('ooc')`) — was "⚙ Systems" pre-QW-9
 - Purpose: Mechanical clarifications, rulings, admin
 - Context: Live ledger injected on every send
 - AI handles without contradicting established narrative
+- Input: unified quick bar (`#chat-quick-input`); routes here when `_activeTab==='ooc'`
 
 **2. 🗨️ OOC Chat** (`showChatTab('party')`)
 - Purpose: Out-of-character party discussion
 - Badge: `#party-badge` unread count
 - Notification: Browser notification + in-app toast when other player posts
 - Context: Live ledger injected on every send
+- Input: unified quick bar; routes here when `_activeTab==='party'`
 
 ---
 
@@ -593,10 +647,13 @@ Each is a permanent AI instruction in every system prompt:
 - `module_episode:` mechanic for AI updates
 
 ### Error Flag System
-- Categories: roll, rule, ai, story, infra, other
-- Verdict: pending/fail/resolved (cycle on tap)
+- **Categories (7):** `roll`, `rule`, `ai`, `story`, `infra`, `idea`, `other`
+  - `idea` added for feature requests / design notes that aren't bugs
+- **Verdict cycle (4-state):** `null` (pending) → `fail` → `reviewed` → `resolved` (tap to advance)
+  - `reviewed` = acknowledged but not yet acted on; distinct from resolved
 - `uiCtx` field: auto-built at flag creation time — "AI DM → Narrative", "World → World State", "World → Operations", "Session → Module", etc.
 - Flag cards display 📍 where (gold) above location/time; old flags fall back to tab name
+- `exportFlagReport('pending')` — export only unresolved flags (button not yet built — Flag #11)
 - AI audit + JSON export
 
 ### Rewind Stack

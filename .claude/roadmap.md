@@ -24,7 +24,9 @@ This fragment must survive every refactor. When contracts-to-state migration hap
 - `renderAll()` = central render; `renderChat()` = narrative chat
 - `callAI()` = retry wrapper (2x, 1.2s/2.4s, 5xx only) + OpenRouter free-model fallback
 - `summarizeAndPrune()` = rolling AI summary at 75 messages; prunes oldest 30 only on confirmed summary
-- AI contracts read from DOM via `document.getElementById()?.value` — fragile (migration to state planned)
+- AI contracts live in `state.aiContracts{persona,never,actions,continuity,multi}` — Firebase-synced, validated in `buildPrompt()` (DR-6 ✅ 2026-06-15)
+- Navigation: 4-tab bottom nav (AI DM / Sheet / Logistics / Systems) with composite drawers; `navTo()` routes all tab access
+- Body layout: `display:flex; flex-direction:column; height:100dvh` — `#tab-dm{flex:1}` fills viewport between HUD and dock
 
 ## ⚠ SHEET_FIELDS Rule (permanent)
 Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `resources`, or `concentrating` to SHEET_FIELDS in `loadState()` or `fbStartListening()`. `migrate()` owns all level-dependent fields. `getCanonicalPCs()` reads from `state.pcs` which may be demo/Level-1 data on a fresh device.
@@ -81,7 +83,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - DR-3 ✅ Setup Wizard lock (`campaignLaunched` flag, SAVE_VERSION 9)
 - DR-4 ✅ `callAI()` retry + provider fallback wrapper
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (High risk, week+)
-- DR-6 ⬜ Contracts → `state.aiContracts{}` with Firebase sync (Critical risk)
+- DR-6 ✅ Contracts → `state.aiContracts{}` with Firebase sync + Slasher security validation (2026-06-15)
 - DR-7 ✅ Rolling AI summary — `summarizeAndPrune()` at 75 messages
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
 
@@ -184,6 +186,15 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ **DR-6: Contracts → state** — `state.aiContracts{}` + Firebase sync; `buildPrompt()` validates Slasher security fragment; hard-error blocks send if missing
 - ✅ **Flag system: Idea category, filter pills, Reviewed verdict, dev notes copy** — `FLAG_CATS` + `idea` cat + 8-pill filter row + `reviewed` badge cycle + `copyDevNotes()`
 - ✅ **Patch notes v1.12** — `renderChangelog()` updated with 21-item session 3 summary
+
+### Shipped 2026-06-16 (Session 5 — Stability Pass)
+- ✅ **Layout broken** — `body` made `display:flex; flex-direction:column; height:100dvh`; `#tab-dm{flex:1}` now fills viewport correctly
+- ✅ **tab-party double-render** — Removed stale `active` class from `#tab-party` in HTML; it was rendering party content above AI DM, crushing chat
+- ✅ **tab-dm hidden** — Added `class="active"` to `#tab-dm` in HTML; `closeDrawer()` now explicitly re-activates it
+- ✅ **OOC/party inputs scrolled away** — Removed in-pane textarea inputs; unified context-aware quick bar now routes to correct channel (`_activeTab` switch)
+- ✅ **Quick bar placeholder** — Updates to "Ask a rules question…" / "Message party…" / "Command AI DM…" on tab switch
+- ✅ **Ask DM button** — Moved to party pane top bar (was buried in scrolled input row)
+- ✅ **↑ Top / ↓ Bottom missing** — Added to narrative chat pane (OOC and party already had them)
 
 ## Phase 2 — Active Sprint
 
@@ -357,24 +368,19 @@ PDF/epub import → parse → structured compendium (spells, items, features, ru
 ---
 
 ## Visual Redesign v2 — D&D Beyond / Demiplane Mobile
-*In progress — 4-tab nav is the first deliverable. Card styling and bottom sheet animations already live from QA menu redesign.*
+*✅ SHIPPED 2026-06-15/16 — 4-tab nav live, composite drawers live, body flex layout fixed.*
 
-**Key visual patterns:**
-- Cards: `border-left: 3px solid var(--accent-brass)` + `border-radius: 8px` + drop shadow
-- Header: sticky, `border-bottom: 2px solid brass`, HP vital badge left + pulse-dot AI status right
-- Bottom nav: 4 tabs replacing current 9-tab top bar
+**Delivered:**
+- 4-tab bottom nav: AI DM / 📜 Sheet / 📦 Logistics / ⚙ Systems
+- Composite drawers: Logistics (World/Wagon/Combat subnav), Systems (Session/AI Tools/Dev/Setup subnav)
+- Nav activity dots (gold ●) on Logistics/Systems when AI pushes state changes
+- Context-aware quick bar (routes to narrative/OOC/party based on active chat tab)
+- Body flex column layout (height:100dvh) giving chat area true viewport fill
+
+**Remaining visual patterns (next pass):**
 - Chat bubbles: DM dark-left / player brass-right / roll result centered copper-dashed
-- Action pills: horizontal scroll row above chat input (replaces FAB menu)
-- D20 FAB: floating copper circle, right side, above bottom nav
-- Bottom sheets: `border-top: 3px solid brass`, `border-radius: 16px 16px 0 0`, slide-up animation
-
-**Tab mapping (9 current → 4 bottom nav):**
-| Bottom Nav | Current tabs | Sub-nav preserved |
-|---|---|---|
-| ⚔ Adventure | AI DM | Narrative / Rules / Party OOC |
-| 📦 Logistics | World + Wagon + Combat | World State / Ops / Wagon / Combat |
-| 📜 Sheet | Party | PC cards + edit sheets |
-| ⚙ Systems | AI Tools + Session + Dev + Setup | existing sub-tabs |
+- Action pills: horizontal scroll row above chat input (replaces FAB menu) — deferred
+- Card border-left accent: `border-left: 3px solid var(--gold)` pass on panels
 
 ---
 
@@ -577,6 +583,29 @@ Fix: Setup steps become deep-links into World tab when `campaignLaunched`.
 
 ---
 
+## Flag Registry (Error Log Cross-Reference)
+
+All flags captured in `state.errorLog[]` via the in-app ⚑ system. Integrated here for roadmap planning.
+
+| # | Category | Description | Status |
+|---|---|---|---|
+| 1 | infra | Skill bonus wrong in Character Editor | **OPEN** — listed in Phase 2 bug fixes |
+| 2 | infra | Scroll-to-bottom button missing in narrative chat | ✅ FIXED — ↑/↓ buttons added 2026-06-16 |
+| 6 | idea | "Idea / Feature Request" as a flag category | ✅ DONE — `idea` added to FLAG_CATS 2026-06-15 |
+| 8 | idea | Filter flags by category in Dev tab | ✅ DONE — 8-pill filter row added 2026-06-15 |
+| 9 | idea | "Reviewed-Pending" verdict state | ✅ DONE — cycle: pending→fail→reviewed→resolved 2026-06-15 |
+| 10 | idea | Dev notes: in-place delete + copy section | ⚠ PARTIAL — copy done; per-note delete still open |
+| 11 | idea | Export pending-only flags | **OPEN** |
+| 12 | idea | Claude Code Plugin in Flag Log | **DEFERRED** — needs dedicated design |
+| 13 | idea | AI DM Testing Chat (sandbox session) | **DEFERRED** — needs design session |
+| 14 | infra | Grit tile / Wagon tab cleanup | ⚠ PARTIAL — Grit tile done; Wagon tab cleanup pending |
+
+**FLAG_CATS (current):** roll / rule / ai / story / infra / idea / other  
+**Verdict cycle:** `null` (pending) → `fail` → `reviewed` → `resolved`  
+**Filter:** 8 pills (All + each category) live in Dev tab
+
+---
+
 ## Dead Code / Bug Fixes Log
 - Theme editor block — REMOVED 2026-06-14
 - CSS Blocks 1 & 2 — REMOVED 2026-06-14
@@ -604,3 +633,9 @@ Fix: Setup steps become deep-links into World tab when `campaignLaunched`.
 - Familiar/Grit bottom sheets fixed (were rendering inline; now position:fixed transform-based) — FIXED 2026-06-15 (Session 2)
 - Flag system: .qa-modal z-index raised to 1600; floating ⚑ FAB added; font-size:16px on textarea; injectPanelFlags() in renderAll() — DONE 2026-06-15 (Session 2)
 - QA menu redesign: full-width bottom sheet, 2-col card grid, FAB morphs to ✕, custom icon picker (state.qaFabIcon) — DONE 2026-06-15 (Session 2)
+- Body flex layout missing: display:flex;flex-direction:column;height:100dvh added to body — FIXED 2026-06-16 (Session 5)
+- tab-party active class: stale `active` on #tab-party was double-rendering party above AI DM chat — FIXED 2026-06-16 (Session 5)
+- tab-dm hidden: missing `active` class on load + closeDrawer() not re-activating — FIXED 2026-06-16 (Session 5)
+- OOC/party inputs scroll-buried: in-pane textarea inputs removed; quick bar now context-aware — FIXED 2026-06-16 (Session 5)
+- Narrative chat missing ↑ Top / ↓ Bottom buttons (OOC and party had them) — FIXED 2026-06-16 (Session 5)
+- 4-tab nav: openDrawer() navMap/subnav, closeDrawer() button IDs, flashTab() nav dots — FIXED 2026-06-16 (Session 5)

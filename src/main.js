@@ -1216,6 +1216,7 @@ function renderQuests(){
         <button class="btn sm red icon-btn" onclick="remQ(${idx})" style="margin-left:auto">&times; Delete</button>
       </div>
       <div class="form-group" style="margin-bottom:6px"><label class="field-label">Quest Text</label><input type="text" value="${esc(q.text||'')}" style="font-size:12px" onchange="updQ(${idx},'text',this.value)"></div>
+      ${q.discovery?`<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg);border-radius:4px;border-left:3px solid var(--gold-dim)"><div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">📖 Discovery · ${esc(q.discovery.ts||'')}</div><div style="font-size:11px;color:var(--text);line-height:1.5;font-style:italic">${esc(q.discovery.text||'')}</div></div>`:''}
       ${q.notes!==undefined?`<div class="form-group" style="margin-bottom:0"><label class="field-label">Notes</label><textarea style="min-height:50px;font-size:11px" onchange="updQ(${idx},'notes',this.value)">${esc(q.notes||'')}</textarea></div>`:''}
     </div>`;
     c.appendChild(det);
@@ -2501,9 +2502,13 @@ function migrate(s){
   if(!Array.isArray(s.partyChat))s.partyChat=[];
   if(!Array.isArray(s.storyChapters))s.storyChapters=[];
   if(!s.aiContracts||typeof s.aiContracts!=='object')s.aiContracts={persona:'',never:'',actions:'',continuity:'',multi:''};
+  // Auto-append missing contract clauses (idempotent — checks for marker text before appending)
+  if(s.aiContracts.never&&!s.aiContracts.never.includes('DUNGEON SECRETS')){
+    s.aiContracts.never+='\n\n• DUNGEON SECRETS: Never reveal the contents of unexplored rooms, loot locations, enemy positions, or dungeon secrets before the players discover them through play or successful checks.\n• PLAYER AGENCY: Before resolving any scene transition, room entry, escape sequence, or significant NPC action, ask the players what they want to do first. Do not assume and narrate.\n• SKILL CHECKS: Never skip skill checks. Every uncertain action with meaningful consequences requires a declared DC, a player roll, and narration of the result. No automatic successes or assumed outcomes.';
+  }
   // Normalize NPCs, quests
   s.npcs.forEach(n=>{if(n.hp===undefined)n.hp=0;});
-  s.quests.forEach(q=>{if(!q.status){q.status=q.done?'done':'active';}if(q.hidden===undefined)q.hidden=false;});
+  s.quests.forEach(q=>{if(!q.status){q.status=q.done?'done':'active';}if(q.hidden===undefined)q.hidden=false;if(q.discovery===undefined)q.discovery=null;});
   if(s.quests.length>0){
     const seen=new Set();
     s.quests=s.quests.filter(q=>{
@@ -3405,8 +3410,23 @@ function parseMechanics(responseText){
         // Dedup: skip if a quest with near-identical text already exists
         const norm=val.split('|')[0].toLowerCase().trim().slice(0,30);
         const dup=state.quests.find(qu=>qu.text.toLowerCase().slice(0,30)===norm);
-        if(!dup){state.quests.push({text:val,status:'active',hidden:false});changes.push({text:'New quest: '+val.slice(0,30)});}
-        else{changes.push({text:'Quest exists (skipped): '+norm});}
+        if(!dup){
+          // Extract discovery paragraph: sentence(s) containing the quest name from AI prose
+          const questTitle=val.split('|')[0].trim();
+          let discovery=null;
+          const proseOnly=responseText.replace(/---MECHANICS---[\s\S]*?(?:---END---|$)/i,'').trim();
+          if(proseOnly&&questTitle){
+            const sentences=proseOnly.split(/(?<=[.!?])\s+/);
+            const titleWords=questTitle.toLowerCase().split(/\s+/).filter(w=>w.length>3);
+            const hits=sentences.filter(s=>titleWords.some(w=>s.toLowerCase().includes(w)));
+            discovery=hits.length?hits.slice(0,3).join(' ').trim().slice(0,400):proseOnly.slice(0,300).trim();
+          }
+          const questObj={text:val,status:'active',hidden:false,discovery:discovery?{text:discovery,ts:new Date().toLocaleString()}:null};
+          state.quests.push(questObj);
+          changes.push({text:'New quest: '+val.slice(0,30)});
+          // Tappable navToast — tap opens World tab → quest log
+          setTimeout(()=>navToast('⚔','New Quest',questTitle.slice(0,40),()=>{navTo('world');}),400);
+        } else{changes.push({text:'Quest exists (skipped): '+norm});}
       }
       else if(key==='npc_mood'){const pts=val.split('=');const npc=state.npcs.find(n=>n.name.toLowerCase()===pts[0]?.trim().toLowerCase());if(npc&&pts[1]){npc.disposition=pts[1].trim();changes.push({text:npc.name+' → '+npc.disposition});}}
       else if(key==='npc_add'){
@@ -3513,6 +3533,18 @@ function mechToast(changes){
     setTimeout(()=>{line.style.opacity='1';line.style.transform='translateX(0)';},70*i+30);
     setTimeout(()=>{line.style.opacity='0';line.style.transform='translateX(14px)';setTimeout(()=>line.remove(),320);},2700+70*i);
   });
+}
+// Tappable navigation toast — action-linked mechanic announcements
+function navToast(icon, label, caption, onTap, autoMs=6500){
+  let c=document.getElementById('mech-toast');
+  if(!c){c=document.createElement('div');c.id='mech-toast';c.style.cssText='position:fixed;right:12px;bottom:96px;z-index:9998;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none;max-width:80vw';document.body.appendChild(c);}
+  const chip=document.createElement('div');
+  chip.style.cssText='pointer-events:auto;cursor:pointer;font-size:12px;font-family:var(--sans);background:var(--surface2);color:var(--text-bright);border:1px solid var(--gold-dim);border-left:3px solid var(--gold);border-radius:5px;padding:8px 12px;box-shadow:0 2px 12px rgba(0,0,0,.5);opacity:0;transform:translateX(14px);transition:opacity .25s ease,transform .25s ease;max-width:220px';
+  chip.innerHTML='<div style="font-size:13px;font-weight:700;color:var(--gold-bright)">'+icon+' '+esc(label)+'</div>'+(caption?'<div style="font-size:11px;color:var(--text);margin-top:2px">'+esc(caption)+'</div>':'')+'<div style="font-size:10px;color:var(--text-dim);margin-top:4px">Tap to open →</div>';
+  chip.onclick=()=>{chip.remove();if(onTap)onTap();};
+  c.appendChild(chip);
+  setTimeout(()=>{chip.style.opacity='1';chip.style.transform='translateX(0)';},30);
+  setTimeout(()=>{chip.style.opacity='0';chip.style.transform='translateX(14px)';setTimeout(()=>chip.remove(),320);},autoMs);
 }
 // Catch gold the AI narrated in prose but forgot to log via income:/expense:/gp:
 // Surfaces a one-tap confirm chip instead of forcing a tab-switch + manual entry.
@@ -3720,7 +3752,7 @@ function showChatTab(tab){
   ['narrative','ooc','party'].forEach(t=>{
     const pane=document.getElementById('chat-pane-'+t);
     const btn=document.getElementById('chat-tab-'+t);
-    if(pane)pane.style.display=(t===tab)?'block':'none';
+    if(pane)pane.style.display=(t===tab)?(t==='narrative'?'flex':'block'):'none';
     if(btn)btn.classList.toggle('active',t===tab);
   });
   const qi=document.getElementById('chat-quick-input');
@@ -6637,4 +6669,5 @@ Object.assign(window, {
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, copyContracts,
+  navToast,
 });
