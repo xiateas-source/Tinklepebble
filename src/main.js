@@ -1177,21 +1177,30 @@ function renderNPCs(){
     return rank(a.n.status)-rank(b.n.status);
   });
   const DISPS=['Friendly','Neutral','Hostile','Ally','Enemy','Unknown'];
+  if(!sorted.length){c.innerHTML='<div style="font-size:11px;color:var(--text-dim);padding:4px 0">No NPCs recorded.</div>';return;}
   sorted.forEach(({n,i:idx})=>{
     const dead=n.status==='deceased'||n.status==='departed';
-    const d=document.createElement('div');
-    d.className='npc-row'+(n.status==='deceased'?' deceased':'');
-    d.style.cssText=`opacity:${dead?'0.55':'1'};display:block;padding:5px 0`;
     const dispCol=n.disposition==='Friendly'||n.disposition==='Ally'?'var(--green)':n.disposition==='Hostile'||n.disposition==='Enemy'?'var(--red)':'var(--text-dim)';
-    d.innerHTML=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
-      <input type="text" style="flex:1;font-size:11px;${dead?'text-decoration:line-through':''}" value="${esc(n.name)}" placeholder="Name" onchange="updNPC(${idx},'name',this.value)">
-      <select style="width:78px;font-size:10px;padding:2px 3px;border-color:${dispCol};color:${dispCol};flex-shrink:0" onchange="updNPC(${idx},'disposition',this.value)">${DISPS.map(d2=>`<option value="${d2}" ${n.disposition===d2?'selected':''}>${d2}</option>`).join('')}</select>
-      <select style="width:70px;font-size:10px;padding:2px 3px;flex-shrink:0" onchange="updNPC(${idx},'status',this.value)"><option value="active" ${!dead?'selected':''}>Active</option><option value="deceased" ${n.status==='deceased'?'selected':''}>Deceased</option><option value="departed" ${n.status==='departed'?'selected':''}>Departed</option></select>
-      <button class="btn sm red icon-btn" style="flex-shrink:0" onclick="remNPC(${idx})">&times;</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:4px">
-      <span style="font-size:9px;color:var(--text-dim);flex-shrink:0">HP</span><input type="number" style="width:40px;font-size:11px;text-align:center" value="${n.hp||0}" title="HP" onchange="updNPC(${idx},'hp',parseInt(this.value)||0)">
-      <input type="text" style="flex:1;font-size:11px" value="${esc(n.details||'')}" placeholder="Details / notes" onchange="updNPC(${idx},'details',this.value)">
+    const d=document.createElement('details');
+    d.style.cssText=`margin-bottom:5px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);opacity:${dead?'0.6':'1'}`;
+    d.innerHTML=`<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;padding:6px 8px">
+      <span style="flex:1;font-size:12px;font-weight:600;color:var(--text-bright);${dead?'text-decoration:line-through':''};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n.name)||'Unnamed'}</span>
+      <span style="font-size:10px;color:${dispCol};flex-shrink:0">${esc(n.disposition||'Neutral')}</span>
+      ${n.lastSeen?`<span style="font-size:9px;color:var(--text-dim);flex-shrink:0">${esc(n.lastSeen)}</span>`:''}
+      ${dead?`<span style="font-size:9px;color:var(--text-dim);padding:1px 4px;border:1px solid var(--border);border-radius:3px;flex-shrink:0">${n.status}</span>`:''}
+    </summary>
+    <div style="padding:6px 8px 8px;border-top:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+        <input type="text" style="flex:1;font-size:11px" value="${esc(n.name)}" placeholder="Name" onchange="updNPC(${idx},'name',this.value);renderNPCs()">
+        <select style="width:78px;font-size:10px;padding:2px 3px;border-color:${dispCol};color:${dispCol}" onchange="updNPC(${idx},'disposition',this.value);renderNPCs()">${DISPS.map(d2=>`<option value="${d2}" ${n.disposition===d2?'selected':''}>${d2}</option>`).join('')}</select>
+        <select style="width:72px;font-size:10px;padding:2px 3px" onchange="updNPC(${idx},'status',this.value);renderNPCs()"><option value="active" ${n.status==='active'?'selected':''}>Active</option><option value="deceased" ${n.status==='deceased'?'selected':''}>Deceased</option><option value="departed" ${n.status==='departed'?'selected':''}>Departed</option></select>
+        <button class="btn sm red icon-btn" onclick="remNPC(${idx})">&times;</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+        <span style="font-size:9px;color:var(--text-dim)">HP</span><input type="number" style="width:42px;font-size:11px;text-align:center" value="${n.hp||0}" onchange="updNPC(${idx},'hp',parseInt(this.value)||0)">
+        <input type="text" style="flex:1;font-size:11px" value="${esc(n.lastSeen||'')}" placeholder="Last seen location" onchange="updNPC(${idx},'lastSeen',this.value)">
+      </div>
+      <input type="text" style="width:100%;font-size:11px;box-sizing:border-box" value="${esc(n.details||'')}" placeholder="Details / notes" onchange="updNPC(${idx},'details',this.value)">
     </div>`;
     c.appendChild(d);
   });
@@ -6591,6 +6600,29 @@ function closeDrawer(){
 let _logisticsTab='world';
 let _systemsTab='session';
 
+function openSheetPicker(){
+  if(!state.pcs||!state.pcs.length)return;
+  if(state.pcs.length===1){openPCOverview(0);return;}
+  // Quick picker: small bottom sheet with PC name buttons
+  const existing=document.getElementById('sheet-picker-sheet');
+  if(existing){existing.remove();document.getElementById('sheet-picker-bd')?.remove();}
+  const bd=document.createElement('div');
+  bd.id='sheet-picker-bd';bd.className='drawer-backdrop';bd.style.cssText='z-index:940';
+  bd.onclick=()=>{bd.remove();sh.remove();};
+  const sh=document.createElement('div');
+  sh.id='sheet-picker-sheet';sh.className='qa-sheet';sh.style.cssText='z-index:945;max-height:280px';
+  sh.innerHTML=`<div class="qa-sheet-hdr"><span style="font-size:13px;font-weight:600;color:var(--gold-bright)">📔 Character Sheet</span><button class="btn sm" onclick="document.getElementById('sheet-picker-sheet').remove();document.getElementById('sheet-picker-bd').remove()">✕</button></div>
+    <div class="qa-sheet-body" style="padding:12px">
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Select a character</div>
+      ${state.pcs.map((pc,i)=>`<button class="btn full" style="margin-bottom:8px;text-align:left;padding:10px 14px;justify-content:flex-start;gap:10px" onclick="document.getElementById('sheet-picker-sheet').remove();document.getElementById('sheet-picker-bd').remove();openPCOverview(${i})">
+        <span style="font-size:18px">${pc.color||'⬤'}</span>
+        <div><div style="font-size:13px;font-weight:600">${esc(pc.name)}</div><div style="font-size:10px;color:var(--text-dim)">${esc(pc.class||'')} ${pc.level?'L'+pc.level:''} · HP ${pc.hp||0}/${pc.hp_max||0}</div></div>
+      </button>`).join('')}
+    </div>`;
+  document.body.append(bd,sh);
+  requestAnimationFrame(()=>{sh.classList.add('is-open');bd.classList.add('is-open');});
+  _setNavActive('party');
+}
 function navTo(key){
   if(key==='log'){closeDrawer();return;}
   if(key==='party'){openDrawer('tab-party');return;}
@@ -7126,6 +7158,7 @@ Object.assign(window, {
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
   setLocStatus, deleteLocation,
+  openSheetPicker,
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,

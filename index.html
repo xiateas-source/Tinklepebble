@@ -220,21 +220,21 @@
 
   <!-- ── WORLD STATE ── -->
   <div id="world-state-panel">
-    <div class="panel accent" style="margin-bottom:12px">
-      <div class="panel-title">🎬 Active Scene
-        <select id="w_scene_threat" onchange="sw('scene_threat',this.value)" style="margin-left:auto;width:120px;font-size:11px;padding:3px 6px;border-color:var(--gold)">
+    <details class="panel accent" style="margin-bottom:12px">
+      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">🎬 Active Scene
+        <select id="w_scene_threat" onchange="sw('scene_threat',this.value);event.stopPropagation()" style="margin-left:auto;width:120px;font-size:11px;padding:3px 6px;border-color:var(--gold)" onclick="event.stopPropagation()">
           <option value="">— Tone —</option>
           <option value="Calm">🟢 Calm</option>
           <option value="Tense">🟡 Tense</option>
           <option value="Combat">🔴 Combat</option>
           <option value="Critical">💀 Critical</option>
         </select>
-      </div>
-      <div class="form-row">
+      </summary>
+      <div class="form-row" style="margin-top:8px">
         <div class="fg"><label class="field-label">Scene Title</label><input type="text" id="w_scene_title" placeholder="e.g. Ambush at Duskwall Bridge" oninput="sw('scene_title',this.value)"></div>
         <div class="fg"><label class="field-label">Active Conditions</label><input type="text" id="w_scene_cond" placeholder="Darkness, Difficult terrain, Poisoned..." oninput="sw('scene_cond',this.value)"></div>
       </div>
-    </div>
+    </details>
     <div class="grid-2">
       <div class="col">
         <details class="panel">
@@ -296,9 +296,9 @@
 <div id="tab-wagon" class="tab-section">
   <div class="grid-2">
     <div class="col">
-      <div class="panel accent">
-        <div class="panel-title">Grit — The Ox</div>
-        <div class="form-row">
+      <details class="panel accent">
+        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Grit — The Ox</summary>
+        <div class="form-row" style="margin-top:8px">
           <div class="fg"><label class="field-label">Name</label><input type="text" id="ox-name" oninput="state.wagon.ox.name=this.value;save()"></div>
           <div style="width:65px"><label class="field-label">HP</label><input type="number" id="ox-hp" oninput="state.wagon.ox.hp=parseInt(this.value)||0;save();renderCapacity()"></div>
           <div style="width:70px"><label class="field-label">Max HP</label><input type="number" id="ox-hp-max" oninput="state.wagon.ox.hp_max=parseInt(this.value)||15;save()"></div>
@@ -318,7 +318,7 @@
           <div class="form-group"><label class="field-label">Bond — Slasher</label><input type="text" id="ox-bond-slasher" style="font-size:11px" oninput="state.wagon.ox.bonds.slasher=this.value;save()"></div>
           <div class="form-group"><label class="field-label">Experiment Log Reference</label><input type="text" id="ox-exp-log" style="font-size:11px" oninput="state.wagon.ox.experimentLog=this.value;save()" placeholder="Vol. 3 (current)..."></div>
         </details>
-      </div>
+      </details>
       <div class="panel">
         <div class="panel-title">Cargo Capacity</div>
         <div class="cap-bar-wrap"><div class="cap-bar-fill" id="cap-fill" style="width:0%;background:var(--green)"></div><div class="cap-bar-label" id="cap-lbl">0 / 1,080 lb</div></div>
@@ -332,7 +332,7 @@
     </div>
     <div class="col">
       <div class="panel">
-        <div class="panel-title">General Cargo <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('cargo','supply')">+ Add</button></div>
+        <div class="panel-title">Cargo &amp; Inventory <button class="btn sm green" style="margin-left:auto" onclick="addWagonItem('cargo','supply')">+ Add</button></div>
         <div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap">
           <button class="btn sm" id="wf-all" onclick="setWFilter('all')">All</button>
           <button class="btn sm" id="wf-supply" onclick="setWFilter('supply')">Supply</button>
@@ -347,10 +347,6 @@
         <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Pebble's Hoard <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addWagonItem('hoard','hoard')">+ Add</button></summary>
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px;margin-top:6px">"Mine." — Pebble</p>
         <div id="wagon-hoard"></div>
-      </details>
-      <details class="panel">
-        <summary class="panel-title">Party Shared Inventory <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addPartyItem()">+ Add</button></summary>
-        <div id="party-inv" style="margin-top:8px"></div>
       </details>
       <div class="panel">
         <div class="panel-title">Travel Log</div>
@@ -370,9 +366,9 @@
 <div id="tab-combat" class="tab-section">
   <div class="grid-2">
     <div class="col">
-      <div class="panel">
-        <div class="panel-title">Initiative Tracker</div>
-        <div class="round-counter">
+      <details class="panel" id="combat-tracker-det">
+        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Initiative Tracker</summary>
+        <div class="round-counter" style="margin-top:8px">
           <span style="font-size:11px;color:var(--text-dim);text-transform:uppercase">Round</span>
           <span class="round-num" id="round-num">1</span>
           <button class="btn sm" onclick="prevTurn()">◀</button>
@@ -388,19 +384,19 @@
           <button class="btn green" onclick="addCombatant()">Add</button>
         </div>
         <button class="btn full" onclick="addPartyToCombat()" style="margin-top:6px">+ Add All PCs to Initiative</button>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Rests</div>
-        <div class="btn-row">
+      </details>
+      <details class="panel">
+        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Rests</summary>
+        <div class="btn-row" style="margin-top:8px">
           <button class="btn gold" onclick="doShortRest()">⛺ Short Rest</button>
           <button class="btn purple" onclick="doLongRest()">🌙 Long Rest</button>
         </div>
         <p style="font-size:11px;color:var(--text-dim);margin-top:8px"><b style="color:var(--gold)">Short:</b> Spend Hit Dice. Some features restore.<br><b style="color:var(--purple-bright)">Long:</b> Full HP + spell slots. Auto-checkpoint.</p>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Encounter Presets <button class="btn sm green" style="margin-left:auto" onclick="addPreset()" title="Format: Name:HP:AC per enemy, comma-separated">+ New</button></div>
-        <div id="preset-list"></div>
-      </div>
+      </details>
+      <details class="panel">
+        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Encounter Presets <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addPreset()" title="Format: Name:HP:AC per enemy, comma-separated">+ New</button></summary>
+        <div id="preset-list" style="margin-top:6px"></div>
+      </details>
     </div>
     <div class="col">
       <details class="panel">
@@ -1067,7 +1063,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
       <span class="nav-btn-icon">🤖</span>
       <span class="nav-btn-lbl">AI DM</span>
     </button>
-    <button class="nav-btn" id="nav-btn-party" onclick="navTo('party')">
+    <button class="nav-btn" id="nav-btn-party" onclick="openSheetPicker()">
       <span class="nav-btn-icon">📔</span>
       <span class="nav-btn-lbl">Sheet</span>
     </button>
