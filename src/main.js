@@ -3752,7 +3752,7 @@ function showChatTab(tab){
   ['narrative','ooc','party'].forEach(t=>{
     const pane=document.getElementById('chat-pane-'+t);
     const btn=document.getElementById('chat-tab-'+t);
-    if(pane)pane.style.display=(t===tab)?(t==='narrative'?'flex':'block'):'none';
+    if(pane)pane.style.display=(t===tab)?'flex':'none';
     if(btn)btn.classList.toggle('active',t===tab);
   });
   const qi=document.getElementById('chat-quick-input');
@@ -6213,8 +6213,11 @@ function sendMsgQuick(){
   const val=qi.value.trim();
   if(!val)return;
   qi.value='';
-  if(_activeTab==='ooc'){sendOOCMsg(val);return;}
-  if(_activeTab==='party'){sendPartyMsg(val);return;}
+  // Derive channel from DOM (active tab button) — belt-and-suspenders against _activeTab drift
+  const activeBtn=document.querySelector('.chat-tab-btn.active');
+  const channel=activeBtn?.id?.replace('chat-tab-','')||_activeTab;
+  if(channel==='ooc'){sendOOCMsg(val);return;}
+  if(channel==='party'){sendPartyMsg(val);return;}
   const ci=document.getElementById('chat-input');
   if(ci){ci.value=val;sendMsg();}
 }
