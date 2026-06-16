@@ -35,30 +35,34 @@ Every UI decision is made for a phone screen in portrait mode, one-handed, mid-s
 
 ---
 
-## CURRENT STATE — CONFIRMED WORKING (v1.6.1)
+## CURRENT STATE — CONFIRMED WORKING (v1.6.2)
 
 - Firebase real-time sync — both phones live ✓
 - Core play loop: player types → AI responds → mechanics parse → state syncs ✓
 - Vite build (src/main.js + src/style.css → docs/) — deployed via GitHub Pages ✓
 - Mechanics block parser — 35+ handlers, flexible, catches variants ✓
 - Canonical character sheets — Slasher L3, Tinkle L3, Pebble L3 (SAVE_VERSION 11) ✓
-- AI contracts — rolls, concentration, death saves, action economy enforced ✓
+- AI contracts — in `state.aiContracts{}`, Firebase-synced, Slasher security validated on every send ✓ (DR-6)
+- 4-tab bottom nav — AI DM / Sheet / Logistics / Systems; composite drawers with subnav ✓
+- Full-screen chat layout — body flex column, tab-dm fills viewport; no content bleed ✓
+- Context-aware quick bar — routes to narrative/OOC/party based on active chat tab ✓
+- 6-tab character sheet — Core/Skills/Combat/Spells/Gear/Features; lock/unlock; auto-lock on close ✓
 - HUD mosaic — PC tiles (HP/AC/conditions), Grit tile, Familiar (Pip) tile ✓
 - Quick Actions — bottom-sheet redesign, 2-col card grid, morphing FAB, custom icon ✓
 - Dice roller — character select, roll type, modifier, ±delta row, d4–d% grid ✓
-- Flag system — floating ⚑ FAB, z-index fixed, panel auto-injection, iOS zoom fixed ✓
+- Flag system — floating ⚑ FAB, 7 categories (incl. Idea), filter pills, 4-state verdict cycle ✓
 - spell_add mechanic — auto-populates spellbook from AI response ✓
 - Town Rep in Wagon tab ✓
 - Session tab — During/Between/Module sub-tabs ✓
 - Story Chronicle — chapter system, 📖 read mode ✓
 - Module tracker — Hoard of the Dragon Queen, 8 episodes ✓
-- OOC + Party chat — live ledger injected on every send ✓
+- OOC + Party chat — live ledger injected on every send; routes through unified quick bar ✓
 - Level-up wizard — Fighter/Rogue/Bard L2–L5 ✓
 - Quest + NPC dedup ✓
 - NPC list — sort active/departed/deceased, disposition color ✓
 - Quest list — sort active/failed/done, active count header ✓
 - Setup Wizard with campaignLaunched lock ✓
-- Scroll controls across all chat surfaces ✓
+- Scroll controls across all chat surfaces (↑ Top / ↓ Bottom on all 3 chat panes) ✓
 - Rolling AI summary (summarizeAndPrune at 75 messages) ✓
 - AbortController + 25s timeout + free-model fallback in callAI() ✓
 
@@ -66,26 +70,32 @@ Every UI decision is made for a phone screen in portrait mode, one-handed, mid-s
 
 ## OPEN ISSUES (Active)
 
-1. AI compliance gap — AI narrates gold/NPC/item events but doesn't always emit mechanic lines. detectUnloggedGold() chip exists; NPC and item equivalents needed.
-2. Contracts in DOM — AI contracts are DOM textareas, not in state. Can't Firebase-sync. DR-6 fixes this.
-3. Income/Expense log silent — consequence of #1
-4. NPC log silent — consequence of #1
+1. AI compliance gap — AI narrates gold/NPC/item events but doesn't always emit mechanic lines. `detectUnloggedGold()` chip exists; NPC and item equivalents needed.
+2. Income/Expense log silent — consequence of #1
+3. NPC log silent — consequence of #1
+4. Skill bonus wrong — Character Editor displays incorrect skill bonus values (Flag #1)
+5. Dev notes per-note delete — copy works; individual note delete still missing (Flag #10 partial)
+6. Export pending-only flags — button not yet built (Flag #11)
 
-**UI/UX:**
-- AI contracts still in DOM textareas — can't Firebase-sync, fragile to refactors (DR-6 fixes this)
+**Architecture gaps:**
 - PDF/epub ingestion — not yet built; needed for book-driven play
 - Map system — not yet built; needed for spatial combat and exploration (Drop 4+)
+- World Consequence Engine — `state.consequences[]` planned; not yet built
+- Reputation Ripple — adjacent-town burn propagation; not yet built
 
 ---
 
 ## ROAD TO DROP 4
 
 **Phase 2 — Road to Drop 4:**
-1. Polish pass — QA menu card sizing, flag panel coverage, HUD tile tap targets
-2. AI compliance chips — detectUnloggedNPC() + detectUnloggedItem() (mirror detectUnloggedGold pattern)
-3. DR-6: Contracts → state.aiContracts{} with Firebase sync
-4. Visual Redesign v2 — 4-tab bottom nav (Adventure / Logistics / Sheet / Systems)
-5. Drop 4: Zone combat map (Option A — abstract zones first, image maps in Drop 5)
+1. ✅ Polish pass — QA menu, flag system, dice roller, spell descriptions, context strip
+2. ✅ Character Sheet Rework — 6-tab digital sheet with lock/unlock
+3. ✅ DR-6: Contracts → state.aiContracts{} with Firebase sync + Slasher security validation
+4. ✅ Visual Redesign v2 — 4-tab bottom nav + composite drawers + stable layout
+5. World Consequence Engine — `state.consequences[]`, AI mechanics, injected into buildPrompt()
+6. Reputation Ripple + Con Scorecard + Previously-On + Contract Health Check
+7. AI compliance chips — detectUnloggedNPC() + detectUnloggedItem()
+8. Drop 4: Zone combat map (Option A — abstract zones first, image maps in Drop 5)
 
 **PDF/epub Book Ingestion (parallel track):**
 - Browser FileReader API + PDF.js (client-side text extraction)
