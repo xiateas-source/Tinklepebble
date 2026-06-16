@@ -1199,7 +1199,7 @@ function renderQuests(){
   const active=state.quests.filter(q=>q.status==='active').length;
   if(active){const h=document.createElement('div');h.style.cssText='font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px';h.textContent='⬤ '+active+' Active';c.appendChild(h);}
   sorted.forEach(({q,i:idx})=>{
-    const det=document.createElement('details');det.style.cssText='margin-bottom:6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2)';
+    const det=document.createElement('details');det.id='quest-det-'+idx;det.style.cssText='margin-bottom:6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2)';
     const qst=q.status||'active';
     const qcol=qst==='done'?'var(--text-dim)':qst==='failed'?'var(--red)':'var(--green)';
     const hiddenBadge=q.hidden?`<span style="font-size:9px;background:rgba(139,58,42,.2);color:var(--gold);border:1px solid var(--gold-dim);border-radius:3px;padding:1px 5px;margin-left:6px;flex-shrink:0">DM Only</span>`:'';
@@ -3480,9 +3480,16 @@ function parseMechanics(responseText){
           }
           const questObj={text:val,status:'active',hidden:false,discovery:discovery?{text:discovery,ts:new Date().toLocaleString()}:null,chatIdx:state.chatHistory.length};
           state.quests.push(questObj);
+          const newQuestIdx=state.quests.length-1;
           changes.push({text:'New quest: '+val.slice(0,30)});
-          // Tappable navToast — tap opens World tab → quest log
-          setTimeout(()=>navToast('⚔','New Quest',questTitle.slice(0,40),()=>{navTo('world');}),400);
+          // Tappable navToast — tap opens World tab → scrolls to & opens the specific quest
+          setTimeout(()=>navToast('⚔','New Quest',questTitle.slice(0,40),()=>{
+            navTo('world');
+            setTimeout(()=>{
+              const det=document.getElementById('quest-det-'+newQuestIdx);
+              if(det){det.open=true;det.scrollIntoView({behavior:'smooth',block:'center'});det.style.outline='2px solid var(--gold)';det.style.borderRadius='6px';setTimeout(()=>{det.style.outline='';},2200);}
+            },350);
+          }),400);
         } else{changes.push({text:'Quest exists (skipped): '+norm});}
       }
       else if(key==='npc_mood'){const pts=val.split('=');const npc=state.npcs.find(n=>n.name.toLowerCase()===pts[0]?.trim().toLowerCase());if(npc&&pts[1]){npc.disposition=pts[1].trim();changes.push({text:npc.name+' → '+npc.disposition});}}
