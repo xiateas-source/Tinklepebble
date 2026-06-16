@@ -817,9 +817,18 @@ function verifyContracts(){
     [!!(c.multi||'').trim(),'⑤ Multi-Player contract non-empty'],
   ];
   const fails=checks.filter(([ok])=>!ok);
-  if(!fails.length){toast('✅ All contracts verified — '+checks.length+' checks passed','green',4000);return;}
-  const msg='⚠ Contract issues:\n'+fails.map(([,lbl])=>'• '+lbl).join('\n');
-  alert(msg);
+  if(fails.length){alert('⚠ Contract issues:\n'+fails.map(([,lbl])=>'• '+lbl).join('\n'));return;}
+  const parts=['[CONTRACT REFRESH — re-read your operating contracts before responding]'];
+  if(persona.trim())parts.push('## DM PERSONA\n'+persona.trim());
+  if(never.trim())parts.push('## WHAT YOU NEVER DO\n'+never.trim());
+  if((c.actions||'').trim())parts.push('## ACTIONS & MECHANICS\n'+c.actions.trim());
+  if((c.continuity||'').trim())parts.push('## CONTINUITY\n'+c.continuity.trim());
+  if((c.multi||'').trim())parts.push('## MULTI-PLAYER\n'+c.multi.trim());
+  _ctxInject=parts.join('\n\n');
+  const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  state.chatHistory.push({role:'system',content:'🔍 Contracts verified ('+checks.length+' checks passed) — refresh queued for next message.',ts,realTs:ts});
+  save();renderChat();showTab('tab-dm');
+  toast('🔍 Contracts verified + refresh queued — send your next message to apply','green',4000);
 }
 
 // ═══ ESC HTML ═══
