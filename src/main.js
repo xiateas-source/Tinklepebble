@@ -717,7 +717,7 @@ function renderAll(){
   renderLogs();renderChat();renderTurnCtr();
   renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();renderStoryRead();
   renderWagon();renderIncome();renderPartyInv();syncWorld();renderTreasuryTotal();
-  renderCampaignSecrets();renderTownRep();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
+  renderCampaignSecrets();renderTownRep();renderConsequences();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
   renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();renderSetupLock();renderContracts();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
@@ -1237,6 +1237,32 @@ function viewQuestInChat(chatIdx){
 }
 function updQ(i,k,v){state.quests[i][k]=v;saveRefresh();}
 function remQ(i){state.quests.splice(i,1);saveRefresh();}
+
+// ═══ CONSEQUENCES ═══
+const CSQ_COLORS={background:'var(--text-dim)',faction:'var(--gold)',personal:'var(--green)',escalation:'var(--red)'};
+function renderConsequences(){
+  const c=document.getElementById('consequence-list');if(!c)return;c.innerHTML='';
+  const all=state.consequences||[];
+  const active=all.filter(cs=>!cs.resolved);
+  const resolved=all.filter(cs=>cs.resolved);
+  if(!active.length&&!resolved.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No consequences yet. The AI logs ripple effects here.</div>';return;}
+  const render=(cs,idx)=>{
+    const col=CSQ_COLORS[cs.type]||'var(--text-dim)';
+    const d=document.createElement('div');
+    d.style.cssText=`margin-bottom:6px;padding:8px 10px;border:1px solid var(--border);border-left:3px solid ${col};border-radius:6px;background:var(--surface2);${cs.resolved?'opacity:.5':''}`;
+    d.innerHTML=`<div style="display:flex;align-items:flex-start;gap:6px"><div style="flex:1"><div style="font-size:10px;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${cs.type||'background'}${cs.location?' · '+esc(cs.location):''}</div><div style="font-size:12px;color:${cs.resolved?'var(--text-dim)':'var(--text)'};${cs.resolved?'text-decoration:line-through':''}">${esc(cs.text)}</div>${cs.ts?`<div style="font-size:9px;color:var(--text-dim);margin-top:3px">${esc(cs.ts)}</div>`:''}</div>${!cs.resolved?`<button onclick="resolveConsequence('${cs.id}')" style="flex-shrink:0;font-size:10px;padding:3px 8px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer" title="Mark resolved">✓</button>`:''}</div>`;
+    c.appendChild(d);
+  };
+  active.forEach((cs,i)=>render(cs,i));
+  if(resolved.length){
+    const sep=document.createElement('div');sep.style.cssText='font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin:10px 0 6px';sep.textContent='Resolved';c.appendChild(sep);
+    resolved.forEach((cs,i)=>render(cs,active.length+i));
+  }
+}
+function resolveConsequence(id){
+  const cs=state.consequences.find(c=>c.id===id);
+  if(cs){cs.resolved=true;cs.resolvedTs=new Date().toLocaleString();save();renderConsequences();toast('✓ Consequence resolved.');}
+}
 
 // ═══ PARTY INVENTORY ═══
 function renderPartyInv(){
@@ -2025,6 +2051,12 @@ function genLedger(){
     extra+='\n━━━ PARTY RELATIONSHIPS ━━━\n';
     pubRels.forEach(r=>{const fromPc=state.pcs.find(p=>p.id===r.from);extra+=`  ${fromPc?.name||r.from} → ${r.to} [${r.disposition}]: ${r.dynamic}\n`;});
   }
+  const activeConseq=(state.consequences||[]).filter(cs=>!cs.resolved);
+  if(activeConseq.length){
+    extra+='\n━━━ WORLD CONSEQUENCES (active) ━━━\n';
+    activeConseq.forEach(cs=>{extra+=`  [${cs.type||'background'}] ${cs.text}${cs.location?' ('+cs.location+')':''}\n`;});
+    extra+='These are unresolved story ripples. Reference and escalate them as appropriate.\n';
+  }
   if(extra)l=l.replace('=== END LEDGER ===',extra+'=== END LEDGER ===');
   if(out){out.value=l;const chars=l.length;const toks=Math.round(chars/4);document.getElementById('ledger-chars').innerText=chars+' chars';document.getElementById('ledger-tokens').innerText='~'+toks+' tokens'+(toks>7000?' ⚠ Large — consider Combat format':'');}
   return l;
@@ -2507,6 +2539,7 @@ function migrate(s){
   if(!Array.isArray(s.partyInventory))s.partyInventory=[];
   if(!Array.isArray(s.npcs))s.npcs=[];
   if(!Array.isArray(s.quests))s.quests=[];
+  if(!Array.isArray(s.consequences))s.consequences=[];
   if(!Array.isArray(s.relationships))s.relationships=[];
   if(!Array.isArray(s.quickActions))s.quickActions=[];
   if(!Array.isArray(s.errorLog))s.errorLog=[];
@@ -3230,7 +3263,9 @@ Rules:
 - Never wrap the mechanics block in markdown code fences, bold, or any formatting
 - If nothing changed still write: ---MECHANICS---\nnone\n---END---
 - Always update time: when meaningful time has passed (travel, rests, combat)
-- short_rest: [name] restores Bardic Inspiration, Stone's Endurance uses, and other short-rest features`;
+- short_rest: [name] restores Bardic Inspiration, Stone's Endurance uses, and other short-rest features
+- consequence_add: [text] | [type] — log a world consequence. Types: background (ambient, slow-burn), faction (NPC group action), personal (affects a PC directly), escalation (urgent, building threat). Use for burned-town fallout, faction retaliation, PC reputation shifts, and ticking threats. Example: consequence_add: Thornhaven guards are now searching for a "tortoiseshell alchemist" | faction
+- consequence_resolve: [partial text] — mark a consequence resolved when the party has addressed it. Example: consequence_resolve: guards searching`;
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
   const secretsSection=state.dmSecrets?'\nCONTRACT 7 — SECRET DM NOTES (NEVER reveal to players):\n'+state.dmSecrets+'\n':'';
   const snipsSection=activeSnips?'\nCONTRACT 8 — REFERENCE MATERIAL:\n'+activeSnips+'\n':'';
@@ -3448,6 +3483,18 @@ function parseMechanics(responseText){
         if(existing){existing.disposition=pts[1]||existing.disposition;existing.lastSeen=state.worldData.location;changes.push({text:'NPC updated: '+nname});}
         else{state.npcs.push({name:nname,disposition:pts[1]||'Neutral',details:pts[2]||'',status:'active',hp:0,lastSeen:state.worldData.location});changes.push({text:'New NPC: '+nname});}
       }
+      else if(key==='consequence_add'){
+        const sep=val.indexOf('|');
+        const text=sep>-1?val.slice(0,sep).trim():val.trim();
+        const type=(sep>-1?val.slice(sep+1).trim():'background').toLowerCase();
+        if(text){
+          state.consequences.push({id:'csq_'+Date.now(),text,type,resolved:false,ts:state.worldData.time,location:state.worldData.location});
+          changes.push({text:'Consequence ['+type+']: '+text.slice(0,40)});
+        }
+      }else if(key==='consequence_resolve'){
+        const cs=state.consequences.find(c=>!c.resolved&&c.text.toLowerCase().includes(val.toLowerCase()));
+        if(cs){cs.resolved=true;cs.resolvedTs=new Date().toLocaleString();changes.push({text:'Consequence resolved: '+cs.text.slice(0,40)});}
+      }
       else if(key==='spell_add'){
         // Format: PCname|SpellName|level|castTime|range|duration|components|desc
         const parts=(val).split('|').map(s=>s.trim());
@@ -3499,7 +3546,7 @@ function parseMechanics(responseText){
   if(changes.length>0){
     save();
     renderCharTabs();renderCards();renderStatusMini();renderSheets();
-    renderNPCs();renderQuests();renderCombat();renderWagon();syncWorld();renderModuleTracker();
+    renderNPCs();renderQuests();renderConsequences();renderCombat();renderWagon();syncWorld();renderModuleTracker();
     mechToast(changes);
   }
   return changes.length>0?changes:null;
@@ -3517,6 +3564,7 @@ function mechToast(changes){
     if(/Income|Expense|gp|GP→/i.test(t))tabsToFlash.add('tab-world');
     if(/Added.*wagon|Added.*cargo|Added.*hoard/i.test(t))tabsToFlash.add('tab-wagon');
     if(/Location →/i.test(t))tabsToFlash.add('tab-world');
+    if(/Consequence/i.test(t))tabsToFlash.add('tab-world');
     if(/Chapter added|Chapter updated/i.test(t))tabsToFlash.add('tab-session');
   });
   tabsToFlash.forEach(flashTab);
@@ -6687,7 +6735,7 @@ Object.assign(window, {
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
   remSecret, remSlotLvl, remSnip, remSpell, remTown, remWItem,
-  renderAll, renderSheets, renderCards, rollAttack, rollStatCheck, rollInitiative,
+  renderAll, renderSheets, renderCards, resolveConsequence, rollAttack, rollStatCheck, rollInitiative,
   saveRefresh, saveSetupPC, saveTts, saveBP,
   scrollStoryBottom, scrollStoryTop, selectFlagCat,
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
