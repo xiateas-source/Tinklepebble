@@ -3747,6 +3747,11 @@ function requestNotifPermission(){
     toast(p==='granted'?'✓ Notifications enabled — you\'ll be alerted when the other player sends a message.':'Notification permission '+p+'.');
   });
 }
+function scrollActiveChatBottom(){
+  const ids={narrative:'chat-msgs',ooc:'ooc-msgs',party:'party-msgs'};
+  const el=document.getElementById(ids[_activeTab]||'chat-msgs');
+  if(el)el.scrollTop=el.scrollHeight;
+}
 function showChatTab(tab){
   _activeTab=tab;
   ['narrative','ooc','party'].forEach(t=>{
@@ -3761,10 +3766,7 @@ function showChatTab(tab){
     else if(tab==='party')qi.placeholder='Message party…';
     else qi.placeholder='Command AI DM…';
   }
-  if(tab==='narrative'){
-    const cm=document.getElementById('chat-msgs');
-    if(cm)requestAnimationFrame(()=>{cm.scrollTop=cm.scrollHeight;});
-  }
+  requestAnimationFrame(()=>scrollActiveChatBottom());
 }
 function renderOOC(){
   const c=document.getElementById('ooc-msgs');if(!c)return;c.innerHTML='';
@@ -6672,5 +6674,5 @@ Object.assign(window, {
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, copyContracts,
-  navToast,
+  navToast, scrollActiveChatBottom,
 });

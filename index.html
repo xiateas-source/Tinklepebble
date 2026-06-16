@@ -908,7 +908,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div class="panel-title" style="padding:8px 14px;">
           🧙 AI DM
           <span id="provider-status-mini" style="margin-left:6px;font-size:10px;color:var(--text-dim)">No key set</span>
-          <button class="btn sm" onclick="document.getElementById('chat-msgs').scrollTop=document.getElementById('chat-msgs').scrollHeight" title="Scroll to bottom" style="margin-left:auto;padding:3px 8px;min-height:28px">↓</button>
+          <button class="btn sm" onclick="scrollActiveChatBottom()" title="Scroll to bottom" style="margin-left:auto;padding:3px 8px;min-height:28px">↓</button>
           <button class="btn sm" onclick="populateVoices();openModal('tts-modal')" style="padding:3px 7px;min-height:28px">🔊</button>
           <button class="btn sm" onclick="openModal('provider-modal')" style="padding:3px 7px;min-height:28px">⚙</button>
           <button class="btn sm red" onclick="clearChat()" style="padding:3px 8px;min-height:28px">✕</button>
@@ -919,10 +919,6 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party');clearPartyBadge()">🗨️ OOC <span id="party-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
         </div>
         <div id="chat-pane-narrative">
-          <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
-            <button class="btn sm" onclick="document.getElementById('chat-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
-            <button class="btn sm" onclick="const e=document.getElementById('chat-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
-          </div>
         <div id="chat-msgs" class="chat-msgs-wrap"></div>
         <div class="typing-ind" id="typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
         <div id="ai-retry-status" style="display:none;font-size:11px;color:var(--text-dim);padding:4px 0 2px;font-family:var(--mono)"></div>
@@ -951,23 +947,15 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         </div>
         </div><!-- end chat-pane-narrative -->
         <div id="chat-pane-ooc" style="display:none">
-          <div style="display:flex;justify-content:flex-end;gap:5px;margin-bottom:4px">
-            <button class="btn sm" onclick="document.getElementById('ooc-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
-            <button class="btn sm" onclick="const e=document.getElementById('ooc-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
-          </div>
-          <div id="ooc-msgs" class="chat-msgs-wrap" style="min-height:300px;max-height:440px"></div>
+          <div id="ooc-msgs" class="chat-msgs-wrap"></div>
           <div class="typing-ind" id="ooc-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
         </div><!-- end chat-pane-ooc -->
         <div id="chat-pane-party" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:4px">
-            <button class="btn sm" onclick="requestNotifPermission()" title="Get phone notifications when the other player messages" style="font-size:10px">🔔 Notify me</button>
-            <div style="display:flex;gap:5px">
-              <button class="btn sm purple" id="party-dm-btn" onclick="askDMFromParty()" title="Consult the DM">🧙 Ask DM</button>
-              <button class="btn sm" onclick="document.getElementById('party-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
-              <button class="btn sm" onclick="const e=document.getElementById('party-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
-            </div>
+          <div style="display:flex;gap:6px;padding:0 0 6px;flex-shrink:0;align-items:center">
+            <button class="btn sm" onclick="requestNotifPermission()" title="Get phone notifications when the other player messages" style="font-size:13px;padding:5px 9px">🔔</button>
+            <button class="btn sm purple" id="party-dm-btn" onclick="askDMFromParty()" title="Consult the DM">🧙 Ask DM</button>
           </div>
-          <div id="party-msgs" class="chat-msgs-wrap" style="min-height:300px;max-height:440px"></div>
+          <div id="party-msgs" class="chat-msgs-wrap"></div>
           <div class="typing-ind" id="party-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
         </div><!-- end chat-pane-party -->
       </div>
