@@ -6683,4 +6683,7 @@ Object.assign(window, {
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, copyContracts,
   navToast, scrollActiveChatBottom, scrollActiveChatTop,
+  save, saveEditedNote,
 });
+// Live getter so inline onclick/oninput can access `state` even after Firebase reassigns it
+Object.defineProperty(window,'state',{get(){return state;},configurable:true});
