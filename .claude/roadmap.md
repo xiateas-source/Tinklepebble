@@ -386,6 +386,11 @@ AC · Initiative · Speed · HP (current / max / temp HP badge) · Hit Dice pips
 
 *Design intent: one screen that answers "where are we, who have we met, what's happening, what do we need to do." Spatial and temporal — a living campaign journal, not a collection of edit forms.*
 
+**Clutter strategy:** Build new features first, remove old ones after. Each new feature absorbs and replaces the scattered panels it unifies:
+- Location Journal absorbs: Active Scene, Environment, Town Reputation Log, NPC list, Travel Log → those panels get removed once Location Journal is live
+- Chronicle View (with map) absorbs: everything above + World Consequences, Quest Log → World drawer collapses to just the Chronicle View + Operations (DM meta)
+- Result: the Logistics drawer goes from 3 dense sub-tabs (World/Wagon/Combat) to 2 clean ones (Chronicle/Cargo)
+
 **Architecture insight:** The Chronicle View = Location Journal (data) + Area Map (renderer). Same data, two presentations:
 - Now (Drop 4–5 era): vertical timeline / node list, each location is a collapsible file
 - Drop 5+: abstract node map with pins → real image map with pins in Drop 7
