@@ -240,8 +240,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 9. **"Clean without clutter" pass** — panel header audit, icon-only buttons, tighter padding (ACTIVE — Session 9)
 10. **AI Contract Health Check** — "Verify Contracts" button in Systems › AI Tools
 11. **Reputation Ripple** — burned town ripples to adjacent towns; Insight DC warnings in ledger
-12. **Con Scorecard** — `state.slasherOI=0`, income log parsed by snake_oil/real_stock, town survival stats
-13. **Drop 4: Zone Combat Map**
+12. ⏸ **Con Scorecard** — `state.slasherOI=0`, income log parsed by snake_oil/real_stock, town survival stats — *paused, needs design discussion*
+13. ⏸ **Drop 4: Zone Combat Map** — *paused, details to work out next session*
 
 ---
 
