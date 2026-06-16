@@ -2079,6 +2079,13 @@ function genLedger(){
   if((state.worldData.townReputation||[]).length){
     extra+='\n━━━ TOWN REPUTATION ━━━\n';
     state.worldData.townReputation.forEach(t=>{extra+=`  ${t.town}: ${t.status.toUpperCase()}${t.notes?' — '+t.notes:''}\n`;});
+    const burned=(state.worldData.townReputation||[]).filter(t=>t.status==='burned'||t.status==='fled');
+    if(burned.length){
+      extra+='\n━━━ REPUTATION RIPPLE ━━━\n';
+      extra+='Word of what happened in the following location(s) has spread along trade routes:\n';
+      burned.forEach(t=>{extra+=`  • ${t.town} (${t.status.toUpperCase()})${t.notes?' — '+t.notes:''}\n`;});
+      extra+='When the party interacts with travelers, merchants, or guards who plausibly travel these routes, call for an Insight DC 12 to sense if the NPC recognizes them or has heard rumors. Do not make this automatic — it should arise naturally from context.\n';
+    }
   }
   const bp=state.worldData.businessProfile;
   if(bp&&(bp.realStock||bp.snakeOil)){
@@ -3476,9 +3483,18 @@ function parseMechanics(responseText, pendingMsgId=null){
         const rep={town:pts[0]||'Unknown',status:pts[1]||'neutral',notes:pts.slice(2).join(','),ts:state.worldData.time};
         if(!Array.isArray(state.worldData.townReputation))state.worldData.townReputation=[];
         const existing=state.worldData.townReputation.findIndex(t=>t.town.toLowerCase()===rep.town.toLowerCase());
+        const prevStatus=existing>-1?state.worldData.townReputation[existing].status:'';
         if(existing>-1)state.worldData.townReputation[existing]=rep;
         else state.worldData.townReputation.push(rep);
         changes.push({text:'Town rep: '+rep.town+' → '+rep.status});
+        // Reputation Ripple — auto-consequence when a town turns burned/fled
+        const nowBurned=(rep.status==='burned'||rep.status==='fled');
+        const wasBurned=(prevStatus==='burned'||prevStatus==='fled');
+        if(nowBurned&&!wasBurned){
+          if(!Array.isArray(state.consequences))state.consequences=[];
+          state.consequences.push({id:'csq_rep_'+Date.now(),text:'Word of the incident in '+rep.town+' is spreading along trade routes. Merchants, guards, and travelers in nearby settlements may have heard.'+(rep.notes?' ('+rep.notes+')':''),type:'faction',resolved:false,ts:state.worldData.time,location:state.worldData.location,_ripple:true});
+          changes.push({text:'⚠ Reputation ripple: '+rep.town+' → spreading'});
+        }
       }
       else if(key==='income'){
         const pts=val.split(',').map(p=>p.trim());const amt=parseFloat(pts[0])||0;const cat=pts[1]||'misc';const desc=pts.slice(2).join(',');
