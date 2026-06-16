@@ -220,21 +220,6 @@
 
   <!-- ── WORLD STATE ── -->
   <div id="world-state-panel">
-    <details class="panel accent" style="margin-bottom:12px">
-      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">🎬 Active Scene
-        <select id="w_scene_threat" onchange="sw('scene_threat',this.value);event.stopPropagation()" style="margin-left:auto;width:120px;font-size:11px;padding:3px 6px;border-color:var(--gold)" onclick="event.stopPropagation()">
-          <option value="">— Tone —</option>
-          <option value="Calm">🟢 Calm</option>
-          <option value="Tense">🟡 Tense</option>
-          <option value="Combat">🔴 Combat</option>
-          <option value="Critical">💀 Critical</option>
-        </select>
-      </summary>
-      <div class="form-row" style="margin-top:8px">
-        <div class="fg"><label class="field-label">Scene Title</label><input type="text" id="w_scene_title" placeholder="e.g. Ambush at Duskwall Bridge" oninput="sw('scene_title',this.value)"></div>
-        <div class="fg"><label class="field-label">Active Conditions</label><input type="text" id="w_scene_cond" placeholder="Darkness, Difficult terrain, Poisoned..." oninput="sw('scene_cond',this.value)"></div>
-      </div>
-    </details>
     <div class="grid-2">
       <div class="col">
         <details class="panel">
@@ -349,10 +334,6 @@
         <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px;margin-top:6px">"Mine." — Pebble</p>
         <div id="wagon-hoard"></div>
       </details>
-      <div class="panel">
-        <div class="panel-title">Travel Log</div>
-        <div id="travel-log-visual" style="padding:4px 0;max-height:280px;overflow-y:auto"></div>
-      </div>
       <details class="panel green">
         <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Town Reputation Log
           <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addTownRep()">+ Add Town</button>
@@ -437,34 +418,16 @@
         </div>
         <div id="story-thread-read" style="overflow-y:auto;max-height:520px;padding:16px 4px;font-size:14px;line-height:1.85;color:var(--text)"></div>
       </div>
-      <div class="panel">
-        <div class="panel-title">Quick Log Entry</div>
-        <div class="form-group"><label class="field-label">Type</label><select id="log-type"><option value="dm">DM Narration</option><option value="player">Player Action</option><option value="combat">Combat</option><option value="loot">Loot</option><option value="rest">Rest</option></select></div>
-        <div class="form-group"><label class="field-label">Entry</label><textarea id="log-input" style="min-height:70px"></textarea></div>
-        <button class="btn gold full" onclick="addLogEntry()">Add to Log</button>
-      </div>
     </div>
     <div id="sess-prep-panel" style="display:none">
       <div class="panel">
         <div class="panel-title">Chronicle Archive</div>
         <div id="session-archive-list" style="max-height:380px;overflow-y:auto"></div>
       </div>
-      <details class="panel" style="padding:0">
-        <summary style="padding:12px 16px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-bright);display:flex;align-items:center;gap:8px;list-style:none">
-          Session Log
-          <button class="btn sm red" style="margin-left:auto" onclick="event.preventDefault();clearLog()">Clear</button>
-        </summary>
-        <div style="padding:0 16px 12px">
-          <div id="log-entries" style="max-height:300px;overflow-y:auto;overflow-x:hidden;word-break:break-word;"></div>
-        </div>
-      </details>
       <div class="panel">
         <div class="panel-title">Session Summary</div>
         <div class="form-group"><textarea id="log-summary" style="min-height:300px;font-size:13px;line-height:1.7" oninput="state.logSummary=this.value;save()" placeholder="Session summary..."></textarea></div>
-        <div class="btn-row">
-          <button class="btn full" onclick="buildRawSummary()">↑ Build Raw</button>
-          <button class="btn purple full" onclick="buildAISummary()">✨ AI Narrative</button>
-        </div>
+        <button class="btn purple full" onclick="buildAISummary()">✨ AI Narrative</button>
       </div>
     </div>
   </div>

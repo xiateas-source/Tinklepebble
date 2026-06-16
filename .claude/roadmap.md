@@ -229,7 +229,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - **Compact + data-dense** — condense heavy data into small, scannable tiles and chips
 
 ### Phase 2 Sequence
-1. ✅ **Bug fixes** — 4 of 5 done; skill bonus wrong still open
+1. ✅ **Bug fixes** — 5 of 5 done; skill bonus fixed (proficiency inference from skills text + expertise detection, Session 10)
 2. ✅ **Polish pass** — core items done; flag system quick wins still pending
 3. ✅ **Character Sheet Rework** — 6-tab sheet (Core/Skills/Combat/Spells/Gear/Features), lock/unlock, auto-lock on close (subagent, 2026-06-15)
 4. ✅ **DR-6: Contracts → state** — `state.aiContracts{}` + Firebase sync + Slasher security validation in buildPrompt() (2026-06-15)
@@ -238,12 +238,26 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 7. ✅ **"Previously On…"** — QA action `qa_24`, `previouslyOn()` AI call, 2-sentence recap (shipped by Session 8)
 8. ✅ **Flag system quick wins** — FLAG_CATS, 8 filter pills, verdict cycle (null→fail→reviewed→resolved), `exportFlagReport(mode)` pending-only (shipped by Session 8)
 9. ✅ **"Clean without clutter" pass** — Conditions Reference collapsible, redundant labels removed, panel padding tightened, Town Rep collapsed by default, Story Chronicle icon buttons (Session 9, 2026-06-16)
-10. **UX Pass 2: Bury the dead weight** — Combat drawer collapse, Active Scene collapse, Grit compress, Party Shared Inventory remove, NPC list redesign (see Pending UX Decisions below)
-11. **AI Contract Health Check** — "Verify Contracts" button in Systems › AI Tools
-12. **Reputation Ripple** — burned town ripples to adjacent towns; Insight DC warnings in ledger
+10. ✅ **UX Pass 2: Bury the dead weight** — Combat drawer collapse, Active Scene collapse, Grit compress, Party Shared Inventory remove, NPC read-mode cards (Session 9, 2026-06-16)
+11. ✅ **AI Contract Health Check** — "Verify Contracts" button in Systems › AI Tools (Session 9)
+12. ✅ **Reputation Ripple** — burned town auto-consequence + REPUTATION RIPPLE section in genLedger() (Session 9)
 13. ⏸ **Con Scorecard** — `state.slasherOI=0`, income log parsed by snake_oil/real_stock, town survival stats — *paused, needs design discussion*
-14. **Location Journal v1** — `state.locations[]`, list UI in World → Locations sub-tab, AI mechanics, Player/DM toggle (see full spec below)
+14. ✅ **Location Journal v1** — `state.locations[]`, Node Map SVG, location detail bottom sheet, AI mechanics, Player/DM toggle, 🌱 Seed from campaign data (Session 9+10)
 15. ⏸ **Drop 4: Zone Combat Map** — *paused, integrating with Chronicle View / Location Journal architecture first*
+
+### Phase 3 — Session 10 (2026-06-16)
+- ✅ **Session Archive** — `state.sessionArchive[]`, append-based (50-entry cap), `prevSessionSummary` = last 3 batches joined, Chronicle Archive panel in Between Sessions
+- ✅ **Location seed** — 🌱 Seed button parses travelLog + townReputation + NPC.lastSeen → draft preview → confirm to populate locations[]
+- ✅ **roll_request mechanic** — `roll_request: Skill|DC|PCname` in parseMechanics() + persistent gold banner above chat input + AI mechanic docs
+- ✅ **Narrative NPC audit** — attribution-verb scanner (said/replied/smiled etc), ≥2 occurrences filter, purple confirm chip
+- ✅ **Skill proficiency fix** — infer profs from `pc.skills` text when `skillProfs[]` empty; Expertise detection → double-prof + visual ring dot
+
+### Cleanup Pass — Session 10 (2026-06-16)
+- ✅ **Active Scene panel removed** — context strip + Location Journal current-location replaces it; state fields preserved
+- ✅ **Travel Log panel removed** from Wagon — Location Journal node map is the replacement
+- ✅ **Session Log panel removed** from Between Sessions — Chronicle Archive replaces it
+- ✅ **Quick Log Entry panel removed** from During Session — nobody uses manual log during fast play
+- ✅ **"Build Raw" button removed** — AI Narrative generates from sessionArchive; raw build was unused
 
 ---
 
@@ -291,7 +305,7 @@ User feedback: "Sheet feels like it should actually open up the character sheets
 - [x] **Scroll freeze** ✅ — `requestAnimationFrame` scroll-to-bottom on `showChatTab('narrative')`. (2026-06-15 Session 3)
 - [x] **Flag icon blocked** ✅ — `#qa-fab-wrap` z-index raised 203→750, bottom 155px→160px. (2026-06-15 Session 3)
 - [x] **QA FAB stuck open** ✅ — `closeQAMenu()` called at top of `showTab()` + `openDrawer()`. (2026-06-15 Session 3)
-- [ ] **Skill bonus wrong** — Character Editor displays incorrect skill bonus values. (Dev note #1) *Still open.*
+- [x] **Skill bonus wrong** ✅ — Skills tab infers proficiencies from `pc.skills` text when `skillProfs[]` is empty; Expertise detection applies double-prof. (Session 10)
 - [x] **tab-ait-chk orphaned** ✅ — wired into Systems drawer as ⏪ Tools (Session 8)
 - [x] **Flag save button untappable** ✅ — Flag modal z-index raised to 1600; `padding-bottom:max(20px,env(safe-area-inset-bottom))` added to modal. (2026-06-15 Session 3)
 
@@ -842,7 +856,7 @@ All flags captured in `state.errorLog[]` via the in-app ⚑ system. Integrated h
 **FLAG_CATS (current):** roll / rule / ai / story / infra / idea / other  
 **Verdict cycle:** `null` (pending) → `fail` → `reviewed` → `resolved`  
 **Filter:** 8 pills (All + each category) live in Dev tab  
-**Still open:** Flag 3 (foraged items), Flag 6 (dev notes delete), Flag 13 (treasure audit), skill bonus wrong
+**Still open:** Flag 3 (foraged items — fixed Session 9, item_add target inference), Flag 6 (dev notes delete), Flag 13 (treasure audit)
 
 **⚠ Numbering conflict:** Polish Pass uses its own local #2 ("Scroll-to-bottom button in narrative chat") which is DIFFERENT from Flag Registry #2 ("Quest tap → expand", ✅ done). Do not confuse them. Polish Pass numbers are local; Flag Registry numbers are the canonical IDs in state.errorLog[].
 
