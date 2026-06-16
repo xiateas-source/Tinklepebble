@@ -681,6 +681,7 @@ function showSessionMode(mode){
     prepPanel.style.cssText='display:block';
     if(playBtn)playBtn.classList.remove('active');
     if(prepBtn)prepBtn.classList.add('active');
+    renderSessionArchive();
   }
 }
 function showSessionTab(which){
@@ -1895,6 +1896,28 @@ async function buildAISummary(){
 }
 
 
+// ═══ SESSION ARCHIVE ═══
+function renderSessionArchive(){
+  const el=document.getElementById('session-archive-list');if(!el)return;
+  const archive=Array.isArray(state.sessionArchive)?state.sessionArchive:[];
+  if(!archive.length){el.innerHTML='<p style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px 0">No archived summaries yet — they appear here as chat gets pruned during play.</p>';return;}
+  el.innerHTML='';
+  [...archive].reverse().forEach((entry,i)=>{
+    const d=new Date(entry.ts);
+    const dateStr=d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+    const timeStr=d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+    const gameLabel=entry.gameTs?'<span style="color:var(--gold);font-size:10px;margin-left:6px">⏱ '+esc(entry.gameTs)+'</span>':'';
+    const row=document.createElement('details');
+    row.style.cssText='border-bottom:1px solid var(--border);padding:6px 0';
+    row.innerHTML=`<summary style="font-size:11px;color:var(--text-dim);cursor:pointer;list-style:none;display:flex;align-items:center;gap:4px">`+
+      `<span style="flex:1">${dateStr} ${timeStr}${gameLabel}</span>`+
+      `<span style="font-size:10px;background:var(--surface3);border-radius:8px;padding:1px 6px">${entry.msgCount||'?'} msgs</span>`+
+      `</summary>`+
+      `<p style="font-size:12px;line-height:1.7;color:var(--text);margin:8px 0 4px;padding:0 4px">${esc(entry.summary)}</p>`;
+    el.appendChild(row);
+  });
+}
+
 // ═══ MODULE TRACKER ═══
 function renderModuleTracker(){
   const list=document.getElementById('module-episode-list');if(!list)return;
@@ -2601,6 +2624,7 @@ function migrate(s){
   if(!Array.isArray(s.partyChat))s.partyChat=[];
   if(!Array.isArray(s.storyChapters))s.storyChapters=[];
   if(!Array.isArray(s.locations))s.locations=[];
+  if(!Array.isArray(s.sessionArchive))s.sessionArchive=[];
   if(!s.aiContracts||typeof s.aiContracts!=='object')s.aiContracts={persona:'',never:'',actions:'',continuity:'',multi:''};
   // Auto-append missing contract clauses (idempotent — checks for marker text before appending)
   if(s.aiContracts.never&&!s.aiContracts.never.includes('DUNGEON SECRETS')){
@@ -2902,7 +2926,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -3910,7 +3934,12 @@ async function summarizeAndPrune(){
   try{
     const summary=await callAI(msgs,sysProm,350);
     if(!summary||summary.trim().length<30)return; // reject empty/malformed summaries
-    state.prevSessionSummary=(state.prevSessionSummary?state.prevSessionSummary+'\n\n':'')+summary.trim();
+    const entry={ts:Date.now(),gameTs:state.worldData?.time||'',summary:summary.trim(),msgCount:toSummarize.length};
+    if(!Array.isArray(state.sessionArchive))state.sessionArchive=[];
+    state.sessionArchive.push(entry);
+    if(state.sessionArchive.length>50)state.sessionArchive.splice(0,state.sessionArchive.length-50);
+    // prevSessionSummary = last 3 archive entries joined (AI context window)
+    state.prevSessionSummary=state.sessionArchive.slice(-3).map(e=>e.summary).join('\n\n');
     state.chatHistory.splice(0,30);
     save();
     toast('✓ Chat archived — oldest 30 messages summarized.');
@@ -7207,6 +7236,7 @@ Object.assign(window, {
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
   setLocStatus, deleteLocation,
   openSheetPicker,
+  renderSessionArchive,
   verifyContracts, clearFlagNote,
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
