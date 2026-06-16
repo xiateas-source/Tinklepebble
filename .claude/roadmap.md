@@ -234,13 +234,13 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 3. ✅ **Character Sheet Rework** — 6-tab sheet (Core/Skills/Combat/Spells/Gear/Features), lock/unlock, auto-lock on close (subagent, 2026-06-15)
 4. ✅ **DR-6: Contracts → state** — `state.aiContracts{}` + Firebase sync + Slasher security validation in buildPrompt() (2026-06-15)
 5. ✅ **Visual Redesign v2: 4-tab nav** — AI DM / Sheet / Logistics / Systems with composite drawers + subnav + nav dots (2026-06-15)
-6. **World Consequence Engine** — `state.consequences[]`, AI mechanics `consequence_add/resolve`, injected into buildPrompt()
-7. **Reputation Ripple** — burned town ripples to adjacent towns; Insight DC warnings in ledger
-8. **Con Scorecard** — `state.slasherOI=0`, income log parsed by snake_oil/real_stock, town survival stats
-9. **"Previously On…"** — new QA action; 2-sentence recap from last 8 messages
+6. ✅ **World Consequence Engine** — `state.consequences[]`, AI mechanics `consequence_add/resolve`, injected into buildPrompt() (shipped by Session 8)
+7. ✅ **"Previously On…"** — QA action `qa_24`, `previouslyOn()` AI call, 2-sentence recap (shipped by Session 8)
+8. ✅ **Flag system quick wins** — FLAG_CATS, 8 filter pills, verdict cycle (null→fail→reviewed→resolved), `exportFlagReport(mode)` pending-only (shipped by Session 8)
+9. **"Clean without clutter" pass** — panel header audit, icon-only buttons, tighter padding (ACTIVE — Session 9)
 10. **AI Contract Health Check** — "Verify Contracts" button in Systems › AI Tools
-11. **"Clean without clutter" pass** — panel header audit, icon-only buttons, tighter padding
-12. **Flag system quick wins** — categories, filter, Reviewed-Pending, export pending-only
+11. **Reputation Ripple** — burned town ripples to adjacent towns; Insight DC warnings in ledger
+12. **Con Scorecard** — `state.slasherOI=0`, income log parsed by snake_oil/real_stock, town survival stats
 13. **Drop 4: Zone Combat Map**
 
 ---
