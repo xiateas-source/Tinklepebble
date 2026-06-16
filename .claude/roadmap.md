@@ -249,6 +249,16 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 ## Pending UX Decisions (Session 9 — answer before building UX Pass 2)
 
+### ✅ RESOLVED — Location Journal Visual Direction
+**Decision (2026-06-16):** C — Node Map. Abstract circles connected by lines, tap node → location file slides up. Current location highlighted. Lines = routes taken. Node color = rep (green/neutral/red). Zero rework when Drop 5 adds image renderer — same nodes become map pins.
+
+### ✅ RESOLVED — 📔 Sheet button
+**Decision (2026-06-16):** 
+- 📔 Sheet nav button → opens character sheet directly (6-tab: Core/Skills/Combat/Spells/Gear/Features)
+- HUD PC tile → quick HP/conditions view only (not the full sheet)
+- Icon changed from 📜 → 📔 (notebook)
+- Implementation: next session UX Pass 2
+
 ### Combat Drawer
 User feedback (2026-06-16): Initiative Tracker never used, always in the way when navigating to quests/loot/module. Rests never used from Combat tab. Encounter Presets never used.
 **Decision needed:** Collapse all three panels by default, or hide Combat drawer entirely unless `state.combat.active === true`? Hiding is cleaner but riskier. Collapsing is safer.
@@ -386,6 +396,8 @@ AC · Initiative · Speed · HP (current / max / temp HP badge) · Hit Dice pips
 
 *Design intent: one screen that answers "where are we, who have we met, what's happening, what do we need to do." Spatial and temporal — a living campaign journal, not a collection of edit forms.*
 
+**Visual direction (decided 2026-06-16):** C — Node Map. Abstract circles connected by lines. Current location = highlighted gold node. Lines = routes taken. Node color = rep. Tap node → location file slides up from bottom. Becomes real image map in Drop 5 with zero rework — same node positions become map pins over the uploaded image.
+
 **Clutter strategy:** Build new features first, remove old ones after. Each new feature absorbs and replaces the scattered panels it unifies:
 - Location Journal absorbs: Active Scene, Environment, Town Reputation Log, NPC list, Travel Log → those panels get removed once Location Journal is live
 - Chronicle View (with map) absorbs: everything above + World Consequences, Quest Log → World drawer collapses to just the Chronicle View + Operations (DM meta)
@@ -434,6 +446,71 @@ state.locations = [{
 - Drop 6: Player/DM toggle becomes real Firebase-synced split
 
 *Codename: **The Chronicle View**. Prerequisites: Location Journal v1 data model (buildable now). Map renderer: Drop 5.*
+
+### Replace, Don't Hide — Full Removal Plan (Session 9 analysis)
+
+Each item below gets removed only when its replacement is live.
+
+**Remove immediately (UX Pass 2 — no replacement needed):**
+- Party Shared Inventory from Wagon tab → rename General Cargo to "Cargo & Inventory"
+- Long Rest / Short Rest buttons from player cards → QA actions handle this
+- Quick Log Entry panel (Session tab) → nobody types log entries during fast play
+
+**Remove when Session Archive ships:**
+- Session Log manual entries panel → replaced by auto-appended sessionArchive[] batches
+- "Build Raw" button → replaced by auto-build from sessionArchive
+- Between Sessions sub-tab → repurposed as "Session Archive" (scrollable archive batches + Story Chronicle)
+
+**Remove when Location Journal v1 ships:**
+- Active Scene panel → Location Journal "current location" + context strip covers this
+- Environment panel (time/weather/illum) → data stays in state, AI maintains via mechanics
+- NPC list → replaced by location-pinned NPC cards in Location Journal
+- Town Reputation list (Wagon) → moves into Location Journal per-location rep field
+- Travel Log (Wagon) → becomes the route line between Location Journal nodes
+- Secret DM Notes global textarea → replaced by per-location dmNotes in Location Journal
+
+**Remove when Location Journal + Operations cleaned:**
+- Campaign Premise textarea → move entirely to Setup (set once, locked, never edited during play)
+- Plot & Lore panel → World Consequences IS the plot thread tracker; timers → location history entries
+- Operations tab → becomes only: Campaign Secrets + "→ Setup" deep-link
+
+**Remove when Drop 4 ships:**
+- Combat tab entirely → Zone Map replaces it
+- Encounter Presets panel (zone system supersedes)
+
+**Move (not remove):**
+- Reference Snippets: Session > Module → Systems > AI Tools (directly affects AI prompt, belongs there)
+
+**Dead code — remove now:**
+- `state.relationships[]` — defined, never rendered, no mechanics, wasting Firebase sync bandwidth
+- `renderNPCList()` reference in features.md — function doesn't exist; only `renderNPCs()`
+
+**End state after all replacements:**
+```
+AI DM        — narrative chat, always-visible
+📔 Sheet     — character sheet directly (Core/Skills/Combat/Spells/Gear/Features)
+📦 Logistics
+  ├── Chronicle  — Location Journal (node map → image map), quests, consequences
+  └── Cargo      — wagon cargo & inventory, holding cells, Pebble's Hoard
+⚙ Systems
+  ├── Session    — Story Chronicle + Module tracker
+  ├── AI Tools   — Contracts, Ledger, Snippets, QA Editor
+  ├── Dev        — Flags
+  └── Setup      — one-time wizard, locked after launch
+```
+Combat tab → gone (Drop 4 puts combat inside Chronicle as a combat map layer)
+
+### Session Archive — Architecture (decided Session 9)
+*Current issue: `summarizeAndPrune()` overwrites `state.prevSessionSummary` on each prune. Previous batches are lost.*
+
+**Fix:**
+- Add `state.sessionArchive: []` to migrate() structural guard (no SAVE_VERSION bump)
+- Each entry: `{ ts, gameTs, summary, msgCount }`
+- `summarizeAndPrune()` → appends to sessionArchive, sets `prevSessionSummary = sessionArchive.at(-1).summary`
+- `buildPrompt()` unchanged — still reads prevSessionSummary for AI context
+- Between Sessions tab → renamed "Session Archive": scrollable list of archived batches + Story Chronicle chapters
+- "AI Narrative" button stays (generates narrative from most recent batch)
+- "Previously On…" QA: draws from prevSessionSummary when chatHistory is thin (after pruning)
 
 ### Blackburner (Business Profile → Treasury)
 *Collecting more game data before designing. Intent: business profile moves to Treasury, reworked as at-a-glance banking/portfolio view — income log as transaction history, stock as portfolio view. Codename: Blackburner.*
@@ -765,7 +842,9 @@ All flags captured in `state.errorLog[]` via the in-app ⚑ system. Integrated h
 **FLAG_CATS (current):** roll / rule / ai / story / infra / idea / other  
 **Verdict cycle:** `null` (pending) → `fail` → `reviewed` → `resolved`  
 **Filter:** 8 pills (All + each category) live in Dev tab  
-**Still open:** Flag 3 (foraged items), Flag 6 (dev notes delete), Flag 8/19 (testing chat), Flag 13 (treasure audit), Flag 18 (navToast broken), skill bonus wrong
+**Still open:** Flag 3 (foraged items), Flag 6 (dev notes delete), Flag 13 (treasure audit), skill bonus wrong
+
+**⚠ Numbering conflict:** Polish Pass uses its own local #2 ("Scroll-to-bottom button in narrative chat") which is DIFFERENT from Flag Registry #2 ("Quest tap → expand", ✅ done). Do not confuse them. Polish Pass numbers are local; Flag Registry numbers are the canonical IDs in state.errorLog[].
 
 ---
 
