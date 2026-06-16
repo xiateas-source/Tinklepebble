@@ -237,11 +237,42 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 6. ✅ **World Consequence Engine** — `state.consequences[]`, AI mechanics `consequence_add/resolve`, injected into buildPrompt() (shipped by Session 8)
 7. ✅ **"Previously On…"** — QA action `qa_24`, `previouslyOn()` AI call, 2-sentence recap (shipped by Session 8)
 8. ✅ **Flag system quick wins** — FLAG_CATS, 8 filter pills, verdict cycle (null→fail→reviewed→resolved), `exportFlagReport(mode)` pending-only (shipped by Session 8)
-9. **"Clean without clutter" pass** — panel header audit, icon-only buttons, tighter padding (ACTIVE — Session 9)
-10. **AI Contract Health Check** — "Verify Contracts" button in Systems › AI Tools
-11. **Reputation Ripple** — burned town ripples to adjacent towns; Insight DC warnings in ledger
-12. ⏸ **Con Scorecard** — `state.slasherOI=0`, income log parsed by snake_oil/real_stock, town survival stats — *paused, needs design discussion*
-13. ⏸ **Drop 4: Zone Combat Map** — *paused, details to work out next session*
+9. ✅ **"Clean without clutter" pass** — Conditions Reference collapsible, redundant labels removed, panel padding tightened, Town Rep collapsed by default, Story Chronicle icon buttons (Session 9, 2026-06-16)
+10. **UX Pass 2: Bury the dead weight** — Combat drawer collapse, Active Scene collapse, Grit compress, Party Shared Inventory remove, NPC list redesign (see Pending UX Decisions below)
+11. **AI Contract Health Check** — "Verify Contracts" button in Systems › AI Tools
+12. **Reputation Ripple** — burned town ripples to adjacent towns; Insight DC warnings in ledger
+13. ⏸ **Con Scorecard** — `state.slasherOI=0`, income log parsed by snake_oil/real_stock, town survival stats — *paused, needs design discussion*
+14. **Location Journal v1** — `state.locations[]`, list UI in World → Locations sub-tab, AI mechanics, Player/DM toggle (see full spec below)
+15. ⏸ **Drop 4: Zone Combat Map** — *paused, integrating with Chronicle View / Location Journal architecture first*
+
+---
+
+## Pending UX Decisions (Session 9 — answer before building UX Pass 2)
+
+### Combat Drawer
+User feedback (2026-06-16): Initiative Tracker never used, always in the way when navigating to quests/loot/module. Rests never used from Combat tab. Encounter Presets never used.
+**Decision needed:** Collapse all three panels by default, or hide Combat drawer entirely unless `state.combat.active === true`? Hiding is cleaner but riskier. Collapsing is safer.
+
+### Active Scene (World State)
+User feedback: good for reference but tone dropdown never changes automatically, takes too much space. "Useless."
+**Decision needed:** Convert to collapsible `<details>`, or remove entirely? Scene Title is referenced in the context strip — keep the data, just hide the panel.
+
+### Grit — The Ox (Wagon tab)
+User feedback: always scrolled past. Status checked via Grit HUD tile in Party instead.
+**Decision needed:** Remove the full ox profile from Wagon tab. Keep just a mini status row (name + HP bar + feed status) or remove entirely and rely on HUD tile.
+
+### Party Shared Inventory (Wagon tab)
+User feedback: never used or updated. Unclear where inventory lives.
+**Decision:** Remove from Wagon tab. Wagon → General Cargo IS the inventory. Add a clear label: "Party Cargo / Inventory."
+
+### NPC List redesign
+User feedback: names cut off, no location/when-met context, feels like a relic against the rest of the app.
+**Decision:** Full redesign as part of Location Journal — NPCs display as read-mode cards pinned to locations. Separate from inline-edit form mode. This is tied to Location Journal v1.
+
+### 📜 Sheet button (nav)
+User feedback: "Sheet feels like it should actually open up the character sheets that are located at the top, and the character sheets at the top should open to display what is currently housed in sheet."
+**Interpretation:** Tapping 📜 Sheet nav → opens character sheet directly (6-tab sheet). Tapping HUD PC tile → quick HP/conditions view only (not the full sheet).
+**Decision pending — user to confirm interpretation before implementing.**
 
 ---
 
@@ -340,23 +371,64 @@ AC · Initiative · Speed · HP (current / max / temp HP badge) · Hit Dice pips
 
 ## Deferred / Brainstorm Later
 
-### ⭐ World Dashboard (Long-range — major redesign)
+### ⭐ The Chronicle View (Long-range — major redesign)
 *All world-state information should live in one unified, interconnected view. Currently fragmented across World State, Operations, Wagon, and Session tabs.*
 
-*Elements that belong together:*
-- NPC tracker (with location, when met, disposition — not just name/HP inputs)
-- Travel log (where you've been)
-- Active scene (where you are now)
-- Environment (time/weather/conditions)
-- Town Reputation Log (your standing in places you've been)
-- World Consequences (ripple effects from past actions)
-- Quest Log (what you're doing and why)
-- (Future) Map — waypoints anchored to travel log entries, NPCs pinned to locations
+*Elements that belong together (player-identified, Session 9):*
+- Location Journal (persistent file per city/camp/dungeon — the anchor for everything else)
+- NPC tracker — pinned to their location, not a flat list
+- Travel log — the route between locations
+- Active scene / Environment — the current location's live state
+- Town Reputation Log — per-location, not a separate list
+- World Consequences — per-location where they originated
+- Quest Log — location-anchored (given here, leads there)
+- (Future) Map — location nodes rendered visually, travel log = route line
 
-*Design intent: one screen that answers "where are we, who have we met, what's happening, what do we need to do." Spatial and temporal — a living journal of the campaign world, not a collection of edit forms.*
+*Design intent: one screen that answers "where are we, who have we met, what's happening, what do we need to do." Spatial and temporal — a living campaign journal, not a collection of edit forms.*
 
-*Prerequisites: Drop 4 map architecture, Drop 5 image maps. Codename: **The Chronicle View**.*
-*Earliest slot: after Drop 5.*
+**Architecture insight:** The Chronicle View = Location Journal (data) + Area Map (renderer). Same data, two presentations:
+- Now (Drop 4–5 era): vertical timeline / node list, each location is a collapsible file
+- Drop 5+: abstract node map with pins → real image map with pins in Drop 7
+
+**Three visual concepts discussed (Session 9) — decision pending:**
+- A: Journey Timeline — vertical nodes connected by route line (travel log as visual spine)
+- B: Location Switcher — horizontal carousel, swipe between cities like passport pages
+- C: Node Map — abstract circles connected by lines, tap node → file slides up ← **recommended** (zero rework when Drop 5 adds image renderer)
+
+**Data model (designed now, forward-compatible with map):**
+```js
+state.locations = [{
+  id: 'loc_greenest',
+  name: 'Greenest',
+  type: 'town',           // town|city|camp|ruin|dungeon|waypoint
+  status: 'visited',      // current|visited|known|unknown
+  firstVisited: 'Day 1, 9:00 AM',
+  lastVisited: 'Day 3, 2:00 PM',
+  rep: { disposition: 'Friendly', notes: '' },
+  npcs: [],               // NPC names now → IDs when NPC system gets IDs
+  investments: [{ desc:'Mill stake', amount:50, startDay:'Day 1', notes:'' }],
+  history: [{ ts:'Day 1', text:'Dragon attack', dmOnly:false }],
+  dmNotes: '',
+  playerNotes: '',
+  mapPos: null            // {x,y} — null until Drop 5 places the pin
+}]
+```
+
+**AI mechanics to add:**
+- `location_add: Name | Type | Description`
+- `location_visit: Name` — marks visited, logs timestamp, calculates elapsed time
+- `location_history: Name | Text | dmOnly` — adds history entry
+- `location_investment: Name | Description | Amount | PerDay`
+
+**Investment accrual:** Log start day + amount. AI references elapsed time and generates narrative update on return. No auto-math yet — AI handles the narration. Auto-calc possible once proper time parsing exists.
+
+**Drop sequence integration:**
+- Location Journal v1 (data + list UI) → Phase 2 item 14, next session
+- Drop 4: Zone Combat Map (unchanged — Combat Map scale, not Area Map)
+- Drop 5: Area Map renderer sits on top of Location Journal data (location nodes → map pins, travel log → route line)
+- Drop 6: Player/DM toggle becomes real Firebase-synced split
+
+*Codename: **The Chronicle View**. Prerequisites: Location Journal v1 data model (buildable now). Map renderer: Drop 5.*
 
 ### Blackburner (Business Profile → Treasury)
 *Collecting more game data before designing. Intent: business profile moves to Treasury, reworked as at-a-glance banking/portfolio view — income log as transaction history, stock as portfolio view. Codename: Blackburner.*
