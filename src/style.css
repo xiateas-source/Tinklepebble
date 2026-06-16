@@ -234,8 +234,9 @@ details.bs[open] summary::before{content:"\25BC  ";}
 .scene-item.active-scene{border-color:var(--gold);background:var(--surface3);}
 .snip-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:7px;}
 .snip-item.active-snip{border-color:var(--purple);}
-.npc-row{display:flex;gap:6px;margin-bottom:6px;align-items:center;flex-wrap:wrap;}
-.npc-row input{font-size:12px;padding:6px 8px;}
+.npc-row{display:block;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:5px;}
+.npc-row:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.npc-row input{font-size:11px;padding:4px 6px;}
 .npc-row.deceased{opacity:.4;}
 .divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
 .sec-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-weight:500;}

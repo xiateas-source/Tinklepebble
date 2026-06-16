@@ -12,8 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.Gj06MuDQ.js"></script>
-  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.C5u_90Cv.css">
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.B-VFOVn0.js"></script>
+  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.D6kdmzDF.css">
 </head>
 <body>
 
@@ -265,7 +265,6 @@
   <div id="world-ops-panel" style="display:none">
     <div class="panel accent" style="margin-top:12px">
       <div class="panel-title">Campaign Premise <button class="lock-btn unlocked" id="premise-btn" onclick="togglePremise()" style="margin-left:auto">🔓 Unlocked</button></div>
-      <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Lock when ready. Locked premise is a fixed AI contract.</p>
       <textarea id="w_premise" class="premise-ta" style="min-height:100px" oninput="sw('premise',this.value)" placeholder="Tinkle's Tinctures — an independent operation..."></textarea>
     </div>
     <div class="panel">
@@ -277,8 +276,7 @@
       <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Campaign Secrets
         <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addCampaignSecret()">+ Add</button>
       </summary>
-      <p style="font-size:11px;color:var(--text-dim);margin:8px 0">DM-only plot threads. The AI references these for character moments and story hooks.</p>
-      <div id="campaign-secrets-list"></div>
+      <div id="campaign-secrets-list" style="margin-top:6px"></div>
     </details>
     <details class="panel">
       <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">World Consequences
@@ -327,7 +325,6 @@
       </div>
       <div class="panel danger">
         <div class="panel-title">Holding Cells <button class="btn sm green" style="margin-left:auto" onclick="addCell()">+ Add Cell</button></div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Dynamic cages. Creature weight counts toward cargo limit.</p>
         <div id="holding-cells"></div>
       </div>
     </div>
@@ -361,8 +358,7 @@
         <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Town Reputation Log
           <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addTownRep()">+ Add Town</button>
         </summary>
-        <p style="font-size:11px;color:var(--text-dim);margin:8px 0">Track which towns are safe to return to.</p>
-        <div id="town-rep-list"></div>
+        <div id="town-rep-list" style="margin-top:6px"></div>
       </details>
     </div>
   </div>
@@ -483,7 +479,6 @@
       <div class="col">
         <div class="panel">
           <div class="panel-title">Module Scenes <button class="btn sm green" style="margin-left:auto" onclick="addScene()">+ Add Scene</button></div>
-          <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">The <b style="color:var(--gold)">active scene</b> is injected into AI context automatically. Paste room descriptions, read-aloud text, encounter notes.</p>
           <div id="scene-list"></div>
           <div class="btn-row" style="margin-top:8px">
             <button class="btn full" onclick="sendSceneToDM()" title="Send active scene to narrative chat">📨 Send to Chat</button>
@@ -492,15 +487,13 @@
         </div>
         <div class="panel danger">
           <div class="panel-title">Secret DM Notes</div>
-          <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">AI reads these. Players never see them. Trap locations, hidden motives, plot twists.</p>
-          <textarea id="dm-secrets" style="min-height:150px;border-color:var(--red-dim)" placeholder="- Aldric is a thieves guild informant&#10;- Trap on door to room 7 (DC 14 Perception)"></textarea>
+          <textarea id="dm-secrets" style="min-height:120px;border-color:var(--red-dim)" placeholder="- Aldric is a thieves guild informant&#10;- Trap on door to room 7 (DC 14 Perception)&#10;(AI reads these — players never see them)"></textarea>
           <button class="btn sm red" style="margin-top:6px" onclick="saveDmSecrets()">Save Secrets</button>
         </div>
       </div>
       <div class="col">
         <div class="panel purple">
           <div class="panel-title">Reference Snippets <button class="btn sm green" style="margin-left:auto" onclick="addSnip()">+ Add</button></div>
-          <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px"><b style="color:var(--purple-bright)">Active snippets</b> are always in the AI system prompt. DMG tables, house rules, class features.</p>
           <div id="snip-list"></div>
         </div>
       </div>
@@ -673,7 +666,7 @@
     <div class="col">
       <div class="panel" style="margin-bottom:8px">
         <div class="panel-title">⚗ AI DM Sandbox <button id="test-mode-toggle" class="btn sm" onclick="toggleTestMode()" style="margin-left:auto;font-size:10px;padding:2px 10px">Enable Test Mode</button></div>
-        <p style="font-size:11px;color:var(--text-dim);margin:0">Isolated sandbox channel — probe mechanics, test contract compliance, generate sample events. No state writes. History cleared on reload.</p>
+        <p style="font-size:10px;color:var(--text-dim);margin:0">Probe mechanics &amp; contracts. No state writes.</p>
       </div>
       <div class="panel accent">
         <div class="panel-title">AI System Prompt Contracts <button class="btn sm" onclick="copyContracts()" style="margin-left:auto;font-size:10px;padding:2px 8px;flex-shrink:0" title="Copy all contracts to clipboard">📋 Copy all</button></div>
@@ -785,7 +778,6 @@ When the party travels through wilderness, arrives at a new outdoor location, or
             <option value="full">Full (~2500 tokens) — session start / resync only</option>
             <option value="combat">Combat Focus (~800 tokens)</option>
           </select>
-          <div style="font-size:10px;color:var(--text-dim);margin-top:3px">Compact recommended during play. Switch to Full for Session Zero or major resync.</div>
         </div>
         <div class="form-group"><label class="field-label">Ledger Prefix</label><textarea id="ledger-prefix" style="min-height:50px">Before taking any action, confirm you have read this entire state ledger. Verify HP and active conditions for all PCs before proceeding.</textarea></div>
         <div class="btn-row" style="flex-direction:column;gap:6px">

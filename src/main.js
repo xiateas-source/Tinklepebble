@@ -1178,9 +1178,18 @@ function renderNPCs(){
     const dead=n.status==='deceased'||n.status==='departed';
     const d=document.createElement('div');
     d.className='npc-row'+(n.status==='deceased'?' deceased':'');
-    d.style.opacity=dead?'0.55':'1';
+    d.style.cssText=`opacity:${dead?'0.55':'1'};display:block;padding:5px 0`;
     const dispCol=n.disposition==='Friendly'||n.disposition==='Ally'?'var(--green)':n.disposition==='Hostile'||n.disposition==='Enemy'?'var(--red)':'var(--text-dim)';
-    d.innerHTML=`<input type="text" style="flex:1;min-width:70px;font-size:11px;${dead?'text-decoration:line-through':''}" value="${esc(n.name)}" placeholder="Name" onchange="updNPC(${idx},'name',this.value)"><select style="width:82px;font-size:10px;padding:3px 4px;border-color:${dispCol};color:${dispCol}" onchange="updNPC(${idx},'disposition',this.value)">${DISPS.map(d2=>`<option value="${d2}" ${n.disposition===d2?'selected':''}>${d2}</option>`).join('')}</select><input type="number" style="width:42px;font-size:11px;text-align:center" value="${n.hp||0}" title="HP" onchange="updNPC(${idx},'hp',parseInt(this.value)||0)"><input type="text" style="flex:2;min-width:80px;font-size:11px" value="${esc(n.details||'')}" placeholder="Details" onchange="updNPC(${idx},'details',this.value)"><select style="width:76px;font-size:10px;padding:3px 4px" onchange="updNPC(${idx},'status',this.value)"><option value="active" ${!dead?'selected':''}>Active</option><option value="deceased" ${n.status==='deceased'?'selected':''}>Deceased</option><option value="departed" ${n.status==='departed'?'selected':''}>Departed</option></select><button class="btn sm red icon-btn" onclick="remNPC(${idx})">&times;</button>`;
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+      <input type="text" style="flex:1;font-size:11px;${dead?'text-decoration:line-through':''}" value="${esc(n.name)}" placeholder="Name" onchange="updNPC(${idx},'name',this.value)">
+      <select style="width:78px;font-size:10px;padding:2px 3px;border-color:${dispCol};color:${dispCol};flex-shrink:0" onchange="updNPC(${idx},'disposition',this.value)">${DISPS.map(d2=>`<option value="${d2}" ${n.disposition===d2?'selected':''}>${d2}</option>`).join('')}</select>
+      <select style="width:70px;font-size:10px;padding:2px 3px;flex-shrink:0" onchange="updNPC(${idx},'status',this.value)"><option value="active" ${!dead?'selected':''}>Active</option><option value="deceased" ${n.status==='deceased'?'selected':''}>Deceased</option><option value="departed" ${n.status==='departed'?'selected':''}>Departed</option></select>
+      <button class="btn sm red icon-btn" style="flex-shrink:0" onclick="remNPC(${idx})">&times;</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <span style="font-size:9px;color:var(--text-dim);flex-shrink:0">HP</span><input type="number" style="width:40px;font-size:11px;text-align:center" value="${n.hp||0}" title="HP" onchange="updNPC(${idx},'hp',parseInt(this.value)||0)">
+      <input type="text" style="flex:1;font-size:11px" value="${esc(n.details||'')}" placeholder="Details / notes" onchange="updNPC(${idx},'details',this.value)">
+    </div>`;
     c.appendChild(d);
   });
 }
@@ -1211,11 +1220,11 @@ function renderQuests(){
     </summary>
     <div style="padding:8px 10px;border-top:1px solid var(--border)">
       <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
-        <select style="width:90px;font-size:10px;padding:3px 4px;border-color:${qcol};color:${qcol}" onchange="updQ(${idx},'status',this.value)"><option value="active" ${qst==='active'?'selected':''}>🟢 Active</option><option value="done" ${qst==='done'?'selected':''}>✓ Done</option><option value="failed" ${qst==='failed'?'selected':''}>✗ Failed</option></select>
-        <button title="${q.hidden?'Reveal quest':'Hide from players'}" onclick="updQ(${idx},'hidden',${!q.hidden})" style="font-size:11px;padding:2px 7px;background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:${q.hidden?'var(--gold)':'var(--text-dim)'}">${q.hidden?'👁 DM Only':'👁 Visible'}</button>
-        <button class="btn sm red icon-btn" onclick="remQ(${idx})" style="margin-left:auto">&times; Delete</button>
+        <select style="width:76px;font-size:10px;padding:3px 4px;border-color:${qcol};color:${qcol}" onchange="updQ(${idx},'status',this.value)"><option value="active" ${qst==='active'?'selected':''}>Active</option><option value="done" ${qst==='done'?'selected':''}>Done</option><option value="failed" ${qst==='failed'?'selected':''}>Failed</option></select>
+        <button title="${q.hidden?'Reveal quest to players':'Hide quest from players'}" onclick="updQ(${idx},'hidden',${!q.hidden})" style="font-size:13px;padding:1px 5px;background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:${q.hidden?'var(--gold)':'var(--text-dim)'}">👁</button>
+        <button class="btn sm red icon-btn" onclick="remQ(${idx})" style="margin-left:auto">&times;</button>
       </div>
-      <div class="form-group" style="margin-bottom:6px"><label class="field-label">Quest Text</label><input type="text" value="${esc(q.text||'')}" style="font-size:12px" onchange="updQ(${idx},'text',this.value)"></div>
+      <input type="text" value="${esc(q.text||'')}" style="font-size:12px;width:100%;box-sizing:border-box;margin-bottom:8px" placeholder="Quest objective..." onchange="updQ(${idx},'text',this.value)">
       ${q.discovery?`<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg);border-radius:4px;border-left:3px solid var(--gold-dim)"><div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>📖 Discovery · ${esc(q.discovery.ts||'')}</span>${q.chatMsgId?`<button onclick="viewQuestInChat(${JSON.stringify(q.chatMsgId)})" style="font-size:9px;background:none;border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);padding:1px 5px;cursor:pointer" title="Jump to discovery moment in chat">↗ Chat</button>`:''}</div><div style="font-size:11px;color:var(--text);line-height:1.5;font-style:italic">${esc(q.discovery.text||'')}</div></div>`:''}
       ${q.notes!==undefined?`<div class="form-group" style="margin-bottom:0"><label class="field-label">Notes</label><textarea style="min-height:50px;font-size:11px" onchange="updQ(${idx},'notes',this.value)">${esc(q.notes||'')}</textarea></div>`:''}
     </div>`;
@@ -1248,14 +1257,21 @@ function renderConsequences(){
   const render=(cs,idx)=>{
     const col=CSQ_COLORS[cs.type]||'var(--text-dim)';
     const d=document.createElement('div');
-    d.style.cssText=`margin-bottom:6px;padding:8px 10px;border:1px solid var(--border);border-left:3px solid ${col};border-radius:6px;background:var(--surface2);${cs.resolved?'opacity:.5':''}`;
+    d.style.cssText=`margin-bottom:5px;padding:6px 8px;border:1px solid var(--border);border-left:3px solid ${col};border-radius:6px;background:var(--surface2);${cs.resolved?'opacity:.5':''}`;
     d.innerHTML=`<div style="display:flex;align-items:flex-start;gap:6px"><div style="flex:1"><div style="font-size:10px;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${cs.type||'background'}${cs.location?' · '+esc(cs.location):''}</div><div style="font-size:12px;color:${cs.resolved?'var(--text-dim)':'var(--text)'};${cs.resolved?'text-decoration:line-through':''}">${esc(cs.text)}</div>${cs.ts?`<div style="font-size:9px;color:var(--text-dim);margin-top:3px">${esc(cs.ts)}</div>`:''}</div>${!cs.resolved?`<button onclick="resolveConsequence('${cs.id}')" style="flex-shrink:0;font-size:10px;padding:3px 8px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer" title="Mark resolved">✓</button>`:''}</div>`;
     c.appendChild(d);
   };
   active.forEach((cs,i)=>render(cs,i));
   if(resolved.length){
-    const sep=document.createElement('div');sep.style.cssText='font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;margin:10px 0 6px';sep.textContent='Resolved';c.appendChild(sep);
-    resolved.forEach((cs,i)=>render(cs,active.length+i));
+    const det=document.createElement('details');
+    det.style.cssText='margin-top:8px';
+    const sum=document.createElement('summary');sum.style.cssText='font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;cursor:pointer;list-style:none;padding:4px 0';sum.textContent='▶ Resolved ('+resolved.length+')';
+    det.appendChild(sum);
+    resolved.forEach((cs,i)=>{
+      render(cs,active.length+i);
+      det.appendChild(c.lastChild);
+    });
+    c.appendChild(det);
   }
 }
 function resolveConsequence(id){
@@ -3762,10 +3778,12 @@ function renderChat(){
     text=text.replace(/\n/g,'<br>');
     if(isDM)text=_highlightTerms(text);
     const isLong=(msg.content||'').length>800;
+    const mId=`msg-over-${msgIdx}`;
     const ttsBtn=isDM?`<button class="tts-btn" onclick="speakIdx(${msgIdx},this)" title="Read aloud">🔊</button>`:'';
-    const copyBtn=`<button class="copy-btn" onclick="copyIdx(${msgIdx})" title="Copy message">📋</button>`;
     const flagBtn=isDM?`<button class="flag-btn" onclick="openFlagModal(${msgIdx})" title="Flag this response">⚑</button>`:'';
-    const delBtn=`<button class="flag-btn" onclick="deleteChatMsg(${msgIdx})" title="Delete message" style="color:#c05050">✕</button>`;
+    const overflowMenu=`<div id="${mId}" style="display:none;position:absolute;right:0;top:100%;background:var(--surface3);border:1px solid var(--border);border-radius:6px;z-index:200;padding:4px;display:none;gap:2px;flex-direction:row">${ttsBtn}${flagBtn}<button class="flag-btn" onclick="deleteChatMsg(${msgIdx})" title="Delete message" style="color:#c05050">✕</button></div>`;
+    const moreBtn=`<div style="position:relative;display:inline-flex"><button class="copy-btn" onclick="(function(el){var m=document.getElementById('${mId}');m.style.display=m.style.display==='flex'?'none':'flex';document.addEventListener('click',function h(e){if(!el.contains(e.target)){m.style.display='none';document.removeEventListener('click',h);}},{once:true,capture:true});event.stopPropagation()})(this.parentElement)" title="More actions" style="font-size:11px;padding:0 5px;min-width:22px">⋮</button>${overflowMenu}</div>`;
+    const copyBtn=`<button class="copy-btn" onclick="copyIdx(${msgIdx})" title="Copy message">📋</button>`;
     let tsHtml='';
     if(msg.ts||msg.realTs){tsHtml='<span style="font-size:9px;opacity:.5">';if(msg.ts)tsHtml+=esc(msg.ts);if(msg.ts&&msg.realTs)tsHtml+=' · ';if(msg.realTs)tsHtml+=esc(msg.realTs);tsHtml+='</span>';}
     let mechBadge='';
@@ -3774,7 +3792,7 @@ function renderChat(){
       mechBadge=`<div class="mech-badge"><div class="mech-badge-hdr" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='flex'?'none':'flex'"><span class="mech-badge-lbl">⚡ Changes</span><span style="font-size:10px;color:var(--green-bright);margin-left:4px">${msg.mechanics.length} — tap to expand</span></div><div class="mech-pills" style="display:none">${pills}</div></div>`;
     }
     const isExpanded=_expandedMsgs.has(msgIdx);
-    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${ttsBtn}${copyBtn}${flagBtn}${delBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${isLong&&!isExpanded?`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});this.previousElementSibling.classList.remove('msg-collapsed');this.remove()">Read more ▼</span>`:''}${mechBadge}`;
+    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${isLong&&!isExpanded?`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});this.previousElementSibling.classList.remove('msg-collapsed');this.remove()">Read more ▼</span>`:''}${mechBadge}`;
     c.appendChild(d);
   });
   // Auto-scroll if user is near bottom — don't interrupt reading
@@ -5656,6 +5674,13 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.18',date:'June 2026',notes:[
+      'Clean without clutter (Session 9): chat message toolbar reduced from 4 visible buttons to 2 (copy + ⋮ overflow); TTS, flag, and delete now in overflow menu — main game screen significantly less cluttered',
+      'NPC rows restructured: two-row layout (name/disposition/status/delete on top; HP + details below) — no longer overflows on mobile screens',
+      'Quest expansion cleaned: emoji removed from status dropdown options (color already signals status); visibility button is now icon-only (👁) with tooltip; Quest Text label removed; delete is × icon-only',
+      'Resolved consequences collapsed into a ▶ Resolved (N) disclosure instead of showing inline — active consequences visible without scrolling past resolved ones',
+      'Filler description paragraphs removed from: Holding Cells, Town Rep, Campaign Premise, Campaign Secrets, Module Scenes, Secret DM Notes, Reference Snippets, AI Sandbox, Ledger Settings — contextual info moved to placeholder text where needed',
+    ]},
     {ver:'v1.17',date:'June 2026',notes:[
       'Quest navToast: tapping the "New Quest" chip now opens the World drawer and scrolls directly to the new quest entry, gold-highlighted',
       'Quest chat anchor: robust msgId system replaces fragile array-index anchoring — the "↗ Chat" button finds the discovery message even if surrounding messages were pruned; shows "archived in summary" if the message no longer exists',
