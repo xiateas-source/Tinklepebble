@@ -1216,13 +1216,25 @@ function renderQuests(){
         <button class="btn sm red icon-btn" onclick="remQ(${idx})" style="margin-left:auto">&times; Delete</button>
       </div>
       <div class="form-group" style="margin-bottom:6px"><label class="field-label">Quest Text</label><input type="text" value="${esc(q.text||'')}" style="font-size:12px" onchange="updQ(${idx},'text',this.value)"></div>
-      ${q.discovery?`<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg);border-radius:4px;border-left:3px solid var(--gold-dim)"><div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">📖 Discovery · ${esc(q.discovery.ts||'')}</div><div style="font-size:11px;color:var(--text);line-height:1.5;font-style:italic">${esc(q.discovery.text||'')}</div></div>`:''}
+      ${q.discovery?`<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg);border-radius:4px;border-left:3px solid var(--gold-dim)"><div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>📖 Discovery · ${esc(q.discovery.ts||'')}</span>${q.chatIdx!==undefined?`<button onclick="viewQuestInChat(${q.chatIdx})" style="font-size:9px;background:none;border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);padding:1px 5px;cursor:pointer" title="Jump to discovery moment in chat">↗ Chat</button>`:''}</div><div style="font-size:11px;color:var(--text);line-height:1.5;font-style:italic">${esc(q.discovery.text||'')}</div></div>`:''}
       ${q.notes!==undefined?`<div class="form-group" style="margin-bottom:0"><label class="field-label">Notes</label><textarea style="min-height:50px;font-size:11px" onchange="updQ(${idx},'notes',this.value)">${esc(q.notes||'')}</textarea></div>`:''}
     </div>`;
     c.appendChild(det);
   });
 }
 function addQuest(){state.quests.push({text:'',status:'active',hidden:false});saveRefresh();}
+function viewQuestInChat(chatIdx){
+  navTo('log');
+  setTimeout(()=>{
+    const msgs=document.querySelectorAll('#chat-msgs .chat-msg');
+    const el=msgs[chatIdx];
+    if(!el){scrollActiveChatBottom();return;}
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.style.outline='2px solid var(--gold)';
+    el.style.borderRadius='4px';
+    setTimeout(()=>{el.style.outline='';el.style.borderRadius='';},2500);
+  },250);
+}
 function updQ(i,k,v){state.quests[i][k]=v;saveRefresh();}
 function remQ(i){state.quests.splice(i,1);saveRefresh();}
 
@@ -2692,7 +2704,8 @@ function migrate(s){
     {id:'qa_19',label:'Roleplay NPC',type:'roleplay_npc',params:{},context:['tab-dm','tab-world']},
     {id:'qa_20',label:'Character Moment',type:'char_moment',params:{},context:['tab-dm','tab-party']},
     {id:'qa_21',label:'Send Active Scene',type:'send_scene',params:{},context:['tab-dm','tab-session']},
-    {id:'qa_22',label:'Module Check-in',type:'module_checkin',params:{},context:['tab-dm','tab-session']}
+    {id:'qa_22',label:'Module Check-in',type:'module_checkin',params:{},context:['tab-dm','tab-session']},
+    {id:'qa_24',label:'Previously On…',type:'previously_on',params:{},context:['tab-dm']}
   ];
   if(!s.quickActions.length){s.quickActions=canonicalQA;}
   else{canonicalQA.forEach(cqa=>{if(!s.quickActions.find(a=>a.id===cqa.id))s.quickActions.push(cqa);});}
@@ -3421,7 +3434,7 @@ function parseMechanics(responseText){
             const hits=sentences.filter(s=>titleWords.some(w=>s.toLowerCase().includes(w)));
             discovery=hits.length?hits.slice(0,3).join(' ').trim().slice(0,400):proseOnly.slice(0,300).trim();
           }
-          const questObj={text:val,status:'active',hidden:false,discovery:discovery?{text:discovery,ts:new Date().toLocaleString()}:null};
+          const questObj={text:val,status:'active',hidden:false,discovery:discovery?{text:discovery,ts:new Date().toLocaleString()}:null,chatIdx:state.chatHistory.length};
           state.quests.push(questObj);
           changes.push({text:'New quest: '+val.slice(0,30)});
           // Tappable navToast — tap opens World tab → quest log
@@ -4692,6 +4705,21 @@ function updProvStatusMini(){
   else{const m=provider==='google'?(localStorage.getItem('tt_gm')||'gemini-2.5-flash-lite'):(localStorage.getItem('tt_om')||'gemini-2.0-flash-exp');el.textContent='✓ '+m.split('/').pop();el.style.color='var(--green-bright)';}
 }
 
+function previouslyOn(){
+  const key=getKey();if(!key){toast('Set an API key first.');return;}
+  const recent=(state.chatHistory||[]).filter(m=>m.role==='assistant'||m.role==='user').slice(-8);
+  if(recent.length<2){toast('Not enough chat history yet.');return;}
+  const sys='You are a narrator for a D&D campaign. Summarize the most recent events in exactly 2 sentences for a TV-style "Previously On…" opening. Past tense. No mechanics or stat references. Focus on dramatic or plot-relevant events. Write as if opening an episode.';
+  const msgs=recent.map(m=>({role:m.role,content:String(m.content||'').slice(0,600)}));
+  msgs.push({role:'user',content:'Give me the 2-sentence "Previously On…" recap.'});
+  const typEl=document.getElementById('typing-ind');
+  if(typEl)typEl.classList.add('on');
+  callAI(msgs,sys,120).then(resp=>{
+    if(typEl)typEl.classList.remove('on');
+    state.chatHistory.push({role:'sys',content:'📺 Previously on Tinkle\'s Tinctures…\n\n'+resp,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+    save();renderChat();scrollActiveChatBottom();
+  }).catch(err=>{if(typEl)typEl.classList.remove('on');toast('Recap failed: '+err.message);});
+}
 // ═══ CONTEXT-AWARE QUICK ACTIONS FAB ═══
 let currentTab='tab-party';
 function toggleQAMenu(){
@@ -4736,9 +4764,9 @@ function renderQAMenu(){
   flagCard.onclick=()=>{closeQAMenu();openFlagModal(-1,'');};
   body.appendChild(flagCard);
   if(!actions.length){const noActions=document.createElement('div');noActions.style.cssText='padding:20px;font-size:12px;color:var(--text-dim);text-align:center';noActions.innerHTML='No actions for this tab.<br><em style="font-size:11px">Add some in AI Tools → Quick Actions.</em>';body.appendChild(noActions);return;}
-  const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘️',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'🎲',roleplay_npc:'🗣️',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',module_checkin:'📋',custom:'⚙️'};
+  const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘️',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'🎲',roleplay_npc:'🗣️',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',module_checkin:'📋',previously_on:'📺',custom:'⚙️'};
   const PINNED=['qa_8','qa_13','qa_11'];
-  const CAT_MAP={'Party & Combat':['hp','condition_add','condition_clear','resource_use','shell_defense_toggle','combat_next','short_rest','roll_submit'],'World & Story':['time_advance','surroundings','town_rep','random_event','roleplay_npc','char_moment','send_scene','item_add_foraged','ox_feed','log_entry'],'AI & System':['context_refresh','context_refresh_btn','resync_ai','module_checkin','state_fix','save_game','custom']};
+  const CAT_MAP={'Party & Combat':['hp','condition_add','condition_clear','resource_use','shell_defense_toggle','combat_next','short_rest','roll_submit'],'World & Story':['time_advance','surroundings','town_rep','random_event','roleplay_npc','char_moment','send_scene','item_add_foraged','ox_feed','log_entry'],'AI & System':['context_refresh','context_refresh_btn','resync_ai','module_checkin','previously_on','state_fix','save_game','custom']};
   const mkCard=a=>{const d=document.createElement('div');d.className='qa-card';d.innerHTML=`<span class="qa-card-icon">${icons[a.type]||'⚙️'}</span><span class="qa-card-label">${esc(a.label)}</span>`;d.onclick=()=>{closeQAMenu();executeQA(a);};return d;};
   const mkCatLabel=lbl=>{const d=document.createElement('div');d.className='qa-cat-label';d.textContent=lbl;return d;};
   const mkGrid=items=>{const g=document.createElement('div');g.className='qa-grid';items.forEach(a=>g.appendChild(mkCard(a)));return g;};
@@ -4823,13 +4851,15 @@ function executeQA(action){
         </div>
         <div class="form-group"><label class="field-label">Type</label>
           <select id="qa-forg-type"><option value="foraged">Foraged</option><option value="ingredient">Ingredient</option></select>
-        </div>`,
+        </div>
+        <div class="form-group"><label class="field-label">Description (optional)</label><input type="text" id="qa-forg-notes" placeholder="Found near the riverbank, slightly bitter..."></div>`,
         ()=>{
-          const name=document.getElementById('qa-forg-name').value;
+          const name=document.getElementById('qa-forg-name').value.trim();
           if(!name){toast('Enter item name.');return;}
           if(!state.wagon.cargo)state.wagon.cargo=[];
-          state.wagon.cargo.push({name,qty:parseInt(document.getElementById('qa-forg-qty').value)||1,weight:parseFloat(document.getElementById('qa-forg-wt').value)||0,type:document.getElementById('qa-forg-type').value,notes:'',ts:state.worldData.time,location:state.worldData.location});
-          saveRefresh();toast('✓ '+name+' added to wagon.');closeQAModal();
+          const notes=document.getElementById('qa-forg-notes')?.value.trim()||'';
+          state.wagon.cargo.push({name,qty:parseInt(document.getElementById('qa-forg-qty').value)||1,weight:parseFloat(document.getElementById('qa-forg-wt').value)||0,type:document.getElementById('qa-forg-type').value,notes,ts:state.worldData.time,location:state.worldData.location});
+          saveRefresh();toast('✓ '+name+' × '+(parseInt(document.getElementById('qa-forg-qty')?.value)||1)+' added to wagon.');closeQAModal();
         });
       break;
     case 'town_rep':
@@ -4866,6 +4896,7 @@ function executeQA(action){
     case 'send_scene': sendSceneToDM(); break;
     case 'context_refresh_btn': sendContextRefresh(); break;
     case 'module_checkin': qa('Check the Campaign Progress tracker. Confirm which episode we\'re currently on, what\'s been completed, and what the next key objective is. Update any episode statuses that need changing via module_episode: mechanic.'); break;
+    case 'previously_on': previouslyOn(); break;
     case 'shell_defense_toggle':{
       const tinklePC=state.pcs.find(p=>p.name==='Tinkle');
       if(!tinklePC){toast('Tinkle not found.');break;}
@@ -6684,6 +6715,7 @@ Object.assign(window, {
   renderContextStrip, copyContracts,
   navToast, scrollActiveChatBottom, scrollActiveChatTop,
   save, saveEditedNote,
+  previouslyOn, viewQuestInChat,
 });
 // Live getter so inline onclick/oninput can access `state` even after Firebase reassigns it
 Object.defineProperty(window,'state',{get(){return state;},configurable:true});
