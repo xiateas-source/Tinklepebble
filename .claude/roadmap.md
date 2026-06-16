@@ -340,6 +340,24 @@ AC · Initiative · Speed · HP (current / max / temp HP badge) · Hit Dice pips
 
 ## Deferred / Brainstorm Later
 
+### ⭐ World Dashboard (Long-range — major redesign)
+*All world-state information should live in one unified, interconnected view. Currently fragmented across World State, Operations, Wagon, and Session tabs.*
+
+*Elements that belong together:*
+- NPC tracker (with location, when met, disposition — not just name/HP inputs)
+- Travel log (where you've been)
+- Active scene (where you are now)
+- Environment (time/weather/conditions)
+- Town Reputation Log (your standing in places you've been)
+- World Consequences (ripple effects from past actions)
+- Quest Log (what you're doing and why)
+- (Future) Map — waypoints anchored to travel log entries, NPCs pinned to locations
+
+*Design intent: one screen that answers "where are we, who have we met, what's happening, what do we need to do." Spatial and temporal — a living journal of the campaign world, not a collection of edit forms.*
+
+*Prerequisites: Drop 4 map architecture, Drop 5 image maps. Codename: **The Chronicle View**.*
+*Earliest slot: after Drop 5.*
+
 ### Blackburner (Business Profile → Treasury)
 *Collecting more game data before designing. Intent: business profile moves to Treasury, reworked as at-a-glance banking/portfolio view — income log as transaction history, stock as portfolio view. Codename: Blackburner.*
 
