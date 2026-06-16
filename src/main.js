@@ -5574,6 +5574,12 @@ function renderDashStats(){
 function renderChangelog(){
   const el=document.getElementById('dash-tab-changelog');if(!el)return;
   const versions=[
+    {ver:'v1.17',date:'June 2026',notes:[
+      'Quest navToast: tapping the "New Quest" chip now opens the World drawer and scrolls directly to the new quest entry, gold-highlighted',
+      'Quest chat anchor: robust msgId system replaces fragile array-index anchoring — the "↗ Chat" button finds the discovery message even if surrounding messages were pruned; shows "archived in summary" if the message no longer exists',
+      'Systems → ⏪ Tools tab restored: Rewind Stack, QA Actions Editor, FAB icon picker, Firebase config, and Checkpoint History were rendering to invisible DOM nodes since the 4-tab nav migration; now accessible again',
+      'Bug fixes (from Playwright audit): header menu z-index raised above drawer; HUD z-index 850 above backdrop; closeDrawer resets QA menu context; chat placeholder updates per channel (AI DM / Rules / Party)',
+    ]},
     {ver:'v1.16',date:'June 2026',notes:[
       'World Consequence Engine: state.consequences[] — AI logs long-term consequences via consequence_add/consequence_resolve mechanics; shown in World tab and injected into every AI prompt',
       '"Previously On…" QA action: tap to generate a 2-sentence recap of the last 8 messages — fast session-start re-orientation',
