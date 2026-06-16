@@ -187,6 +187,15 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ **Flag system: Idea category, filter pills, Reviewed verdict, dev notes copy** — `FLAG_CATS` + `idea` cat + 8-pill filter row + `reviewed` badge cycle + `copyDevNotes()`
 - ✅ **Patch notes v1.12** — `renderChangelog()` updated with 21-item session 3 summary
 
+### Shipped 2026-06-16 (Session 8)
+- ✅ **Flag 18: navToast clickable + specific quest navigation** — tapping "New Quest" chip opens Logistics/World drawer, scrolls to and gold-highlights the specific new quest `<details>`; quest `<details>` elements get `id="quest-det-N"`
+- ✅ **Quest chat anchor (msgId system)** — each AI message gets `msgId = 'cm_<ts>_<rand>'`; `parseMechanics()` receives `pendingMsgId` and stores as `quest.chatMsgId`; `renderChat()` stamps `data-msg-id`; `viewQuestInChat(msgId)` queries by attribute; if pruned shows toast "That chat moment was archived in the session summary"
+- ✅ **tab-ait-chk restored** — orphaned Checkpoints tab wired into Systems drawer as "⏪ Tools"; Rewind Stack, QA Editor, FAB icon picker, Firebase config, Checkpoint History now accessible again
+- ✅ **Playwright audit fixes** (already in branch, confirmed deployed): header-menu z-index 1000, HUD z-index 850, closeDrawer resets currentTab, placeholder updates per channel
+- ✅ **no-cache meta tags** — added to `index.html` to prevent browser caching of stale deployments on GitHub Pages
+- ✅ **AI DM Testing Chat (Flag 19)** — `⚗ Test Mode` toggle in Systems → AI Tools; isolated `_testHistory` (never saved); `sendTestMsg()` uses real contracts + test addendum; `previewMechanics()` shows dry-run mechanic preview below DM message without writing state; `clearTestChat()` + Clear button; tab hidden until enabled
+- ✅ **Patch notes v1.17**
+
 ### Shipped 2026-06-16 (Session 5 — Stability Pass)
 - ✅ **Layout broken** — `body` made `display:flex; flex-direction:column; height:100dvh`; `#tab-dm{flex:1}` now fills viewport correctly
 - ✅ **tab-party double-render** — Removed stale `active` class from `#tab-party` in HTML; it was rendering party content above AI DM, crushing chat
@@ -242,6 +251,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - [x] **Flag icon blocked** ✅ — `#qa-fab-wrap` z-index raised 203→750, bottom 155px→160px. (2026-06-15 Session 3)
 - [x] **QA FAB stuck open** ✅ — `closeQAMenu()` called at top of `showTab()` + `openDrawer()`. (2026-06-15 Session 3)
 - [ ] **Skill bonus wrong** — Character Editor displays incorrect skill bonus values. (Dev note #1) *Still open.*
+- [x] **tab-ait-chk orphaned** ✅ — wired into Systems drawer as ⏪ Tools (Session 8)
 - [x] **Flag save button untappable** ✅ — Flag modal z-index raised to 1600; `padding-bottom:max(20px,env(safe-area-inset-bottom))` added to modal. (2026-06-15 Session 3)
 
 ---
