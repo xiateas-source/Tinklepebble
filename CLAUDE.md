@@ -7,9 +7,10 @@
 ## Session Start Protocol
 1. Read `.claude/roadmap.md` — source of truth for architecture, active palette, pending work, completed items
 2. Read `.claude/features.md` — comprehensive map of every tab, function, state field, mechanic, QA type, and element ID
-3. Read `.claude/prime-directive.md` when asked — project philosophy, character canon, AI contract history, VTT drops plan
-4. Resume from where the last session left off
-5. Work on branch `claude/plugins-installation-gikz6l` (never push to main without explicit instruction)
+3. Read `.claude/prime-directive.md` — project philosophy, character canon, AI contract history, VTT drops plan
+4. **Vision alignment check** — after reading all three files, flag any tension between the proposed work and the Prime Directive (e.g. a feature that adds complexity without serving session play, or a bug fix that isn't core-loop-critical while core-loop bugs are open). State it once, briefly — don't block work, just surface it.
+5. Resume from where the last session left off
+6. Work on branch `claude/plugins-installation-kgnzt5` (never push to main without explicit instruction)
 
 ## Session End Protocol
 Before ending any session:
