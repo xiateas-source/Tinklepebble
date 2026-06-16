@@ -592,6 +592,26 @@ No image. Six named zones as a styled 2×3 grid. Tokens are colored tiles. AI co
 **Tier 2 — Drop 5: Image Maps + Token Overlay**
 Upload any image (screenshot, photo of book map, PDF-extracted map). Tokens placed on image with tap-to-move. Firebase Storage for image URLs. Module maps become playable.
 
+**CSS rendering technique (validated from PbP research, 2026-06-16):**
+Standard VTT approach — `position:relative` parent (map image) + `position:absolute` children (tokens). This is exactly how Roll20/Foundry work at the DOM level. Our abstraction on top:
+- Token positions stored as `{row, col}` in state (not raw pixels)
+- Grid calibration: user taps two corners once → pixel-per-square derived automatically
+- Pixel position calculated at render time: `top = row * squareSize`, `left = col * squareSize`
+- Drag-to-move updates `{row, col}` in state; AI moves via `token_move: Name|row,col`
+- Maps rarely have clean edges — calibration tool handles offset and trim automatically
+- Token size = grid square size (1:1 ratio, same insight as PbP technique)
+
+```html
+<!-- Drop 5 render structure -->
+<div style="position:relative;display:inline-block">
+  <img src="{mapUrl}" style="width:100%" />
+  <!-- token for each combatant with state.combat.tokens[i].row/col -->
+  <div style="position:absolute;top:{row*sq}px;left:{col*sq}px;width:{sq}px;height:{sq}px">
+    {token — PC color circle or enemy icon}
+  </div>
+</div>
+```
+
 **Tier 3 — Drop 7+: Full VTT Layer**
 Grid snap, fog of war, room reveals. Full Roll20 feature set. Tiers 1 and 2 architecture grows naturally into this.
 
