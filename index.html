@@ -957,30 +957,18 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           </div>
           <div id="ooc-msgs" class="chat-msgs-wrap" style="min-height:300px;max-height:440px"></div>
           <div class="typing-ind" id="ooc-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
-          <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
-            <div style="flex:1"><textarea id="ooc-input" style="min-height:52px;resize:none;margin:0;width:100%;padding:8px" placeholder="Ask OOC — rules questions, context checks (Enter to send)" onkeydown="oocKey(event)"></textarea></div>
-            <button class="btn gold" id="ooc-send-btn" onclick="sendOOCMsg()" style="min-height:52px;padding:0 16px">Ask</button>
-          </div>
-          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Rules questions, lore lookups, context checks. Brief answers only.</div>
         </div><!-- end chat-pane-ooc -->
         <div id="chat-pane-party" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:4px">
             <button class="btn sm" onclick="requestNotifPermission()" title="Get phone notifications when the other player messages" style="font-size:10px">🔔 Notify me</button>
             <div style="display:flex;gap:5px">
+              <button class="btn sm purple" id="party-dm-btn" onclick="askDMFromParty()" title="Consult the DM">🧙 Ask DM</button>
               <button class="btn sm" onclick="document.getElementById('party-msgs').scrollTop=0" title="Scroll to top">↑ Top</button>
               <button class="btn sm" onclick="const e=document.getElementById('party-msgs');e.scrollTop=e.scrollHeight" title="Scroll to bottom">↓ Bottom</button>
             </div>
           </div>
           <div id="party-msgs" class="chat-msgs-wrap" style="min-height:300px;max-height:440px"></div>
           <div class="typing-ind" id="party-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
-          <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
-            <div style="flex:1"><textarea id="party-input" style="min-height:52px;resize:none;margin:0;width:100%;padding:8px" placeholder="Party discussion — theory craft, plan your next move (Enter to send)" onkeydown="partyKey(event)"></textarea></div>
-            <div style="display:flex;flex-direction:column;gap:4px">
-              <button class="btn gold" id="party-send-btn" onclick="sendPartyMsg()" style="min-height:28px;padding:0 14px">Send</button>
-              <button class="btn sm purple" id="party-dm-btn" onclick="askDMFromParty()" title="Consult the DM">🧙 Ask DM</button>
-            </div>
-          </div>
-          <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Player-only channel — synced across devices. Tap 🧙 Ask DM to pull in the DM.</div>
         </div><!-- end chat-pane-party -->
       </div>
     </div>

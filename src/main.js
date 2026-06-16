@@ -3723,6 +3723,12 @@ function showChatTab(tab){
     if(pane)pane.style.display=(t===tab)?'block':'none';
     if(btn)btn.classList.toggle('active',t===tab);
   });
+  const qi=document.getElementById('chat-quick-input');
+  if(qi){
+    if(tab==='ooc')qi.placeholder='Ask a rules question…';
+    else if(tab==='party')qi.placeholder='Message party…';
+    else qi.placeholder='Command AI DM…';
+  }
   if(tab==='narrative'){
     const cm=document.getElementById('chat-msgs');
     if(cm)requestAnimationFrame(()=>{cm.scrollTop=cm.scrollHeight;});
@@ -3783,10 +3789,11 @@ function renderParty(){
   c.scrollTop=c.scrollHeight;
 }
 function partyKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendPartyMsg();}}
-function sendPartyMsg(){
-  const inp=document.getElementById('party-input');
-  if(!inp||!inp.value.trim())return;
-  const content=inp.value.trim();inp.value='';
+function sendPartyMsg(contentOverride){
+  let content;
+  if(contentOverride!==undefined){content=String(contentOverride).trim();}
+  else{const inp=document.getElementById('party-input');if(!inp||!inp.value.trim())return;content=inp.value.trim();inp.value='';}
+  if(!content)return;
   if(!state.partyChat)state.partyChat=[];
   state.partyChat.push({role:'player',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),gameTs:state.worldData.time||'',playerName:playerName||'Party',id:'pc_'+Date.now()});
   save();renderParty();
@@ -3817,11 +3824,12 @@ async function askDMFromParty(){
     renderParty();
   }
 }
-function sendOOCMsg(){
-  const inp=document.getElementById('ooc-input');
-  if(!inp||!inp.value.trim())return;
+function sendOOCMsg(contentOverride){
+  let content;
+  if(contentOverride!==undefined){content=String(contentOverride).trim();}
+  else{const inp=document.getElementById('ooc-input');if(!inp||!inp.value.trim())return;content=inp.value.trim();inp.value='';}
+  if(!content)return;
   const key=getKey();if(!key){toast('Set an API key first.');return;}
-  const content=inp.value.trim();inp.value='';
   const id='ooc_'+Date.now();
   if(!state.oocHistory)state.oocHistory=[];
   state.oocHistory.push({role:'user',content,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),gameTs:state.worldData.time||'',playerName:playerName||'Party',id});
@@ -6169,13 +6177,14 @@ function switchSystemsTab(sub){
 
 function sendMsgQuick(){
   const qi=document.getElementById('chat-quick-input');
-  const ci=document.getElementById('chat-input');
-  if(!qi||!ci)return;
+  if(!qi)return;
   const val=qi.value.trim();
   if(!val)return;
-  ci.value=val;
   qi.value='';
-  sendMsg();
+  if(_activeTab==='ooc'){sendOOCMsg(val);return;}
+  if(_activeTab==='party'){sendPartyMsg(val);return;}
+  const ci=document.getElementById('chat-input');
+  if(ci){ci.value=val;sendMsg();}
 }
 
 function chatKeyQuick(e){
