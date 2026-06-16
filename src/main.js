@@ -6214,12 +6214,15 @@ function sendMsgQuick(){
   if(!qi)return;
   const val=qi.value.trim();
   if(!val)return;
-  qi.value='';
   // Derive channel from DOM (active tab button) — belt-and-suspenders against _activeTab drift
   const activeBtn=document.querySelector('.chat-tab-btn.active');
   const channel=activeBtn?.id?.replace('chat-tab-','')||_activeTab;
+  // Party chat needs no API key — send immediately without key check
+  if(channel==='party'){qi.value='';sendPartyMsg(val);return;}
+  // Narrative and OOC need an API key — check BEFORE clearing input so message isn't lost
+  if(!getKey()){toast('Set an API key first — tap ⚙ in the AI DM header.');return;}
+  qi.value='';
   if(channel==='ooc'){sendOOCMsg(val);return;}
-  if(channel==='party'){sendPartyMsg(val);return;}
   const ci=document.getElementById('chat-input');
   if(ci){ci.value=val;sendMsg();}
 }
