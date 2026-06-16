@@ -3274,6 +3274,9 @@ Rules:
 }
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
+// All recognized mechanic keys — used by parseMechanics and display stripping
+const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|none';
+const _NAKED_MECH_RE=new RegExp('^('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText){
   // Flexible mechanics block detection — catches all AI format variations
   let match=null;
@@ -3284,10 +3287,16 @@ function parseMechanics(responseText){
   if(!match) match=cleanText.match(/MECHANICS BLOCK:?([\s\S]*?)(?=\n\n[A-Z]|$)/i);
   if(!match) match=cleanText.match(/---MECHANICS---([\s\S]*)$/i);
   if(!match) match=cleanText.match(/MECHANICS:?([\s\S]*?)(?:---END---|$)/i);
-  // Last resort: find any line with key: value pattern after a MECHANICS-like header
+  // Penultimate resort: find any line with key: value pattern after a MECHANICS-like header
   if(!match){
     const mechIdx=cleanText.search(/mechanics/i);
     if(mechIdx>-1) match={1:cleanText.slice(mechIdx+10)};
+  }
+  // Final fallback: naked mechanic lines in body with no MECHANICS header at all
+  if(!match&&_NAKED_MECH_RE.test(cleanText)){
+    const nakedRe=new RegExp('^('+_MECH_KEYS+'): .+','mg');
+    const lines=[];let m;while((m=nakedRe.exec(cleanText))!==null)lines.push(m[0]);
+    if(lines.length) match={1:lines.join('\n')};
   }
   if(!match)return null;
   const block=match[1].trim();
@@ -4083,6 +4092,9 @@ async function sendMsg(){
     .replace(/---MECHANICS---[\s\S]*?---END---/g,'')
     .replace(/---MECHANICS---[\s\S]*$/,'')
     .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
+    // Strip any naked mechanic lines the AI put directly in the response body
+    .replace(new RegExp('^('+_MECH_KEYS+'): .+$','mgm'),'')
+    .replace(/\n{3,}/g,'\n\n')
     .trim();
     detectUnloggedGold(displayText,mechanics);
     detectUnloggedNPC(displayText,mechanics);
