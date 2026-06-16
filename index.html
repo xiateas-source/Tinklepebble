@@ -157,14 +157,11 @@
     <button onclick="openResetModal('campaign');closeHeaderMenu()" class="btn" style="border-color:var(--gold);color:var(--gold)!important">🌅 New Campaign</button>
     <button onclick="openResetModal('full');closeHeaderMenu()" class="btn" style="border-color:var(--red);color:var(--red-bright)!important">⚠ Full Reset</button>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-    <button onclick="showTab('tab-combat');closeHeaderMenu()" class="btn">⚔ Combat</button>
-    <button onclick="showTab('tab-session');closeHeaderMenu()" class="btn">📋 Session</button>
-    <button onclick="showTab('tab-ait');closeHeaderMenu()" class="btn">🔮 AI Tools</button>
-    <button onclick="openRollSheet();closeHeaderMenu()" class="btn">🎲 Roll</button>
-    <button onclick="showTab('tab-dev');closeHeaderMenu()" class="btn" style="color:var(--gold)">🛠 Dev</button>
-    <button onclick="showTab('tab-setup');closeHeaderMenu()" class="btn" style="color:var(--purple-bright)">⚙ Setup</button>
+  <div style="display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+    <span style="font-size:10px;color:var(--text-dim);text-transform:uppercase">Shortcuts</span>
+    <button id="hdr-edit-btn" onclick="toggleHeaderEdit()" class="btn sm" style="margin-left:auto;padding:2px 8px;font-size:11px">✎</button>
   </div>
+  <div id="hdr-shortcuts-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px"></div>
   <div style="display:flex;align-items:center;gap:10px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap;margin-top:8px">
     <span style="font-size:10px;color:var(--text-dim);text-transform:uppercase">AI messages since checkpoint:</span>
     <span id="hdr-turn" style="font-family:var(--mono);font-size:18px;color:var(--gold)">0</span>

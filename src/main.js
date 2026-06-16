@@ -2625,6 +2625,7 @@ function migrate(s){
   if(!Array.isArray(s.storyChapters))s.storyChapters=[];
   if(!Array.isArray(s.locations))s.locations=[];
   if(!Array.isArray(s.sessionArchive))s.sessionArchive=[];
+  if(!Array.isArray(s.headerShortcuts))s.headerShortcuts=[];
   if(!s.aiContracts||typeof s.aiContracts!=='object')s.aiContracts={persona:'',never:'',actions:'',continuity:'',multi:''};
   // Auto-append missing contract clauses (idempotent — checks for marker text before appending)
   if(s.aiContracts.never&&!s.aiContracts.never.includes('DUNGEON SECRETS')){
@@ -2926,7 +2927,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences','headerShortcuts'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -5499,10 +5500,12 @@ function toggleHeaderMenu(){
   const m=document.getElementById('header-menu');
   if(!m)return;
   if(m.style.display==='none'||!m.style.display){
-    // Position below header dynamically — fixes clipping on all device sizes
     const hdr=document.querySelector('.app-header')||document.querySelector('header');
     if(hdr){const r=hdr.getBoundingClientRect();m.style.top=r.bottom+'px';}
     m.style.display='block';
+    _hdrEditMode=false;
+    const eb=document.getElementById('hdr-edit-btn');if(eb)eb.textContent='✎';
+    renderHeaderShortcuts();
   } else {
     m.style.display='none';
   }
@@ -5510,6 +5513,88 @@ function toggleHeaderMenu(){
 function closeHeaderMenu(){
   const m=document.getElementById('header-menu');
   if(m)m.style.display='none';
+}
+const HEADER_SC_REG=[
+  {id:'combat',icon:'⚔',label:'Combat'},
+  {id:'session',icon:'📋',label:'Session'},
+  {id:'ai-tools',icon:'🔮',label:'AI Tools'},
+  {id:'roll',icon:'🎲',label:'Roll'},
+  {id:'dev',icon:'🛠',label:'Dev'},
+  {id:'setup',icon:'⚙',label:'Setup'},
+  {id:'locations',icon:'📍',label:'Locations'},
+  {id:'verify',icon:'🔍',label:'Verify AI'},
+  {id:'prev-on',icon:'📺',label:'Previously'},
+  {id:'refresh',icon:'🔄',label:'Refresh'},
+  {id:'checkpoint',icon:'⚡',label:'Checkpoint'},
+  {id:'switch',icon:'👤',label:'Switch Player'},
+  {id:'world',icon:'🌍',label:'World'},
+  {id:'wagon',icon:'📦',label:'Wagon'},
+  {id:'archive',icon:'📔',label:'Archive'},
+  {id:'export',icon:'📤',label:'Export'},
+];
+const HEADER_SC_DEFAULT=['combat','session','ai-tools','roll','dev','setup'];
+function execHeaderSC(id){
+  closeHeaderMenu();
+  switch(id){
+    case 'combat':showTab('tab-combat');break;
+    case 'session':showTab('tab-session');break;
+    case 'ai-tools':showTab('tab-ait');break;
+    case 'roll':openRollSheet();break;
+    case 'dev':showTab('tab-dev');break;
+    case 'setup':showTab('tab-setup');break;
+    case 'locations':openDrawer('tab-world');setTimeout(()=>showWorldTab('locations'),50);break;
+    case 'verify':verifyContracts();break;
+    case 'prev-on':previouslyOn();break;
+    case 'refresh':sendContextRefresh();break;
+    case 'checkpoint':triggerChk('Manual');break;
+    case 'switch':switchUser();break;
+    case 'world':openDrawer('tab-world');break;
+    case 'wagon':openDrawer('tab-wagon');break;
+    case 'archive':showTab('tab-session');showSessionMode('prep');break;
+    case 'export':exportConfig();break;
+  }
+}
+function renderHeaderShortcuts(){
+  const el=document.getElementById('hdr-shortcuts-grid');if(!el)return;
+  const ids=Array.isArray(state.headerShortcuts)&&state.headerShortcuts.length?state.headerShortcuts:HEADER_SC_DEFAULT;
+  el.innerHTML='';
+  ids.forEach(id=>{
+    const sc=HEADER_SC_REG.find(s=>s.id===id);if(!sc)return;
+    const btn=document.createElement('button');
+    btn.className='btn';
+    btn.textContent=sc.icon+' '+sc.label;
+    btn.onclick=()=>execHeaderSC(id);
+    el.appendChild(btn);
+  });
+}
+let _hdrEditMode=false;
+function toggleHeaderEdit(){
+  _hdrEditMode=!_hdrEditMode;
+  const el=document.getElementById('hdr-shortcuts-grid');if(!el)return;
+  const editBtn=document.getElementById('hdr-edit-btn');
+  if(_hdrEditMode){
+    if(editBtn)editBtn.textContent='Done';
+    const ids=Array.isArray(state.headerShortcuts)&&state.headerShortcuts.length?[...state.headerShortcuts]:[...HEADER_SC_DEFAULT];
+    el.innerHTML='';
+    HEADER_SC_REG.forEach(sc=>{
+      const active=ids.includes(sc.id);
+      const btn=document.createElement('button');
+      btn.className='btn';
+      btn.style.cssText=active?'border-color:var(--gold);color:var(--gold-bright)':'opacity:.45';
+      btn.textContent=sc.icon+' '+sc.label;
+      btn.onclick=()=>{
+        const cur=Array.isArray(state.headerShortcuts)&&state.headerShortcuts.length?[...state.headerShortcuts]:[...HEADER_SC_DEFAULT];
+        const idx=cur.indexOf(sc.id);
+        if(idx>-1)cur.splice(idx,1); else cur.push(sc.id);
+        state.headerShortcuts=cur;save();
+        toggleHeaderEdit();toggleHeaderEdit();
+      };
+      el.appendChild(btn);
+    });
+  } else {
+    if(editBtn)editBtn.textContent='✎';
+    renderHeaderShortcuts();
+  }
 }
 // Close header menu when tapping outside
 document.addEventListener('click',e=>{
@@ -7362,7 +7447,8 @@ Object.assign(window, {
   showChatTab, showSessionMode, showSessionTab, showSetupStep, showTab, showWorldTab,
   speakActiveScene, speakIdx, speakScene, st, submitFlag, sw, switchUser,
   testTts, toggleCombCond, toggleCond, toggleDeathSave, toggleDockDice, toggleFlagVerdict, toggleInspiration,
-  toggleHeaderMenu, togglePremise, toggleQAContext, toggleQAMenu, toggleSkillProf,
+  toggleHeaderMenu, toggleHeaderEdit, execHeaderSC, renderHeaderShortcuts,
+  togglePremise, toggleQAContext, toggleQAMenu, toggleSkillProf,
   toggleSlot, toggleSuperpower, toggleTabOverflow, toggleThemeMode, toggleVis,
   triggerChk, uninstallPlugin, upd, updAtk, updCell, updCombHP, updFamiliar,
   updModuleEp, updNPC, updPI, updPcItem, updPreset, updQ, updQA, updRel,
