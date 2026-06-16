@@ -49,22 +49,30 @@ Nav dots: `#logistics-dot`, `#systems-dot` — gold ● shown via `flashTab(tabI
 - `#sp-cards` — Superpowers plugin panel (if active)
 
 ### 2. World Tab (`tab-world`)
-Two sub-tabs via `showWorldTab()`:
+Two sub-tabs currently; **three planned** (`showWorldTab()`):
 - **World State Panel** (`#world-state-panel`)
-  - `#w_scene_title` / `#w_scene_cond` — Active scene management
-  - `#w_time`, `#w_season`, `#w_weather`, `#w_illum` — Environment state
+  - `#w_scene_title` / `#w_scene_cond` — Active scene (planned: collapse to collapsible)
+  - `#w_time`, `#w_season`, `#w_weather`, `#w_illum` — Environment state (rarely used during play)
   - `#w_location`, `#w_loc_desc` — Current location
   - `#w_setting`, `#w_premise`, `#w_plot`, `#w_timers` — Campaign lore
   - `#t_pp`, `#t_gp`, `#t_ep`, `#t_sp`, `#t_cp` — Treasury coin slots
   - `#treasury-total`, `#session-pl` — Treasury display
   - `#income-log` — Income/expense history
-  - `#npc-list` — NPC tracker
+  - `#npc-list` — NPC tracker (planned redesign: read-mode cards pinned to locations)
   - `#q_primary` — Main quest objective
   - `#quest-list` — Quest log
-  - `#town-rep-list` — Town reputation tracking
+  - `#town-rep-list` — Town reputation (planned: move to Location Journal per-location)
   - `#campaign-secrets-list` — Secret DM notes
+- **Locations Panel** (`#world-locations-panel`) — **PLANNED next session**
+  - `state.locations[]` — one file per city/camp/dungeon
+  - Player/DM view toggle
+  - Visual direction TBD: Journey Timeline (A), Location Switcher (B), or Node Map (C — recommended)
+  - Each location: name, type, status, first/last visited, elapsed time, NPCs, investments, history, DM notes
+  - AI mechanics: `location_add:`, `location_visit:`, `location_history:`, `location_investment:`
+  - `mapPos: null` on each entry — becomes map pin when Drop 5 adds renderer
 - **Operations Panel** (`#world-ops-panel`)
   - Business profile: `#bp_wagonName`, `#bp_realStock`, `#bp_snakeOil`, `#bp_reagents`, `#bp_reputation`, `#bp_notes`
+  - Campaign Premise, Plot & Lore, Campaign Secrets, World Consequences
 
 ### 3. Wagon Tab (`tab-wagon`)
 - `#ox-name`, `#ox-hp`, `#ox-hp-max`, `#ox-ac` — Grit (ox) stats
@@ -186,7 +194,26 @@ state = {
   },
 
   npcs: [{name, disposition, details, status, hp, lastSeen, pending}],
-  quests: [{text, status, hidden, done, pending}],
+  quests: [{text, status, hidden, done, pending, chatMsgId, discovery:{text,ts}, notes}],
+  consequences: [{id, text, type, resolved, resolvedTs, ts, location}],
+  // type: 'background'|'faction'|'personal'|'escalation'
+
+  // PLANNED — Location Journal v1 (next session)
+  locations: [{
+    id,           // 'loc_greenest'
+    name,         // 'Greenest'
+    type,         // 'town'|'city'|'camp'|'ruin'|'dungeon'|'waypoint'
+    status,       // 'current'|'visited'|'known'|'unknown'
+    firstVisited, // worldData.time string
+    lastVisited,  // worldData.time string
+    rep: { disposition, notes },
+    npcs: [],     // NPC names for now → IDs when NPC system gets IDs
+    investments: [{ desc, amount, startDay, notes }],
+    history: [{ ts, text, dmOnly }],
+    dmNotes,
+    playerNotes,
+    mapPos: null  // {x,y} — null until Drop 5 places the pin
+  }],
 
   treasuryData: {
     pp, gp, ep, sp, cp, lifestyle,
@@ -499,6 +526,23 @@ Parsed from AI response blocks in format: `key: value`
 - `save_game` / `save`: Force immediate save
 - `spell_add`: `pcname, spell_name, level` — auto-populates spellbook from AI response
 - `sp_charge`: `pcname=ready | spent` (superpowers plugin)
+- `consequence_add`: `text | type` — log world consequence. Types: background/faction/personal/escalation
+- `consequence_resolve`: `partial_text` — mark consequence resolved
+- `chapter_add`: `Chapter N: Title | prose` — add story chronicle chapter
+
+**PLANNED — Location Journal (next session):**
+- `location_add`: `Name | Type | Description` — create new location file
+- `location_visit`: `Name` — mark as visited, log timestamp, triggers elapsed time display
+- `location_history`: `Name | Text | dmOnly` — add history entry to location file
+- `location_investment`: `Name | Description | Amount | PerDay` — log investment in location
+
+**PLANNED — Drop 4/5 Map mechanics:**
+- `zone_move`: `CharName|ZoneName` — move token between abstract zones (Drop 4)
+- `zone_add_enemy`: `Name|HP|AC|ZoneName` — add enemy to zone (Drop 4)
+- `zone_remove`: `Name` — remove from zones (Drop 4)
+- `zone_effect`: `ZoneName|Description` — add zone effect (Drop 4)
+- `token_place`: `Name|row,col` — place token at grid position (Drop 5)
+- `token_move`: `Name|row,col` — move token to grid position (Drop 5)
 
 ---
 
@@ -655,6 +699,27 @@ Each is a permanent AI instruction in every system prompt:
 - Flag cards display 📍 where (gold) above location/time; old flags fall back to tab name
 - `exportFlagReport('pending')` — export only unresolved flags (button not yet built — Flag #11)
 - AI audit + JSON export
+
+### The Chronicle View (Long-range)
+All world-state panels (Active Scene, Environment, NPC list, Travel Log, Town Rep, Consequences, Quest Log) are being replaced by a unified spatial + temporal journal. **Build strategy:** new features absorb old panels; old panels deleted once superseded. Result: Logistics drawer goes from 3 dense tabs → 2 clean ones (Chronicle / Cargo).
+
+**Location Journal v1** (next session — Phase 2 item 12):
+- `state.locations[]` — each city/camp/ruin gets a persistent file
+- Panels: name, type, status, firstVisited, lastVisited, time elapsed, rep, NPCs, investments, history log, DM notes (hidden in player view), player notes
+- Player/DM toggle (`_locationViewMode`) — global switch, DM notes hidden in player view
+- `renderLocations()` in World → Locations sub-tab
+- Time elapsed calculated from `lastVisited` vs `state.worldData.time` (string, displayed as-is)
+- Investments: log start day + amount; AI narrates accrual on return (no auto-math yet)
+- `+ Add Location` manual button + AI mechanics auto-create on visit
+
+**Drop 5 map layer** (on top of Location Journal data):
+- CSS: `position:relative` map image + `position:absolute` token children
+- Tokens stored as `{row,col}` in state; pixels = `row * squareSize`, `col * squareSize`
+- Two-tap grid calibration (tap first corner, tap second → derives offset + square size)
+- Single-layer fog: 2D boolean grid, tap to toggle revealed/fogged cells
+- Spell effect overlays: SVG circle (fireball), cone (breath), line (lightning) — radius keyed to calibrated grid size
+- Pre-combat token placement + `token_place:`/`token_move:` AI mechanics
+- Location `mapPos:{x,y}` = the pin position on the uploaded image
 
 ### Rewind Stack
 - Last 10 state snapshots

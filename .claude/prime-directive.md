@@ -1,6 +1,6 @@
 # TINKLE'S TINCTURES — PRIME DIRECTIVE (REVISED)
 ## Mobile AI Virtual Tabletop — Development Mandate
-*Revised 2026-06-15 — v1.6.1*
+*Revised 2026-06-16 — v1.7.0*
 
 ---
 
@@ -35,36 +35,27 @@ Every UI decision is made for a phone screen in portrait mode, one-handed, mid-s
 
 ---
 
-## CURRENT STATE — CONFIRMED WORKING (v1.6.2)
+## CURRENT STATE — CONFIRMED WORKING (v1.7.0, 2026-06-16)
 
 - Firebase real-time sync — both phones live ✓
 - Core play loop: player types → AI responds → mechanics parse → state syncs ✓
 - Vite build (src/main.js + src/style.css → docs/) — deployed via GitHub Pages ✓
-- Mechanics block parser — 35+ handlers, flexible, catches variants ✓
+- Mechanics block parser — 35+ handlers, flexible, catches naked variants ✓
 - Canonical character sheets — Slasher L3, Tinkle L3, Pebble L3 (SAVE_VERSION 11) ✓
-- AI contracts — in `state.aiContracts{}`, Firebase-synced, Slasher security validated on every send ✓ (DR-6)
+- AI contracts — in `state.aiContracts{}`, Firebase-synced, Slasher security validated on every send ✓
 - 4-tab bottom nav — AI DM / Sheet / Logistics / Systems; composite drawers with subnav ✓
-- Full-screen chat layout — body flex column, tab-dm fills viewport; no content bleed ✓
+- Full-screen chat layout — body flex column, tab-dm fills viewport ✓
 - Context-aware quick bar — routes to narrative/OOC/party based on active chat tab ✓
 - 6-tab character sheet — Core/Skills/Combat/Spells/Gear/Features; lock/unlock; auto-lock on close ✓
 - HUD mosaic — PC tiles (HP/AC/conditions), Grit tile, Familiar (Pip) tile ✓
-- Quick Actions — bottom-sheet redesign, 2-col card grid, morphing FAB, custom icon ✓
+- Quick Actions — bottom-sheet, 2-col card grid, morphing FAB, custom icon ✓
 - Dice roller — character select, roll type, modifier, ±delta row, d4–d% grid ✓
 - Flag system — floating ⚑ FAB, 7 categories (incl. Idea), filter pills, 4-state verdict cycle ✓
-- spell_add mechanic — auto-populates spellbook from AI response ✓
-- Town Rep in Wagon tab ✓
-- Session tab — During/Between/Module sub-tabs ✓
-- Story Chronicle — chapter system, 📖 read mode ✓
-- Module tracker — Hoard of the Dragon Queen, 8 episodes ✓
-- OOC + Party chat — live ledger injected on every send; routes through unified quick bar ✓
-- Level-up wizard — Fighter/Rogue/Bard L2–L5 ✓
-- Quest + NPC dedup ✓
-- NPC list — sort active/departed/deceased, disposition color ✓
-- Quest list — sort active/failed/done, active count header ✓
-- Setup Wizard with campaignLaunched lock ✓
-- Scroll controls across all chat surfaces (↑ Top / ↓ Bottom on all 3 chat panes) ✓
+- World Consequence Engine — `state.consequences[]`, `consequence_add/resolve` mechanics, injected into buildPrompt() ✓
+- "Previously On…" — QA action, AI generates 2-sentence recap ✓
 - Rolling AI summary (summarizeAndPrune at 75 messages) ✓
 - AbortController + 25s timeout + free-model fallback in callAI() ✓
+- **Clutter pass (Session 9):** Conditions Reference collapsible, redundant labels removed, padding tightened, Town Rep collapsed by default ✓
 
 ---
 
@@ -72,55 +63,108 @@ Every UI decision is made for a phone screen in portrait mode, one-handed, mid-s
 
 1. AI compliance gap — AI narrates gold/NPC/item events but doesn't always emit mechanic lines. `detectUnloggedGold()` chip exists; NPC and item equivalents needed.
 2. Income/Expense log silent — consequence of #1
-3. NPC log silent — consequence of #1
-4. Skill bonus wrong — Character Editor displays incorrect skill bonus values (Flag #1)
-5. Dev notes per-note delete — copy works; individual note delete still missing (Flag #10 partial)
-6. Export pending-only flags — button not yet built (Flag #11)
+3. Skill bonus wrong — Character Editor displays incorrect skill bonus values
+4. Dev notes per-note delete — copy works; individual note delete missing
+5. Foraged items not populating in inventory — parser format check needed (Flag #3)
 
-**Architecture gaps:**
-- PDF/epub ingestion — not yet built; needed for book-driven play
-- Map system — not yet built; needed for spatial combat and exploration (Drop 4+)
-- World Consequence Engine — `state.consequences[]` planned; not yet built
-- Reputation Ripple — adjacent-town burn propagation; not yet built
+**UX issues (Session 9 — fix in UX Pass 2):**
+- Combat drawer: initiative tracker, rests, presets never used during play — collapse all by default
+- Active Scene: takes too much space, tone doesn't auto-update — collapse or remove
+- Grit profile in Wagon: always scrolled past — compress or remove, user checks via HUD tile
+- Party Shared Inventory: never used, confusing — remove from Wagon tab
+- NPC list: names cut off, no location/when-met context — redesign (tied to Location Journal)
+- 📜 Sheet button: should open character sheet directly (pending user confirmation)
 
 ---
 
-## ROAD TO DROP 4
+## ROAD TO DROP 4 (updated 2026-06-16)
 
-**Phase 2 — Road to Drop 4:**
+**Phase 2 — completed:**
 1. ✅ Polish pass — QA menu, flag system, dice roller, spell descriptions, context strip
 2. ✅ Character Sheet Rework — 6-tab digital sheet with lock/unlock
 3. ✅ DR-6: Contracts → state.aiContracts{} with Firebase sync + Slasher security validation
 4. ✅ Visual Redesign v2 — 4-tab bottom nav + composite drawers + stable layout
-5. World Consequence Engine — `state.consequences[]`, AI mechanics, injected into buildPrompt()
-6. Reputation Ripple + Con Scorecard + Previously-On + Contract Health Check
-7. AI compliance chips — detectUnloggedNPC() + detectUnloggedItem()
-8. Drop 4: Zone combat map (Option A — abstract zones first, image maps in Drop 5)
+5. ✅ World Consequence Engine — consequences[], AI mechanics, injected into buildPrompt()
+6. ✅ "Previously On…" — QA action
+7. ✅ Flag system quick wins — categories, filter pills, verdict cycle, export
+8. ✅ Clean without clutter pass — Session 9
 
-**PDF/epub Book Ingestion (parallel track):**
+**Phase 2 — remaining:**
+9. UX Pass 2 — Combat drawer collapse, Active Scene, Grit, Party Inventory, NPC redesign, Sheet button
+10. AI Contract Health Check — "Verify Contracts" button
+11. Reputation Ripple — burned town propagation to adjacent towns
+12. **Location Journal v1** — `state.locations[]`, list UI, AI mechanics (see below)
+13. Drop 4: Zone combat map (paused — integrating with Location Journal/Chronicle View architecture)
+
+---
+
+## THE CHRONICLE VIEW (Long-range Vision)
+
+**What it is:** A unified world-state view that replaces the current fragmented panels (Active Scene, Environment, NPC list, Travel Log, Town Rep, World Consequences) with a single spatial + temporal journal of the campaign world.
+
+**Build strategy:** Build new features first, remove old panels after. Each new feature earns the right to delete what it replaces. The app gets cleaner as it gets more capable.
+
+**What gets absorbed:**
+- Location Journal absorbs: Active Scene, Environment, Town Reputation, NPC list, Travel Log
+- Chronicle View (with map) absorbs: above + World Consequences, Quest Log
+- Result: Logistics drawer collapses from 3 dense tabs → 2 clean ones (Chronicle / Cargo)
+
+**Drop sequence:**
+- Location Journal v1 (data + list UI) → Phase 2 item 12, next session
+- Drop 4: Zone Combat Map (Combat scale — unchanged)
+- Drop 5: Area Map renderer sits on top of Location Journal data (location nodes → map pins)
+- Drop 5 also: single-layer fog of war, spell effect overlays (circle/cone/line), pre-combat token placement
+- Drop 6: Player/DM toggle becomes real Firebase-synced split (Chronicle View public layer)
+- Drop 7: Freehand drawing layer, auto grid detection
+
+**Visual direction for Location Journal (decision pending — choose at start of next session):**
+- A: Journey Timeline — vertical nodes connected by route line (travel log as visual spine)
+- B: Location Switcher — horizontal carousel, swipe between cities like passport pages
+- C: Node Map — abstract circles connected by lines, tap node → file slides up ← **recommended** (zero rework when Drop 5 adds image renderer)
+
+---
+
+## LOCATION JOURNAL — DATA MODEL
+
+```js
+state.locations = [{
+  id: 'loc_greenest',
+  name: 'Greenest',
+  type: 'town',           // town|city|camp|ruin|dungeon|waypoint
+  status: 'visited',      // current|visited|known|unknown
+  firstVisited: 'Day 1, 9:00 AM',
+  lastVisited: 'Day 3, 2:00 PM',
+  rep: { disposition: 'Friendly', notes: '' },
+  npcs: [],               // NPC names now → IDs when NPC system gets IDs
+  investments: [{ desc:'Mill stake', amount:50, startDay:'Day 1', notes:'' }],
+  history: [{ ts:'Day 1', text:'Dragon attack', dmOnly:false }],
+  dmNotes: '',
+  playerNotes: '',
+  mapPos: null            // {x,y} — null until Drop 5 places the pin
+}]
+```
+
+**AI mechanics to add:** `location_add:`, `location_visit:`, `location_history:`, `location_investment:`
+
+---
+
+## VTT DROPS (updated 2026-06-16)
+
+- **Drop 4** — Zone combat map. 6 spatial zones (Frontline/Backline/Left/Right/Air/Rear). Replaces Combat tab entirely. Do NOT refactor Combat tab before this. Paused pending Location Journal architecture decisions.
+- **Drop 5** — Image maps + token overlay. CSS: position:relative map + position:absolute tokens. Store `{row,col}` in state, derive pixels from calibrated grid. Two-tap calibration (handles untrimmed maps). **Also:** single-layer fog (2D boolean grid, tap to toggle), spell effect overlays (SVG circle/cone/line keyed to grid size), pre-combat token placement. Firebase Storage for image URLs.
+- **Drop 6** — Player View. Firebase `/session/playerView`. Chronicle View public layer synced here. Requires state visibility split (already designed).
+- **Drop 7** — Full VTT layer: freehand drawing (canvas overlay), auto grid detection, fog room reveals, handout/image cards.
+
+---
+
+## PDF/epub Book Ingestion (parallel track)
+
 - Browser FileReader API + PDF.js (client-side text extraction)
 - epub.js for epub parsing
 - Auto-chunk by chapter/heading; user tags chunks as rules/lore/module_scene/npc_roster/map
 - Stored in state.bookChunks[] synced via Firebase
 - Inject via _ctxInject on demand or auto-inject on scene entry
 - Map images extractable from PDF chunks → feeds directly into Drop 5 image maps
-
----
-
-## VTT DROPS
-
-- **Drop 4** — Zone combat map. 6 spatial zones (Frontline/Backline/Left/Right/Air/Rear). Replaces Combat tab entirely. Do NOT refactor Combat tab before this.
-- **Drop 5** — Shared dice feed. Firebase-wired. Header 🎲 becomes the entry point.
-- **Drop 6** — Player View. Firebase `/session/playerView`. Requires state visibility split (already designed).
-- **Drop 7** — Handout/image cards. Additive to Drop 6.
-
----
-
-## PARALLEL BUILD — FULL VTT (New Project)
-
-A separate multi-file app is being built in parallel using the Prime Directive as its founding document. Built on Vite from day one, proper component structure. Targets the same Firebase project so all canon game data (characters, quests, session history) carries over when ready.
-
-Tinkle's Tinctures remains the active session tool until the new app reaches feature parity.
 
 ---
 
@@ -150,7 +194,9 @@ The AI contracts are not suggestions. They exist because:
 - The AI narrated gold transactions and NPC introductions without calling state functions
 - The AI duplicated NPCs instead of updating existing records
 - Context Refresh and Re-sync were routing to OOC instead of the main narrative AI
-- OOC and Party channels had no contract — AI answered stale/multi-topic questions and had no secret protection
+- The AI revealed dungeon secrets before players discovered them (→ DUNGEON SECRETS clause)
+- The AI progressed scenes without asking players first (→ PLAYER AGENCY clause)
+- The AI skipped skill checks (→ SKILL CHECKS clause)
 
 Every contract addition is a rule the AI violated in actual play. The contracts are a growing record of the AI's failure modes, patched one session at a time.
 
@@ -158,4 +204,4 @@ Every contract addition is a rule the AI violated in actual play. The contracts 
 
 ## THE GOAL
 
-A session terminal so complete that opening a browser is all that's needed. The wagon is loaded. Grit is hitched. The contracts are signed. Drop 4 puts the party on the map.
+A session terminal so complete that opening a browser is all that's needed. The wagon is loaded. Grit is hitched. The contracts are signed. The Chronicle View puts the party in their world. Drop 4 puts them on the map.
