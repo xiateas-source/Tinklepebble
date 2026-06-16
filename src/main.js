@@ -3752,6 +3752,11 @@ function scrollActiveChatBottom(){
   const el=document.getElementById(ids[_activeTab]||'chat-msgs');
   if(el)el.scrollTop=el.scrollHeight;
 }
+function scrollActiveChatTop(){
+  const ids={narrative:'chat-msgs',ooc:'ooc-msgs',party:'party-msgs'};
+  const el=document.getElementById(ids[_activeTab]||'chat-msgs');
+  if(el)el.scrollTop=0;
+}
 function showChatTab(tab){
   _activeTab=tab;
   ['narrative','ooc','party'].forEach(t=>{
@@ -6677,5 +6682,5 @@ Object.assign(window, {
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, copyContracts,
-  navToast, scrollActiveChatBottom,
+  navToast, scrollActiveChatBottom, scrollActiveChatTop,
 });
