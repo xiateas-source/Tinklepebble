@@ -784,6 +784,26 @@ function copyContracts(){
   });
   copyText(out,'✓ Contracts copied');
 }
+function verifyContracts(){
+  const c=state.aiContracts||{};
+  const persona=c.persona||'';const never=c.never||'';
+  const checks=[
+    [!!persona.trim(),'① DM Persona is non-empty'],
+    [persona.includes('He does not know the operation is a con'),'① Slasher con-protection clause present'],
+    [persona.includes('Never tell him'),'① "Never tell him" present in Persona'],
+    [!!(c.never||'').trim(),'② What You Never Do is non-empty'],
+    [never.includes('DUNGEON SECRETS'),'② DUNGEON SECRETS clause present'],
+    [never.includes('PLAYER AGENCY'),'② PLAYER AGENCY clause present'],
+    [never.includes('SKILL CHECKS'),'② SKILL CHECKS clause present'],
+    [!!(c.actions||'').trim(),'③ Actions contract non-empty'],
+    [!!(c.continuity||'').trim(),'④ Continuity contract non-empty'],
+    [!!(c.multi||'').trim(),'⑤ Multi-Player contract non-empty'],
+  ];
+  const fails=checks.filter(([ok])=>!ok);
+  if(!fails.length){toast('✅ All contracts verified — '+checks.length+' checks passed','green',4000);return;}
+  const msg='⚠ Contract issues:\n'+fails.map(([,lbl])=>'• '+lbl).join('\n');
+  alert(msg);
+}
 
 // ═══ ESC HTML ═══
 function esc(s){if(typeof s!=='string')return String(s||'');return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
@@ -3393,13 +3413,20 @@ function parseMechanics(responseText, pendingMsgId=null){
         changes.push({text:key.toUpperCase()+'→'+td[key]});
       }else if(key==='item_add'){
         const pts=val.split(',').map(p=>p.trim());
-        const tgt=pts[0]?.toLowerCase();const nm=pts[1]||'Item';const qty=parseInt(pts[2])||1;const type=pts[3]||'misc';const weight=parseFloat(pts[4])||0;
-        const item={name:nm,qty,weight,type,notes:'',ts:state.worldData.time,location:state.worldData.location};
-        const stackOrAdd=(list)=>{const ex=list.find(i=>i.name.toLowerCase()===nm.toLowerCase());if(ex){ex.qty=(ex.qty||1)+qty;return true;}list.push(item);return false;};
-        if(tgt==='wagon'||tgt==='cargo'){if(!state.wagon.cargo)state.wagon.cargo=[];const stacked=stackOrAdd(state.wagon.cargo);changes.push({text:(stacked?nm+' ×+'+qty:'+'+nm)+' → wagon'});}
-        else if(tgt==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];const stacked=stackOrAdd(state.wagon.hoard);changes.push({text:(stacked?nm+' ×+'+qty:'+'+nm)+' → hoard'});}
-        else if(tgt==='party'){if(!state.partyInventory)state.partyInventory=[];const stacked=stackOrAdd(state.partyInventory);changes.push({text:(stacked?nm+' ×+'+qty:'+'+nm)+' → party'});}
-        else{const pc=findPC(tgt);if(pc){if(!pc.inventory)pc.inventory=[];const stacked=stackOrAdd(pc.inventory);changes.push({text:(stacked?nm+' ×+'+qty:'+'+nm)+' → '+pc.name});}}
+        const KNOWN_TGTS=['wagon','cargo','hoard','party'];
+        // Detect if first token is a known target or PC name; fall back to wagon
+        const firstLower=pts[0]?.toLowerCase()||'';
+        const hasTarget=KNOWN_TGTS.includes(firstLower)||!!findPC(pts[0]);
+        const tgt=hasTarget?firstLower:'wagon';
+        const base=hasTarget?1:0; // offset: skip target token when present
+        const iname=pts[base]||'Item';const iqty=parseInt(pts[base+1])||1;const itype=pts[base+2]||'misc';const iweight=parseFloat(pts[base+3])||0;
+        const item={name:iname,qty:iqty,weight:iweight,type:itype,notes:'',ts:state.worldData.time,location:state.worldData.location};
+        const stackOrAdd=(list)=>{const ex=list.find(i=>i.name.toLowerCase()===iname.toLowerCase());if(ex){ex.qty=(ex.qty||1)+iqty;return true;}list.push(item);return false;};
+        if(tgt==='wagon'||tgt==='cargo'){if(!state.wagon.cargo)state.wagon.cargo=[];const stacked=stackOrAdd(state.wagon.cargo);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → wagon'});}
+        else if(tgt==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];const stacked=stackOrAdd(state.wagon.hoard);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → hoard'});}
+        else if(tgt==='party'){if(!state.partyInventory)state.partyInventory=[];const stacked=stackOrAdd(state.partyInventory);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → party'});}
+        else{const pc=findPC(tgt);if(pc){if(!pc.inventory)pc.inventory=[];const stacked=stackOrAdd(pc.inventory);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → '+pc.name});}
+        else{if(!state.wagon.cargo)state.wagon.cargo=[];const stacked=stackOrAdd(state.wagon.cargo);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → wagon'});}}
       }else if(key==='item_remove'){
         const pts=val.split(',').map(p=>p.trim());const tgt=pts[0]?.toLowerCase();const nm=pts[1]||'';const qty=parseInt(pts[2])||1;
         const remFrom=(list,n)=>{const i=list.findIndex(item=>item.name.toLowerCase()===n.toLowerCase());if(i>-1){list[i].qty-=qty;if(list[i].qty<=0)list.splice(i,1);return true;}return false;};
@@ -5550,6 +5577,7 @@ function editFlagNote(id){
     '<div style="display:flex;gap:6px;margin-top:4px">'+
       '<button class="btn sm green" onclick="saveEditedNote(\''+id+'\')">Save</button>'+
       '<button class="btn sm" onclick="renderErrorLog()">Cancel</button>'+
+      (f.note?'<button class="btn sm red" style="margin-left:auto" onclick="clearFlagNote(\''+id+'\')">Clear Note</button>':'')+
     '</div></div>';
   const actRow=card.querySelector('[data-flag-actions]');
   if(actRow)actRow.insertAdjacentHTML('beforebegin',editEl);
@@ -5563,6 +5591,10 @@ function saveEditedNote(id){
   f.note=ta.value.trim();
   save();renderErrorLog();
   toast('✓ Note saved');
+}
+function clearFlagNote(id){
+  const f=(state.errorLog||[]).find(f=>f.id===id);if(!f)return;
+  f.note='';save();renderErrorLog();toast('Note cleared');
 }
 
 function renderErrorLog(){
@@ -7159,6 +7191,7 @@ Object.assign(window, {
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
   setLocStatus, deleteLocation,
   openSheetPicker,
+  verifyContracts, clearFlagNote,
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
