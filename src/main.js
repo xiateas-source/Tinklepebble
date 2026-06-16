@@ -155,6 +155,18 @@ function fbLoadKeys(){
   });
 }
 
+function _chatMsgKey(m){return m.msgId||(m.content||'').slice(0,80);}
+function _mergeChatHistories(local,remote){
+  if(!remote.length)return local;
+  if(!local.length)return remote;
+  var longer=remote.length>=local.length?remote:local;
+  var shorter=remote.length>=local.length?local:remote;
+  var sk=_chatMsgKey(shorter[shorter.length-1]);
+  for(var i=longer.length-1;i>=Math.max(0,longer.length-15);i--){
+    if(_chatMsgKey(longer[i])===sk)return longer;
+  }
+  return local;
+}
 function fbStartListening(){
   if(fbListening||!fbRef)return;
   fbListening=true;
@@ -165,25 +177,24 @@ function fbStartListening(){
       var remoteTs=remote._ts||0;
       var localTs=state._ts||0;
       if(Date.now()-fbLastWrite<3000)return;
-      if(remoteTs<=localTs)return;
-      delete remote._ts;delete remote._device;
-      migrate(remote);
-      // Guard: never let remote overwrite local chatHistory if local's latest
-      // message is missing from remote (prevents vanishing-message race condition
-      // when two devices write concurrently with clock skew).
+      // Chat merge (clock-independent): always keep the longest chat that
+      // contains all of our messages.  Messages are append-only, so the
+      // longer array is the more complete one.
       var localChat=state.chatHistory||[];
       var remoteChat=remote.chatHistory||[];
-      if(localChat.length>0){
-        var ll=localChat[localChat.length-1];
-        var llId=ll.msgId||null;
-        var llContent=(ll.content||'').slice(0,80);
-        var found=false;
-        for(var ri=remoteChat.length-1;ri>=Math.max(0,remoteChat.length-10);ri--){
-          var rm=remoteChat[ri];
-          if((llId&&rm.msgId===llId)||(llContent&&(rm.content||'').slice(0,80)===llContent)){found=true;break;}
+      var chatMerged=_mergeChatHistories(localChat,remoteChat);
+      // Even when remote timestamp is stale, pick up new chat messages
+      if(remoteTs<=localTs){
+        if(chatMerged.length>localChat.length){
+          state.chatHistory=chatMerged;
+          try{localStorage.setItem('tt_v1',JSON.stringify(state));}catch(e){}
+          renderChat();
         }
-        if(!found)remote.chatHistory=localChat;
+        return;
       }
+      delete remote._ts;delete remote._device;
+      migrate(remote);
+      remote.chatHistory=chatMerged;
       // Only merge static identity fields — migrate() owns all level-dependent fields.
       // getCanonicalPCs() reads from current state.pcs which may be demo/Level-1 data on a
       // fresh device, so including hp_max/slots/features/etc here causes them to be clobbered.
