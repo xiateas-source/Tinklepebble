@@ -2596,14 +2596,20 @@ function recalibrateModule(){
   const epNames=eps.map((e,i)=>'Ep '+(i+1)+': '+e.name).join('\n');
   if(!confirm('⚠️ RECALIBRATE CAMPAIGN\n\nThis will:\n• Reset all episodes to Pending, set Episode 1 to Active\n• Archive current chat to sessionArchive\n• Clear chat history and session summary\n• Inject a fresh Episode 1 opening context\n\nYour characters, gear, wagon, and inventory are kept.\n\nProceed?'))return;
 
-  // Archive current chat before clearing
+  // Archive current chat before clearing — save full message content
   if((state.chatHistory||[]).length>5){
     if(!Array.isArray(state.sessionArchive))state.sessionArchive=[];
+    const msgs=state.chatHistory||[];
+    const fullLog=msgs.map(m=>{
+      const role=m.role==='assistant'?'DM':m.role==='user'?'PLAYER':'SYSTEM';
+      const who=m.playerChar?' ('+m.playerChar+')':m.playerName?' ('+m.playerName+')':'';
+      return '['+(m.ts||'')+'] '+role+who+': '+(m.content||'').slice(0,500);
+    }).join('\n\n');
     const archiveEntry={
       ts:new Date().toISOString(),
-      label:'Pre-recalibration archive',
-      messages:(state.chatHistory||[]).length,
-      summary:'Chat history archived before module recalibration. Previous narrative was non-canonical.'
+      label:'Pre-recalibration archive ('+msgs.length+' messages)',
+      messages:msgs.length,
+      summary:'FULL CHAT LOG BEFORE RECALIBRATION:\n\n'+fullLog
     };
     state.sessionArchive.push(archiveEntry);
     if(state.sessionArchive.length>50)state.sessionArchive=state.sessionArchive.slice(-50);
