@@ -29,7 +29,11 @@ Before ending any session:
    - **Next up** — what the user indicated they want next, or logical next steps
    - **Branch state** — current branch name, whether it's ahead of main, last commit hash
 7. Commit and push the `.claude/` file updates
-8. **Start a new chat for the next session** — do not continue in the same chat across work sessions
+8. **Merge `.claude/` updates to main** — doc files must ALWAYS be on main so the next session reads current info regardless of which branch it starts on. Do this even if code changes haven't been merged yet: `git checkout main && git merge <branch> && git push origin main && git checkout <branch>`
+9. **Start a new chat for the next session** — do not continue in the same chat across work sessions
+
+## Deployment Rule
+When code is merged to main (user says "make it live"), always merge `.claude/` doc updates in the same operation. Never leave doc updates stranded on the feature branch — a new session that starts from main will read stale docs and waste tokens on outdated context.
 
 ## Token Management
 - Open a new chat at the start of every work session (even same day)
