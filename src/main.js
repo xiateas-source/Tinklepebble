@@ -950,7 +950,6 @@ function renderPcInv(idx){
 
 // ═══ EDIT SHEETS ═══
 var _pcSheetTab=0;
-var _piFilter='all';
 function setSheetTab(n){_pcSheetTab=n;renderSheets();}
 function renderSheets(){
   const c=document.getElementById('edit-sheets');if(!c)return;c.innerHTML='';
@@ -1387,34 +1386,62 @@ function resolveConsequence(id){
 }
 
 // ═══ PARTY INVENTORY ═══
+let _piFilter='all';
+let _piEditIdx=null;
 function renderPartyInv(){
   const c=document.getElementById('party-inv');if(!c)return;c.innerHTML='';
   const all=state.partyInventory||[];
-  const filters=['all','supply','loot','trade','ingredient','misc'];
+  const TYPE_ICON={supply:'📦',foraged:'🌿',ingredient:'⚗',trade:'💰',loot:'✨',hoard:'💎',misc:'📋',key:'🗝'};
+  const groups={};
+  all.forEach((item,idx)=>{const t=item.type||'misc';if(!groups[t])groups[t]=[];groups[t].push({item,idx});});
+  const filters=['all',...ITYPES.filter(t=>groups[t])];
   const bar=document.createElement('div');
-  bar.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px';
+  bar.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px';
   filters.forEach(f=>{
+    const cnt=f==='all'?all.length:(groups[f]||[]).length;
     const b=document.createElement('button');
-    b.textContent=f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1);
+    b.textContent=(f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1))+' '+cnt;
     b.style.cssText=`font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid ${_piFilter===f?'var(--gold)':'var(--border)'};background:${_piFilter===f?'var(--gold-dim)':'none'};color:${_piFilter===f?'var(--gold-bright)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans)`;
     b.onclick=()=>{_piFilter=f;renderPartyInv();};
     bar.appendChild(b);
   });
   c.appendChild(bar);
-  const piTypeMatch=(t,filter)=>{if(filter==='all')return true;if(!t)return false;return t.split(',').map(s=>s.trim()).includes(filter);};
-  const visible=_piFilter==='all'?all:all.filter(i=>piTypeMatch(i.type,_piFilter));
-  if(!visible.length){const e=document.createElement('div');e.style.cssText='color:var(--text-dim);font-size:11px;padding:6px 0';e.textContent=_piFilter==='all'?'No party items. Tap + Add Item.':'No '+_piFilter+' items.';c.appendChild(e);return;}
-  visible.forEach(item=>{
-    const idx=all.indexOf(item);
-    const d=document.createElement('div');
-    d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:8px 10px;margin-bottom:6px';
-    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updPI(${idx},'name',this.value)"><button class="btn sm red icon-btn" onclick="remPI(${idx})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updPI(${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updPI(${idx},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updPI(${idx},'weight',parseFloat(this.value)||0)"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:60px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updPI(${idx},'notes',this.value)"></div>`;
-    c.appendChild(d);
+  const visibleGroups=_piFilter==='all'?Object.keys(groups).sort():groups[_piFilter]?[_piFilter]:[];
+  if(!visibleGroups.length){const e=document.createElement('div');e.style.cssText='color:var(--text-dim);font-size:11px;padding:6px 0';e.textContent=_piFilter==='all'?'No party items. Tap + Add Item.':'No '+_piFilter+' items.';c.appendChild(e);return;}
+  visibleGroups.forEach(type=>{
+    const items=groups[type]||[];if(!items.length)return;
+    const sec=document.createElement('div');sec.style.cssText='margin-bottom:8px';
+    if(_piFilter==='all'&&visibleGroups.length>1){
+      const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;padding:4px 0 3px';
+      hdr.textContent=(TYPE_ICON[type]||'')+' '+type;sec.appendChild(hdr);
+    }
+    const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-wrap:wrap;gap:4px';
+    items.forEach(({item,idx})=>{
+      const isEdit=_piEditIdx===idx;
+      const chip=document.createElement('div');
+      if(isEdit){
+        chip.style.cssText='background:var(--surface2);border:1px solid var(--gold);border-radius:6px;padding:6px 8px;width:100%';
+        chip.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:12px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updPI(${idx},'name',this.value)"><button class="btn sm" onclick="closeInvEdit()" style="font-size:10px;padding:2px 6px">✓</button><button class="btn sm red" onclick="remPI(${idx})" style="font-size:10px;padding:2px 6px">✕</button></div>`
+          +`<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updPI(${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:10px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updPI(${idx},'qty',parseInt(this.value)||1)"><span style="font-size:10px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" onchange="updPI(${idx},'weight',parseFloat(this.value)||0)"><span style="font-size:9px;color:var(--text-dim)">lb</span></div>`
+          +`<input type="text" value="${esc(item.notes||'')}" style="width:100%;font-size:11px;color:var(--text-dim);margin-top:4px;background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0" placeholder="notes…" onchange="updPI(${idx},'notes',this.value)">`;
+      }else{
+        const name=item.name||'(unnamed)';
+        const truncName=name.length>18?name.slice(0,17)+'…':name;
+        const qtyBadge=item.qty>1?'<span style="font-size:9px;color:var(--gold);font-weight:700;margin-left:2px">×'+item.qty+'</span>':'';
+        chip.style.cssText='display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--text-bright);background:var(--surface2);cursor:pointer;max-width:100%;transition:border-color .15s';
+        chip.title=name+(item.notes?' — '+item.notes:'');
+        chip.onclick=()=>{_piEditIdx=idx;renderPartyInv();};
+        chip.innerHTML=truncName+qtyBadge;
+      }
+      wrap.appendChild(chip);
+    });
+    sec.appendChild(wrap);c.appendChild(sec);
   });
 }
-function addPartyItem(){if(!state.partyInventory)state.partyInventory=[];state.partyInventory.push({name:'',qty:1,weight:0,type:'supply',notes:''});save();renderPartyInv();}
+function closeInvEdit(){_piEditIdx=null;renderPartyInv();}
+function addPartyItem(){if(!state.partyInventory)state.partyInventory=[];state.partyInventory.push({name:'',qty:1,weight:0,type:'supply',notes:''});_piEditIdx=state.partyInventory.length-1;save();renderPartyInv();}
 function updPI(i,k,v){state.partyInventory[i][k]=v;save();}
-function remPI(i){state.partyInventory.splice(i,1);save();renderPartyInv();}
+function remPI(i){state.partyInventory.splice(i,1);_piEditIdx=null;save();renderPartyInv();}
 
 // ═══ INCOME LOG ═══
 function renderIncome(){
@@ -3787,13 +3814,15 @@ function parseMechanics(responseText, pendingMsgId=null){
         const tgt=hasTarget?firstLower:'wagon';
         const base=hasTarget?1:0; // offset: skip target token when present
         const iname=pts[base]||'Item';const iqty=parseInt(pts[base+1])||1;const itype=pts[base+2]||'misc';const iweight=parseFloat(pts[base+3])||0;
-        const item={name:iname,qty:iqty,weight:iweight,type:itype,notes:'',ts:state.worldData.time,location:state.worldData.location};
-        const stackOrAdd=(list)=>{const ex=list.find(i=>i.name.toLowerCase()===iname.toLowerCase());if(ex){ex.qty=(ex.qty||1)+iqty;return true;}list.push(item);return false;};
-        if(tgt==='wagon'||tgt==='cargo'){if(!state.wagon.cargo)state.wagon.cargo=[];const stacked=stackOrAdd(state.wagon.cargo);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → wagon'});}
-        else if(tgt==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];const stacked=stackOrAdd(state.wagon.hoard);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → hoard'});}
-        else if(tgt==='party'){if(!state.partyInventory)state.partyInventory=[];const stacked=stackOrAdd(state.partyInventory);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → party'});}
-        else{const pc=findPC(tgt);if(pc){if(!pc.inventory)pc.inventory=[];const stacked=stackOrAdd(pc.inventory);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → '+pc.name});}
-        else{if(!state.wagon.cargo)state.wagon.cargo=[];const stacked=stackOrAdd(state.wagon.cargo);changes.push({text:(stacked?iname+' ×+'+iqty:'+'+iname)+' → wagon'});}}
+        const item={name:iname,qty:iqty,weight:iweight,type:itype,notes:'',ts:state.worldData?.time,location:state.worldData?.location};
+        const _fuzzyMatch=(a,b)=>{const al=a.toLowerCase().replace(/\s+/g,''),bl=b.toLowerCase().replace(/\s+/g,'');if(al===bl)return true;if(al.includes(bl)||bl.includes(al))return true;const s=al.length>bl.length?al:bl,t=al.length>bl.length?bl:al;let d=0;for(let i=0;i<s.length;i++){if(s[i]!==t[i])d++;if(d>2)return false;}return d<=1;};
+        const stackOrAdd=(list)=>{const ex=list.find(i=>_fuzzyMatch(i.name,iname));if(ex){ex.qty=(ex.qty||1)+iqty;return ex.name;}list.push(item);return false;};
+        const _itemMsg=(s,dest)=>s?(s+' ×+'+iqty+' → '+dest):('+'+iname+' → '+dest);
+        if(tgt==='wagon'||tgt==='cargo'){if(!state.wagon.cargo)state.wagon.cargo=[];changes.push({text:_itemMsg(stackOrAdd(state.wagon.cargo),'wagon')});}
+        else if(tgt==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];changes.push({text:_itemMsg(stackOrAdd(state.wagon.hoard),'hoard')});}
+        else if(tgt==='party'){if(!state.partyInventory)state.partyInventory=[];changes.push({text:_itemMsg(stackOrAdd(state.partyInventory),'party')});}
+        else{const pc=findPC(tgt);if(pc){if(!pc.inventory)pc.inventory=[];changes.push({text:_itemMsg(stackOrAdd(pc.inventory),pc.name)});}
+        else{if(!state.wagon.cargo)state.wagon.cargo=[];changes.push({text:_itemMsg(stackOrAdd(state.wagon.cargo),'wagon')});}}
       }else if(key==='item_remove'){
         const pts=val.split(',').map(p=>p.trim());const tgt=pts[0]?.toLowerCase();const nm=pts[1]||'';const qty=parseInt(pts[2])||1;
         const remFrom=(list,n)=>{const i=list.findIndex(item=>item.name.toLowerCase()===n.toLowerCase());if(i>-1){list[i].qty-=qty;if(list[i].qty<=0)list.splice(i,1);return true;}return false;};
@@ -7991,7 +8020,7 @@ Object.assign(window, {
   updResource, updScene, updSecret, updSlot, updSnip, updSpell, updTown,
   updWItem, updateCpMode, updateRollMod, updateStateFixForm, updateStoryThread,
   useResource, verifyElKey, renderSceneLabel, renderPartyPCList, toggleSkillProf,
-  sendRollToChat, addPartyItem, remPI, updPI,
+  sendRollToChat, addPartyItem, remPI, updPI, closeInvEdit,
   showTermTip, rollStatCheck, rollInitiative,
   _expandedMsgs, setSpellFilter,
   renderStepBar, setHpStep,
