@@ -4538,14 +4538,18 @@ const SUGGEST_CHIPS={
     {label:'I attack',fill:'I attack '},
     {label:'What do I see?',fill:'I take a moment to observe my surroundings. What do I notice?'},
     {label:'Short rest',fill:'We take a short rest.'},
-    {label:'// quick note',fill:'// '},
+    {label:'// note',fill:'// '},
+    {label:'// flag',fill:'//flag 20 '},
+    {label:'// add item',fill:'//add item '},
+    {label:'// help',fill:'//help'},
   ],
   ooc:[
     {label:'How does this work?',fill:'How does '},
     {label:'What are the rules for…',fill:'What are the rules for '},
     {label:'Spell save DC?',fill:'What is my spell save DC and how is it calculated?'},
     {label:'Can I do this?',fill:'Can I use my bonus action to '},
-    {label:'// quick note',fill:'// '},
+    {label:'// note',fill:'// '},
+    {label:'// flag',fill:'//flag 20 '},
   ],
   party:[
     {label:'Should we rest?',fill:'Should we take a short or long rest?'},
@@ -7903,21 +7907,111 @@ function switchSystemsTab(sub){
   renderQAMenu();setTimeout(injectPanelFlags,150);
 }
 
+function _handleSlashCmd(raw){
+  if(!raw)return;
+  const lower=raw.toLowerCase();
+  const ts=state.worldData?.time||'';
+  const loc=state.worldData?.location||'';
+  const stamp='['+loc+(ts?' · '+ts:'')+']';
+
+  // //flag [N] reason — export last N messages with a reason
+  const flagMatch=lower.match(/^flag\s+(?:last\s+)?(\d+)?\s*(.*)/);
+  if(lower.startsWith('flag')){
+    const n=flagMatch&&flagMatch[1]?parseInt(flagMatch[1]):20;
+    const reason=flagMatch&&flagMatch[2]?flagMatch[2].trim():raw.slice(4).trim();
+    const msgs=state.chatHistory||[];
+    const slice=msgs.slice(-n);
+    let log='=== TINKLE\'S TINCTURES — FLAGGED RANGE ===\n';
+    log+='Exported: '+new Date().toISOString().slice(0,16)+'\n';
+    log+='Reason: '+(reason||'(not specified)')+'\n';
+    log+='Range: last '+n+' messages (of '+msgs.length+' total)\n';
+    log+='Location: '+loc+'\n';
+    log+='PCs: '+(state.pcs||[]).map(p=>p.name+' ('+p.class+' '+p.level+', '+p.hp+'/'+p.hp_max+' HP)').join(', ')+'\n\n';
+    log+='--- CHAT LOG ---\n\n';
+    slice.forEach(m=>{
+      const role=m.role==='assistant'?'DM':m.role==='user'?'PLAYER':'SYSTEM';
+      const who=m.playerChar?' ('+m.playerChar+')':m.playerName?' ('+m.playerName+')':'';
+      const content=(m.content||'').replace(/\n{3,}/g,'\n\n').trim();
+      if(!content)return;
+      log+='['+(m.ts||'')+'] '+role+who+':\n'+content+'\n\n';
+    });
+    log+='--- PROMPT FOR DEV ---\n';
+    log+='The player flagged this range for review.\nReason: '+(reason||'(not specified)')+'\n';
+    log+='Cross-reference against .claude/roadmap.md and .claude/features.md.\n';
+    log+='Analyze what went wrong, whether a fix exists, and what to change.\n';
+    copyText(log,'✓ Flagged '+n+' messages — paste to dev');
+    state.sessionNotes=(state.sessionNotes||'')+'\n'+stamp+' [FLAG] '+reason;
+    save();
+    toast('🚩 '+n+' messages flagged — copied to clipboard');
+    return;
+  }
+
+  // //add item "name" or //add item name — add to party inventory
+  const addMatch=raw.match(/^add\s+(?:item\s+)?[""]?(.+?)[""]?\s*(?:to\s+(?:inventory|inv|cargo|hoard))?\s*$/i);
+  if(lower.startsWith('add')&&addMatch){
+    const itemName=addMatch[1].trim();
+    if(!itemName)return;
+    const target=lower.includes('cargo')?'cargo':lower.includes('hoard')?'hoard':'inv';
+    if(target==='cargo'){
+      if(!state.wagon)state.wagon={};
+      if(!state.wagon.cargo)state.wagon.cargo=[];
+      state.wagon.cargo.push({name:itemName,qty:1,weight:0,type:'loot',notes:'',ts:state.worldData?.time||''});
+    }else if(target==='hoard'){
+      if(!state.wagon)state.wagon={};
+      if(!state.wagon.hoard)state.wagon.hoard=[];
+      state.wagon.hoard.push({name:itemName,qty:1,weight:0,type:'treasure',notes:'',ts:state.worldData?.time||''});
+    }else{
+      if(!state.partyInventory)state.partyInventory=[];
+      state.partyInventory.push({name:itemName,qty:1,weight:0,type:'loot',notes:''});
+    }
+    save();renderAll();
+    toast('📦 Added: '+itemName);
+    return;
+  }
+
+  // //hp +N or //hp -N — adjust active PC HP
+  const hpMatch=raw.match(/^hp\s*([+-]?\d+)/i);
+  if(hpMatch){
+    const delta=parseInt(hpMatch[1]);
+    const pc=state.pcs?.find(p=>p.name?.toLowerCase()===playerChar?.toLowerCase())||state.pcs?.[0];
+    if(pc){
+      pc.hp=Math.max(0,Math.min(pc.hp_max,(pc.hp||0)+delta));
+      save();renderAll();
+      toast((delta>0?'💚 +':'❤️ ')+delta+' HP → '+pc.name+' now at '+pc.hp+'/'+pc.hp_max);
+    }
+    return;
+  }
+
+  // //gold +N or //gold -N — adjust treasury
+  const goldMatch=raw.match(/^gold\s*([+-]?\d+)/i);
+  if(goldMatch){
+    const delta=parseInt(goldMatch[1]);
+    if(!state.treasuryData)state.treasuryData={};
+    state.treasuryData.gp=(parseFloat(state.treasuryData.gp)||0)+delta;
+    save();renderAll();
+    toast((delta>0?'💰 +':'💰 ')+delta+' gp → '+state.treasuryData.gp+' gp total');
+    return;
+  }
+
+  // //help — show available commands
+  if(lower==='help'||lower==='?'||lower==='commands'){
+    toast('// note · //flag N reason · //add item · //hp ±N · //gold ±N',5000);
+    return;
+  }
+
+  // Default: plain dev note
+  state.sessionNotes=(state.sessionNotes||'')+'\n'+stamp+' '+raw;
+  save();
+  toast('📝 Note logged');
+}
 function sendMsgQuick(){
   const qi=document.getElementById('chat-quick-input');
   if(!qi)return;
   const val=qi.value.trim();
   if(!val)return;
   if(val.startsWith('//')){
-    const note=val.slice(2).trim();
-    if(!note){qi.value='';return;}
-    const ts=state.worldData?.time||'';
-    const loc=state.worldData?.location||'';
-    const stamp='['+loc+(ts?' · '+ts:'')+']';
-    state.sessionNotes=(state.sessionNotes||'')+'\n'+stamp+' '+note;
-    save();
     qi.value='';
-    toast('📝 Note logged');
+    _handleSlashCmd(val.slice(2).trim());
     return;
   }
   const activeBtn=document.querySelector('.chat-tab-btn.active');
