@@ -2800,6 +2800,7 @@ function saveSetupPC(idx){
   toast('✓ '+pc.name+' saved.');
 }
 let _setupUnlocked=false;
+function setSetupUnlocked(v){_setupUnlocked=v;renderSetupLock();}
 function renderSetupLock(){
   const banner=document.getElementById('setup-lock-banner');if(!banner)return;
   if(state.campaignLaunched&&!_setupUnlocked){
@@ -2811,13 +2812,13 @@ function renderSetupLock(){
       <div style="display:flex;gap:6px;flex-shrink:0">
         <button class="btn sm" onclick="showTab('tab-world')">→ World</button>
         <button class="btn sm" onclick="showTab('tab-wagon')">→ Wagon</button>
-        <button class="btn sm gold" onclick="_setupUnlocked=true;renderSetupLock()">⚙ Edit</button>
+        <button class="btn sm gold" onclick="setSetupUnlocked(true)">⚙ Edit</button>
       </div>
     </div>`;
   }else if(state.campaignLaunched&&_setupUnlocked){
     banner.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--gold);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:var(--gold);flex:1">⚙ Setup unlocked — changes apply immediately to the active campaign.</div>
-      <button class="btn sm red" onclick="_setupUnlocked=false;renderSetupLock()">🔒 Lock</button>
+      <button class="btn sm red" onclick="setSetupUnlocked(false)">🔒 Lock</button>
     </div>`;
   }else{
     banner.innerHTML='';
@@ -7952,6 +7953,9 @@ Object.assign(window, {
   populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
   zoneTokenTap, zoneBoxTap, zoneHPAdj, toggleMoveMode,
+  renderSetupLock, setSetupUnlocked, remAtk, rewindTo,
+  renderPCOverview, renderHUD, renderCharTabs,
+  remPcItem, remResource, renderCapacity, renderErrorLog,
 });
 // Live getter so inline onclick/oninput can access `state` even after Firebase reassigns it
 Object.defineProperty(window,'state',{get(){return state;},configurable:true});
