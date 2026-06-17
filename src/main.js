@@ -1615,7 +1615,7 @@ function renderCombat(){
   if(!active){
     if(card)card.style.display='none';
     const zones=state.combat.zones||{};
-    const hasLabels=ZONE_IDS.some(z=>zones[z]&&(zones[z].label!==ZONE_LABELS[z]||zones[z].effect||zones[z].terrain));
+    const hasLabels=ZONE_IDS.some(z=>zones[z]&&(zones[z].label!==ZONE_LABELS[z]||zones[z].effect||zones[z].terrain||zones[z].hidden));
     if(hasLabels&&grid){
       let html='';
       if(zones.air&&(zones.air.label!==ZONE_LABELS.air||zones.air.effect))html+=_exploreZoneHTML('air',zones);
@@ -1699,7 +1699,7 @@ function _renderZoneChronicle(){
   const locConseq=(state.consequences||[]).filter(cs=>!cs.resolved&&cs.location&&cs.location.toLowerCase()===locName.toLowerCase());
   if(!npcNames.length&&!locQuests.length&&!locConseq.length){el.innerHTML='';return;}
   const dcol=n=>{const npc=(state.npcs||[]).find(x=>x.name.toLowerCase()===n.toLowerCase());return npc?(npc.disposition==='Friendly'||npc.disposition==='Ally'?'var(--green)':npc.disposition==='Hostile'||npc.disposition==='Enemy'?'var(--red)':'var(--text-dim)'):'var(--text-dim)';};
-  const CSQ_C={background:'var(--text-dim)',faction:'var(--blue)',personal:'var(--gold)',escalation:'var(--red)'};
+  const CSQ_C=CSQ_COLORS;
   let html='<div style="border:1px solid var(--border);border-radius:6px;padding:8px 10px;background:var(--surface)">';
   html+='<div style="font-size:10px;font-weight:700;color:var(--gold-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+esc(locName)+'</div>';
   if(npcNames.length){
@@ -3815,7 +3815,7 @@ function parseMechanics(responseText, pendingMsgId=null){
         const base=hasTarget?1:0; // offset: skip target token when present
         const iname=pts[base]||'Item';const iqty=parseInt(pts[base+1])||1;const itype=pts[base+2]||'misc';const iweight=parseFloat(pts[base+3])||0;
         const item={name:iname,qty:iqty,weight:iweight,type:itype,notes:'',ts:state.worldData?.time,location:state.worldData?.location};
-        const _fuzzyMatch=(a,b)=>{const al=a.toLowerCase().replace(/\s+/g,''),bl=b.toLowerCase().replace(/\s+/g,'');if(al===bl)return true;if(al.includes(bl)||bl.includes(al))return true;const s=al.length>bl.length?al:bl,t=al.length>bl.length?bl:al;let d=0;for(let i=0;i<s.length;i++){if(s[i]!==t[i])d++;if(d>2)return false;}return d<=1;};
+        const _fuzzyMatch=(a,b)=>{const al=a.toLowerCase().replace(/\s+/g,''),bl=b.toLowerCase().replace(/\s+/g,'');if(al===bl)return true;if(Math.abs(al.length-bl.length)>2)return false;let d=0;for(let i=0;i<Math.max(al.length,bl.length);i++){if(al[i]!==bl[i])d++;if(d>1)return false;}return true;};
         const stackOrAdd=(list)=>{const ex=list.find(i=>_fuzzyMatch(i.name,iname));if(ex){ex.qty=(ex.qty||1)+iqty;return ex.name;}list.push(item);return false;};
         const _itemMsg=(s,dest)=>s?(s+' ×+'+iqty+' → '+dest):('+'+iname+' → '+dest);
         if(tgt==='wagon'||tgt==='cargo'){if(!state.wagon.cargo)state.wagon.cargo=[];changes.push({text:_itemMsg(stackOrAdd(state.wagon.cargo),'wagon')});}
@@ -3825,7 +3825,7 @@ function parseMechanics(responseText, pendingMsgId=null){
         else{if(!state.wagon.cargo)state.wagon.cargo=[];changes.push({text:_itemMsg(stackOrAdd(state.wagon.cargo),'wagon')});}}
       }else if(key==='item_remove'){
         const pts=val.split(',').map(p=>p.trim());const tgt=pts[0]?.toLowerCase();const nm=pts[1]||'';const qty=parseInt(pts[2])||1;
-        const remFrom=(list,n)=>{const i=list.findIndex(item=>item.name.toLowerCase()===n.toLowerCase());if(i>-1){list[i].qty-=qty;if(list[i].qty<=0)list.splice(i,1);return true;}return false;};
+        const remFrom=(list,n)=>{const nl=n.toLowerCase().replace(/\s+/g,'');const i=list.findIndex(item=>{const il=item.name.toLowerCase().replace(/\s+/g,'');if(il===nl)return true;if(Math.abs(il.length-nl.length)>2)return false;let d=0;for(let j=0;j<Math.max(il.length,nl.length);j++){if(il[j]!==nl[j])d++;if(d>1)return false;}return true;});if(i>-1){list[i].qty-=qty;if(list[i].qty<=0)list.splice(i,1);return true;}return false;};
         if(tgt==='wagon'||tgt==='cargo')remFrom(state.wagon.cargo||[],nm);
         else if(tgt==='party')remFrom(state.partyInventory||[],nm);
         else{const pc=findPC(tgt);if(pc)remFrom(pc.inventory||[],nm);}
@@ -4085,7 +4085,7 @@ function parseMechanics(responseText, pendingMsgId=null){
         const zid=(zp[0]||'').toLowerCase();const zfx=zp[1]||'';const ztype=zp[2]||'';
         if(ZONE_IDS.includes(zid)){
           if(!state.combat.zones)state.combat.zones=_defaultZones();
-          if(!state.combat.zones[zid])state.combat.zones[zid]={label:ZONE_LABELS[zid],effect:'',terrain:''};
+          if(!state.combat.zones[zid])state.combat.zones[zid]={label:ZONE_LABELS[zid],effect:'',terrain:'',hidden:false};
           if(ztype==='terrain'||ztype==='difficult')state.combat.zones[zid].terrain=zfx;
           else state.combat.zones[zid].effect=zfx;
           changes.push({text:(state.combat.zones[zid].label||zid)+': '+zfx});
@@ -4095,7 +4095,7 @@ function parseMechanics(responseText, pendingMsgId=null){
         const zid=(zp[0]||'').toLowerCase();const zlbl=zp[1]||'';
         if(ZONE_IDS.includes(zid)&&zlbl){
           if(!state.combat.zones)state.combat.zones=_defaultZones();
-          if(!state.combat.zones[zid])state.combat.zones[zid]={label:ZONE_LABELS[zid],effect:'',terrain:''};
+          if(!state.combat.zones[zid])state.combat.zones[zid]={label:ZONE_LABELS[zid],effect:'',terrain:'',hidden:false};
           state.combat.zones[zid].label=zlbl;
           changes.push({text:'Zone renamed: '+zlbl});
         }
@@ -6969,9 +6969,10 @@ function toggleInspiration(idx){
 let _locViewMode='list';
 let _mapPlaceId=null;
 const _LOC_MAP_KEY='tt_area_map';
-function _getAreaMap(){try{return localStorage.getItem(_LOC_MAP_KEY)||null;}catch(e){return null;}}
-function _setAreaMap(dataUrl){try{localStorage.setItem(_LOC_MAP_KEY,dataUrl);return true;}catch(e){toast('Map too large to store — try a smaller image');return false;}}
-function _removeAreaMap(){try{localStorage.removeItem(_LOC_MAP_KEY);}catch(e){}}
+let _areaMapCache=undefined;
+function _getAreaMap(){if(_areaMapCache!==undefined)return _areaMapCache;try{_areaMapCache=localStorage.getItem(_LOC_MAP_KEY)||null;}catch(e){_areaMapCache=null;}return _areaMapCache;}
+function _setAreaMap(dataUrl){try{localStorage.setItem(_LOC_MAP_KEY,dataUrl);_areaMapCache=dataUrl;return true;}catch(e){toast('Map too large to store — try a smaller image');return false;}}
+function _removeAreaMap(){try{localStorage.removeItem(_LOC_MAP_KEY);}catch(e){}_areaMapCache=null;}
 
 function renderLocations(){
   const c=document.getElementById('locations-panel-content');
@@ -7056,7 +7057,7 @@ function _renderAreaMap(locs,typeIcon,repColor){
     const isCur=loc.status==='current';
     const fill=isCur?'var(--gold-bright)':'var(--surface3)';
     const stroke=repColor(loc);
-    return`<div class="map-pin${isCur?' pin-current':' pin-visited'}" data-loc-id="${esc(loc.id)}" style="left:${loc.mapPos.x}%;top:${loc.mapPos.y}%" onclick="event.stopPropagation();openLocationDetail('${loc.id}')" title="${esc(loc.name)} — hold to drag">
+    return`<div class="map-pin${isCur?' pin-current':' pin-visited'}" data-loc-id="${esc(loc.id)}" style="left:${loc.mapPos.x}%;top:${loc.mapPos.y}%" onclick="event.stopPropagation();openLocationDetail('${esc(loc.id)}')" title="${esc(loc.name)} — hold to drag">
       ${pinSVG(fill,stroke)}
       <span class="map-pin-label">${esc(loc.name.length>14?loc.name.slice(0,13)+'…':loc.name)}</span>
     </div>`;
@@ -7065,7 +7066,7 @@ function _renderAreaMap(locs,typeIcon,repColor){
   const placeChips=locs.map(loc=>{
     const isActive=_mapPlaceId===loc.id;
     const hasPos=!!loc.mapPos;
-    return`<span class="map-place-chip${isActive?' mpc-active':''}" onclick="startMapPlace('${loc.id}')">${typeIcon[loc.type]||'📍'} ${esc(loc.name.length>12?loc.name.slice(0,11)+'…':loc.name)}${hasPos?' ✓':''}</span>`;
+    return`<span class="map-place-chip${isActive?' mpc-active':''}" onclick="startMapPlace('${esc(loc.id)}')">${typeIcon[loc.type]||'📍'} ${esc(loc.name.length>12?loc.name.slice(0,11)+'…':loc.name)}${hasPos?' ✓':''}</span>`;
   }).join('');
 
   const placeMsg=_mapPlaceId?`<div class="map-place-msg">Tap the map to place <b>${esc((locs.find(l=>l.id===_mapPlaceId)||{}).name||'')}</b> · <a href="#" onclick="event.preventDefault();cancelMapPlace()" style="color:var(--text-dim)">cancel</a></div>`:'';
@@ -7078,7 +7079,7 @@ function _renderAreaMap(locs,typeIcon,repColor){
     </div>
     ${unplacedLocs.length?`<div style="font-size:10px;color:var(--text-dim);padding:4px 0 2px">Unplaced (${unplacedLocs.length}) — tap a chip then tap the map:</div>`:''}
     <div class="map-toolbar">${placeChips}</div>
-    ${mapUrl?`<button class="btn sm" onclick="removeAreaMap()" style="font-size:10px;padding:3px 8px;border-color:var(--red);color:var(--red);margin-top:4px">Remove Map</button>`:''}
+    <button class="btn sm" onclick="removeAreaMap()" style="font-size:10px;padding:3px 8px;border-color:var(--red);color:var(--red);margin-top:4px">Remove Map</button>
   `;
 }
 
@@ -7173,7 +7174,7 @@ function _initPinDrag(){
         if(loc){loc.mapPos={x:Math.round(x*100)/100,y:Math.round(y*100)/100};save();}
       }
     };
-    pin.addEventListener('pointerdown',e=>{start(e.clientX,e.clientY,e);});
+    pin.addEventListener('pointerdown',e=>{pin.setPointerCapture(e.pointerId);start(e.clientX,e.clientY,e);});
     pin.addEventListener('pointermove',e=>{move(e.clientX,e.clientY,e);});
     pin.addEventListener('pointerup',e=>{end(e.clientX,e.clientY);});
     pin.addEventListener('pointercancel',()=>{clearTimeout(dragTimer);isDragging=false;pin.style.zIndex='';pin.style.opacity='';pin.style.transition='';});
@@ -7197,7 +7198,7 @@ function openLocationDetail(id){
   const locQuests=(state.quests||[]).filter(q=>q.status==='active'&&q.text&&q.text.toLowerCase().includes(loc.name.toLowerCase()));
   const questHTML=locQuests.length?locQuests.map(q=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px"><span style="color:var(--green);font-size:10px">🟢</span><span style="flex:1">${esc(q.text)}</span></div>`).join(''):'';
   const locConseq=(state.consequences||[]).filter(cs=>!cs.resolved&&cs.location&&cs.location.toLowerCase()===loc.name.toLowerCase());
-  const CSQ_C={background:'var(--text-dim)',faction:'var(--blue)',personal:'var(--gold)',escalation:'var(--red)'};
+  const CSQ_C=CSQ_COLORS;
   const conseqHTML=locConseq.length?locConseq.map(cs=>`<div style="font-size:12px;padding:4px 0;border-left:3px solid ${CSQ_C[cs.type]||'var(--text-dim)'};padding-left:8px;margin-bottom:4px"><span style="font-size:9px;color:${CSQ_C[cs.type]||'var(--text-dim)'};text-transform:uppercase;font-weight:700">${cs.type||'background'}</span> ${esc(cs.text)}</div>`).join(''):'';
   const townRep=(state.worldData?.townReputation||[]).find(t=>t.town.toLowerCase()===loc.name.toLowerCase());
   const repHTML=townRep?`<div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 8px;background:var(--surface2);border-radius:6px;margin-bottom:8px"><span style="font-weight:600;color:${repC(loc)}">Rep: ${esc(townRep.status)}</span>${townRep.notes?`<span style="flex:1;font-size:11px;color:var(--text-dim)">${esc(townRep.notes)}</span>`:''}</div>`:'';
