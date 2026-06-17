@@ -6724,6 +6724,10 @@ function exportGameplayLog(mode){
   log+='PCs: '+(state.pcs||[]).map(p=>p.name+' ('+p.class+' '+p.level+', '+p.hp+'/'+p.hp_max+' HP)').join(', ')+'\n';
   log+='Messages in export: '+slice.length+' of '+msgs.length+' total\n\n';
 
+  if(state.sessionNotes){
+    log+='--- DEV NOTES (quick // notes from gameplay) ---\n'+state.sessionNotes.trim()+'\n\n';
+  }
+
   if(archive.length){
     log+='--- SESSION ARCHIVE ('+archive.length+' summaries, newest first) ---\n';
     const archSlice=mode==='recent'?archive.slice(-3):archive;
@@ -7864,6 +7868,18 @@ function sendMsgQuick(){
   if(!qi)return;
   const val=qi.value.trim();
   if(!val)return;
+  if(val.startsWith('//')){
+    const note=val.slice(2).trim();
+    if(!note){qi.value='';return;}
+    const ts=state.worldData?.time||'';
+    const loc=state.worldData?.location||'';
+    const stamp='['+loc+(ts?' · '+ts:'')+']';
+    state.sessionNotes=(state.sessionNotes||'')+'\n'+stamp+' '+note;
+    save();
+    qi.value='';
+    toast('📝 Note logged');
+    return;
+  }
   const activeBtn=document.querySelector('.chat-tab-btn.active');
   const channel=activeBtn?.id?.replace('chat-tab-','')||_activeTab;
   if(channel==='party'){qi.value='';sendPartyMsg(val);return;}
