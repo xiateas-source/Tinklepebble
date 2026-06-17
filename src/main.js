@@ -7063,6 +7063,7 @@ function toggleInspiration(idx){
 // ═══ LOCATION JOURNAL ═══
 let _locViewMode='list';
 let _mapPlaceId=null;
+let _pinMenuId=null;
 const _LOC_MAP_KEY='tt_area_map';
 let _areaMapCache=undefined;
 function _getAreaMap(){if(_areaMapCache!==undefined)return _areaMapCache;try{_areaMapCache=localStorage.getItem(_LOC_MAP_KEY)||null;}catch(e){_areaMapCache=null;}return _areaMapCache;}
@@ -7152,16 +7153,22 @@ function _renderAreaMap(locs,typeIcon,repColor){
     const isCur=loc.status==='current';
     const fill=isCur?'var(--gold-bright)':'var(--surface3)';
     const stroke=repColor(loc);
-    return`<div class="map-pin${isCur?' pin-current':' pin-visited'}" data-loc-id="${esc(loc.id)}" style="left:${loc.mapPos.x}%;top:${loc.mapPos.y}%" onclick="event.stopPropagation();openLocationDetail('${esc(loc.id)}')" title="${esc(loc.name)} — hold to drag">
+    const menuOpen=_pinMenuId===loc.id;
+    return`<div class="map-pin${isCur?' pin-current':' pin-visited'}" data-loc-id="${esc(loc.id)}" style="left:${loc.mapPos.x}%;top:${loc.mapPos.y}%" onclick="event.stopPropagation();pinAction('${esc(loc.id)}')" title="${esc(loc.name)} — tap for actions">
       ${pinSVG(fill,stroke)}
       <span class="map-pin-label">${esc(loc.name.length>14?loc.name.slice(0,13)+'…':loc.name)}</span>
+      ${menuOpen?`<div class="pin-menu" onclick="event.stopPropagation()">
+        <button onclick="event.stopPropagation();closePinMenu();closeLocDetail();setLocView('map');startMapPlace('${esc(loc.id)}')">↻ Move</button>
+        <button onclick="event.stopPropagation();unpinFromMap('${esc(loc.id)}')">✕ Unplace</button>
+        <button onclick="event.stopPropagation();closePinMenu();openLocationDetail('${esc(loc.id)}')">⋯ Details</button>
+      </div>`:''}
     </div>`;
   }).join('');
 
   const placeChips=locs.map(loc=>{
     const isActive=_mapPlaceId===loc.id;
     const hasPos=!!loc.mapPos;
-    return`<span class="map-place-chip${isActive?' mpc-active':''}" onclick="startMapPlace('${esc(loc.id)}')">${typeIcon[loc.type]||'📍'} ${esc(loc.name.length>12?loc.name.slice(0,11)+'…':loc.name)}${hasPos?' ✓':''}</span>`;
+    return`<span class="map-place-chip${isActive?' mpc-active':''}${hasPos?' mpc-placed':''}" onclick="startMapPlace('${esc(loc.id)}')">${typeIcon[loc.type]||'📍'} ${esc(loc.name.length>12?loc.name.slice(0,11)+'…':loc.name)}${hasPos?` <span class="mpc-unpin" onclick="event.stopPropagation();unpinFromMap('${esc(loc.id)}')" title="Remove from map">✕</span>`:''}</span>`;
   }).join('');
 
   const placeMsg=_mapPlaceId?`<div class="map-place-msg">Tap the map to place <b>${esc((locs.find(l=>l.id===_mapPlaceId)||{}).name||'')}</b> · <a href="#" onclick="event.preventDefault();cancelMapPlace()" style="color:var(--text-dim)">cancel</a></div>`:'';
@@ -7210,6 +7217,7 @@ function setLocView(mode){_locViewMode=mode;renderLocations();}
 
 function startMapPlace(locId){
   _mapPlaceId=_mapPlaceId===locId?null:locId;
+  _pinMenuId=null;
   renderLocations();
 }
 
@@ -7219,6 +7227,7 @@ function cancelMapPlace(){
 }
 
 function handleMapTap(e){
+  if(_pinMenuId){_pinMenuId=null;renderLocations();if(!_mapPlaceId)return;}
   if(!_mapPlaceId)return;
   const container=document.getElementById('area-map-container');
   if(!container)return;
@@ -7232,6 +7241,22 @@ function handleMapTap(e){
   _mapPlaceId=null;
   renderLocations();
   toast(`${loc.name} placed on map`);
+}
+function pinAction(locId){
+  _pinMenuId=_pinMenuId===locId?null:locId;
+  renderLocations();
+}
+function closePinMenu(){
+  _pinMenuId=null;
+}
+function unpinFromMap(locId){
+  const loc=(state.locations||[]).find(l=>l.id===locId);
+  if(!loc)return;
+  loc.mapPos=null;
+  _pinMenuId=null;
+  save();
+  renderLocations();
+  toast(`${loc.name} removed from map`);
 }
 function _initPinDrag(){
   const container=document.getElementById('area-map-container');if(!container)return;
@@ -7332,7 +7357,7 @@ function openLocationDetail(id){
     ${_dm?`<div class="panel" style="margin-bottom:8px;padding:8px 10px"><div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">DM Notes</div><textarea style="width:100%;min-height:55px;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px;box-sizing:border-box;resize:vertical" oninput="updateLocNotes('${id}','dm',this.value)" placeholder="DM-only notes...">${esc(loc.dmNotes||'')}</textarea></div>`:''}
     <div style="display:flex;gap:6px;justify-content:space-between;flex-wrap:wrap;margin-top:4px">
       <button class="btn sm" onclick="setLocStatus('${id}','current')" style="border-color:var(--gold);color:var(--gold)">📍 Set Current</button>
-      <div style="display:flex;gap:6px">${_getAreaMap()?`<button class="btn sm" onclick="closeLocDetail();setLocView('map');startMapPlace('${id}')" style="border-color:var(--gold)">🗺 ${loc.mapPos?'Move':'Place'} on Map</button>`:''} ${_dm?`<button class="btn sm" onclick="addLocInvestment('${id}')">+ Invest</button>`:''}
+      <div style="display:flex;gap:6px">${_getAreaMap()?`<button class="btn sm" onclick="closeLocDetail();setLocView('map');startMapPlace('${id}')" style="border-color:var(--gold)">🗺 ${loc.mapPos?'Move':'Place'} on Map</button>${loc.mapPos?`<button class="btn sm" onclick="unpinFromMap('${id}');closeLocDetail()" style="border-color:var(--text-dim);color:var(--text-dim)">✕ Unplace</button>`:''}`:''}${_dm?`<button class="btn sm" onclick="addLocInvestment('${id}')">+ Invest</button>`:''}
         <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteLocation('${id}')">Delete</button>
       </div>
     </div>`;
@@ -8168,7 +8193,7 @@ Object.assign(window, {
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
   setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
-  uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView,
+  uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView, pinAction, closePinMenu, unpinFromMap,
   openSheetPicker, dismissRollRequest,
   renderSessionArchive,
   verifyContracts, clearFlagNote,
