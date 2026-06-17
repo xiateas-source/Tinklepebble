@@ -163,7 +163,7 @@ function _mergeChatHistories(local,remote){
   var longer=remote.length>=local.length?remote:local;
   var shorter=remote.length>=local.length?local:remote;
   var sk=_chatMsgKey(shorter[shorter.length-1]);
-  for(var i=longer.length-1;i>=Math.max(0,longer.length-15);i--){
+  for(var i=longer.length-1;i>=0;i--){
     if(_chatMsgKey(longer[i])===sk)return longer;
   }
   // Histories diverged — find the last common message and combine both forks
