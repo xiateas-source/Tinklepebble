@@ -1698,6 +1698,8 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
 .step-btn:active{background:var(--surface2);}
 .step-btn.dec{color:var(--red);}
 .step-btn.inc{color:var(--green);}
+.cmd-result{padding:6px 10px;font-size:11px;color:var(--text);background:var(--surface2);border-top:1px solid var(--gold-dim);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;font-family:monospace;}
+.cmd-result.expanded{white-space:pre-wrap;max-height:300px;overflow-y:auto;}
 .chat-suggest{display:flex;gap:4px;padding:4px 10px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
 .chat-suggest:empty{display:none;}
 .chat-suggest::-webkit-scrollbar{display:none;}

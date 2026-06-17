@@ -7908,6 +7908,15 @@ function switchSystemsTab(sub){
   renderQAMenu();setTimeout(injectPanelFlags,150);
 }
 
+function _cmdResult(text){
+  const el=document.getElementById('cmd-result');
+  if(!el)return;
+  const lines=text.split('\n');
+  el.setAttribute('data-preview',lines[0]);
+  el.textContent=text;
+  el.style.display='block';
+  el.classList.remove('expanded');
+}
 function _handleSlashCmd(raw){
   if(!raw)return;
   const lower=raw.toLowerCase();
@@ -7943,7 +7952,7 @@ function _handleSlashCmd(raw){
     copyText(log,'✓ Flagged '+n+' messages — paste to dev');
     state.sessionNotes=(state.sessionNotes||'')+'\n'+stamp+' [FLAG] '+reason;
     save();
-    toast('🚩 '+n+' messages flagged — copied to clipboard');
+    _cmdResult('🚩 Flagged '+n+' messages — copied to clipboard'+(reason?' · '+reason:''));
     return;
   }
 
@@ -7966,7 +7975,7 @@ function _handleSlashCmd(raw){
       state.partyInventory.push({name:itemName,qty:1,weight:0,type:'loot',notes:''});
     }
     save();renderAll();
-    toast('📦 Added: '+itemName);
+    _cmdResult('📦 Added: '+itemName+' → '+(target==='cargo'?'wagon cargo':target==='hoard'?'Pebble\'s hoard':'party inventory'));
     return;
   }
 
@@ -7978,7 +7987,7 @@ function _handleSlashCmd(raw){
     if(pc){
       pc.hp=Math.max(0,Math.min(pc.hp_max,(pc.hp||0)+delta));
       save();renderAll();
-      toast((delta>0?'💚 +':'❤️ ')+delta+' HP → '+pc.name+' now at '+pc.hp+'/'+pc.hp_max);
+      _cmdResult((delta>0?'💚 +':'❤️ ')+delta+' HP → '+pc.name+' now at '+pc.hp+'/'+pc.hp_max);
     }
     return;
   }
@@ -7990,13 +7999,38 @@ function _handleSlashCmd(raw){
     if(!state.treasuryData)state.treasuryData={};
     state.treasuryData.gp=(parseFloat(state.treasuryData.gp)||0)+delta;
     save();renderAll();
-    toast((delta>0?'💰 +':'💰 ')+delta+' gp → '+state.treasuryData.gp+' gp total');
+    _cmdResult((delta>0?'💰 +':'💰 ')+delta+' gp → '+state.treasuryData.gp+' gp total');
     return;
   }
 
   // //help — show available commands
   if(lower==='help'||lower==='?'||lower==='commands'){
-    toast('// note · //flag N reason · //add item · //hp ±N · //gold ±N · //explain topic',5000);
+    _cmdResult('📖 Command Index (tap to expand)\n─────────────────────────────\n'
+      +'QUICK ACTIONS\n'
+      +'  //hp +5       — heal 5 HP          //hp -3       — take 3 damage\n'
+      +'  //gold +10    — add 10 gp          //gold -5     — spend 5 gp\n'
+      +'  //add item "rope"          — add to party inventory\n'
+      +'  //add item "gem" to cargo  — add to wagon cargo\n'
+      +'  //add item "ring" to hoard — add to Pebble\'s hoard\n\n'
+      +'DEV TOOLS\n'
+      +'  //flag 20 reason   — export last 20 messages to clipboard\n'
+      +'  // any text here   — log a dev note to session notes\n\n'
+      +'HELP\n'
+      +'  //explain actions   — what Quick Actions do\n'
+      +'  //explain combat    — zone combat basics\n'
+      +'  //explain map       — area map & pins\n'
+      +'  //explain inventory — item management\n'
+      +'  //explain commands  — this list\n'
+      +'  //explain spells    — spell & slot tracking\n'
+      +'  //explain rest      — short/long rest mechanics\n'
+      +'  //explain dice      — dice roller usage\n'
+      +'  //explain contracts — AI personality contracts\n'
+      +'  //explain flags     — flagging AI mistakes\n'
+      +'  //explain ooc       — OOC & party channels\n'
+      +'  //explain export    — gameplay log exports\n'
+      +'  //explain shortcuts — header shortcut buttons\n'
+      +'  //explain notes     — dev notes system\n'
+      +'  //help              — show this index');
     return;
   }
 
@@ -8026,9 +8060,9 @@ function _handleSlashCmd(raw){
     };
     const key=Object.keys(EXPLAINS).find(k=>topic.includes(k))||null;
     if(key){
-      toast(EXPLAINS[key],6000);
+      _cmdResult('💡 '+key+'\n'+EXPLAINS[key]);
     }else{
-      toast('No help found for "'+topic+'". Try: actions, combat, map, inventory, commands, flags, contracts, dice, rest, spells, ooc, export, shortcuts',5000);
+      _cmdResult('❓ No help for "'+topic+'"\nTopics: actions, combat, map, inventory, commands, flags, contracts, dice, rest, spells, ooc, export, shortcuts, notes');
     }
     return;
   }
@@ -8036,7 +8070,7 @@ function _handleSlashCmd(raw){
   // Default: plain dev note
   state.sessionNotes=(state.sessionNotes||'')+'\n'+stamp+' '+raw;
   save();
-  toast('📝 Note logged');
+  _cmdResult('📝 Note logged: '+raw);
 }
 function sendMsgQuick(){
   const qi=document.getElementById('chat-quick-input');
