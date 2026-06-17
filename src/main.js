@@ -6702,7 +6702,7 @@ function sessionRecap(){
   }else{
     report+='\n--- NO FLAGS THIS SESSION ---\n';
   }
-  report+='\n--- PROMPT FOR DEV ---\nReview this session\'s execution data above. Identify recurring failure patterns (rules the AI got wrong, mechanics that misfired, context refresh triggers). Suggest one to two specific, actionable, creative, or progressive changes to the system prompt or app configuration that would most improve the next session.';
+  report+='\n--- PROMPT FOR DEV ---\nReview the flagged moments above against .claude/roadmap.md and .claude/features.md. For each flag:\n1. Check if a fix or feature already shipped that addresses it (cross-reference completed items and function index)\n2. If YES: mark as INCOMPLETE FIX — state what exists, what gap remains, and what specifically still needs to change\n3. If NO: mark as NEW — describe the root cause and what to build\nThen identify recurring failure patterns (rules the AI got wrong, mechanics that misfired, context the AI lacked). Suggest 1-2 specific, actionable changes to the system prompt or app that would most improve the next session.';
   [['dash-recap-out','dash-recap-text'],['dev-recap-out','dev-recap-text']].forEach(([outId,txtId])=>{
     const out=document.getElementById(outId);
     const txt=document.getElementById(txtId);
