@@ -1992,8 +1992,23 @@ function checkLevelUp(pc){
   const lvl=pc.level||1;if(lvl>=20||pc.levelReady)return;
   if((pc.xp||0)>=XP_T[Math.min(lvl,19)]){
     pc.levelReady=true;
-    toast('⬆ '+pc.name+' ready for Level '+(lvl+1)+'! Take a Long Rest to advance.');
-    _ctxInject='[LEVEL UP PENDING] '+pc.name+' has earned enough XP to reach Level '+(lvl+1)+'. They need a Long Rest first. Do not grant any new abilities yet.';
+    const newLvl=lvl+1;
+    toast('⬆ '+pc.name+' ready for Level '+newLvl+'! Take a Long Rest to advance.');
+    const clsKey=Object.keys(LEVEL_UP_DATA).find(k=>(pc.class||'').toLowerCase().includes(k));
+    const lvlData=clsKey&&LEVEL_UP_DATA[clsKey]&&LEVEL_UP_DATA[clsKey].levels[newLvl];
+    let choiceHints='';
+    if(lvlData){
+      if((lvlData.auto||[]).length)choiceHints+=' New features: '+lvlData.auto.map(f=>f.split(':')[0]).join(', ')+'.';
+      (lvlData.choose||[]).forEach(c=>{
+        if(c.type==='subclass')choiceHints+=' They must choose: '+c.prompt+' ('+c.options.join(', ')+').';
+        else if(c.type==='spell')choiceHints+=' They get to pick new spells: '+c.prompt+'.';
+        else if(c.type==='asi')choiceHints+=' They get an Ability Score Improvement (+2 to one stat or +1 to two).';
+      });
+    }
+    _ctxInject='[LEVEL UP PENDING] '+pc.name+' has earned enough XP to reach Level '+newLvl+'!'
+      +' Narrate the milestone moment. Tell the player to take a Long Rest to level up — the Level Up wizard will guide them through their choices.'
+      +choiceHints
+      +' Do NOT grant abilities yet — the wizard handles that. But DO tell the player what exciting options await them at Level '+newLvl+'.';
   }
 }
 
