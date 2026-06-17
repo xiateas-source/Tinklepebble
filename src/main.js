@@ -1,10 +1,12 @@
 // CSS loaded via <link rel="stylesheet"> in index.html — no import needed
-import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 var _pdfjsLib=null;
 async function _loadPdfJs(){
   if(_pdfjsLib)return _pdfjsLib;
-  const lib=await import('pdfjs-dist');
-  lib.GlobalWorkerOptions.workerSrc=pdfjsWorkerUrl;
+  const [lib,workerModule]=await Promise.all([
+    import('pdfjs-dist'),
+    import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+  ]);
+  lib.GlobalWorkerOptions.workerSrc=workerModule.default;
   _pdfjsLib=lib;
   return lib;
 }
