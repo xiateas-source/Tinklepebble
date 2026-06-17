@@ -159,13 +159,46 @@ function _chatMsgKey(m){return m.msgId||(m.content||'').slice(0,80);}
 function _mergeChatHistories(local,remote){
   if(!remote.length)return local;
   if(!local.length)return remote;
+  // Fast path: if one array is a superset of the other, return it
   var longer=remote.length>=local.length?remote:local;
   var shorter=remote.length>=local.length?local:remote;
   var sk=_chatMsgKey(shorter[shorter.length-1]);
   for(var i=longer.length-1;i>=Math.max(0,longer.length-15);i--){
     if(_chatMsgKey(longer[i])===sk)return longer;
   }
-  return local;
+  // Histories diverged — find the last common message and combine both forks
+  var localKeys=new Set();
+  local.forEach(function(m){localKeys.add(_chatMsgKey(m));});
+  var remoteKeys=new Set();
+  remote.forEach(function(m){remoteKeys.add(_chatMsgKey(m));});
+  // Walk backwards through local to find last msg that also exists in remote
+  var localFork=-1;
+  for(var i=local.length-1;i>=0;i--){
+    if(remoteKeys.has(_chatMsgKey(local[i]))){localFork=i;break;}
+  }
+  var remoteFork=-1;
+  for(var i=remote.length-1;i>=0;i--){
+    if(localKeys.has(_chatMsgKey(remote[i]))){remoteFork=i;break;}
+  }
+  if(localFork<0&&remoteFork<0)return local;
+  // Take the shared prefix from whichever has it longer, then append both forks
+  var base=localFork>=remoteFork?local.slice(0,localFork+1):remote.slice(0,remoteFork+1);
+  var localNew=local.slice(localFork+1);
+  var remoteNew=remote.slice(remoteFork+1);
+  // Deduplicate: only add remote messages not already in local fork
+  var localNewKeys=new Set();
+  localNew.forEach(function(m){localNewKeys.add(_chatMsgKey(m));});
+  var uniqueRemote=remoteNew.filter(function(m){return !localNewKeys.has(_chatMsgKey(m));});
+  // Interleave by realTs (wall-clock string "HH:MM AM/PM") then by original order
+  var allNew=[];
+  localNew.forEach(function(m,i){allNew.push({m:m,src:'l',idx:i});});
+  uniqueRemote.forEach(function(m,i){allNew.push({m:m,src:'r',idx:i});});
+  allNew.sort(function(a,b){
+    var ta=a.m.realTs||'';var tb=b.m.realTs||'';
+    if(ta&&tb&&ta!==tb)return ta<tb?-1:1;
+    return a.idx-b.idx;
+  });
+  return base.concat(allNew.map(function(x){return x.m;}));
 }
 function fbStartListening(){
   if(fbListening||!fbRef)return;
@@ -183,9 +216,9 @@ function fbStartListening(){
       var localChat=state.chatHistory||[];
       var remoteChat=remote.chatHistory||[];
       var chatMerged=_mergeChatHistories(localChat,remoteChat);
-      // Even when remote timestamp is stale, pick up new chat messages
+      // Even when remote timestamp is stale, pick up new/merged chat messages
       if(remoteTs<=localTs){
-        if(chatMerged.length>localChat.length){
+        if(chatMerged.length>localChat.length||chatMerged!==localChat){
           state.chatHistory=chatMerged;
           try{localStorage.setItem('tt_v1',JSON.stringify(state));}catch(e){}
           renderChat();
