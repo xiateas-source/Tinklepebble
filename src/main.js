@@ -6,6 +6,11 @@ const SPELL_LVLS=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
 const XP_T=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
 const CP_INT={exploration:6,combat:3,roleplay:8,custom:6};
 const MAX_LB=1080;
+const ZONE_IDS=['front','back','left','right','air','rear'];
+const ZONE_LABELS={front:'Frontline',back:'Backline',left:'Left Flank',right:'Right Flank',air:'Air Space',rear:'Rear Guard'};
+const ZONE_ADJ={front:['left','right','back','air'],back:['front','rear'],left:['front'],right:['front'],air:['front'],rear:['back']};
+function _defaultZones(){var z={};ZONE_IDS.forEach(function(id){z[id]={label:ZONE_LABELS[id],effect:'',terrain:''};});return z;}
+let _zoneMoveSel=null;
 const ITYPES=['supply','foraged','ingredient','trade','loot','hoard','misc','key'];
 const PC_ITEM_TYPES=['weapon','armor','shield','tool','potion','scroll','consumable','loot','misc','key'];
 const GEAR_TYPES=new Set(['weapon','armor','shield','tool']);
@@ -100,7 +105,7 @@ function showTermTip(event,term){
 
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
-const SAVE_VERSION=11;
+const SAVE_VERSION=12;
 
 // ═══ FIREBASE DROP 2 ═══
 let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false;
@@ -1553,20 +1558,136 @@ function setWFilter(f){
   renderCargo();
 }
 
-// ═══ COMBAT ═══
+// ═══ COMBAT (Zone Combat Map) ═══
+function _zoneHasFlying(){return(state.combat.list||[]).some(c=>c.zone==='air');}
+function _tokenHTML(ent,idx){
+  const isCur=state.combat.active&&state.combat.currentIdx===idx;
+  const hp=parseInt(ent.hp)||0;const max=parseInt(ent.hp_max)||ent.hp||1;
+  const pct=Math.max(0,Math.min(100,(hp/Math.max(max,1))*100));
+  const hpCol=pct<20?'var(--red)':pct<55?'#cc8b3c':'var(--green)';
+  const pc=ent.isPC?state.pcs.find(p=>p.name===ent.name):null;
+  const color=pc?.color||'var(--text-dim)';
+  const conds=(ent.conditions||[]).map(c=>'<span class="zt-cond">'+esc(c)+'</span>').join('');
+  const conc=ent.concentrating?'<span class="zt-cond" style="border-color:var(--purple-bright);color:var(--purple-bright)">'+esc(ent.concentrating)+'</span>':'';
+  const sel=_zoneMoveSel===idx?' zt-selected':'';
+  return '<div class="zone-token'+(isCur?' zt-active':'')+sel+'" onclick="zoneTokenTap('+idx+')" style="border-left-color:'+color+'">'
+    +'<div class="zt-row"><span class="zt-name">'+esc(ent.name)+'</span>'
+    +'<span class="zt-hp" style="color:'+hpCol+'">'+hp+(ent.isPC?'/'+max:'')+'</span></div>'
+    +'<div class="zt-bar-wrap"><div class="zt-bar" style="width:'+pct+'%;background:'+hpCol+'"></div></div>'
+    +(conds||conc?'<div class="zt-conds">'+conds+conc+'</div>':'')
+    +'</div>';
+}
 function renderCombat(){
-  const numEl=document.getElementById('round-num');if(numEl)numEl.innerText=state.combat.round;
-  state.combat.list.forEach(c=>{if(c.isPC){const pc=state.pcs.find(p=>p.name===c.name);if(pc){c.hp=pc.hp;c.ac=pc.ac;}}});
-  const c=document.getElementById('init-list');if(!c)return;c.innerHTML='';
-  if(!state.combat.active||!(state.combat.list||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-style:italic;text-align:center;padding:14px">Combat not running.</div>';return;}
-  state.combat.list.forEach((ent,idx)=>{
-    const isCur=state.combat.currentIdx===idx;
-    const r=document.createElement('div');r.className='init-row'+(isCur?' current':'');
-    const condChips=(ent.conditions||[]).map(cd=>`<span style="font-size:9px;padding:1px 4px;border:1px solid var(--border-bright);border-radius:2px;cursor:pointer;color:var(--text-dim)" onclick="toggleCombCond(${idx},'${cd}')">${cd}</span>`).join('');
-    const concBadge=ent.concentrating?`<span style="font-size:9px;color:var(--purple-bright);margin-left:4px">⬤ ${esc(ent.concentrating)}</span>`:'';
-    r.innerHTML=`<div class="init-badge">${ent.val}</div><div class="init-name" style="flex:1;min-width:0"><b>${esc(ent.name)}</b> <span style="font-size:10px;color:var(--text-dim)">AC:${ent.ac}</span>${ent.isPC?'<span style="font-size:9px;color:var(--blue-bright);margin-left:4px">[PC]</span>':''}${concBadge}<div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:2px">${condChips}<button onclick="addCombCond(${idx})" style="font-size:9px;padding:1px 4px;background:none;border:1px dashed var(--border);color:var(--text-dim);cursor:pointer;border-radius:2px">+cond</button></div></div><div style="display:flex;align-items:center;gap:4px"><input type="number" value="${ent.hp}" style="width:52px;padding:3px;font-size:12px" onchange="updCombHP(${idx},parseInt(this.value))"><span style="font-size:11px;color:var(--text-dim)">HP</span></div><button class="btn sm red icon-btn" onclick="remComb(${idx})">&times;</button>`;
-    c.appendChild(r);
-  });
+  state.combat.list.forEach(c=>{if(c.isPC){const pc=state.pcs.find(p=>p.name===c.name);if(pc){c.hp=pc.hp;c.ac=pc.ac;c.hp_max=pc.hp_max;}}});
+  const active=state.combat.active&&(state.combat.list||[]).length>0;
+  const hdr=document.getElementById('zone-combat-hdr');
+  const grid=document.getElementById('zone-grid');
+  const card=document.getElementById('zone-active-card');
+  const noCombat=document.getElementById('zone-no-combat');
+  if(hdr)hdr.style.display=active?'':'none';
+  if(noCombat)noCombat.style.display=active?'none':'';
+  if(!active){if(grid)grid.innerHTML='';if(card)card.style.display='none';return;}
+  // Round + turn name
+  const rn=document.getElementById('zone-round-num');if(rn)rn.textContent=state.combat.round;
+  const cur=state.combat.list[state.combat.currentIdx||0];
+  const tn=document.getElementById('zone-turn-name');if(tn)tn.textContent=cur?cur.name+"'s Turn":'';
+  // Initiative strip
+  const strip=document.getElementById('init-strip');
+  if(strip){
+    strip.innerHTML='';
+    state.combat.list.forEach((ent,idx)=>{
+      const isCur=state.combat.currentIdx===idx;
+      const pc=ent.isPC?state.pcs.find(p=>p.name===ent.name):null;
+      const col=pc?.color||'var(--text-dim)';
+      const hp=parseInt(ent.hp)||0;const max=parseInt(ent.hp_max)||ent.hp||1;
+      const pct=Math.max(0,Math.min(100,(hp/Math.max(max,1))*100));
+      const hpCol=pct<20?'var(--red)':pct<55?'#cc8b3c':'var(--green)';
+      strip.innerHTML+='<div class="init-chip'+(isCur?' ic-active':'')+'" onclick="zoneTokenTap('+idx+')" style="border-bottom-color:'+col+'">'
+        +'<span class="ic-name">'+esc(ent.name)+'</span>'
+        +'<span class="ic-hp" style="color:'+hpCol+'">'+hp+'</span>'
+        +'</div>';
+    });
+  }
+  // Zone grid
+  if(grid){
+    const zones=state.combat.zones||_defaultZones();
+    const showAir=_zoneHasFlying()||(zones.air&&zones.air.effect);
+    let html='';
+    if(showAir)html+=_zoneBoxHTML('air',zones);
+    html+='<div class="zone-flanks">';
+    html+=_zoneBoxHTML('left',zones);
+    html+=_zoneBoxHTML('right',zones);
+    html+='</div>';
+    html+=_zoneBoxHTML('front',zones);
+    html+=_zoneBoxHTML('back',zones);
+    html+=_zoneBoxHTML('rear',zones);
+    grid.innerHTML=html;
+  }
+  // Active card
+  if(card&&cur){
+    card.style.display='';
+    const idx=state.combat.currentIdx;
+    const hp=parseInt(cur.hp)||0;const max=parseInt(cur.hp_max)||cur.hp||1;
+    const conds=(cur.conditions||[]).map((c,ci)=>'<span class="zt-cond" style="cursor:pointer" onclick="toggleCombCond('+idx+',\''+esc(c)+'\')">'+esc(c)+' ×</span>').join(' ');
+    const conc=cur.concentrating?'<span class="zt-cond" style="border-color:var(--purple-bright);color:var(--purple-bright)">'+esc(cur.concentrating)+'</span>':'';
+    const zoneLbl=(state.combat.zones||{})[cur.zone||'front']?.label||(cur.zone||'front');
+    card.innerHTML='<div class="zac-top"><b>'+esc(cur.name)+'</b><span class="zac-meta">AC '+cur.ac+' · '+zoneLbl+'</span></div>'
+      +'<div class="zac-hp-row"><button class="btn sm red" onclick="zoneHPAdj('+idx+',-1)">-</button>'
+      +'<span class="zac-hp">'+hp+'/'+max+' HP</span>'
+      +'<button class="btn sm green" onclick="zoneHPAdj('+idx+',1)">+</button>'
+      +'<button class="btn sm" onclick="addCombCond('+idx+')" style="margin-left:8px">+Cond</button></div>'
+      +(conds||conc?'<div class="zac-conds">'+conds+conc+'</div>':'');
+  }else if(card){card.style.display='none';}
+}
+function _zoneBoxHTML(zid,zones){
+  const z=zones[zid]||{label:ZONE_LABELS[zid],effect:'',terrain:''};
+  const tokens=(state.combat.list||[]).filter(c=>(c.zone||'front')===zid);
+  const adj=_zoneMoveSel!==null&&ZONE_ADJ[zid]?.includes(state.combat.list[_zoneMoveSel]?.zone);
+  return '<div class="zone-box'+(adj?' zb-adj':'')+'" onclick="zoneBoxTap(\''+zid+'\')">'
+    +'<div class="zb-hdr"><span class="zb-label">'+esc(z.label)+'</span>'
+    +(z.effect?'<span class="zb-effect">'+esc(z.effect)+'</span>':'')
+    +(z.terrain?'<span class="zb-terrain">'+esc(z.terrain)+'</span>':'')
+    +'</div>'
+    +'<div class="zb-tokens">'+tokens.map((t,i)=>{
+      const realIdx=state.combat.list.indexOf(t);
+      return _tokenHTML(t,realIdx);
+    }).join('')+'</div>'
+    +'</div>';
+}
+function zoneTokenTap(idx){
+  if(state.combat.moveMode==='manual'){
+    _zoneMoveSel=_zoneMoveSel===idx?null:idx;
+    renderCombat();
+    return;
+  }
+  state.combat.currentIdx=idx;renderCombat();
+}
+function zoneBoxTap(zid){
+  if(_zoneMoveSel===null)return;
+  const ent=state.combat.list[_zoneMoveSel];if(!ent)return;
+  const curZone=ent.zone||'front';
+  if(curZone===zid){_zoneMoveSel=null;renderCombat();return;}
+  const adj=ZONE_ADJ[curZone]||[];
+  if(!adj.includes(zid)){toast('Not adjacent — must move through connected zones','red');return;}
+  ent.zone=zid;_zoneMoveSel=null;
+  state.logs.push({ts:state.worldData.time,type:'combat',body:ent.name+' moved to '+(state.combat.zones[zid]?.label||zid)});
+  saveRefresh();
+}
+function zoneHPAdj(idx,dir){
+  const amt=parseInt(prompt((dir>0?'Heal':'Damage')+' by how much?'));
+  if(isNaN(amt)||amt<=0)return;
+  const ent=state.combat.list[idx];if(!ent)return;
+  const max=parseInt(ent.hp_max)||ent.hp||999;
+  ent.hp=dir>0?Math.min(max,ent.hp+amt):Math.max(0,ent.hp-amt);
+  const pc=state.pcs.find(p=>p.name===ent.name);
+  if(pc){pc.hp=Math.max(0,Math.min(pc.hp_max,ent.hp));renderCards();renderStatusMini();}
+  save();renderCombat();renderHUD();
+}
+function toggleMoveMode(){
+  state.combat.moveMode=state.combat.moveMode==='ai'?'manual':'ai';
+  _zoneMoveSel=null;
+  save();renderCombat();
+  toast(state.combat.moveMode==='manual'?'Manual mode — tap token then tap zone to move':'AI mode — AI controls movement');
 }
 function toggleCombCond(idx,cond){
   const ent=state.combat.list[idx];if(!ent)return;
@@ -1584,21 +1705,34 @@ function addCombCond(idx){
 function addCombatant(){
   const n=document.getElementById('new-init-name');if(!n.value)return;
   state.combat.active=true;
+  if(!state.combat.zones)state.combat.zones=_defaultZones();
   const roll=Math.floor(Math.random()*20)+1;
   const val=parseInt(document.getElementById('new-init-val').value)||roll;
-  state.combat.list.push({name:n.value,val,hp:parseInt(document.getElementById('new-init-hp').value)||10,ac:parseInt(document.getElementById('new-init-ac').value)||12,isPC:false});
-  state.logs.push({ts:state.worldData.time,type:'combat',body:'Added '+n.value+' (initiative: '+val+')'});
+  const zone=(document.getElementById('new-init-zone')||{}).value||'front';
+  state.combat.list.push({name:n.value,val,hp:parseInt(document.getElementById('new-init-hp').value)||10,ac:parseInt(document.getElementById('new-init-ac').value)||12,isPC:false,zone,conditions:[],concentrating:''});
+  state.logs.push({ts:state.worldData.time,type:'combat',body:n.value+' added to '+ZONE_LABELS[zone]+' (init: '+val+')'});
   sortComb();n.value='';saveRefresh();
 }
 function addPartyToCombat(){
   state.combat.active=true;
+  if(!state.combat.zones)state.combat.zones=_defaultZones();
   state.pcs.forEach(pc=>{
     if(!state.combat.list.some(c=>c.name===pc.name)){
       const roll=Math.floor(Math.random()*20)+1;const val=roll+(pc.initiative||0);
-      state.combat.list.push({name:pc.name,val,hp:pc.hp,ac:pc.ac,isPC:true});
-      state.logs.push({ts:state.worldData.time,type:'combat',body:pc.name+' joined combat (d20['+roll+']+'+pc.initiative+'='+val+')'});
+      const zone=pc.id==='slasher'?'front':'back';
+      state.combat.list.push({name:pc.name,val,hp:pc.hp,hp_max:pc.hp_max,ac:pc.ac,isPC:true,zone,conditions:[],concentrating:''});
+      state.logs.push({ts:state.worldData.time,type:'combat',body:pc.name+' joined '+ZONE_LABELS[zone]+' (d20['+roll+']+'+pc.initiative+'='+val+')'});
     }
   });
+  // Add Grit + Wagon to Rear Guard if not already present
+  if(!state.combat.list.some(c=>c.name==='Grit')){
+    const ox=state.wagon?.ox;if(ox){
+      state.combat.list.push({name:'Grit',val:0,hp:ox.hp||15,hp_max:ox.hp_max||15,ac:ox.ac||11,isPC:false,zone:'rear',conditions:[],concentrating:''});
+    }
+  }
+  if(!state.combat.list.some(c=>c.name==='Wagon')){
+    state.combat.list.push({name:'Wagon',val:0,hp:state.wagon?.hp||20,hp_max:state.wagon?.hp_max||20,ac:state.wagon?.ac||11,isPC:false,zone:'rear',conditions:[],concentrating:''});
+  }
   sortComb();saveRefresh();
 }
 function sortComb(){state.combat.list.sort((a,b)=>b.val-a.val);}
@@ -1612,7 +1746,21 @@ function updCombHP(i,val){
 }
 function nextTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;state.combat.currentIdx++;if(state.combat.currentIdx>=state.combat.list.length){state.combat.currentIdx=0;state.combat.round++;}saveRefresh();}
 function prevTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;state.combat.currentIdx--;if(state.combat.currentIdx<0){state.combat.currentIdx=state.combat.list.length-1;state.combat.round=Math.max(1,state.combat.round-1);}saveRefresh();}
-function endCombat(){state.combat={active:false,round:1,currentIdx:0,list:[]};saveRefresh();}
+function endCombat(){
+  var summary='Combat ended — Round '+state.combat.round+', '+state.combat.list.length+' combatants.';
+  var loc=(state.worldData||{}).location||'';
+  if(loc){
+    var locObj=(state.locations||[]).find(function(l){return l.name===loc;});
+    if(locObj){
+      if(!locObj.history)locObj.history=[];
+      locObj.history.push({ts:state.worldData.time||'',text:summary,dmOnly:false});
+    }
+  }
+  state.combat={active:false,round:1,currentIdx:0,list:[],zones:_defaultZones(),moveMode:'ai'};
+  _zoneMoveSel=null;
+  saveRefresh();
+  toast('Combat ended — summary added to location history');
+}
 function renderPresets(){
   const c=document.getElementById('preset-list');if(!c)return;c.innerHTML='';
   if(!(state.encounterPresets||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No presets yet.</div>';return;}
@@ -1628,11 +1776,12 @@ function remPreset(i){state.encounterPresets.splice(i,1);saveRefresh();}
 function loadPreset(idx){
   const p=state.encounterPresets[idx];if(!p?.enemies)return;
   state.combat.active=true;
+  if(!state.combat.zones)state.combat.zones=_defaultZones();
   p.enemies.split(',').forEach(part=>{
     const bits=part.trim().split(':');const name=bits[0]?.trim()||'Enemy';
     const hp=parseInt(bits[1])||10;const ac=parseInt(bits[2])||12;
     const roll=Math.floor(Math.random()*20)+1;
-    state.combat.list.push({name,val:roll,hp,ac,isPC:false});
+    state.combat.list.push({name,val:roll,hp,ac,isPC:false,zone:'front',conditions:[],concentrating:''});
     state.logs.push({ts:state.worldData.time,type:'combat',body:name+' loaded (initiative: '+roll+')'});
   });
   sortComb();saveRefresh();showTab('tab-combat');toast('✓ '+p.name+' loaded!');
@@ -2860,6 +3009,13 @@ function migrate(s){
     if(_pb){if(!_pb.slots||_pb.slots.length<2||_pb.slots[0].max!==4)_pb.slots=[{max:4,used:(_pb.slots||[])[0]?.used||0},{max:2,used:(_pb.slots||[])[1]?.used||0}];if(_pb.hp===undefined||_pb.hp<1||_pb.hp>30)_pb.hp=30;}
   }
 
+  // ══ VERSION GATE: savedVer < 12 — Zone Combat Map (Drop 4) ══
+  if(savedVer<12){
+    if(!s.combat.zones)s.combat.zones=_defaultZones();
+    if(!s.combat.moveMode)s.combat.moveMode='ai';
+    (s.combat.list||[]).forEach(function(c){if(!c.zone)c.zone='front';});
+  }
+
   // ══ CANONICAL QA COMPLETENESS — always run to pick up QAs added in current version ══
   const validTabs=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dm'];
   const hasValidActions=s.quickActions.some(qa=>(qa.context||[]).some(c=>validTabs.includes(c)));
@@ -2943,7 +3099,9 @@ function migrate(s){
   if(!s.wagon.wagonName)s.wagon.wagonName='The Shelled Alchemist';
   if(!s.combat||typeof s.combat!=='object')s.combat={active:false,round:1,currentIdx:0,list:[]};
   if(!Array.isArray(s.combat.list))s.combat.list=[];
-  s.combat.list.forEach(c=>{if(!c.conditions)c.conditions=[];if(!c.concentrating)c.concentrating='';});
+  if(!s.combat.zones)s.combat.zones=_defaultZones();
+  if(!s.combat.moveMode)s.combat.moveMode='ai';
+  s.combat.list.forEach(c=>{if(!c.conditions)c.conditions=[];if(!c.concentrating)c.concentrating='';if(!c.zone)c.zone='front';});
   if(s.combat.active===undefined)s.combat.active=false;
   if(!s.combat.round)s.combat.round=1;
   if(s.combat.currentIdx===undefined)s.combat.currentIdx=0;
@@ -3429,7 +3587,7 @@ Rules:
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
-const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|none';
+const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|none';
 const _NAKED_MECH_RE=new RegExp('^('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
@@ -3769,6 +3927,51 @@ function parseMechanics(responseText, pendingMsgId=null){
       }else if(key==='pc_delete'){
         const i=state.pcs.findIndex(p=>p.name.toLowerCase()===val.toLowerCase()||p.id===val);
         if(i>-1&&state.pcs.length>1){changes.push({text:'Removed: '+state.pcs[i].name});state.pcs.splice(i,1);state.activeEditTab=Math.min(state.activeEditTab||0,state.pcs.length-1);}
+      }else if(key==='zone_move'){
+        const zp=val.split('|').map(s=>s.trim());
+        const zent=(state.combat.list||[]).find(c=>c.name.toLowerCase().includes((zp[0]||'').toLowerCase()));
+        const zid=(zp[1]||'').toLowerCase();
+        if(zent&&ZONE_IDS.includes(zid)){zent.zone=zid;changes.push({text:zent.name+' → '+(state.combat.zones[zid]?.label||zid)});}
+      }else if(key==='zone_add_enemy'){
+        const zp=val.split('|').map(s=>s.trim());
+        const zname=zp[0]||'Enemy';const zhp=parseInt(zp[1])||10;const zac=parseInt(zp[2])||12;const zzone=zp[3]||'front';const zinit=parseInt(zp[4])||Math.floor(Math.random()*20)+1;
+        state.combat.active=true;
+        if(!state.combat.zones)state.combat.zones=_defaultZones();
+        state.combat.list.push({name:zname,val:zinit,hp:zhp,hp_max:zhp,ac:zac,isPC:false,zone:ZONE_IDS.includes(zzone)?zzone:'front',conditions:[],concentrating:''});
+        sortComb();changes.push({text:zname+' joined '+ZONE_LABELS[zzone||'front']});
+      }else if(key==='zone_remove'){
+        const zi=state.combat.list.findIndex(c=>c.name.toLowerCase().includes(val.toLowerCase()));
+        if(zi>-1){changes.push({text:state.combat.list[zi].name+' removed'});state.combat.list.splice(zi,1);if(state.combat.currentIdx>=state.combat.list.length)state.combat.currentIdx=Math.max(0,state.combat.list.length-1);}
+      }else if(key==='zone_effect'){
+        const zp=val.split('|').map(s=>s.trim());
+        const zid=(zp[0]||'').toLowerCase();const zfx=zp[1]||'';const ztype=zp[2]||'';
+        if(ZONE_IDS.includes(zid)){
+          if(!state.combat.zones)state.combat.zones=_defaultZones();
+          if(!state.combat.zones[zid])state.combat.zones[zid]={label:ZONE_LABELS[zid],effect:'',terrain:''};
+          if(ztype==='terrain'||ztype==='difficult')state.combat.zones[zid].terrain=zfx;
+          else state.combat.zones[zid].effect=zfx;
+          changes.push({text:(state.combat.zones[zid].label||zid)+': '+zfx});
+        }
+      }else if(key==='zone_label'){
+        const zp=val.split('|').map(s=>s.trim());
+        const zid=(zp[0]||'').toLowerCase();const zlbl=zp[1]||'';
+        if(ZONE_IDS.includes(zid)&&zlbl){
+          if(!state.combat.zones)state.combat.zones=_defaultZones();
+          if(!state.combat.zones[zid])state.combat.zones[zid]={label:ZONE_LABELS[zid],effect:'',terrain:''};
+          state.combat.zones[zid].label=zlbl;
+          changes.push({text:'Zone renamed: '+zlbl});
+        }
+      }else if(key==='combat_start'){
+        state.combat.active=true;
+        if(!state.combat.zones)state.combat.zones=_defaultZones();
+        changes.push({text:'Combat started'});
+      }else if(key==='combat_end'){
+        var ceSummary=val||('Combat ended — Round '+state.combat.round);
+        var ceLoc=(state.worldData||{}).location||'';
+        if(ceLoc){var ceLocObj=(state.locations||[]).find(function(l){return l.name===ceLoc;});if(ceLocObj){if(!ceLocObj.history)ceLocObj.history=[];ceLocObj.history.push({ts:state.worldData.time||'',text:ceSummary,dmOnly:false});}}
+        state.combat={active:false,round:1,currentIdx:0,list:[],zones:_defaultZones(),moveMode:'ai'};
+        _zoneMoveSel=null;
+        changes.push({text:'Combat ended'});
       }else if(key==='chapter_add'){
         const sep=val.indexOf('|');const ctitle=sep>-1?val.slice(0,sep).trim():val.trim();const ccontent=sep>-1?val.slice(sep+1).trim():'';
         if(ctitle&&ccontent){if(!Array.isArray(state.storyChapters))state.storyChapters=[];state.storyChapters.push({id:Date.now(),title:ctitle,content:ccontent,date:state.worldData.time||''});changes.push({text:'Chapter added: '+ctitle});}
@@ -7546,6 +7749,7 @@ Object.assign(window, {
   previouslyOn, viewQuestInChat,
   populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
+  zoneTokenTap, zoneBoxTap, zoneHPAdj, toggleMoveMode,
 });
 // Live getter so inline onclick/oninput can access `state` even after Firebase reassigns it
 Object.defineProperty(window,'state',{get(){return state;},configurable:true});

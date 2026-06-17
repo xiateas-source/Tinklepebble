@@ -12,8 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.yQk1vQdL.js"></script>
-  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.EBCo-M8O.css">
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.zeYOryqC.js"></script>
+  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.pM09hU7W.css">
 </head>
 <body>
 
@@ -341,60 +341,47 @@
   </div>
 </div>
 
-<!-- COMBAT TAB -->
-<div id="tab-combat" class="tab-section">
-  <div class="grid-2">
-    <div class="col">
-      <details class="panel" id="combat-tracker-det">
-        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Initiative Tracker</summary>
-        <div class="round-counter" style="margin-top:8px">
-          <span style="font-size:11px;color:var(--text-dim);text-transform:uppercase">Round</span>
-          <span class="round-num" id="round-num">1</span>
-          <button class="btn sm" onclick="prevTurn()">◀</button>
-          <button class="btn sm gold" onclick="nextTurn()">Next ▶</button>
-          <button class="btn sm red" onclick="endCombat()" style="margin-left:auto">End Combat</button>
-        </div>
-        <div id="init-list" class="initiative-list"></div>
-        <div class="form-row" style="align-items:flex-end;margin-top:8px">
-          <div class="fg"><label class="field-label">Name</label><input type="text" id="new-init-name" placeholder="Goblin"></div>
-          <div style="width:60px"><label class="field-label">Init</label><input type="number" id="new-init-val" value="10"></div>
-          <div style="width:55px"><label class="field-label">HP</label><input type="number" id="new-init-hp" value="10"></div>
-          <div style="width:50px"><label class="field-label">AC</label><input type="number" id="new-init-ac" value="12"></div>
-          <button class="btn green" onclick="addCombatant()">Add</button>
-        </div>
-        <button class="btn full" onclick="addPartyToCombat()" style="margin-top:6px">+ Add All PCs to Initiative</button>
-      </details>
-      <details class="panel">
-        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Rests</summary>
-        <div class="btn-row" style="margin-top:8px">
-          <button class="btn gold" onclick="doShortRest()">⛺ Short Rest</button>
-          <button class="btn purple" onclick="doLongRest()">🌙 Long Rest</button>
-        </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-top:8px"><b style="color:var(--gold)">Short:</b> Spend Hit Dice. Some features restore.<br><b style="color:var(--purple-bright)">Long:</b> Full HP + spell slots. Auto-checkpoint.</p>
-      </details>
-      <details class="panel">
-        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Encounter Presets <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addPreset()" title="Format: Name:HP:AC per enemy, comma-separated">+ New</button></summary>
-        <div id="preset-list" style="margin-top:6px"></div>
-      </details>
+<!-- COMBAT TAB (Zone Combat Map) -->
+<div id="tab-combat" class="tab-section" style="padding:8px">
+  <div id="zone-combat-hdr" style="display:none">
+    <div class="zone-round-bar">
+      <span class="zone-round-lbl">ROUND</span>
+      <span class="zone-round-num" id="zone-round-num">1</span>
+      <span class="zone-turn-name" id="zone-turn-name"></span>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+        <button class="btn sm" onclick="prevTurn()">◀</button>
+        <button class="btn sm gold" onclick="nextTurn()">Next ▶</button>
+        <button class="btn sm red" onclick="endCombat()">End</button>
+      </div>
     </div>
-    <div class="col">
-      <details class="panel">
-        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Conditions Reference</summary>
-        <div style="font-size:11px;color:var(--text-dim);line-height:1.8;margin-top:8px">
-          <b style="color:var(--red)">Blinded:</b> Auto-fail sight checks, attacks vs you have adv.<br>
-          <b style="color:var(--red)">Charmed:</b> Can't attack charmer; charmer adv on social checks.<br>
-          <b style="color:var(--red)">Frightened:</b> Disadv attacks/checks while source visible.<br>
-          <b style="color:var(--red)">Grappled:</b> Speed 0. Ends if grappler incapacitated.<br>
-          <b style="color:var(--red)">Paralyzed:</b> Incap, auto-fail Str/Dex, crits from 5ft.<br>
-          <b style="color:var(--red)">Poisoned:</b> Disadv on attack rolls and ability checks.<br>
-          <b style="color:var(--red)">Prone:</b> Disadv attacks; adv attacks vs from within 5ft.<br>
-          <b style="color:var(--red)">Restrained:</b> Speed 0, disadv attacks, adv attacks vs you.<br>
-          <b style="color:var(--red)">Stunned:</b> Incap, auto-fail Str/Dex, adv attacks vs.<br>
-          <b style="color:var(--red)">Unconscious:</b> Incap, prone, crits from 5ft.
-        </div>
-      </details>
-    </div>
+    <div class="init-strip" id="init-strip"></div>
   </div>
+  <div id="zone-grid" class="zone-grid"></div>
+  <div id="zone-active-card" class="zone-active-card" style="display:none"></div>
+  <div id="zone-no-combat" style="text-align:center;padding:24px;color:var(--text-dim);font-style:italic">No combat active</div>
+  <details class="panel" style="margin-top:8px">
+    <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Add Combatants</summary>
+    <div class="form-row" style="align-items:flex-end;margin-top:8px">
+      <div class="fg"><label class="field-label">Name</label><input type="text" id="new-init-name" placeholder="Goblin"></div>
+      <div style="width:55px"><label class="field-label">Init</label><input type="number" id="new-init-val" value="10"></div>
+      <div style="width:50px"><label class="field-label">HP</label><input type="number" id="new-init-hp" value="10"></div>
+      <div style="width:45px"><label class="field-label">AC</label><input type="number" id="new-init-ac" value="12"></div>
+      <div style="width:62px"><label class="field-label">Zone</label><select id="new-init-zone"><option value="front">Front</option><option value="back">Back</option><option value="left">L.Flank</option><option value="right">R.Flank</option><option value="rear">Rear</option><option value="air">Air</option></select></div>
+      <button class="btn green" onclick="addCombatant()">Add</button>
+    </div>
+    <button class="btn full" onclick="addPartyToCombat()" style="margin-top:6px">+ Add All PCs</button>
+  </details>
+  <details class="panel">
+    <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Encounter Presets <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addPreset()">+ New</button></summary>
+    <div id="preset-list" style="margin-top:6px"></div>
+  </details>
+  <details class="panel">
+    <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Rests</summary>
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn gold" onclick="doShortRest()">Short Rest</button>
+      <button class="btn purple" onclick="doLongRest()">Long Rest</button>
+    </div>
+  </details>
 </div>
 
 <!-- LOG TAB -->
