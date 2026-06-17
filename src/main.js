@@ -2433,9 +2433,10 @@ async function handleModulePDF(file){
 
 function _splitIntoChapters(pages,filename){
   const chapterPatterns=[
-    /\b(chapter|episode|part)\s+(\d+)\s*[:\.\—\-–]\s*(.+?)(?:\s{2,}|$)/i,
-    /\b(chapter|episode|part)\s+(\d+)\b/i,
-    /^(introduction|appendix\s*[a-z]?|epilogue|prologue)\s*[:\.\—\-–]?\s*(.*)/im,
+    /\b(chapter|episode|part|act|section)\s+(\d+)\s*[:\.\—\-–]\s*(.+?)(?:\s{2,}|$)/i,
+    /\b(chapter|episode|part|act|section)\s+(\d+)\b/i,
+    /^(introduction|appendix\s*[a-z]?|epilogue|prologue|adventure\s+background|adventure\s+overview|adventure\s+hooks?|the\s+story\s+so\s+far|adventure\s+summary|rewards?|conclusion)\s*[:\.\—\-–]?\s*(.*)/im,
+    /\b(mission|quest|encounter|objective)\s+(\d+)\s*[:\.\—\-–]\s*(.+?)(?:\s{2,}|$)/i,
   ];
   const sections=[];
   let currentSection=null;
@@ -2443,7 +2444,7 @@ function _splitIntoChapters(pages,filename){
     let matched=false;
     for(const pat of chapterPatterns){
       const m=p.text.match(pat);
-      if(m&&p.text.indexOf(m[0])<150){
+      if(m&&p.text.indexOf(m[0])<300){
         if(currentSection)sections.push(currentSection);
         const title=m[3]?m[1]+' '+m[2]+': '+m[3].trim():m[0].trim();
         currentSection={title:title.slice(0,80),startPage:p.num,pages:[p],text:''};
@@ -2464,17 +2465,25 @@ function _splitIntoChapters(pages,filename){
     s.pageCount=s.pages.length;
     delete s.pages;
   });
-  if(!sections.length&&pages.length){
-    const chunkSize=Math.ceil(pages.length/8);
+  if(sections.length<=1&&pages.length>5){
+    sections.length=0;
+    const chunkSize=Math.max(3,Math.ceil(pages.length/Math.min(8,Math.ceil(pages.length/5))));
     for(let i=0;i<pages.length;i+=chunkSize){
       const chunk=pages.slice(i,i+chunkSize);
+      const firstWords=chunk[0].text.slice(0,60).replace(/\s+/g,' ').trim();
       sections.push({
-        title:'Section '+(Math.floor(i/chunkSize)+1)+' (pages '+(i+1)+'–'+(i+chunkSize)+')',
+        title:firstWords.length>10?firstWords+'…':'Section '+(Math.floor(i/chunkSize)+1),
         startPage:i+1,endPage:Math.min(i+chunkSize,pages.length),
         pageCount:chunk.length,
         text:chunk.map(p=>p.text).join('\n\n')
       });
     }
+  }else if(!sections.length&&pages.length){
+    sections.push({
+      title:'Full Document',startPage:1,endPage:pages.length,
+      pageCount:pages.length,
+      text:pages.map(p=>p.text).join('\n\n')
+    });
   }
   return sections;
 }
@@ -2487,12 +2496,13 @@ function _renderPDFImport(sections,filename,totalPages){
   const hasExisting=(state.moduleProgress||[]).length>0;
   if(hasExisting){
     html+='<div style="padding:8px;margin-bottom:8px;background:var(--surface2);border-radius:4px;display:flex;align-items:center;gap:8px">';
-    html+='<label style="font-size:11px;color:var(--text-bright);cursor:pointer"><input type="radio" name="pdf-import-mode" value="replace" checked style="margin-right:4px">Replace current module</label>';
-    html+='<label style="font-size:11px;color:var(--text);cursor:pointer"><input type="radio" name="pdf-import-mode" value="add" style="margin-right:4px">Add to current</label>';
+    html+='<label style="font-size:11px;color:var(--text-bright);cursor:pointer"><input type="radio" name="pdf-import-mode" value="replace" checked style="margin-right:4px" onchange="_pdfModeToggle()">Replace current module</label>';
+    html+='<label style="font-size:11px;color:var(--text);cursor:pointer"><input type="radio" name="pdf-import-mode" value="add" style="margin-right:4px" onchange="_pdfModeToggle()">Add to current</label>';
     html+='</div>';
   }
   html+='<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Map each section to an episode, or load into Module Reference. Unassigned sections are skipped.</div>';
-  const epOpts=((state.moduleProgress||[]).map((ep,i)=>'<option value="'+i+'">Ep '+(i+1)+': '+esc(ep.name)+'</option>').join(''));
+  const epOpts=((state.moduleProgress||[]).map((ep,i)=>'<option class="pdf-ep-opt" value="'+i+'">Ep '+(i+1)+': '+esc(ep.name)+'</option>').join(''));
+  const hideEps=hasExisting;
   sections.forEach((s,si)=>{
     const preview=s.text.slice(0,200).replace(/\n/g,' ')+'…';
     html+='<div style="padding:6px 0;border-bottom:1px solid var(--border)">';
@@ -2505,8 +2515,8 @@ function _renderPDFImport(sections,filename,totalPages){
     html+='<select id="pdf-assign-'+si+'" style="font-size:10px;padding:2px 4px;flex:1">';
     html+='<option value="">— Skip —</option>';
     html+='<option value="ref">→ Module Reference</option>';
-    html+='<option value="new">→ Create New Episode</option>';
-    html+=epOpts;
+    html+='<option value="new"'+(hideEps?' selected':'')+'>→ Create New Episode</option>';
+    if(!hideEps)html+=epOpts;
     html+='</select>';
     html+='<button class="btn sm" style="font-size:9px" onclick="previewPDFSection('+si+')">👁</button>';
     html+='</div>';
@@ -2606,6 +2616,22 @@ function cancelPDFImport(){
   _pdfSections=[];
   const status=document.getElementById('pdf-import-status');
   if(status){status.style.display='none';status.innerHTML='';}
+}
+
+function _pdfModeToggle(){
+  const modeRadio=document.querySelector('input[name="pdf-import-mode"]:checked');
+  const replace=modeRadio&&modeRadio.value==='replace';
+  const epOpts=(state.moduleProgress||[]).map((ep,i)=>'<option class="pdf-ep-opt" value="'+i+'">Ep '+(i+1)+': '+esc(ep.name)+'</option>').join('');
+  for(let si=0;si<_pdfSections.length;si++){
+    const sel=document.getElementById('pdf-assign-'+si);
+    if(!sel)continue;
+    const old=sel.querySelectorAll('.pdf-ep-opt');
+    old.forEach(o=>o.remove());
+    if(!replace){
+      sel.insertAdjacentHTML('beforeend',epOpts);
+    }
+    if(replace&&sel.value&&sel.value!=='ref'&&sel.value!=='new')sel.value='new';
+  }
 }
 
 function recalibrateModule(){
@@ -8996,7 +9022,7 @@ Object.assign(window, {
   setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
   uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView, pinAction, closePinMenu, movePin, unpinFromMap,
   openSheetPicker, dismissRollRequest,
-  renderSessionArchive, handleModulePDF, previewPDFSection, autoAssignPDF, applyPDFImport, cancelPDFImport, recalibrateModule,
+  renderSessionArchive, handleModulePDF, previewPDFSection, autoAssignPDF, applyPDFImport, cancelPDFImport, _pdfModeToggle, recalibrateModule,
   verifyContracts, clearFlagNote,
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
