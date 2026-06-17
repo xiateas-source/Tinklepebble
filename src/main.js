@@ -6998,6 +6998,7 @@ function renderLocations(){
 
   if(_locViewMode==='map'){
     c.innerHTML=headerHTML+_renderAreaMap(locs,typeIcon,repColor);
+    _initPinDrag();
     return;
   }
 
@@ -7055,7 +7056,7 @@ function _renderAreaMap(locs,typeIcon,repColor){
     const isCur=loc.status==='current';
     const fill=isCur?'var(--gold-bright)':'var(--surface3)';
     const stroke=repColor(loc);
-    return`<div class="map-pin${isCur?' pin-current':' pin-visited'}" style="left:${loc.mapPos.x}%;top:${loc.mapPos.y}%" onclick="event.stopPropagation();openLocationDetail('${loc.id}')" title="${esc(loc.name)}">
+    return`<div class="map-pin${isCur?' pin-current':' pin-visited'}" data-loc-id="${esc(loc.id)}" style="left:${loc.mapPos.x}%;top:${loc.mapPos.y}%" onclick="event.stopPropagation();openLocationDetail('${loc.id}')" title="${esc(loc.name)} — hold to drag">
       ${pinSVG(fill,stroke)}
       <span class="map-pin-label">${esc(loc.name.length>14?loc.name.slice(0,13)+'…':loc.name)}</span>
     </div>`;
@@ -7135,6 +7136,49 @@ function handleMapTap(e){
   _mapPlaceId=null;
   renderLocations();
   toast(`${loc.name} placed on map`);
+}
+function _initPinDrag(){
+  const container=document.getElementById('area-map-container');if(!container)return;
+  const pins=container.querySelectorAll('.map-pin[data-loc-id]');
+  pins.forEach(pin=>{
+    let dragTimer=null,isDragging=false,startX,startY;
+    const start=(cx,cy,e)=>{
+      startX=cx;startY=cy;isDragging=false;
+      dragTimer=setTimeout(()=>{
+        isDragging=true;pin.style.zIndex='10';pin.style.opacity='.8';
+        pin.style.transition='none';
+        if(e.cancelable)e.preventDefault();
+      },350);
+    };
+    const move=(cx,cy,e)=>{
+      if(!isDragging){
+        if(Math.abs(cx-startX)>6||Math.abs(cy-startY)>6){clearTimeout(dragTimer);dragTimer=null;}
+        return;
+      }
+      if(e.cancelable)e.preventDefault();
+      const rect=container.getBoundingClientRect();
+      const x=Math.max(0,Math.min(100,((cx-rect.left)/rect.width)*100));
+      const y=Math.max(0,Math.min(100,((cy-rect.top)/rect.height)*100));
+      pin.style.left=x+'%';pin.style.top=y+'%';
+    };
+    const end=(cx,cy)=>{
+      clearTimeout(dragTimer);
+      if(isDragging){
+        isDragging=false;pin.style.zIndex='';pin.style.opacity='';pin.style.transition='';
+        const rect=container.getBoundingClientRect();
+        const x=Math.max(0,Math.min(100,((cx-rect.left)/rect.width)*100));
+        const y=Math.max(0,Math.min(100,((cy-rect.top)/rect.height)*100));
+        const locId=pin.dataset.locId;
+        const loc=(state.locations||[]).find(l=>l.id===locId);
+        if(loc){loc.mapPos={x:Math.round(x*100)/100,y:Math.round(y*100)/100};save();}
+      }
+    };
+    pin.addEventListener('pointerdown',e=>{start(e.clientX,e.clientY,e);});
+    pin.addEventListener('pointermove',e=>{move(e.clientX,e.clientY,e);});
+    pin.addEventListener('pointerup',e=>{end(e.clientX,e.clientY);});
+    pin.addEventListener('pointercancel',()=>{clearTimeout(dragTimer);isDragging=false;pin.style.zIndex='';pin.style.opacity='';pin.style.transition='';});
+    pin.style.touchAction='none';
+  });
 }
 function openLocationDetail(id){
   const loc=(state.locations||[]).find(l=>l.id===id);if(!loc)return;
