@@ -1,9 +1,10 @@
 // CSS loaded via <link rel="stylesheet"> in index.html — no import needed
+import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 var _pdfjsLib=null;
 async function _loadPdfJs(){
   if(_pdfjsLib)return _pdfjsLib;
   const lib=await import('pdfjs-dist');
-  lib.GlobalWorkerOptions.workerSrc=new URL('pdfjs-dist/build/pdf.worker.min.mjs',import.meta.url).href;
+  lib.GlobalWorkerOptions.workerSrc=pdfjsWorkerUrl;
   _pdfjsLib=lib;
   return lib;
 }
@@ -2394,15 +2395,16 @@ function remModuleEp(i){state.moduleProgress.splice(i,1);save();renderModuleTrac
 // ═══ PDF MODULE IMPORT ═══
 var _pdfSections=[];
 async function handleModulePDF(file){
-  if(!file)return;
+  const inp=document.getElementById('pdf-upload-input');
+  if(inp)inp.value='';
+  if(!file){toast('No file selected');return;}
   const status=document.getElementById('pdf-import-status');
-  if(!status)return;
+  if(!status){toast('❌ UI element missing');return;}
   status.style.display='block';
-  status.innerHTML='<div style="padding:8px;font-size:11px;color:var(--gold)">📄 Loading PDF reader… <span id="pdf-progress">0%</span></div>';
+  status.innerHTML='<div style="padding:8px;font-size:11px;color:var(--gold)">📄 Loading PDF reader…</div>';
   try{
     const pdfjsLib=await _loadPdfJs();
-    const prog=document.getElementById('pdf-progress');
-    if(prog)prog.textContent='Reading…';
+    status.innerHTML='<div style="padding:8px;font-size:11px;color:var(--gold)">📄 Reading '+esc(file.name)+'… <span id="pdf-progress">0%</span></div>';
     const buf=await file.arrayBuffer();
     const pdf=await pdfjsLib.getDocument({data:buf}).promise;
     const totalPages=pdf.numPages;
@@ -2412,8 +2414,8 @@ async function handleModulePDF(file){
       const tc=await page.getTextContent();
       const text=tc.items.map(it=>it.str).join(' ').replace(/\s+/g,' ').trim();
       pages.push({num:i,text});
-      const prog=document.getElementById('pdf-progress');
-      if(prog)prog.textContent=Math.round(i/totalPages*100)+'%';
+      const pEl=document.getElementById('pdf-progress');
+      if(pEl)pEl.textContent=Math.round(i/totalPages*100)+'%';
     }
     const sections=_splitIntoChapters(pages,file.name);
     _pdfSections=sections;
