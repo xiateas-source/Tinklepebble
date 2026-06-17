@@ -4450,7 +4450,8 @@ function renderChat(){
     const mId=`msg-over-${msgIdx}`;
     const ttsBtn=isDM?`<button class="tts-btn" onclick="speakIdx(${msgIdx},this)" title="Read aloud">🔊</button>`:'';
     const flagBtn=isDM?`<button class="flag-btn" onclick="openFlagModal(${msgIdx})" title="Flag this response">⚑</button>`:'';
-    const overflowMenu=`<div id="${mId}" style="display:none;position:absolute;right:0;top:100%;background:var(--surface3);border:1px solid var(--border);border-radius:6px;z-index:200;padding:4px;display:none;gap:2px;flex-direction:row">${ttsBtn}${flagBtn}<button class="flag-btn" onclick="deleteChatMsg(${msgIdx})" title="Delete message" style="color:#c05050">✕</button></div>`;
+    const exportBtn=`<button class="flag-btn" onclick="exportMoment(${msgIdx})" title="Export this moment for dev review">📤</button>`;
+    const overflowMenu=`<div id="${mId}" style="display:none;position:absolute;right:0;top:100%;background:var(--surface3);border:1px solid var(--border);border-radius:6px;z-index:200;padding:4px;display:none;gap:2px;flex-direction:row">${ttsBtn}${flagBtn}${exportBtn}<button class="flag-btn" onclick="deleteChatMsg(${msgIdx})" title="Delete message" style="color:#c05050">✕</button></div>`;
     const moreBtn=`<div style="position:relative;display:inline-flex"><button class="copy-btn" onclick="(function(el){var m=document.getElementById('${mId}');m.style.display=m.style.display==='flex'?'none':'flex';document.addEventListener('click',function h(e){if(!el.contains(e.target)){m.style.display='none';document.removeEventListener('click',h);}},{once:true,capture:true});event.stopPropagation()})(this.parentElement)" title="More actions" style="font-size:11px;padding:0 5px;min-width:22px">⋮</button>${overflowMenu}</div>`;
     const copyBtn=`<button class="copy-btn" onclick="copyIdx(${msgIdx})" title="Copy message">📋</button>`;
     let tsHtml='';
@@ -6783,6 +6784,67 @@ function exportGameplayLog(mode){
   copyText(log,'✓ Gameplay log copied — paste to dev session');
 }
 
+function exportMoment(msgIdx){
+  const msgs=state.chatHistory||[];
+  const radius=10;
+  const start=Math.max(0,msgIdx-radius);
+  const end=Math.min(msgs.length,msgIdx+radius+1);
+  const slice=msgs.slice(start,end);
+  const target=msgs[msgIdx];
+  let log='=== TINKLE\'S TINCTURES — MOMENT EXPORT ===\n';
+  log+='Exported: '+new Date().toISOString().slice(0,16)+'\n';
+  log+='Target message: #'+(msgIdx+1)+' of '+msgs.length+'\n';
+  log+='Context window: messages '+(start+1)+'–'+end+' ('+slice.length+' total)\n';
+  log+='Location: '+(state.worldData?.location||'—')+'\n';
+  log+='PCs: '+(state.pcs||[]).map(p=>p.name+' ('+p.class+' '+p.level+', '+p.hp+'/'+p.hp_max+' HP)').join(', ')+'\n\n';
+  log+='--- CONTEXT ---\n\n';
+  slice.forEach((m,i)=>{
+    const absIdx=start+i;
+    const isTarget=absIdx===msgIdx;
+    const role=m.role==='assistant'?'DM':m.role==='user'?'PLAYER':'SYSTEM';
+    const who=m.playerChar?' ('+m.playerChar+')':m.playerName?' ('+m.playerName+')':'';
+    const content=(m.content||'').replace(/\n{3,}/g,'\n\n').trim();
+    if(!content)return;
+    if(isTarget)log+='>>> TARGET MESSAGE <<<\n';
+    log+='['+(m.ts||'')+'] '+role+who+':\n';
+    const lines=content.split('\n');
+    const mechLines=[];
+    const textLines=[];
+    lines.forEach(line=>{
+      if(/^[a-z_]+:/.test(line.trim()))mechLines.push(line.trim());
+      else textLines.push(line);
+    });
+    if(textLines.length)log+=textLines.join('\n')+'\n';
+    if(mechLines.length)log+='  MECHANICS: '+mechLines.join(' | ')+'\n';
+    if(isTarget)log+='>>> END TARGET <<<\n';
+    log+='\n';
+  });
+  const flags=(state.errorLog||[]).filter(f=>!f.resolved);
+  const nearby=flags.filter(f=>{
+    if(!target)return false;
+    const tTs=target.ts||'';
+    return f.gameTs&&f.gameTs===tTs;
+  });
+  if(nearby.length){
+    log+='--- FLAGS AT THIS MOMENT ---\n';
+    nearby.forEach(f=>{
+      const cat={bug:'Bug',story:'Story Error',rule:'Wrong Rule',idea:'Idea',app:'App Issue',other:'Other'}[f.category]||'Other';
+      log+='['+cat+'] '+((f.note||'')||'(no note)')+'\n';
+    });
+    log+='\n';
+  }
+  log+='--- PROMPT FOR DEV ---\n';
+  log+='The player flagged this specific moment for review. The TARGET MESSAGE is marked above.\n';
+  log+='Cross-reference against .claude/roadmap.md and .claude/features.md.\n\n';
+  log+='Analyze:\n';
+  log+='1. What went wrong or felt off at this moment?\n';
+  log+='2. Was it an AI rules error, a missing mechanic, a UX gap, or a context gap?\n';
+  log+='3. Does a fix or feature already exist that should have caught this? If so, why didn\'t it?\n';
+  log+='4. What specific change (code, contract clause, or prompt) would prevent this from recurring?\n';
+  copyText(log,'✓ Moment exported — paste to dev session');
+  toast('Moment exported to clipboard');
+}
+
 // ═══ TOAST ═══
 function toast(msg,dur){
   const t=document.getElementById('toast');if(!t)return;
@@ -8287,7 +8349,7 @@ Object.assign(window, {
   toggleTestMode, clearTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,
-  exportGameplayLog, populateVoices, openResetModal, requestNotifPermission,
+  exportGameplayLog, exportMoment, populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
   zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
   renderSetupLock, setSetupUnlocked, remAtk, rewindTo,
