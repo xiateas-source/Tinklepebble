@@ -1715,12 +1715,23 @@ function renderCombat(){
     const conds=(cur.conditions||[]).map((c,ci)=>'<span class="zt-cond" style="cursor:pointer" onclick="toggleCombCond('+idx+',\''+esc(c)+'\')">'+esc(c)+' ×</span>').join(' ');
     const conc=cur.concentrating?'<span class="zt-cond" style="border-color:var(--purple-bright);color:var(--purple-bright)">'+esc(cur.concentrating)+'</span>':'';
     const zoneLbl=(state.combat.zones||{})[cur.zone||'front']?.label||(cur.zone||'front');
+    const deathSaves=cur.isPC&&hp<=0?(()=>{const pc=state.pcs.find(p=>p.name===cur.name);const ds=pc?.death_saves||{success:0,fail:0};return '<div class="zac-ds"><span style="color:var(--green)">'+('●'.repeat(ds.success)+'○'.repeat(3-ds.success))+'</span> <span style="font-size:9px;color:var(--text-dim)">DS</span> <span style="color:var(--red)">'+('●'.repeat(ds.fail)+'○'.repeat(3-ds.fail))+'</span> <button class="btn sm" onclick="toggleDeathSave(state.pcs.indexOf(state.pcs.find(p=>p.name===\''+esc(cur.name)+'\')),\'success\')" style="font-size:9px;padding:1px 5px">+S</button><button class="btn sm red" onclick="toggleDeathSave(state.pcs.indexOf(state.pcs.find(p=>p.name===\''+esc(cur.name)+'\')),\'fail\')" style="font-size:9px;padding:1px 5px">+F</button></div>';})():'';
     card.innerHTML='<div class="zac-top"><b>'+esc(cur.name)+'</b><span class="zac-meta">AC '+cur.ac+' · '+zoneLbl+'</span></div>'
-      +'<div class="zac-hp-row"><button class="btn sm red" onclick="zoneHPAdj('+idx+',-1)">-</button>'
-      +'<span class="zac-hp">'+hp+'/'+max+' HP</span>'
-      +'<button class="btn sm green" onclick="zoneHPAdj('+idx+',1)">+</button>'
-      +'<button class="btn sm" onclick="addCombCond('+idx+')" style="margin-left:8px">+Cond</button></div>'
-      +(conds||conc?'<div class="zac-conds">'+conds+conc+'</div>':'');
+      +'<div class="zac-hp-row">'
+      +'<button class="btn sm red" onclick="zoneHPAdj('+idx+',-10)" style="font-size:10px;padding:2px 5px">-10</button>'
+      +'<button class="btn sm red" onclick="zoneHPAdj('+idx+',-5)" style="font-size:10px;padding:2px 5px">-5</button>'
+      +'<button class="btn sm red" onclick="zoneHPAdj('+idx+',-1)" style="font-size:10px;padding:2px 5px">-1</button>'
+      +'<span class="zac-hp">'+hp+'/'+max+'</span>'
+      +'<button class="btn sm green" onclick="zoneHPAdj('+idx+',1)" style="font-size:10px;padding:2px 5px">+1</button>'
+      +'<button class="btn sm green" onclick="zoneHPAdj('+idx+',5)" style="font-size:10px;padding:2px 5px">+5</button>'
+      +'<button class="btn sm green" onclick="zoneHPAdj('+idx+',10)" style="font-size:10px;padding:2px 5px">+10</button>'
+      +'<input type="number" id="zac-custom-hp" style="width:38px;font-size:11px;text-align:center;margin-left:4px" placeholder="##">'
+      +'<button class="btn sm red" onclick="zoneHPCustom('+idx+',-1)" style="font-size:10px;padding:2px 5px">Hit</button>'
+      +'<button class="btn sm green" onclick="zoneHPCustom('+idx+',1)" style="font-size:10px;padding:2px 5px">Heal</button>'
+      +'</div>'
+      +'<div style="display:flex;gap:4px;align-items:center;margin-top:4px"><button class="btn sm" onclick="addCombCond('+idx+')" style="font-size:10px;padding:2px 6px">+Cond</button><select id="zac-cond-pick" style="font-size:10px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:var(--surface3);color:var(--text-dim)"><option value="">Quick…</option>'+ALL_CONDS.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select><button class="btn sm" onclick="quickAddCond('+idx+')" style="font-size:10px;padding:2px 5px">Add</button></div>'
+      +(conds||conc?'<div class="zac-conds">'+conds+conc+'</div>':'')
+      +deathSaves;
   }else if(card){card.style.display='none';}
   _renderZoneChronicle();
 }
@@ -1813,15 +1824,31 @@ function toggleZoneFog(zid){
   save();renderCombat();
   toast(state.combat.zones[zid].hidden?'Zone hidden from players':'Zone revealed');
 }
-function zoneHPAdj(idx,dir){
-  const amt=parseInt(prompt((dir>0?'Heal':'Damage')+' by how much?'));
-  if(isNaN(amt)||amt<=0)return;
+function zoneHPAdj(idx,amt){
   const ent=state.combat.list[idx];if(!ent)return;
   const max=parseInt(ent.hp_max)||ent.hp||999;
-  ent.hp=dir>0?Math.min(max,ent.hp+amt):Math.max(0,ent.hp-amt);
+  const oldHp=parseInt(ent.hp)||0;
+  ent.hp=amt>0?Math.min(max,oldHp+amt):Math.max(0,oldHp+amt);
+  const dmg=amt<0?Math.abs(amt):0;
+  if(dmg&&ent.concentrating){
+    const dc=Math.max(10,Math.floor(dmg/2));
+    toast('⚡ '+ent.name+' concentrating on '+ent.concentrating+' — CON save DC '+dc);
+    _ctxInject='[CONCENTRATION CHECK] '+ent.name+' took '+dmg+' damage while concentrating on '+ent.concentrating+'. DC '+dc+' CON save required. Resolve this before continuing.';
+  }
   const pc=state.pcs.find(p=>p.name===ent.name);
   if(pc){pc.hp=Math.max(0,Math.min(pc.hp_max,ent.hp));renderCards();renderStatusMini();}
   save();renderCombat();renderHUD();
+}
+function zoneHPCustom(idx,dir){
+  const inp=document.getElementById('zac-custom-hp');
+  const amt=parseInt(inp?.value);if(isNaN(amt)||amt<=0)return;
+  zoneHPAdj(idx,dir*amt);if(inp)inp.value='';
+}
+function quickAddCond(idx){
+  const sel=document.getElementById('zac-cond-pick');if(!sel||!sel.value)return;
+  const ent=state.combat.list[idx];if(!ent)return;
+  if(!ent.conditions)ent.conditions=[];
+  ent.conditions.push(sel.value);sel.value='';saveRefresh();
 }
 function toggleMoveMode(){
   state.combat.moveMode=state.combat.moveMode==='ai'?'manual':'ai';
@@ -1837,7 +1864,7 @@ function toggleCombCond(idx,cond){
   saveRefresh();
 }
 function addCombCond(idx){
-  const cond=prompt('Add condition:');if(!cond)return;
+  const cond=window.prompt('Add condition:');if(!cond)return;
   const ent=state.combat.list[idx];if(!ent)return;
   if(!ent.conditions)ent.conditions=[];
   ent.conditions.push(cond);saveRefresh();
@@ -1884,8 +1911,16 @@ function updCombHP(i,val){
   if(pc){pc.hp=Math.max(0,Math.min(pc.hp_max,clamped));renderCards();renderStatusMini();}
   save();renderCombat();
 }
-function nextTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;state.combat.currentIdx++;if(state.combat.currentIdx>=state.combat.list.length){state.combat.currentIdx=0;state.combat.round++;}saveRefresh();}
-function prevTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;state.combat.currentIdx--;if(state.combat.currentIdx<0){state.combat.currentIdx=state.combat.list.length-1;state.combat.round=Math.max(1,state.combat.round-1);}saveRefresh();}
+function _injectTurnCtx(){
+  const cur=state.combat.list[state.combat.currentIdx];if(!cur)return;
+  const zone=(state.combat.zones||{})[cur.zone||'front']?.label||(cur.zone||'front');
+  const conds=(cur.conditions||[]).length?cur.conditions.join(', '):'none';
+  const conc=cur.concentrating?' Concentrating: '+cur.concentrating+'.':'';
+  _ctxInject='[TURN ADVANCE] Round '+state.combat.round+', '+cur.name+"'s turn. Zone: "+zone+'. HP: '+cur.hp+'/'+cur.hp_max+'. AC: '+cur.ac+'. Conditions: '+conds+'.'+conc+' Awaiting action.';
+}
+function nextTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;state.combat.currentIdx++;if(state.combat.currentIdx>=state.combat.list.length){state.combat.currentIdx=0;state.combat.round++;}_injectTurnCtx();saveRefresh();}
+function prevTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;state.combat.currentIdx--;if(state.combat.currentIdx<0){state.combat.currentIdx=state.combat.list.length-1;state.combat.round=Math.max(1,state.combat.round-1);}_injectTurnCtx();saveRefresh();}
+const COMBAT_ONLY_CONDS=new Set(['Prone','Grappled','Restrained']);
 function endCombat(){
   var summary='Combat ended — Round '+state.combat.round+', '+state.combat.list.length+' combatants.';
   var loc=(state.worldData||{}).location||'';
@@ -1896,10 +1931,19 @@ function endCombat(){
       locObj.history.push({ts:state.worldData.time||'',text:summary,dmOnly:false});
     }
   }
+  const synced=[];
+  state.combat.list.forEach(ent=>{
+    if(!ent.isPC)return;
+    const pc=state.pcs.find(p=>p.name===ent.name);if(!pc)return;
+    const persistent=(ent.conditions||[]).filter(c=>!COMBAT_ONLY_CONDS.has(c));
+    pc.conditions=persistent;
+    pc.concentrating=ent.concentrating||'';
+    if(persistent.length)synced.push(pc.name+': '+persistent.join(', '));
+  });
   state.combat={active:false,round:1,currentIdx:0,list:[],zones:_defaultZones(),moveMode:'ai'};
   _zoneMoveSel=null;
   saveRefresh();
-  toast('Combat ended — summary added to location history');
+  toast('Combat ended'+(synced.length?' — conditions synced: '+synced.join('; '):' — summary added to location history'));
 }
 function renderPresets(){
   const c=document.getElementById('preset-list');if(!c)return;c.innerHTML='';
@@ -2376,6 +2420,13 @@ function remSnip(i){state.snippets.splice(i,1);save();renderSnips();}
 function saveDmSecrets(){const el=document.getElementById('dm-secrets');if(el){state.dmSecrets=el.value;save();toast('✓ Secrets saved.');}}
 
 // ═══ LEDGER ═══
+function _combatLedgerBlock(){
+  if(!state.combat.active)return'';
+  let l="COMBAT Round "+state.combat.round+" ("+state.combat.moveMode+" movement):\n";
+  const zg={};state.combat.list.forEach(c=>{const z=c.zone||'front';if(!zg[z])zg[z]=[];zg[z].push(c);});
+  ZONE_IDS.forEach(zid=>{const zd=state.combat.zones?.[zid];if(!zg[zid]&&zid==='air')return;l+='  ['+(zd?.label||ZONE_LABELS[zid])+']';if(zd?.effect)l+=' {'+zd.effect+'}';if(zd?.terrain)l+=' ['+zd.terrain+']';l+=': ';l+=(zg[zid]||[]).map(c=>(state.combat.list.indexOf(c)===state.combat.currentIdx?'>>>':'')+c.name+' HP:'+c.hp+'/'+c.hp_max+' AC:'+c.ac+(c.conditions?.length?' ('+c.conditions.join(',')+')':'')+(c.concentrating?' (Conc:'+c.concentrating+')':'')).join(', ')||(zid==='air'?'':'(empty)');l+='\n';});
+  return l;
+}
 function genLedger(){
   const fmt=document.getElementById('ledger-fmt')?.value||'compact';
   const pfx=document.getElementById('ledger-prefix')?.value||'';
@@ -2393,7 +2444,7 @@ function genLedger(){
       if((p.slots||[]).length)l+=' | Slots: '+p.slots.map((s,i)=>'L'+(i+1)+':'+(s.max-s.used)+'/'+s.max).join(' ');
       l+='\n';
     });
-    if(state.combat.active){l+="\nCOMBAT Round "+state.combat.round+" ("+state.combat.moveMode+" movement):\n";const zg={};state.combat.list.forEach(c=>{const z=c.zone||'front';if(!zg[z])zg[z]=[];zg[z].push(c);});ZONE_IDS.forEach(zid=>{const zd=state.combat.zones?.[zid];if(!zg[zid]&&zid==='air')return;l+='  ['+(zd?.label||ZONE_LABELS[zid])+']';if(zd?.effect)l+=' {'+zd.effect+'}';if(zd?.terrain)l+=' ['+zd.terrain+']';l+=': ';l+=(zg[zid]||[]).map((c,i)=>(state.combat.list.indexOf(c)===state.combat.currentIdx?'>>>':'')+c.name+' HP:'+c.hp+'/'+c.hp_max+' AC:'+c.ac+(c.conditions?.length?' ('+c.conditions.join(',')+')':'')).join(', ')||(zid==='air'?'':'(empty)');l+='\n';});}
+    const cb=_combatLedgerBlock();if(cb)l+='\n'+cb;
     const ox=state.wagon.ox;l+="\nGrit: HP "+ox.hp+"/"+ox.hp_max+" | Feed: "+ox.feed+"\n";
     l+="Treasury: GP "+state.treasuryData.gp+"\n";
     l+="=== END COMPACT ===";
@@ -5000,15 +5051,24 @@ function updateRollMod(){
 let _ctxInject=null;
 function sendContextRefresh(){
   const w=state.worldData;
-  _ctxInject=[
+  const lines=[
     '[CONTEXT REFRESH — re-read this before your next response]',
     'Location: '+(w.location||'unknown'),
     'Time: '+(w.time||'unknown'),
     'Scene: '+(w.scene_title||'none')+' — tone: '+(w.scene_threat||'calm'),
     'Active conditions: '+(w.scene_cond||'none'),
     'Weather: '+(w.weather||'unknown'),
-    'Combat: '+(state.combat.active?'ACTIVE round '+state.combat.round:'not active'),
-  ].join('\n');
+  ];
+  const cb=_combatLedgerBlock();
+  if(cb){lines.push('');lines.push(cb);}
+  else{lines.push('Combat: not active');}
+  state.pcs.forEach(p=>{
+    let s=p.name+': HP '+p.hp+'/'+p.hp_max+' AC '+p.ac;
+    if((p.conditions||[]).length)s+=' ['+p.conditions.join(', ')+']';
+    if(p.concentrating)s+=' (Conc: '+p.concentrating+')';
+    lines.push(s);
+  });
+  _ctxInject=lines.join('\n');
   const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   state.chatHistory.push({role:'system',content:'↺ Context refreshed — will apply on your next message.',ts,realTs:ts});
   save();renderChat();showTab('tab-dm');
@@ -8122,7 +8182,7 @@ Object.assign(window, {
   previouslyOn, viewQuestInChat,
   populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
-  zoneTokenTap, zoneBoxTap, zoneHPAdj, toggleMoveMode, toggleZoneFog,
+  zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
   renderSetupLock, setSetupUnlocked, remAtk, rewindTo,
   renderPCOverview, renderHUD, renderCharTabs,
   remPcItem, remResource, renderCapacity, renderErrorLog, closeWEdit,

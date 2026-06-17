@@ -158,9 +158,10 @@ input[type=checkbox]{width:auto;accent-color:var(--gold);}
 .zac-top{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;}
 .zac-top b{font-family:var(--display);font-size:14px;color:var(--gold-bright);}
 .zac-meta{font-size:11px;color:var(--text-dim);}
-.zac-hp-row{display:flex;align-items:center;gap:8px;}
-.zac-hp{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text-bright);min-width:70px;text-align:center;}
+.zac-hp-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.zac-hp{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text-bright);min-width:50px;text-align:center;}
 .zac-conds{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.zac-ds{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;font-family:var(--mono);}
 
 /* ── SESSION LOG ── */
 .log-entry{padding:9px 12px;border-left:3px solid var(--border);margin-bottom:6px;background:var(--surface2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;}
