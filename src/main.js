@@ -4541,6 +4541,7 @@ const SUGGEST_CHIPS={
     {label:'// note',fill:'// '},
     {label:'// flag',fill:'//flag 20 '},
     {label:'// add item',fill:'//add item '},
+    {label:'// explain',fill:'//explain '},
     {label:'// help',fill:'//help'},
   ],
   ooc:[
@@ -7995,7 +7996,40 @@ function _handleSlashCmd(raw){
 
   // //help — show available commands
   if(lower==='help'||lower==='?'||lower==='commands'){
-    toast('// note · //flag N reason · //add item · //hp ±N · //gold ±N',5000);
+    toast('// note · //flag N reason · //add item · //hp ±N · //gold ±N · //explain topic',5000);
+    return;
+  }
+
+  // //explain topic — show a help card about a feature
+  if(lower.startsWith('explain')||lower.startsWith('what is')||lower.startsWith('how to')){
+    const topic=(raw.replace(/^(explain|what is|how to)\s*/i,'')).trim().toLowerCase();
+    const EXPLAINS={
+      'actions':       'Quick Actions (⚡) are one-tap shortcuts on the floating button. Tap ⚡ → pick an action → it runs instantly. Customize them in Systems > AI Tools > QA Editor.',
+      'quick actions':  'Quick Actions (⚡) are one-tap shortcuts on the floating button. Tap ⚡ → pick an action → it runs instantly. Customize them in Systems > AI Tools > QA Editor.',
+      'flags':         'Flags (⚑) mark moments where the AI got something wrong. Tap ⋮ on any DM message → ⚑ → pick a category → add a note. Flags appear in the Ops Debrief and exports.',
+      'commands':      'Type // before a message for dev commands:\n// note — log a dev note\n//flag 20 reason — export last 20 messages\n//add item name — add to inventory\n//hp +5 — adjust your HP\n//gold -10 — adjust treasury\n//explain topic — explain a feature\n//help — show this list',
+      '//':            'Type // before a message for dev commands:\n// note — log a dev note\n//flag 20 reason — export last 20 messages\n//add item name — add to inventory\n//hp +5 — adjust your HP\n//gold -10 — adjust treasury\n//explain topic — explain a feature\n//help — show this list',
+      'combat':        'Zone Combat uses 6 zones (Frontline/Backline/Flanks/Air/Rear). Add combatants, roll initiative, then the AI moves tokens. Tap a token for HP/conditions. Toggle Manual mode to move tokens yourself by tapping token → zone.',
+      'zones':         'Zone Combat uses 6 zones (Frontline/Backline/Flanks/Air/Rear). Add combatants, roll initiative, then the AI moves tokens. Tap a token for HP/conditions. Toggle Manual mode to move tokens yourself by tapping token → zone.',
+      'map':           'Area Map: Upload a map image in Logistics > World > Locations (map icon). Tap a location chip → tap the map to place a pin. Tap a pin for Move/Unpin/Details.',
+      'pins':          'Tap a map pin → action bar appears: ↻ Move (reposition), ✕ Unpin (remove from map), ⋯ Details (full location info). Long-press + drag also works for quick repositioning.',
+      'inventory':     'Party inventory is in the Sheet tab. Wagon cargo and Pebble\'s hoard are in Logistics > Wagon. Tap any item chip to expand and edit. Use //add item "name" to quickly add items.',
+      'ooc':           'The OOC tab (❓ Rules) is for rules questions — the AI answers as a rules reference, not as the DM character. The 🗨️ Party tab is for player-to-player chat outside the narrative.',
+      'contracts':     'AI Contracts (Systems > AI Tools) control the DM\'s personality and rules. 5 contracts: Persona, Never Do, Actions, Continuity, Multi-Player. Edit these to fix recurring AI mistakes.',
+      'context strip': 'The bar above the chat shows your current location and scene. It auto-updates when the AI changes location.',
+      'dice':          'Tap 🎲 to open the dice roller. Pick a die, add modifiers, roll. Tap "Send to Chat" to include the result in your next message to the DM.',
+      'export':        'Dev tab has Ops Debrief (stats + flags) and Gameplay Log Export (full chat). Tap ⋮ → ⚠️ on any message to export that specific moment with context.',
+      'shortcuts':     'Tap ☰ in the header → ✎ to customize your shortcut buttons. 16 available shortcuts for quick access to common actions.',
+      'rest':          'Short rest: hit dice healing + restore short-rest resources. Long rest: full HP, restore all resources and spell slots. Use the Quick Action or type "We take a short/long rest."',
+      'spells':        'Spell management is in Sheet > your character > Spells tab. Tap a spell slot to mark used/available. The AI tracks concentration automatically.',
+      'notes':         'Dev notes (// in chat) appear in Systems > Dev > Session Notes. They\'re also included in Ops Debrief and Gameplay Log exports.',
+    };
+    const key=Object.keys(EXPLAINS).find(k=>topic.includes(k))||null;
+    if(key){
+      toast(EXPLAINS[key],6000);
+    }else{
+      toast('No help found for "'+topic+'". Try: actions, combat, map, inventory, commands, flags, contracts, dice, rest, spells, ooc, export, shortcuts',5000);
+    }
     return;
   }
 
