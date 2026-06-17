@@ -4209,7 +4209,9 @@ function getCached(){return JSON.parse(localStorage.getItem(CKEY)||'[]')[0]||nul
 
 // ═══ AI DM CHAT ═══
 function renderChat(){
-  const c=document.getElementById('chat-msgs');if(!c)return;c.innerHTML='';
+  const c=document.getElementById('chat-msgs');if(!c)return;
+  const prevScroll=c.scrollTop;const prevHeight=c.scrollHeight;
+  c.innerHTML='';
   if(!state.chatHistory||!state.chatHistory.length){
     c.innerHTML=`<div class="chat-msg sys"><div class="msg-hdr"><span>System</span></div><div class="chat-msg-text">Welcome to Tinkle's Tinctures! Set your API key in the AI DM tab. The DM updates character sheets, inventory, wagon, and more automatically via the mechanics block.</div></div>`;
     return;
@@ -4254,9 +4256,9 @@ function renderChat(){
     d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${isLong&&!isExpanded?`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});this.previousElementSibling.classList.remove('msg-collapsed');this.remove()">Read more ▼</span>`:''}${mechBadge}`;
     c.appendChild(d);
   });
-  // Auto-scroll if user is near bottom — don't interrupt reading
-  const distFromBottom=c.scrollHeight-c.scrollTop-c.clientHeight;
-  if(distFromBottom<150)c.scrollTop=c.scrollHeight;
+  const distWas=prevHeight-prevScroll-c.clientHeight;
+  if(distWas<150)c.scrollTop=c.scrollHeight;
+  else c.scrollTop=prevScroll;
 }
 
 function deleteChatMsg(idx){
@@ -7050,7 +7052,8 @@ function openLocationSeed(){
         ['town','city','camp','ruin','dungeon','waypoint'].map(t=>`<option value="${t}"${t===d.type?' selected':''}>${t}</option>`).join('')+
         `</select></div>`).join('')+
       `</div>`+
-      `<button class="btn gold full" style="margin-top:14px" onclick="confirmLocationSeed(${JSON.stringify(drafts).replace(/</g,'\\u003c')})">Add Selected to Journal</button>`;
+      `<button class="btn gold full" style="margin-top:14px" onclick="confirmLocationSeed()">Add Selected to Journal</button>`;
+    window._locSeedDrafts=drafts;
   }
   document.getElementById('loc-seed-bd').classList.add('is-open');
   el.classList.add('is-open');
@@ -7059,8 +7062,9 @@ function closeLocSeed(){
   document.getElementById('loc-seed-bd')?.classList.remove('is-open');
   document.getElementById('loc-seed')?.classList.remove('is-open');
 }
-function confirmLocationSeed(drafts){
-  const list=document.getElementById('loc-seed-list');
+function confirmLocationSeed(){
+  const drafts=window._locSeedDrafts||[];
+  if(!Array.isArray(state.locations))state.locations=[];
   const added=[];
   drafts.forEach((d,i)=>{
     const chk=document.getElementById('lsd'+i);
@@ -7068,7 +7072,7 @@ function confirmLocationSeed(drafts){
     const typeEl=document.getElementById('lsd-type'+i);
     const type=typeEl?typeEl.value:d.type;
     const status=d.isCurrent?'current':'visited';
-    (state.locations||[]).push({
+    state.locations.push({
       id:'loc_'+Date.now()+'_'+i,
       name:d.name,type,status,
       rep:{disposition:d.disposition||'neutral',notes:''},
@@ -7286,13 +7290,11 @@ function sendMsgQuick(){
   if(!qi)return;
   const val=qi.value.trim();
   if(!val)return;
-  // Derive channel from DOM (active tab button) — belt-and-suspenders against _activeTab drift
   const activeBtn=document.querySelector('.chat-tab-btn.active');
   const channel=activeBtn?.id?.replace('chat-tab-','')||_activeTab;
-  // Party chat needs no API key — send immediately without key check
   if(channel==='party'){qi.value='';sendPartyMsg(val);return;}
-  // Narrative and OOC need an API key — check BEFORE clearing input so message isn't lost
   if(!getKey()){toast('Set an API key first — tap ⚙ in the AI DM header.');return;}
+  if(channel!=='party'&&channel!=='ooc'&&channel!=='test'&&!playerName){populateSetup();openModal('setup-modal');toast('Set your player name first.');return;}
   qi.value='';
   if(channel==='ooc'){sendOOCMsg(val);return;}
   if(channel==='test'){sendTestMsg(val);return;}
