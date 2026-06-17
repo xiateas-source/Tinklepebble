@@ -17,11 +17,11 @@ This fragment must survive every refactor. `buildPrompt()` validates this fragme
 - Vite-based build: `src/main.js` + `src/style.css` → `index.html` → builds to `docs/` (GitHub Pages from `main`)
 - Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` persisted to `localStorage('tt_v1')` and Firebase
-- `SAVE_VERSION=11` — `migrate()` = structural guards → v8–v11 gates → canonical QA → core defaults
+- `SAVE_VERSION=12` — `migrate()` = structural guards → v8–v12 gates → canonical QA → core defaults
 - `renderAll()` = central render; `renderChat()` = narrative chat
 - `callAI()` = retry wrapper (2x, 1.2s/2.4s, 5xx only) + OpenRouter free-model fallback
 - `summarizeAndPrune()` = rolling AI summary at 75 msgs → appends to `sessionArchive[]` (50-cap), `prevSessionSummary` = last 3 batches joined
-- `parseMechanics()` = 36+ handlers; `_MECH_KEYS` controls display stripping
+- `parseMechanics()` = 43+ handlers; `_MECH_KEYS` controls display stripping
 - `buildPrompt()` / `genLedger()` = AI system prompt assembly
 - Navigation: 4-tab bottom nav (AI DM / Sheet / Logistics / Systems) with composite drawers; `navTo()` routes all tab access
 - Body layout: `display:flex; flex-direction:column; height:100dvh` — `#tab-dm{flex:1}` fills viewport
@@ -67,6 +67,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 **Phase 2** (2026-06-15–16, Sessions 2–9): DR-6 contracts→state, consequence engine, flag system, clutter pass, UX Pass 2, AI contract health check, reputation ripple, Location Journal v1 (Node Map + detail sheet + AI mechanics), NPC read-mode cards, combat/scene/grit collapse, testing chat, quest announcement system, stability fixes.
 
 **Phase 3** (2026-06-16, Session 10): Session Archive (50-cap append-based), Location Seed (🌱 from travelLog/townRep/NPCs), `roll_request:` mechanic + banner, narrative NPC audit (attribution-verb scanner), skill proficiency inference + expertise detection, customizable ☰ header shortcuts, vanishing-message Firebase fix, cleanup pass (removed: Active Scene, Travel Log, Session Log, Quick Log Entry, Build Raw panels).
+
+**Phase 4 — Drop 4** (2026-06-17, Session 12): Zone Combat Map — replaced grid combat with 6-zone tactical system (Frontline/Backline/Left Flank/Right Flank/Air Space/Rear Guard). Initiative strip + active character card + AI-driven/manual movement toggle. 7 new parseMechanics handlers (`zone_move`, `zone_add_enemy`, `zone_remove`, `zone_effect`, `zone_label`, `combat_start`, `combat_end`). SAVE_VERSION 11→12. genLedger + buildPrompt updated with zone positions and full zone mechanics documentation for AI.
 
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
@@ -124,13 +126,20 @@ Location Journal (data) + Area Map (renderer). One screen answering "where are w
 
 | Drop | Feature | Prerequisites |
 |------|---------|--------------|
-| **4** | Zone Combat Map — abstract 6-zone grid, AI `zone_move:` mechanic | None (replaces Combat tab) |
+| **4** | ✅ Zone Combat Map — 6-zone grid + AI mechanics (SHIPPED) | None |
 | **5** | Image Maps + Token Overlay — uploaded maps, grid calibration, fog of war, spell overlays | Firebase Storage config |
 | **6** | Player View — `buildPlayerView()` → Firebase `/session/playerView` | State visibility split |
 | **7** | Full VTT layer — grid snap, room reveals, handout cards, compendium | Drops 4–6 |
 
-### Drop 4 Spec (Zone Combat)
-Six zones: Frontline / Backline / Left Flank / Right Flank / Air / Rear. Tokens = colored tiles. AI mechanics: `zone_move:`, `zone_add_enemy:`, `zone_remove:`, `zone_effect:`. State: `state.combat.zones[]`.
+### Drop 4 Spec (Zone Combat) ✅ SHIPPED
+Six zones: Frontline / Backline / Left Flank / Right Flank / Air / Rear. Tokens = colored tiles with HP bars, conditions, active-turn highlighting. Initiative strip (horizontal scrollable chips). Active character card with quick HP +/-. AI-driven + manual movement toggle. AI mechanics: `zone_move:`, `zone_add_enemy:`, `zone_remove:`, `zone_effect:`, `zone_label:`, `combat_start:`, `combat_end:`. State: `state.combat.zones{}`, `state.combat.moveMode`, per-combatant `zone` property. genLedger outputs zone grid; buildPrompt documents all zone rules for AI.
+
+**Drop 4 remaining work:**
+- Chronicle View wrapper — location-anchored NPCs/quests/consequences below zone grid
+- Exploration mode zones — AI labels zones for current scene outside combat
+- Fog of war (zone-level hidden/revealed)
+- Anchor `incomeLog` entries to locations
+- NPC `lastSeen` → location node anchoring
 
 ### Drop 5 Spec (Image Maps)
 `position:relative` parent + `position:absolute` tokens (same as Roll20/Foundry). Grid calibration via two-tap corners. Token positions as `{row, col}`. Single-layer fog of war (boolean grid). Spell effect SVG overlays scaled to grid.

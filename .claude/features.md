@@ -75,9 +75,15 @@ Three sub-tabs via `showWorldTab()`:
 - `#wagon-hoard` — Pebble's hoard
 - `#travel-log-visual` — Travel history with location transitions
 
-### 4. Combat Tab (`tab-combat`)
-- `#round-num`, `#init-list`, combatant form, encounter presets, rest buttons
-- **NOTE: Do NOT refactor — Drop 4 replaces this tab entirely**
+### 4. Combat Tab (`tab-combat`) — Zone Combat Map (Drop 4)
+- `#zone-combat-hdr` — Round bar + movement mode toggle
+- `#zone-grid` — 6-zone grid layout (Air/Left Flank/Right Flank/Frontline/Backline/Rear Guard)
+- `.init-strip` — Horizontal scrollable initiative chips
+- `#zone-active-card` — Active character card with HP +/-, conditions, zone display
+- `#zone-no-combat` — Shown when combat is inactive (add combatant form, presets, rest buttons)
+- Zones: `.zone-box` elements with `.zone-token` chips (HP bar, conditions, active-turn glow)
+- Movement modes: AI-driven (default) or manual (tap token then tap zone)
+- Air Space conditionally visible only when flying creatures exist
 
 ### 5. Session Tab (`tab-session`)
 Three sub-tabs via `showSessionMode()` / `showSessionTab()`:
@@ -167,8 +173,9 @@ state = {
   relationships: [{from, to, disposition, dynamic, aiOnly, pending}],
 
   combat: {
-    active: bool, round: num, currentIdx: num,
-    list: [{name, hp, ac, initiative, conditions, concentrating}]
+    active: bool, round: num, currentIdx: num, moveMode: 'ai'|'manual',
+    list: [{name, hp, hp_max, ac, val (initiative), isPC, zone, conditions, concentrating}],
+    zones: { front:{label,effect,terrain}, back:{...}, left:{...}, right:{...}, air:{...}, rear:{...} }
   },
 
   encounterPresets: [{name, enemies: "Name:HP:AC, ..."}],
@@ -199,7 +206,7 @@ state = {
   rewindStack: [state snapshots],
   activeEditTab: num, wagonFilter: string,
   quickActions: [{id, label, type, params, context}],
-  saveVersion: 11
+  saveVersion: 12
 }
 ```
 
@@ -215,7 +222,7 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 
 ## SAVE_VERSION & migrate()
 
-**Current Version:** `SAVE_VERSION = 11`
+**Current Version:** `SAVE_VERSION = 12`
 
 `migrate(s)` is version-gated:
 - **Always-run structural guards** — null/array protection for all fields (incl. sessionArchive, headerShortcuts)
@@ -223,6 +230,7 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - **v9 gate** — campaignLaunched backfill
 - **v10 gate** — canonical L3 character sync (Slasher Fighter, Tinkle Rogue, Pebble Bard)
 - **v11 gate** — re-patches L3 data clobbered by SHEET_FIELDS bug; preserves current HP and slot usage
+- **v12 gate** — zone combat: adds `combat.zones`, `combat.moveMode`, per-combatant `zone` property
 - **Always-run canonical QA** — ensures all 23 QA actions present
 - **Always-run core defaults** — structural defaults for all fields
 
@@ -267,7 +275,7 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `sendMsg()` — Send player action to AI
 - `buildPrompt(ledger)` — System prompt with all contracts; validates Slasher security fragment
 - `genLedger()` — Compile current state ledger
-- `parseMechanics(responseText, msgId)` — 36+ handlers; `_MECH_KEYS` controls display stripping
+- `parseMechanics(responseText, msgId)` — 43+ handlers; `_MECH_KEYS` controls display stripping
 - `callAI(messages, sysProm, maxTok)` — Retry wrapper (2x, 1.2s/2.4s, 5xx); free-model fallback
 - `summarizeAndPrune()` — Background summary at 75 msgs → pushes to `sessionArchive[]` (50-cap)
 - `sendContextRefresh()` — Lightweight location/condition refresh via `_ctxInject`
@@ -279,6 +287,18 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `renderLocations()` — Node Map SVG + location cards
 - `openLocationSeed()` / `closeLocSeed()` / `confirmLocationSeed()` — Draft locations from campaign data
 - Location detail bottom sheet (`#loc-ov`) — tap node to open
+
+### Zone Combat
+- `renderCombat()` — Zone grid with token chips, initiative strip, active character card
+- `_tokenHTML(c, idx)` — Render single token chip (HP bar, conditions, active glow)
+- `_zoneBoxHTML(zoneId)` — Render zone box with label, effects, and contained tokens
+- `zoneTokenTap(idx)` — Select token in manual mode for movement
+- `zoneBoxTap(zoneId)` — Move selected token to target zone (manual mode)
+- `zoneHPAdj(idx, delta)` — Quick HP +/- from active character card
+- `toggleMoveMode()` — Switch between AI-driven and manual movement
+- `addCombatant()` — Add combatant with zone dropdown
+- `addPartyToCombat()` — Auto-add all PCs + Grit/Wagon to zones
+- `endCombat()` — End combat, write summary to location history, reset zones
 
 ### Quick Actions
 - `executeQA(action)` — Execute by type (23 types)
@@ -310,6 +330,8 @@ Parsed from AI response blocks in format: `key: value`
 **Story:** `quest_add`, `quest_done`, `quest_fail`, `primary_mission`, `npc_add`, `npc_mood`, `consequence_add`, `consequence_resolve`, `chapter_add`, `module_episode`
 
 **Location Journal:** `location_add`, `location_visit`, `location_history`, `location_investment`
+
+**Zone Combat:** `zone_move` (name|zone_id), `zone_add_enemy` (name|hp|ac|zone_id|init), `zone_remove` (name), `zone_effect` (zone_id|effect|type), `zone_label` (zone_id|label), `combat_start` (description), `combat_end` (summary)
 
 **Interaction:** `roll_request` (Skill|DC|PCname — triggers persistent banner), `save_game`/`save`, `sp_charge` (superpowers plugin)
 

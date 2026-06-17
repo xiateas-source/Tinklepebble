@@ -1,35 +1,47 @@
 # Session Log — Handoff Note
 
-## Session 11 · 2026-06-16
+## Session 12 · 2026-06-17
 
 ### Shipped
-- Verify AI upgraded — now injects all 5 contracts into next AI send (was validate-only)
-- Seed button fixed — `#loc-seed` was missing fixed-position CSS (added to `#familiar-ov,#grit-ov,#loc-seed` selector)
-- Vanishing messages v2 fix — replaced timestamp-based guard with `_mergeChatHistories()` (clock-independent, prefers longer chatHistory if it contains shorter's latest message)
-- Roadmap condensed from 898 → 170 lines
-- features.md cleaned (738 → 258 lines) — removed stale "PLANNED" labels, added missing state fields/functions
-- prime-directive.md cleaned (208 → 93 lines) — removed resolved issues, updated canon, bumped to v1.8.0
-- CLAUDE.md updated — new session start/end protocol with session-log.md handoff, fixed stale branch names, updated architecture section for Vite
+- **Drop 4: Zone Combat Map** — replaced grid combat with 6-zone tactical system
+  - 6 zones: Frontline, Backline, Left Flank, Right Flank, Air Space, Rear Guard
+  - Zone grid renders token chips with HP bars, conditions, active-turn highlighting
+  - Initiative strip: horizontal scrollable chips replacing vertical list
+  - Active character card with quick HP +/- buttons
+  - AI-driven movement (default) with manual override toggle
+  - Air Space conditionally visible only when flying creatures exist
+  - 7 new parseMechanics handlers: zone_move, zone_add_enemy, zone_remove, zone_effect, zone_label, combat_start, combat_end
+  - SAVE_VERSION 11→12 with migration gate for zones/moveMode/zone fields
+  - Party auto-add includes Grit + Wagon in Rear Guard
+  - End combat writes summary to location history
+- **AI integration for zones** — genLedger outputs zone grid with positions; buildPrompt documents full zone combat system for AI
+- **Vanishing messages v3 fix** (from previous session) — removed 15-message search window in _mergeChatHistories, full-array search + fork-merge for diverged histories
+- **Drop 4 player brief** — `.claude/drop4-player-brief.md` for Slasher feedback
 
 ### Decisions Made
-- Verify AI should BOTH validate contracts AND inject them for drift correction (not just validate)
-- Chat merge strategy: use message count + content matching, never timestamps (clocks can skew between devices)
-- Session protocol: `.claude/session-log.md` is the bridge between sessions — overwritten each time
+- Adjacent-only zone movement (not free movement) — positioning matters
+- AI-driven movement by default, manual toggle for corrections
+- Zones serve dual purpose: combat grid AND exploration orientation tool
+- User explicitly delegated design decisions: "build whatever you think will run the best"
+- Zone grid always visible during combat; Air Space conditional on flying creatures
 
 ### Known Issues
-- Vanishing messages: v2 fix deployed but not yet confirmed by player. Root cause was `remoteTs <= localTs` rejecting valid updates when player clock ahead of DM clock. New `_mergeChatHistories()` is clock-independent.
+- Zone combat not yet playtested in actual session
 - Flag 13 still open: treasure log audit / duplicate loot detection
 
 ### In Progress
-- **Drop 4 report for Gemini** — user requested a thorough brainstorming document covering Zone Combat Map + Chronicle View. Two research agents were dispatched to gather combat and chronicle code. Report composition pending.
+- Nothing actively in progress — zone combat core is complete
 
 ### Next Up
-- Compose and deliver the Drop 4 / Chronicle View Gemini report
+- **Chronicle View wrapper** — location-anchored NPCs/quests/consequences displayed below zone grid, filtered by current location
+- **Exploration mode zones** — AI labels zones for current scene during non-combat (user insight: "zones become the star outside combat")
+- **Fog of war** (zone-level hidden/revealed)
+- **Anchor incomeLog entries to locations**
+- **NPC lastSeen → location node anchoring**
 - Inventory UX overhaul (Issue 21) — subcategories, fuzzy dedup, name truncation
-- Term glossary expansion (50+ D&D terms)
-- Drop 4 implementation (Zone Combat Map)
+- Expand term glossary — 50+ D&D terms
 
 ### Branch State
 - Branch: `claude/new-session-rvx6tn`
-- In sync with main at commit `aca32b9`
-- All changes deployed to live site
+- Ahead of main by: ~5 commits (player brief + zone combat + AI integration)
+- Last commit: `bb4303b` (AI integration for zones)
