@@ -6877,12 +6877,41 @@ function toggleInspiration(idx){
   saveRefresh();
 }
 // ═══ LOCATION JOURNAL ═══
+let _locViewMode='list';
+let _mapPlaceId=null;
+const _LOC_MAP_KEY='tt_area_map';
+function _getAreaMap(){try{return localStorage.getItem(_LOC_MAP_KEY)||null;}catch(e){return null;}}
+function _setAreaMap(dataUrl){try{localStorage.setItem(_LOC_MAP_KEY,dataUrl);}catch(e){toast('Map too large to store');}}
+function _removeAreaMap(){try{localStorage.removeItem(_LOC_MAP_KEY);}catch(e){}}
+
 function renderLocations(){
   const c=document.getElementById('locations-panel-content');
   if(!c)return;
   const locs=state.locations||[];
+  const hasMap=!!_getAreaMap();
+  if(_locViewMode==='map'&&!hasMap)_locViewMode='list';
   const typeIcon={town:'🏘',city:'🏙',camp:'⛺',ruin:'🏚',dungeon:'🗝',waypoint:'📍'};
   const repColor=(loc)=>{const d=(loc.rep?.disposition||'').toLowerCase();return d==='friendly'||d==='allied'?'var(--green)':d==='hostile'||d==='burned'?'var(--red)':'var(--text-dim)';};
+
+  const toggleBtns=`<div style="display:flex;gap:4px;align-items:center">
+    <button class="btn sm${_locViewMode==='list'?' active':''}" onclick="setLocView('list')" style="font-size:10px;padding:3px 8px;${_locViewMode==='list'?'background:var(--gold);color:var(--bg);border-color:var(--gold)':''}">📋 List</button>
+    <button class="btn sm${_locViewMode==='map'?' active':''}" onclick="setLocView('map')" style="font-size:10px;padding:3px 8px;${_locViewMode==='map'?'background:var(--gold);color:var(--bg);border-color:var(--gold)':''}${!hasMap?';opacity:.4;pointer-events:none':''}">🗺 Map</button>
+  </div>`;
+
+  const headerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 6px;gap:6px">
+    <div style="font-size:11px;color:var(--text-dim)">${locs.length} loc${locs.length===1?'':'s'}</div>
+    ${toggleBtns}
+    <div style="display:flex;gap:4px">
+      <button class="btn sm" onclick="uploadAreaMap()" title="${hasMap?'Change map image':'Upload map image'}" style="font-size:10px;padding:3px 8px">${hasMap?'🗺 Change':'🗺 Upload'}</button>
+      <button class="btn sm" onclick="addLocationManual()" style="font-size:10px;padding:3px 8px">+ Add</button>
+    </div>
+  </div>`;
+
+  if(_locViewMode==='map'){
+    c.innerHTML=headerHTML+_renderAreaMap(locs,typeIcon,repColor);
+    return;
+  }
+
   const NODE_R=20,STEP_X=82,PAD_X=38,SVG_H=160,CY=78;
   const svgW=Math.max(300,PAD_X*2+Math.max(0,locs.length-1)*STEP_X);
   let svgLines='',svgNodes='';
@@ -6903,7 +6932,7 @@ function renderLocations(){
       <text x="${x}" y="${labelY}" text-anchor="middle" font-size="9" fill="${isCur?'var(--gold-bright)':'var(--text)'}" pointer-events="none">${esc(lbl)}</text>
     </g>`;
   });
-  const mapHTML=locs.length
+  const nodeMapHTML=locs.length
     ?`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px 0 6px"><svg viewBox="0 0 ${svgW} ${SVG_H}" width="${svgW}" height="${SVG_H}" style="display:block;overflow:visible">${svgLines}${svgNodes}</svg></div>`
     :`<div style="text-align:center;color:var(--text-dim);font-size:12px;padding:36px 20px;line-height:1.8">No locations recorded.<br>The DM logs locations automatically as you explore.</div>`;
   const listHTML=locs.map(loc=>{
@@ -6918,13 +6947,104 @@ function renderLocations(){
     </div>`;
   }).join('');
   c.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 6px">
-      <div style="font-size:11px;color:var(--text-dim)">${locs.length} location${locs.length===1?'':'s'}</div>
-      <button class="btn sm" onclick="addLocationManual()">+ Add</button>
-    </div>
-    ${mapHTML}
+    ${headerHTML}
+    ${nodeMapHTML}
     ${listHTML?`<div style="border:1px solid var(--border);border-radius:6px;margin-top:6px;overflow:hidden">${listHTML}</div>`:''}
   `;
+}
+
+function _renderAreaMap(locs,typeIcon,repColor){
+  const mapUrl=_getAreaMap();
+  if(!mapUrl)return'<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:12px">No map uploaded.</div>';
+  const placedLocs=locs.filter(l=>l.mapPos);
+  const unplacedLocs=locs.filter(l=>!l.mapPos);
+
+  const pinSVG=(fill,stroke)=>`<svg width="20" height="26" viewBox="0 0 20 26"><path class="pin-fill" d="M10 0C4.5 0 0 4.5 0 10c0 7.5 10 16 10 16s10-8.5 10-16C20 4.5 15.5 0 10 0z" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/><circle cx="10" cy="10" r="4" fill="rgba(0,0,0,.3)"/></svg>`;
+
+  const pinsHTML=placedLocs.map(loc=>{
+    const isCur=loc.status==='current';
+    const fill=isCur?'var(--gold-bright)':'var(--surface3)';
+    const stroke=repColor(loc);
+    return`<div class="map-pin${isCur?' pin-current':' pin-visited'}" style="left:${loc.mapPos.x}%;top:${loc.mapPos.y}%" onclick="event.stopPropagation();openLocationDetail('${loc.id}')" title="${esc(loc.name)}">
+      ${pinSVG(fill,stroke)}
+      <span class="map-pin-label">${esc(loc.name.length>14?loc.name.slice(0,13)+'…':loc.name)}</span>
+    </div>`;
+  }).join('');
+
+  const placeChips=locs.map(loc=>{
+    const isActive=_mapPlaceId===loc.id;
+    const hasPos=!!loc.mapPos;
+    return`<span class="map-place-chip${isActive?' mpc-active':''}" onclick="startMapPlace('${loc.id}')">${typeIcon[loc.type]||'📍'} ${esc(loc.name.length>12?loc.name.slice(0,11)+'…':loc.name)}${hasPos?' ✓':''}</span>`;
+  }).join('');
+
+  const placeMsg=_mapPlaceId?`<div class="map-place-msg">Tap the map to place <b>${esc((locs.find(l=>l.id===_mapPlaceId)||{}).name||'')}</b> · <a href="#" onclick="event.preventDefault();cancelMapPlace()" style="color:var(--text-dim)">cancel</a></div>`:'';
+
+  return`
+    ${placeMsg}
+    <div class="area-map-wrap${_mapPlaceId?' placing':''}" id="area-map-container" onclick="handleMapTap(event)">
+      <img src="${mapUrl}" alt="Area map" draggable="false">
+      ${pinsHTML}
+    </div>
+    ${unplacedLocs.length?`<div style="font-size:10px;color:var(--text-dim);padding:4px 0 2px">Unplaced (${unplacedLocs.length}) — tap a chip then tap the map:</div>`:''}
+    <div class="map-toolbar">${placeChips}</div>
+    ${_getAreaMap()?`<button class="btn sm" onclick="removeAreaMap()" style="font-size:10px;padding:3px 8px;border-color:var(--red);color:var(--red);margin-top:4px">Remove Map</button>`:''}
+  `;
+}
+
+function uploadAreaMap(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';
+  inp.onchange=()=>{
+    const file=inp.files[0];if(!file)return;
+    if(file.size>10*1024*1024){toast('Image must be under 10 MB');return;}
+    const reader=new FileReader();
+    reader.onload=()=>{
+      _setAreaMap(reader.result);
+      _locViewMode='map';
+      renderLocations();
+      toast('Map uploaded');
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function removeAreaMap(){
+  if(!confirm('Remove the current map image?'))return;
+  _removeAreaMap();
+  (state.locations||[]).forEach(l=>{l.mapPos=null;});
+  save();
+  _locViewMode='list';
+  renderLocations();
+  toast('Map removed');
+}
+
+function setLocView(mode){_locViewMode=mode;renderLocations();}
+
+function startMapPlace(locId){
+  _mapPlaceId=_mapPlaceId===locId?null:locId;
+  renderLocations();
+}
+
+function cancelMapPlace(){
+  _mapPlaceId=null;
+  renderLocations();
+}
+
+function handleMapTap(e){
+  if(!_mapPlaceId)return;
+  const container=document.getElementById('area-map-container');
+  if(!container)return;
+  const rect=container.getBoundingClientRect();
+  const x=((e.clientX-rect.left)/rect.width)*100;
+  const y=((e.clientY-rect.top)/rect.height)*100;
+  const loc=(state.locations||[]).find(l=>l.id===_mapPlaceId);
+  if(!loc)return;
+  loc.mapPos={x:Math.round(x*100)/100,y:Math.round(y*100)/100};
+  save();
+  _mapPlaceId=null;
+  renderLocations();
+  toast(`${loc.name} placed on map`);
 }
 function openLocationDetail(id){
   const loc=state.locations.find(l=>l.id===id);if(!loc)return;
@@ -6982,7 +7102,7 @@ function openLocationDetail(id){
     ${_dm?`<div class="panel" style="margin-bottom:8px;padding:8px 10px"><div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">DM Notes</div><textarea style="width:100%;min-height:55px;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px;box-sizing:border-box;resize:vertical" oninput="updateLocNotes('${id}','dm',this.value)" placeholder="DM-only notes...">${esc(loc.dmNotes||'')}</textarea></div>`:''}
     <div style="display:flex;gap:6px;justify-content:space-between;flex-wrap:wrap;margin-top:4px">
       <button class="btn sm" onclick="setLocStatus('${id}','current')" style="border-color:var(--gold);color:var(--gold)">📍 Set Current</button>
-      <div style="display:flex;gap:6px">${_dm?`<button class="btn sm" onclick="addLocInvestment('${id}')">+ Invest</button>`:''}
+      <div style="display:flex;gap:6px">${_getAreaMap()?`<button class="btn sm" onclick="closeLocDetail();setLocView('map');startMapPlace('${id}')" style="border-color:var(--gold)">🗺 ${loc.mapPos?'Move':'Place'} on Map</button>`:''} ${_dm?`<button class="btn sm" onclick="addLocInvestment('${id}')">+ Invest</button>`:''}
         <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteLocation('${id}')">Delete</button>
       </div>
     </div>`;
@@ -7814,6 +7934,7 @@ Object.assign(window, {
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
   setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
+  uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView,
   openSheetPicker, dismissRollRequest,
   renderSessionArchive,
   verifyContracts, clearFlagNote,

@@ -1755,3 +1755,18 @@ details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-web
 .sheet-lock-btn.locked{border-color:var(--red-dim);color:var(--red);}
 .sheet-lock-btn.unlocked{border-color:var(--green);color:var(--green);}
 
+/* ── AREA MAP OVERLAY ── */
+.area-map-wrap{position:relative;width:100%;overflow:hidden;border-radius:6px;border:1px solid var(--border);background:var(--surface);touch-action:pan-x pan-y;}
+.area-map-wrap img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;pointer-events:none;}
+.area-map-wrap.placing{cursor:crosshair;}
+.map-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:2;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));transition:transform .12s;}
+.map-pin:active{transform:translate(-50%,-100%) scale(1.2);}
+.map-pin svg{display:block;}
+.map-pin-label{position:absolute;left:50%;transform:translateX(-50%);top:100%;margin-top:1px;white-space:nowrap;font-size:9px;font-weight:700;color:var(--text-bright);text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 5px rgba(0,0,0,.6);pointer-events:none;letter-spacing:.3px;}
+.map-pin.pin-current svg .pin-fill{fill:var(--gold-bright);}
+.map-pin.pin-visited svg .pin-fill{fill:var(--surface3);}
+.map-toolbar{display:flex;align-items:center;gap:6px;padding:6px 0;flex-wrap:wrap;}
+.map-place-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:10px;font-size:10px;color:var(--text);background:var(--surface2);cursor:pointer;transition:border-color .15s;}
+.map-place-chip:active,.map-place-chip.mpc-active{border-color:var(--gold);color:var(--gold-bright);background:rgba(176,88,48,.1);}
+.map-place-msg{font-size:10px;color:var(--gold);padding:4px 0;text-align:center;}
+
