@@ -342,7 +342,7 @@ Parsed from AI response blocks in format: `key: value`
 
 **Location Journal:** `location_add`, `location_visit`, `location_history`, `location_investment`
 
-**Zone Combat:** `zone_move` (name|zone_id), `zone_add_enemy` (name|hp|ac|zone_id|init), `zone_remove` (name), `zone_effect` (zone_id|effect|type), `zone_label` (zone_id|label), `combat_start` (description), `combat_end` (summary)
+**Zone Combat:** `zone_move` (name|zone_id), `zone_add_enemy` (name|hp|ac|zone_id|init), `zone_remove` (name), `zone_effect` (zone_id|effect|type), `zone_label` (zone_id|label), `zone_fog` (zone_id|hide/reveal), `combat_start` (description), `combat_end` (summary)
 
 **Interaction:** `roll_request` (Skill|DC|PCname — triggers persistent banner), `save_game`/`save`, `sp_charge` (superpowers plugin)
 

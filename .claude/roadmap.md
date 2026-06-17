@@ -70,6 +70,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Phase 4 — Drop 4** (2026-06-17, Session 12): Zone Combat Map — replaced grid combat with 6-zone tactical system (Frontline/Backline/Left Flank/Right Flank/Air Space/Rear Guard). Initiative strip + active character card + AI-driven/manual movement toggle. 7 new parseMechanics handlers (`zone_move`, `zone_add_enemy`, `zone_remove`, `zone_effect`, `zone_label`, `combat_start`, `combat_end`). SAVE_VERSION 11→12. genLedger + buildPrompt updated with zone positions and full zone mechanics documentation for AI.
 
+**Session 13** (2026-06-17): Area Map overlay (upload maps + place location pins + drag-to-reposition), fog of war (zone-level hide/reveal + `zone_fog:` mechanic), Chronicle View (location context below zone grid), inventory UX overhaul (chip layout + subcategories + fuzzy dedup), panel cleanup (removed Premise/Plot from Ops, moved Snippets to AI Tools), 19 bug fixes (11 broken onclick handlers, overlay persistence, context strip float, map edge cases).
+
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
@@ -79,7 +81,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 ## Next Up — Pending Work
 
 ### Still Open (small)
-- **Inventory UX overhaul (Issue 21)** — subcategories, fuzzy dedup at item_add, name truncation
+- ✅ ~~**Inventory UX overhaul (Issue 21)** — subcategories, fuzzy dedup at item_add, name truncation~~
 - **Expand term glossary** — add 50+ more D&D terms to tooltip system
 - ⏸ **Con Scorecard** — `state.slasherOI`, income parsing, town survival stats (needs design)
 
@@ -88,11 +90,11 @@ Panels to remove once their replacement matures:
 - Environment panel → Location Journal current-location covers time/weather; keep for now (manual override)
 - NPC flat list → Location Journal NPC cards; keep for now (edit interface)
 - Town Rep list (Wagon) → Location Journal per-location rep; keep for now (parseMechanics writes here)
-- Campaign Premise → move to Setup (set once, locked)
-- Plot & Lore → World Consequences covers this
-- Operations tab → simplify to Campaign Secrets + Setup deep-link
+- ✅ ~~Campaign Premise → move to Setup (set once, locked)~~ — Session 13
+- ✅ ~~Plot & Lore → World Consequences covers this~~ — Session 13
+- ✅ ~~Operations tab → simplify to Campaign Secrets + Setup deep-link~~ — Session 13
 - Combat tab → Drop 4 replaces entirely
-- Reference Snippets → move from Session > Module to Systems > AI Tools
+- ✅ ~~Reference Snippets → move from Session > Module to Systems > AI Tools~~ — Session 13
 
 ### End-state Navigation Target
 ```
@@ -134,13 +136,13 @@ Location Journal (data) + Area Map (renderer). One screen answering "where are w
 ### Drop 4 Spec (Zone Combat) ✅ SHIPPED
 Six zones: Frontline / Backline / Left Flank / Right Flank / Air / Rear. Tokens = colored tiles with HP bars, conditions, active-turn highlighting. Initiative strip (horizontal scrollable chips). Active character card with quick HP +/-. AI-driven + manual movement toggle. AI mechanics: `zone_move:`, `zone_add_enemy:`, `zone_remove:`, `zone_effect:`, `zone_label:`, `combat_start:`, `combat_end:`. State: `state.combat.zones{}`, `state.combat.moveMode`, per-combatant `zone` property. genLedger outputs zone grid; buildPrompt documents all zone rules for AI.
 
-**Drop 4 remaining work:**
-- ✅ Chronicle View — location-anchored NPCs/quests/consequences/rep/income in detail sheet
+**Drop 4 remaining work:** ALL COMPLETE
+- ✅ Chronicle View — location-anchored NPCs/quests/consequences/rep/income in detail sheet + zone grid wrapper
 - ✅ Exploration mode zones — zone grid visible outside combat when zones have custom labels
-- ✅ Area Map overlay — upload map images, place location pins with tap-to-place workflow
-- Fog of war (zone-level hidden/revealed)
-- Anchor `incomeLog` entries to locations
-- NPC `lastSeen` → location node anchoring
+- ✅ Area Map overlay — upload map images, place location pins, drag-to-reposition
+- ✅ Fog of war — zone-level hide/reveal via `zone_fog:` mechanic + DM toggle (🌫 badge)
+- ✅ Anchor `incomeLog` entries to locations (Session 12)
+- ✅ NPC `lastSeen` → location node anchoring (Session 12)
 
 ### Drop 5 Spec (Image Maps)
 `position:relative` parent + `position:absolute` tokens (same as Roll20/Foundry). Grid calibration via two-tap corners. Token positions as `{row, col}`. Single-layer fog of war (boolean grid). Spell effect SVG overlays scaled to grid.
