@@ -2590,6 +2590,79 @@ function cancelPDFImport(){
   if(status){status.style.display='none';status.innerHTML='';}
 }
 
+function recalibrateModule(){
+  const modName=(state.worldData?.setting||'').split('\n')[0]||'the module';
+  const eps=state.moduleProgress||[];
+  const epNames=eps.map((e,i)=>'Ep '+(i+1)+': '+e.name).join('\n');
+  if(!confirm('⚠️ RECALIBRATE CAMPAIGN\n\nThis will:\n• Reset all episodes to Pending, set Episode 1 to Active\n• Archive current chat to sessionArchive\n• Clear chat history and session summary\n• Inject a fresh Episode 1 opening context\n\nYour characters, gear, wagon, and inventory are kept.\n\nProceed?'))return;
+
+  // Archive current chat before clearing
+  if((state.chatHistory||[]).length>5){
+    if(!Array.isArray(state.sessionArchive))state.sessionArchive=[];
+    const archiveEntry={
+      ts:new Date().toISOString(),
+      label:'Pre-recalibration archive',
+      messages:(state.chatHistory||[]).length,
+      summary:'Chat history archived before module recalibration. Previous narrative was non-canonical.'
+    };
+    state.sessionArchive.push(archiveEntry);
+    if(state.sessionArchive.length>50)state.sessionArchive=state.sessionArchive.slice(-50);
+  }
+
+  // Reset episode progress
+  (state.moduleProgress||[]).forEach(ep=>{
+    ep.status='pending';
+    delete ep._showContent;
+  });
+  if(state.moduleProgress&&state.moduleProgress[0])state.moduleProgress[0].status='active';
+
+  // Clear narrative state
+  state.chatHistory=[];
+  state.oocHistory=[];
+  state.prevSessionSummary='';
+  state.logSummary='';
+  state.sessionNotes='';
+
+  // Clear stale world state that was fabricated
+  state.worldData.time='Day 1, Morning';
+  state.worldData.weather='Clear';
+
+  // Build opening context injection
+  const activeEp=state.moduleProgress?.[0];
+  const pcs=(state.pcs||[]).map(p=>p.name+' ('+p.race+' '+p.class+' '+p.level+')').join(', ');
+  const openingCtx='CAMPAIGN RECALIBRATION — FRESH START\n'
+    +'Module: '+modName+'\n'
+    +'Starting Episode: '+(activeEp?activeEp.name:'Episode 1')+'\n'
+    +'Party: '+pcs+'\n\n'
+    +'The party is arriving at the start of Episode 1. Use the episode brief in Contract 9 '
+    +'to set the scene. Introduce the setting, the immediate situation, and give the party '
+    +'a reason to engage. This is the TRUE start of the campaign — any prior narrative is non-canonical.\n\n'
+    +'Begin with a vivid opening scene based on the module content.';
+
+  // Inject as system context for next AI message
+  if(!state.chatHistory)state.chatHistory=[];
+  state.chatHistory.push({
+    role:'user',
+    content:'[SYSTEM: Campaign recalibrated. Begin '+modName+' from Episode 1. Use the module episode brief to set the opening scene. The party has just arrived at the starting location.]',
+    ts:'Day 1, Morning',
+    realTs:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    playerName:'SYSTEM',
+    playerChar:''
+  });
+
+  // Reset quests to empty (fabricated quests)
+  state.quests=[];
+
+  // Reset consequences (fabricated)
+  state.consequences=[];
+
+  // Keep NPCs that are from the module, clear fabricated ones
+  // We'll keep all NPCs but user can clean up manually
+
+  save();renderAll();
+  toast('🔄 Campaign recalibrated — Episode 1 active. Send a message to begin!');
+}
+
 // ═══ MODULE SCENES ═══
 function renderScenes(){
   const c=document.getElementById('scene-list');if(!c)return;
@@ -8899,7 +8972,7 @@ Object.assign(window, {
   setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
   uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView, pinAction, closePinMenu, movePin, unpinFromMap,
   openSheetPicker, dismissRollRequest,
-  renderSessionArchive, handleModulePDF, previewPDFSection, autoAssignPDF, applyPDFImport, cancelPDFImport,
+  renderSessionArchive, handleModulePDF, previewPDFSection, autoAssignPDF, applyPDFImport, cancelPDFImport, recalibrateModule,
   verifyContracts, clearFlagNote,
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
