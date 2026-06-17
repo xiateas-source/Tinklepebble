@@ -1,15 +1,4 @@
 // CSS loaded via <link rel="stylesheet"> in index.html — no import needed
-var _pdfjsLib=null;
-async function _loadPdfJs(){
-  if(_pdfjsLib)return _pdfjsLib;
-  const [lib,workerModule]=await Promise.all([
-    import('pdfjs-dist'),
-    import('pdfjs-dist/build/pdf.worker.min.mjs?url')
-  ]);
-  lib.GlobalWorkerOptions.workerSrc=workerModule.default;
-  _pdfjsLib=lib;
-  return lib;
-}
 
 // ═══ CONSTANTS ═══
 const ALL_CONDS=['Blinded','Charmed','Deafened','Exhausted','Frightened','Grappled','Incapacitated','Invisible','Paralyzed','Petrified','Poisoned','Prone','Restrained','Stunned','Unconscious'];
@@ -2396,6 +2385,21 @@ function remModuleEp(i){state.moduleProgress.splice(i,1);save();renderModuleTrac
 
 // ═══ PDF MODULE IMPORT ═══
 var _pdfSections=[];
+function _ensurePdfJs(){
+  return new Promise((resolve,reject)=>{
+    if(window.pdfjsLib){resolve(window.pdfjsLib);return;}
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=()=>{
+      if(window.pdfjsLib){
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        resolve(window.pdfjsLib);
+      }else reject(new Error('pdf.js loaded but pdfjsLib not found'));
+    };
+    s.onerror=()=>reject(new Error('Failed to load pdf.js from CDN'));
+    document.head.appendChild(s);
+  });
+}
 async function handleModulePDF(file){
   const inp=document.getElementById('pdf-upload-input');
   if(inp)inp.value='';
@@ -2405,7 +2409,7 @@ async function handleModulePDF(file){
   status.style.display='block';
   status.innerHTML='<div style="padding:8px;font-size:11px;color:var(--gold)">📄 Loading PDF reader…</div>';
   try{
-    const pdfjsLib=await _loadPdfJs();
+    const pdfjsLib=await _ensurePdfJs();
     status.innerHTML='<div style="padding:8px;font-size:11px;color:var(--gold)">📄 Reading '+esc(file.name)+'… <span id="pdf-progress">0%</span></div>';
     const buf=await file.arrayBuffer();
     const pdf=await pdfjsLib.getDocument({data:buf}).promise;
