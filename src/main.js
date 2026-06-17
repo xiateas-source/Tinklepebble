@@ -1499,7 +1499,7 @@ function renderTravelLog(){
   }).join('');
   c.scrollTop=c.scrollHeight;
 }
-function renderWagon(){renderCapacity();renderCells();renderCargo();renderHoard();const wfBtn=document.getElementById('wf-'+(state.wagonFilter||'all'));if(wfBtn)wfBtn.classList.add('gold');}
+function renderWagon(){renderCapacity();renderCells();renderCargo();renderHoard();}
 function calcWeight(){
   let w=0;
   (state.wagon.cargo||[]).forEach(i=>w+=(parseFloat(i.weight)||0)*(parseInt(i.qty)||1));
@@ -1538,34 +1538,75 @@ function addCell(){if(!state.wagon.cells)state.wagon.cells=[];state.wagon.cells.
 function updCell(i,k,v){state.wagon.cells[i][k]=v;save();}
 function remCell(i){state.wagon.cells.splice(i,1);save();renderCells();renderCapacity();}
 
-function renderCargo(){
-  const c=document.getElementById('wagon-cargo');if(!c)return;c.innerHTML='';
-  const f=state.wagonFilter||'all';
-  const typeMatch=(t,filter)=>{if(filter==='all')return true;if(!t)return false;return t.split(',').map(s=>s.trim()).includes(filter);};
-  const items=(state.wagon.cargo||[]).filter(item=>typeMatch(item.type,f));
-  if(!items.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No cargo.</div>';return;}
-  items.forEach(item=>{
-    const rawIdx=(state.wagon.cargo||[]).indexOf(item);
-    renderInvRow(c,item,rawIdx,'cargo');
+let _cargoFilter='all';let _cargoEditIdx=null;
+let _hoardEditIdx=null;
+function _renderInvChips(containerId,items,listType,editIdx,setEditIdx,filterState,setFilterFn,emptyMsg){
+  const c=document.getElementById(containerId);if(!c)return;c.innerHTML='';
+  const TYPE_ICON={supply:'📦',foraged:'🌿',ingredient:'⚗',trade:'💰',loot:'✨',hoard:'💎',misc:'📋',key:'🗝'};
+  const groups={};
+  items.forEach((item,idx)=>{const t=item.type||'misc';if(!groups[t])groups[t]=[];groups[t].push({item,idx});});
+  const filters=['all',...ITYPES.filter(t=>groups[t])];
+  if(filters.length>2){
+    const bar=document.createElement('div');bar.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px';
+    filters.forEach(f=>{
+      const cnt=f==='all'?items.length:(groups[f]||[]).length;
+      const b=document.createElement('button');
+      b.textContent=(f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1))+' '+cnt;
+      b.style.cssText=`font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid ${filterState===f?'var(--gold)':'var(--border)'};background:${filterState===f?'var(--gold-dim)':'none'};color:${filterState===f?'var(--gold-bright)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans)`;
+      b.onclick=()=>setFilterFn(f);
+      bar.appendChild(b);
+    });
+    c.appendChild(bar);
+  }
+  const visibleGroups=filterState==='all'?Object.keys(groups).sort():groups[filterState]?[filterState]:[];
+  if(!visibleGroups.length){const e=document.createElement('div');e.style.cssText='color:var(--text-dim);font-size:11px;padding:6px 0';e.textContent=emptyMsg;c.appendChild(e);return;}
+  const sellable=listType==='cargo';
+  visibleGroups.forEach(type=>{
+    const grp=groups[type]||[];if(!grp.length)return;
+    const sec=document.createElement('div');sec.style.cssText='margin-bottom:8px';
+    if(filterState==='all'&&visibleGroups.length>1){
+      const hdr=document.createElement('div');hdr.style.cssText='font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;padding:4px 0 3px';
+      hdr.textContent=(TYPE_ICON[type]||'')+' '+type;sec.appendChild(hdr);
+    }
+    const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-wrap:wrap;gap:4px';
+    grp.forEach(({item,idx})=>{
+      const isEdit=editIdx===idx;
+      const chip=document.createElement('div');
+      if(isEdit){
+        chip.style.cssText='background:var(--surface2);border:1px solid var(--gold);border-radius:6px;padding:6px 8px;width:100%';
+        chip.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:12px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updWItem('${listType}',${idx},'name',this.value)">${sellable?`<button class="btn sm gold" onclick="quickSellItem(${idx})" style="font-size:10px;padding:2px 7px;border-radius:8px" title="Quick sell">💰</button>`:''}<button class="btn sm" onclick="closeWEdit('${listType}')" style="font-size:10px;padding:2px 6px">✓</button><button class="btn sm red" onclick="remWItem('${listType}',${idx})" style="font-size:10px;padding:2px 6px">✕</button></div>`
+          +`<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updWItem('${listType}',${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:10px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><span style="font-size:10px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><span style="font-size:9px;color:var(--text-dim)">lb</span></div>`
+          +`<input type="text" value="${esc(item.notes||'')}" style="width:100%;font-size:11px;color:var(--text-dim);margin-top:4px;background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0" placeholder="notes…" onchange="updWItem('${listType}',${idx},'notes',this.value)">`;
+      }else{
+        const name=item.name||'(unnamed)';
+        const truncName=name.length>18?name.slice(0,17)+'…':name;
+        const qtyBadge=item.qty>1?'<span style="font-size:9px;color:var(--gold);font-weight:700;margin-left:2px">×'+item.qty+'</span>':'';
+        const wBadge=item.weight?'<span style="font-size:9px;color:var(--text-dim);margin-left:1px">'+item.weight+'lb</span>':'';
+        chip.style.cssText='display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--text-bright);background:var(--surface2);cursor:pointer;max-width:100%;transition:border-color .15s';
+        chip.title=name+(item.notes?' — '+item.notes:'')+(item.weight?' ('+item.weight+' lb)':'');
+        chip.onclick=()=>{setEditIdx(idx);};
+        chip.innerHTML=truncName+qtyBadge+wBadge;
+      }
+      wrap.appendChild(chip);
+    });
+    sec.appendChild(wrap);c.appendChild(sec);
   });
 }
+function renderCargo(){
+  _renderInvChips('wagon-cargo',state.wagon.cargo||[],'cargo',_cargoEditIdx,
+    idx=>{_cargoEditIdx=idx;renderCargo();},
+    _cargoFilter,f=>{_cargoFilter=f;renderCargo();},'No cargo.');
+}
 function renderHoard(){
-  const c=document.getElementById('wagon-hoard');if(!c)return;c.innerHTML='';
-  if(!(state.wagon.hoard||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">"Mine." — Pebble</div>';return;}
-  (state.wagon.hoard||[]).forEach((item,idx)=>renderInvRow(c,item,idx,'hoard'));
+  _renderInvChips('wagon-hoard',state.wagon.hoard||[],'hoard',_hoardEditIdx,
+    idx=>{_hoardEditIdx=idx;renderHoard();},
+    'all',()=>{},'"Mine." — Pebble');
 }
-
-function renderInvRow(container,item,idx,listType){
-  const d=document.createElement('div');
-  d.style.cssText='background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:8px 10px;margin-bottom:6px';
-  const sellBtn=listType==='cargo'?`<button class="btn sm gold" onclick="quickSellItem(${idx})" style="font-size:10px;padding:2px 7px;border-radius:8px;flex-shrink:0" title="Quick sell">💰</button>`:'';
-  d.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:13px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updWItem('${listType}',${idx},'name',this.value)">${sellBtn}<button class="btn sm red icon-btn" onclick="remWItem('${listType}',${idx})" style="flex-shrink:0">&times;</button></div><div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updWItem('${listType}',${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:11px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><span style="font-size:11px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" placeholder="0" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><span style="font-size:10px;color:var(--text-dim)">lb</span><input type="text" value="${esc(item.notes||'')}" style="flex:1;min-width:50px;font-size:11px;color:var(--text-dim)" placeholder="notes…" onchange="updWItem('${listType}',${idx},'notes',this.value)"></div>`;
-  container.appendChild(d);
-}
+function closeWEdit(list){if(list==='hoard'){_hoardEditIdx=null;renderHoard();}else{_cargoEditIdx=null;renderCargo();}}
 function addWagonItem(list,type){
   const item={name:'',qty:1,weight:0,type:type,notes:'',ts:state.worldData.time,location:state.worldData.location};
-  if(list==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];state.wagon.hoard.push(item);}
-  else{if(!state.wagon.cargo)state.wagon.cargo=[];state.wagon.cargo.push(item);}
+  if(list==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];state.wagon.hoard.push(item);_hoardEditIdx=state.wagon.hoard.length-1;}
+  else{if(!state.wagon.cargo)state.wagon.cargo=[];state.wagon.cargo.push(item);_cargoEditIdx=state.wagon.cargo.length-1;}
   save();renderWagon();
 }
 function updWItem(list,i,k,v){
@@ -1574,15 +1615,9 @@ function updWItem(list,i,k,v){
   save();renderCapacity();
 }
 function remWItem(list,i){
-  if(list==='hoard')state.wagon.hoard.splice(i,1);
-  else state.wagon.cargo.splice(i,1);
+  if(list==='hoard'){state.wagon.hoard.splice(i,1);_hoardEditIdx=null;}
+  else{state.wagon.cargo.splice(i,1);_cargoEditIdx=null;}
   save();renderWagon();
-}
-function setWFilter(f){
-  state.wagonFilter=f;
-  document.querySelectorAll('[id^="wf-"]').forEach(b=>{b.classList.remove('gold');b.style.borderColor='';b.style.color='';});
-  const btn=document.getElementById('wf-'+f);if(btn)btn.classList.add('gold');
-  renderCargo();
 }
 
 // ═══ COMBAT (Zone Combat Map) ═══
@@ -8052,7 +8087,7 @@ Object.assign(window, {
   scrollStoryBottom, scrollStoryTop, selectFlagCat,
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
   sendRollToChat, sendSceneToDM, sessionRecap, setProvider, setScene,
-  setSheetTab, setStepTarget, setTtsProvider, setWFilter,
+  setSheetTab, setStepTarget, setTtsProvider,
   showChatTab, showSessionMode, showSessionTab, showSetupStep, showTab, showWorldTab,
   speakActiveScene, speakIdx, speakScene, st, submitFlag, sw, switchUser,
   testTts, toggleCombCond, toggleCond, toggleDeathSave, toggleDockDice, toggleFlagVerdict, toggleInspiration,
@@ -8090,7 +8125,7 @@ Object.assign(window, {
   zoneTokenTap, zoneBoxTap, zoneHPAdj, toggleMoveMode, toggleZoneFog,
   renderSetupLock, setSetupUnlocked, remAtk, rewindTo,
   renderPCOverview, renderHUD, renderCharTabs,
-  remPcItem, remResource, renderCapacity, renderErrorLog,
+  remPcItem, remResource, renderCapacity, renderErrorLog, closeWEdit,
 });
 // Live getter so inline onclick/oninput can access `state` even after Firebase reassigns it
 Object.defineProperty(window,'state',{get(){return state;},configurable:true});
