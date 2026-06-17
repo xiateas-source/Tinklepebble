@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.D8peQFE7.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.PfQoNe-x.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.Bq5Wtc5c.css">
 </head>
 <body>
@@ -411,6 +411,10 @@
         <div id="module-progress-bar" style="height:100%;background:var(--gold);width:0%;transition:width .3s"></div>
       </div>
       <div id="module-episode-list"></div>
+      <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-size:11px;font-weight:600;color:var(--text-bright);margin-bottom:6px">📖 Module Reference <span style="font-weight:400;color:var(--text-dim)">(recurring NPCs, factions, world rules — always injected)</span></div>
+        <textarea id="module-reference" style="width:100%;min-height:80px;font-size:11px;background:var(--surface);border-color:var(--border)" placeholder="Paste key module info here: recurring NPCs, faction names, major locations, world rules. This is always sent to the AI regardless of which episode is active." oninput="state.moduleReference=this.value;save()"></textarea>
+      </div>
     </div>
     <div class="grid-1">
       <div class="col">
