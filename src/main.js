@@ -2253,7 +2253,7 @@ function genLedger(){
       if((p.slots||[]).length)l+=' | Slots: '+p.slots.map((s,i)=>'L'+(i+1)+':'+(s.max-s.used)+'/'+s.max).join(' ');
       l+='\n';
     });
-    if(state.combat.active){l+="\nCOMBAT Round "+state.combat.round+":\n";state.combat.list.forEach((c,i)=>l+=(i===state.combat.currentIdx?'>>> ':'')+c.name+' HP:'+c.hp+' AC:'+c.ac+'\n');}
+    if(state.combat.active){l+="\nCOMBAT Round "+state.combat.round+" ("+state.combat.moveMode+" movement):\n";const zg={};state.combat.list.forEach(c=>{const z=c.zone||'front';if(!zg[z])zg[z]=[];zg[z].push(c);});ZONE_IDS.forEach(zid=>{const zd=state.combat.zones?.[zid];if(!zg[zid]&&zid==='air')return;l+='  ['+(zd?.label||ZONE_LABELS[zid])+']';if(zd?.effect)l+=' {'+zd.effect+'}';if(zd?.terrain)l+=' ['+zd.terrain+']';l+=': ';l+=(zg[zid]||[]).map((c,i)=>(state.combat.list.indexOf(c)===state.combat.currentIdx?'>>>':'')+c.name+' HP:'+c.hp+'/'+c.hp_max+' AC:'+c.ac+(c.conditions?.length?' ('+c.conditions.join(',')+')':'')).join(', ')||(zid==='air'?'':'(empty)');l+='\n';});}
     const ox=state.wagon.ox;l+="\nGrit: HP "+ox.hp+"/"+ox.hp_max+" | Feed: "+ox.feed+"\n";
     l+="Treasury: GP "+state.treasuryData.gp+"\n";
     l+="=== END COMPACT ===";
@@ -2303,7 +2303,7 @@ function genLedger(){
     if(state.logSummary)l+="\n━━━ SESSION SUMMARY ━━━\n"+state.logSummary+'\n';
     if(Array.isArray(state.storyChapters)&&state.storyChapters.length){l+="\n━━━ STORY CHAPTERS ━━━\n";state.storyChapters.forEach((ch,i)=>l+='Chapter '+(i+1)+': '+ch.title+(ch.date?' ('+ch.date+')':'')+'\n');}
   }
-  if(state.combat.active){l+="\n━━━ ACTIVE COMBAT — ROUND "+state.combat.round+" ━━━\n";state.combat.list.forEach((c,i)=>l+=(i===state.combat.currentIdx?'>>> ':'')+c.val+' '+c.name+' HP:'+c.hp+' AC:'+c.ac+'\n');}
+  if(state.combat.active){l+="\n━━━ ACTIVE COMBAT — ROUND "+state.combat.round+" ━━━\n";l+="Movement mode: "+state.combat.moveMode+"\n";l+="Zone layout:\n";const zg2={};state.combat.list.forEach(c=>{const z=c.zone||'front';if(!zg2[z])zg2[z]=[];zg2[z].push(c);});ZONE_IDS.forEach(zid=>{const zd=state.combat.zones?.[zid];if(!zg2[zid]&&zid==='air')return;l+='  ['+(zd?.label||ZONE_LABELS[zid])+']';if(zd?.effect)l+=' Effect: '+zd.effect;if(zd?.terrain)l+=' Terrain: '+zd.terrain;l+='\n';(zg2[zid]||[]).forEach((c,i)=>{l+='    '+(state.combat.list.indexOf(c)===state.combat.currentIdx?'>>> ':'')+c.val+' '+c.name+' HP:'+c.hp+'/'+c.hp_max+' AC:'+c.ac;if(c.conditions?.length)l+=' ['+c.conditions.join(', ')+']';if(c.concentrating)l+=' (Conc: '+c.concentrating+')';l+='\n';});});l+="Adjacency: Front↔Left, Front↔Right, Front↔Back, Front↔Air, Back↔Rear\n";}
   const as=state.scenes?.[state.activeSceneIdx];if(as)l+="\n━━━ ACTIVE SCENE: "+as.name+" ━━━\n"+as.text+'\n';
   if(Array.isArray(state.moduleProgress)&&state.moduleProgress.length){
     const activeEp=state.moduleProgress.find(e=>e.status==='active');
@@ -3577,7 +3577,32 @@ Rules:
 - location_visit: Name — mark a known location as visited and update its last-visited timestamp. Use on return trips. Example: location_visit: Greenest
 - location_history: Name | Text | dmOnly — add an event entry to a location's history. Set dmOnly to true for secret events. Example: location_history: Greenest | Governor Nighthill paid 250gp for the party's help | false
 - location_investment: Name | Description | Amount — record a party investment at a location. Example: location_investment: Greenest | Mill stake | 50
-- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). Use whenever a player action triggers a check BEFORE narrating the outcome. Example: roll_request: Persuasion | 14 | Tinkle`;
+- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). Use whenever a player action triggers a check BEFORE narrating the outcome. Example: roll_request: Persuasion | 14 | Tinkle
+
+ZONE COMBAT SYSTEM:
+Combat uses 6 abstract zones instead of a grid: Frontline, Backline, Left Flank, Right Flank, Air Space, Rear Guard.
+Adjacency: Frontline↔Left Flank, Frontline↔Right Flank, Frontline↔Backline, Frontline↔Air Space, Backline↔Rear Guard.
+Movement costs 1 move for adjacent zones, 2 moves (or Dash) for non-adjacent. Leaving a zone with enemies provokes opportunity attacks.
+Air Space only appears when flying creatures exist. Rear Guard is safest — enemies must punch through Backline.
+
+Zone mechanics commands:
+- combat_start: [optional description] — begin combat, initialize zone grid. Output this BEFORE any zone_add_enemy lines
+- combat_end: [summary text] — end combat, reset zones, log summary to location history
+- zone_move: [name] | [zone_id] — move a combatant to a zone. zone_id: front/back/left/right/air/rear. Example: zone_move: Slasher | left
+- zone_add_enemy: [name] | [hp] | [ac] | [zone_id] | [initiative] — add enemy to combat in a specific zone. Example: zone_add_enemy: Cultist | 9 | 12 | front | 14
+- zone_remove: [name] — remove a combatant (dead, fled, etc). Example: zone_remove: Cultist
+- zone_effect: [zone_id] | [effect text] | [type] — apply an effect to a zone. type: terrain or effect (default). Example: zone_effect: front | Fog Cloud — obscured | effect. Example: zone_effect: back | Difficult terrain (rubble) | terrain
+- zone_label: [zone_id] | [new label] — rename a zone for narrative context. Example: zone_label: left | Collapsed Tower. Example: zone_label: rear | Wagon Circle
+
+Starting positions when combat begins:
+- Melee fighters (Slasher): Frontline
+- Ranged/casters (Pebble, Tinkle): Backline
+- Grit + Wagon: Rear Guard (auto-added by the app)
+- Flanks: for ambushes, flanking maneuvers, or when enemies surround
+- Air Space: only when flying creatures exist
+Override these defaults when the narrative demands it (ambush from behind, surrounded, etc).
+
+ALWAYS use zone_move to reposition characters during combat based on the narrative. When a PC says "I charge in" move them to the appropriate zone. When enemies flank, move them to flanks. Keep zone positions consistent with the story.`;
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
   const secretsSection=state.dmSecrets?'\nCONTRACT 7 — SECRET DM NOTES (NEVER reveal to players):\n'+state.dmSecrets+'\n':'';
   const snipsSection=activeSnips?'\nCONTRACT 8 — REFERENCE MATERIAL:\n'+activeSnips+'\n':'';
