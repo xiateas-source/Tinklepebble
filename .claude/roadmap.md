@@ -72,6 +72,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 13** (2026-06-17): Area Map overlay (upload maps + place location pins + drag-to-reposition), fog of war (zone-level hide/reveal + `zone_fog:` mechanic), Chronicle View (location context below zone grid), inventory UX overhaul (chip layout + subcategories + fuzzy dedup), panel cleanup (removed Premise/Plot from Ops, moved Snippets to AI Tools), 19 bug fixes (11 broken onclick handlers, overlay persistence, context strip float, map edge cases).
 
+**Session 14** (2026-06-17): Code review fixes (9 — strict fuzzy match, fog rendering, pin drag capture, CSQ_COLORS, area map caching). Wagon cargo/hoard chip UX (shared `_renderInvChips()`, filter bar, tap-to-expand). 5 combat quick wins (inline HP +/-, turn context injection, concentration alerts, combat-only condition sync, rich context refresh). Map pin UX (tap→action bar with Move/Unpin/Details, `unpinFromMap()`, `movePin()`, chip ✕ affordances).
+
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
@@ -81,7 +83,9 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 ## Next Up — Pending Work
 
 ### Still Open (small)
-- ✅ ~~**Inventory UX overhaul (Issue 21)** — subcategories, fuzzy dedup at item_add, name truncation~~
+- ✅ ~~**Inventory UX overhaul (Issue 21)** — party inv, wagon cargo, hoard all use chip layout~~
+- ✅ ~~**Combat quick wins** — inline HP, turn context, concentration alerts, condition sync, context refresh~~
+- ✅ ~~**Map pin UX** — action bar, unplace individual pins, movePin()~~
 - **Expand term glossary** — add 50+ more D&D terms to tooltip system
 - ⏸ **Con Scorecard** — `state.slasherOI`, income parsing, town survival stats (needs design)
 

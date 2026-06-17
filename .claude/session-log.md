@@ -1,64 +1,52 @@
 # Session Log — Handoff Note
 
-## Session 13 · 2026-06-17
+## Session 14 · 2026-06-17
 
 ### Shipped
-- **Area Map overlay** — upload dungeon/area map images, place location pins by tapping
-  - File upload (localStorage `tt_area_map`, max 3.5MB)
-  - List/Map view toggle, SVG drop-pin markers, percentage-based positioning
-  - Pin drag-to-reposition: hold 350ms then slide (pointer events, touch+mouse)
-  - "Place on Map" / "Move on Map" in location detail overlay
-- **Fog of war** — zone-level hide/reveal
-  - `zone_fog:` parseMechanics handler (hide/reveal)
-  - Hidden zones show "???" with diagonal stripe pattern (player view)
-  - DM view shows 🌫 fog badge for quick toggle
-  - Works in combat and exploration modes
-- **Chronicle View wrapper** — location context below zone grid
-  - Shows NPCs at location, active quests, active consequences
-  - Auto-populates from state.worldData.location
-  - Renders in both combat and exploration modes
-- **Inventory UX overhaul**
-  - Compact chip layout grouped by subcategory with type icons
-  - Filter bar with item counts per category
-  - Tap-to-expand inline editor, auto-edit on new items
-  - Fuzzy dedup on item_add (substring + similarity matching for stacking)
-- **Panel cleanup**
-  - Removed Campaign Premise from Operations (stays in Setup)
-  - Removed Plot & Lore panel entirely
-  - Moved Reference Snippets to AI Tools tab
-  - Operations simplified to Campaign Secrets + World Consequences + deep-links
-- **Bug fixes (19 total)**
-  - Overlay persistence: `_closeAllOverlays()` in closeDrawer + openDrawer
-  - PC Overview sheet added to overlay cleanup
-  - Map pin coordinate clamping, mapPos validation, localStorage quota handling
-  - Pin clicks disabled during placement mode
-  - Context strip hidden when drawer open (location bar floating fix)
-  - 11 broken onclick handlers: renderPCOverview, renderHUD, renderCharTabs, remAtk, remPcItem, remResource, rewindTo, renderCapacity, renderSetupLock, renderErrorLog, _setupUnlocked scoping
-  - Extra `</div>` removed, null safety on openLocationDetail + addLocationManual
+- **Code review bug fixes (9)** — strict fuzzy match (edit-distance, no substring), fog hidden zone rendering, pin drag pointer capture, CSQ_COLORS reference (2 instances), `_getAreaMap` caching
+- **Wagon cargo/hoard chip UX** — shared `_renderInvChips()` function, filter bar with counts, tap-to-expand inline editor, matches party inventory layout
+- **5 combat quick wins**
+  - Inline HP +/- preset buttons on active character card (with custom input field)
+  - `_injectTurnCtx()` — injects turn context into next AI message via `_ctxInject`
+  - Concentration check on HP damage (auto-alert if concentrating PC takes damage)
+  - `COMBAT_ONLY_CONDS` — Prone/Grappled/Restrained auto-clear on endCombat; persistent conditions synced back to PC sheets
+  - `sendContextRefresh()` now includes full combat zone grid + PC HP/conditions
+  - Death save tracker on active card when PC at 0 HP
+  - Quick condition dropdown on active card
+- **Map pin UX overhaul**
+  - Tap pin → highlight + action bar below map (Move / Unpin / Details)
+  - `unpinFromMap(locId)` — remove individual pin without deleting map
+  - `movePin(locId)` — single-function move, avoids mid-handler DOM destruction
+  - Chip ✕ affordances for unplacing from toolbar
+  - "Unplace" button added to location detail sheet
 
 ### Decisions Made
-- Map images in localStorage only (not Firebase) — too large for realtime DB
-- 3.5MB file size limit (base64 inflates ~33%, localStorage ~5MB cap)
-- `_locViewMode` + `setLocView()` wrapper for inline onclick access
-- Fuzzy matching: substring OR ≤1 char difference = same item → stack
-- Plot & Lore data (`state.worldData.plot/timers`) remains in state but panel removed
+- Pin popover replaced with bottom action bar (popover was clipped by overflow:hidden)
+- `movePin()` as single function instead of chained `setLocView→startMapPlace` (DOM destruction between renders)
+- Fuzzy match now requires ≤2 chars length difference AND ≤1 char positional mismatch (no substring)
 
 ### Known Issues
-- Cannot run Playwright in this environment (cdn.playwright.dev blocked)
-- Zone combat/fog not yet playtested in actual session
 - Flag 13 still open: treasure log audit / duplicate loot detection
-- `state.worldData.plot/timers` fields orphaned — data still in state but no UI (safe to leave)
+- 14 new gameplay flags from ops debrief (see roadmap for categorized list)
+- `state.worldData.plot/timers` fields orphaned — data still in state but no UI
 
 ### In Progress
-- Nothing actively in progress
+- Nothing actively in progress — all committed and deployed
 
-### Next Up
-- Expand term glossary — 50+ D&D terms
-- Inventory UX for wagon cargo (same chip treatment as party inventory)
-- Drop 5: Image Maps + Token Overlay (needs Firebase Storage config)
-- Con Scorecard (needs design)
+### Next Up (from ops debrief analysis)
+- **Multi-category items** (Flag 2) — items can be both "foraged" and "ingredient"
+- **Encumbrance tracking** (Flag 14) — weight calc + AI awareness in genLedger
+- **Cantrip level-0 display** (Flag 3) — spellbook treats cantrips as level 0
+- **Expertise in skill calc** (Flag 8) — double proficiency bonus for expertise skills
+- **Treasure audit inline** (Flag 4/13) — dedup/audit from income log dropdown
+- **Context strip carousel** (Flag 11) — tap to cycle: location → character → quest → module
+- **Per-PC inventory access from Cargo tab** (Flag 13) — character buttons in Cargo view
+- **OOC accuracy** (Flag 6) — OOC channel getting narrative details wrong
+- **Quest→Chapter linking** (Flag 5/9) — quest announcements create chapters, chapter↔module correlation
+- **Familiar/animal home** (Flag 10) — where companions live in the app
+- **Quest log UX refresh** (Flag 12)
 
 ### Branch State
 - Branch: `claude/new-session-rvx6tn`
 - In sync with main (all merged)
-- Last commit: `b675c8b` (Pin drag-to-reposition)
+- Last commit: `12fe190` (Fix Move pin)

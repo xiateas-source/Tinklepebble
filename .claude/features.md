@@ -284,7 +284,8 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `parseMechanics(responseText, msgId)` — 43+ handlers; `_MECH_KEYS` controls display stripping
 - `callAI(messages, sysProm, maxTok)` — Retry wrapper (2x, 1.2s/2.4s, 5xx); free-model fallback
 - `summarizeAndPrune()` — Background summary at 75 msgs → pushes to `sessionArchive[]` (50-cap)
-- `sendContextRefresh()` — Lightweight location/condition refresh via `_ctxInject`
+- `sendContextRefresh()` — Full context refresh via `_ctxInject`: location, PC HP/conditions/concentration, combat zone grid (if active)
+- `_renderInvChips(items, editIdx, setEditFn, updFn, remFn, prefix)` — Shared chip renderer for party inv, wagon cargo, and hoard
 - `resyncAI()` — Full ledger re-sync
 - `verifyContracts()` — Validates all 10 contract checks + injects contracts into next AI send
 - `detectUnloggedGold()` / `detectUnloggedNPC()` / `detectUnloggedItem()` — Confirm-chip prompts for unlogged mechanics
@@ -295,8 +296,12 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `setLocView(mode)` — Toggle between 'list' and 'map' views
 - `uploadAreaMap()` / `removeAreaMap()` — Map image management (localStorage)
 - `startMapPlace(id)` / `cancelMapPlace()` / `handleMapTap(e)` — Tap-to-place workflow
+- `pinAction(locId)` — Tap pin → highlight + show action bar below map
+- `movePin(locId)` — Single-function move: sets place mode + renders once (avoids mid-handler DOM destruction)
+- `unpinFromMap(locId)` — Remove individual pin from map without deleting the map
+- `closePinMenu()` — Dismiss pin action bar
 - `openLocationSeed()` / `closeLocSeed()` / `confirmLocationSeed()` — Draft locations from campaign data
-- `openLocationDetail(id)` — Detail bottom sheet with anchored NPCs, quests, consequences, rep, income
+- `openLocationDetail(id)` — Detail bottom sheet with anchored NPCs, quests, consequences, rep, income; includes Move/Unplace/Details buttons for map pins
 - `_closeAllOverlays()` — Closes all fixed overlays (loc-ov, grit-ov, familiar-ov, loc-seed)
 
 ### Zone Combat
@@ -305,11 +310,17 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `_zoneBoxHTML(zoneId)` — Render zone box with label, effects, and contained tokens
 - `zoneTokenTap(idx)` — Select token in manual mode for movement
 - `zoneBoxTap(zoneId)` — Move selected token to target zone (manual mode)
-- `zoneHPAdj(idx, delta)` — Quick HP +/- from active character card
+- `zoneHPAdj(idx, delta)` — Inline HP preset buttons (+1/+5/-1/-5) on active card; triggers concentration check on damage
+- `zoneHPCustom(idx)` — Custom HP adjust from `#zac-custom-hp` input field
+- `quickAddCond(idx)` — Add condition from `#zac-cond-pick` dropdown on active card
+- `_injectTurnCtx()` — Sets `_ctxInject` with current turn context (who's up, HP, conditions, zone) for AI awareness
+- `_combatLedgerBlock()` — Shared helper generating compact combat zone grid text for genLedger + sendContextRefresh
+- `COMBAT_ONLY_CONDS` — `Set(['Prone','Grappled','Restrained'])` — auto-cleared on endCombat; persistent conditions synced back to PC sheets
 - `toggleMoveMode()` — Switch between AI-driven and manual movement
 - `addCombatant()` — Add combatant with zone dropdown
 - `addPartyToCombat()` — Auto-add all PCs + Grit/Wagon to zones
-- `endCombat()` — End combat, write summary to location history, reset zones
+- `endCombat()` — End combat, sync persistent conditions + concentration back to `state.pcs[]`, write summary to location history, reset zones
+- Active card shows death save tracker when PC at 0 HP
 
 ### Quick Actions
 - `executeQA(action)` — Execute by type (23 types)
