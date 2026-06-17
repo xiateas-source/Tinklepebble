@@ -134,6 +134,7 @@ input[type=checkbox]{width:auto;accent-color:var(--gold);}
 .zone-flanks{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
 .zone-box{background:linear-gradient(180deg,var(--surface2) 0%,var(--surface) 100%);border:1px solid var(--border);border-radius:6px;padding:6px 8px;min-height:44px;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
 .zone-box.zb-adj{border-color:var(--gold-dim);box-shadow:inset 0 0 8px rgba(176,88,48,.12);}
+.zone-box.zb-explore{min-height:32px;cursor:default;opacity:.85;}
 .zb-hdr{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;}
 .zb-label{font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;}
 .zb-effect{font-size:9px;background:rgba(139,58,42,.2);border:1px solid var(--red);color:var(--red);border-radius:3px;padding:1px 5px;font-weight:600;}

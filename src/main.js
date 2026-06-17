@@ -1585,8 +1585,29 @@ function renderCombat(){
   const card=document.getElementById('zone-active-card');
   const noCombat=document.getElementById('zone-no-combat');
   if(hdr)hdr.style.display=active?'':'none';
-  if(noCombat)noCombat.style.display=active?'none':'';
-  if(!active){if(grid)grid.innerHTML='';if(card)card.style.display='none';return;}
+  if(!active){
+    if(card)card.style.display='none';
+    const zones=state.combat.zones||{};
+    const hasLabels=ZONE_IDS.some(z=>zones[z]&&(zones[z].label!==ZONE_LABELS[z]||zones[z].effect||zones[z].terrain));
+    if(hasLabels&&grid){
+      let html='';
+      if(zones.air&&(zones.air.label!==ZONE_LABELS.air||zones.air.effect))html+=_exploreZoneHTML('air',zones);
+      html+='<div class="zone-flanks">';
+      html+=_exploreZoneHTML('left',zones);
+      html+=_exploreZoneHTML('right',zones);
+      html+='</div>';
+      html+=_exploreZoneHTML('front',zones);
+      html+=_exploreZoneHTML('back',zones);
+      html+=_exploreZoneHTML('rear',zones);
+      grid.innerHTML=html;
+      if(noCombat)noCombat.style.display='none';
+    }else{
+      if(grid)grid.innerHTML='';
+      if(noCombat)noCombat.style.display='';
+    }
+    return;
+  }
+  if(noCombat)noCombat.style.display='none';
   // Round + turn name
   const rn=document.getElementById('zone-round-num');if(rn)rn.textContent=state.combat.round;
   const cur=state.combat.list[state.combat.currentIdx||0];
@@ -1653,6 +1674,16 @@ function _zoneBoxHTML(zid,zones){
       return _tokenHTML(t,realIdx);
     }).join('')+'</div>'
     +'</div>';
+}
+function _exploreZoneHTML(zid,zones){
+  const z=zones[zid]||{label:ZONE_LABELS[zid],effect:'',terrain:''};
+  const isDefault=z.label===ZONE_LABELS[zid]&&!z.effect&&!z.terrain;
+  if(isDefault)return '<div class="zone-box zb-explore"><div class="zb-hdr"><span class="zb-label" style="opacity:.4">'+esc(z.label)+'</span></div></div>';
+  return '<div class="zone-box zb-explore">'
+    +'<div class="zb-hdr"><span class="zb-label">'+esc(z.label)+'</span>'
+    +(z.effect?'<span class="zb-effect">'+esc(z.effect)+'</span>':'')
+    +(z.terrain?'<span class="zb-terrain">'+esc(z.terrain)+'</span>':'')
+    +'</div></div>';
 }
 function zoneTokenTap(idx){
   if(state.combat.moveMode==='manual'){
@@ -3777,7 +3808,7 @@ function parseMechanics(responseText, pendingMsgId=null){
       else if(key==='income'){
         const pts=val.split(',').map(p=>p.trim());const amt=parseFloat(pts[0])||0;const cat=pts[1]||'misc';const desc=pts.slice(2).join(',');
         if(!Array.isArray(state.treasuryData.incomeLog))state.treasuryData.incomeLog=[];
-        state.treasuryData.incomeLog.push({desc,amt,type:cat==='overhead'||cat==='emergency'?'out':'in',category:cat,ts:state.worldData.time});
+        state.treasuryData.incomeLog.push({desc,amt,type:cat==='overhead'||cat==='emergency'?'out':'in',category:cat,ts:state.worldData.time,location:state.worldData.location||''});
         const gpKey='gp';const td=state.treasuryData;
         if(cat==='overhead'||cat==='emergency')td[gpKey]=Math.max(0,(parseFloat(td[gpKey])||0)-amt);
         else td[gpKey]=(parseFloat(td[gpKey])||0)+amt;
@@ -3786,7 +3817,7 @@ function parseMechanics(responseText, pendingMsgId=null){
       else if(key==='expense'){
         const pts=val.split(',').map(p=>p.trim());const amt=parseFloat(pts[0])||0;const desc=pts.slice(1).join(',').trim()||'Expense';
         if(!Array.isArray(state.treasuryData.incomeLog))state.treasuryData.incomeLog=[];
-        state.treasuryData.incomeLog.push({desc,amt,type:'out',category:'expense',ts:state.worldData.time});
+        state.treasuryData.incomeLog.push({desc,amt,type:'out',category:'expense',ts:state.worldData.time,location:state.worldData.location||''});
         state.treasuryData.gp=Math.max(0,(parseFloat(state.treasuryData.gp)||0)-amt);
         changes.push({text:'Expense: -'+amt+'gp ('+desc+')'});
       }
@@ -3851,6 +3882,8 @@ function parseMechanics(responseText, pendingMsgId=null){
         const existing=state.npcs.find(n=>n.name.toLowerCase()===nname.toLowerCase());
         if(existing){existing.disposition=pts[1]||existing.disposition;existing.lastSeen=state.worldData.location;changes.push({text:'NPC updated: '+nname});}
         else{state.npcs.push({name:nname,disposition:pts[1]||'Neutral',details:pts[2]||'',status:'active',hp:0,lastSeen:state.worldData.location});changes.push({text:'New NPC: '+nname});}
+        const _curLoc=(state.locations||[]).find(l=>l.name.toLowerCase()===(state.worldData.location||'').toLowerCase());
+        if(_curLoc){if(!Array.isArray(_curLoc.npcs))_curLoc.npcs=[];if(!_curLoc.npcs.some(n=>n.toLowerCase()===nname.toLowerCase()))_curLoc.npcs.push(nname);}
       }
       else if(key==='consequence_add'){
         const sep=val.indexOf('|');
@@ -6903,9 +6936,19 @@ function openLocationDetail(id){
   const histHTML=visHist.length
     ?visHist.map(h=>`<div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start"><span style="font-size:10px;color:var(--text-dim);min-width:58px;padding-top:1px">${esc(h.ts)}</span><span style="flex:1;font-size:12px;line-height:1.4">${esc(h.text)}</span>${h.dmOnly?'<span style="font-size:9px;padding:1px 4px;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);white-space:nowrap">DM</span>':''}</div>`).join('')
     :'<div style="font-size:11px;color:var(--text-dim)">No history recorded.</div>';
-  const npcHTML=loc.npcs?.length
-    ?loc.npcs.map(n=>`<span style="display:inline-block;background:var(--surface3);border-radius:10px;padding:2px 8px;font-size:11px;margin:2px 2px 0 0">${esc(n)}</span>`).join('')
+  const npcNames=[...new Set([...(loc.npcs||[]),...(state.npcs||[]).filter(n=>n.lastSeen&&n.lastSeen.toLowerCase()===loc.name.toLowerCase()&&n.status!=='deceased').map(n=>n.name)])];
+  const npcHTML=npcNames.length
+    ?npcNames.map(name=>{const npc=(state.npcs||[]).find(n=>n.name.toLowerCase()===name.toLowerCase());const dcol=npc?(npc.disposition==='Friendly'||npc.disposition==='Ally'?'var(--green)':npc.disposition==='Hostile'||npc.disposition==='Enemy'?'var(--red)':'var(--text-dim)'):'var(--text-dim)';return`<span style="display:inline-block;background:var(--surface3);border-radius:10px;padding:2px 8px;font-size:11px;margin:2px 2px 0 0;border-left:3px solid ${dcol}">${esc(name)}${npc?' <span style="font-size:9px;color:'+dcol+'">'+esc(npc.disposition||'')+'</span>':''}</span>`;}).join('')
     :'<span style="font-size:11px;color:var(--text-dim)">None recorded</span>';
+  const locQuests=(state.quests||[]).filter(q=>q.status==='active'&&q.text&&q.text.toLowerCase().includes(loc.name.toLowerCase()));
+  const questHTML=locQuests.length?locQuests.map(q=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px"><span style="color:var(--green);font-size:10px">🟢</span><span style="flex:1">${esc(q.text)}</span></div>`).join(''):'';
+  const locConseq=(state.consequences||[]).filter(cs=>!cs.resolved&&cs.location&&cs.location.toLowerCase()===loc.name.toLowerCase());
+  const CSQ_C={background:'var(--text-dim)',faction:'var(--blue)',personal:'var(--gold)',escalation:'var(--red)'};
+  const conseqHTML=locConseq.length?locConseq.map(cs=>`<div style="font-size:12px;padding:4px 0;border-left:3px solid ${CSQ_C[cs.type]||'var(--text-dim)'};padding-left:8px;margin-bottom:4px"><span style="font-size:9px;color:${CSQ_C[cs.type]||'var(--text-dim)'};text-transform:uppercase;font-weight:700">${cs.type||'background'}</span> ${esc(cs.text)}</div>`).join(''):'';
+  const townRep=(state.worldData?.townReputation||[]).find(t=>t.town.toLowerCase()===loc.name.toLowerCase());
+  const repHTML=townRep?`<div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 8px;background:var(--surface2);border-radius:6px;margin-bottom:8px"><span style="font-weight:600;color:${repC(loc)}">Rep: ${esc(townRep.status)}</span>${townRep.notes?`<span style="flex:1;font-size:11px;color:var(--text-dim)">${esc(townRep.notes)}</span>`:''}</div>`:'';
+  const locIncome=(state.treasuryData?.incomeLog||[]).filter(e=>e.location&&e.location.toLowerCase()===loc.name.toLowerCase());
+  const incomeHTML=locIncome.length?`<details class="panel" style="margin-bottom:8px"><summary style="cursor:pointer;list-style:none;font-size:11px;font-weight:600;color:var(--gold)">Income (${locIncome.length})</summary><div style="margin-top:6px">${locIncome.map(e=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0"><span>${esc(e.desc)}</span><span style="color:${e.type==='in'?'var(--green)':'var(--red)'}">${e.type==='in'?'+':'−'}${e.amt}gp</span></div>`).join('')}</div></details>`:'';
   const invHTML=_dm&&loc.investments?.length
     ?`<details class="panel" style="margin-bottom:8px"><summary style="cursor:pointer;list-style:none;display:flex;align-items:center;font-size:11px;font-weight:600;color:var(--gold)">Investments</summary><div style="margin-top:6px">${loc.investments.map(inv=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;font-size:12px"><span style="flex:1">${esc(inv.desc)}</span><span style="color:var(--gold)">${inv.amount}gp</span><span style="font-size:10px;color:var(--text-dim)">since ${esc(inv.startDay)}</span></div>`).join('')}</div></details>`:'';
   const titleEl=document.getElementById('loc-ov-title');
@@ -6919,15 +6962,19 @@ function openLocationDetail(id){
       ${loc.lastVisited?`<span style="font-size:10px;color:var(--text-dim)">Last: ${esc(loc.lastVisited)}</span>`:''}
       <button class="btn sm" style="margin-left:auto;font-size:10px;padding:2px 8px" onclick="toggleLocDmMode('${id}')">${_dm?'👁 DM':'👤 Player'}</button>
     </div>
+    ${repHTML}
     <div style="margin-bottom:10px">
       <div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">NPCs <button class="btn sm" style="font-size:10px;padding:2px 6px;margin-left:6px" onclick="addLocNPC('${id}')">+ Add</button></div>
       <div>${npcHTML}</div>
     </div>
+    ${questHTML?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">Active Quests</div>${questHTML}</div>`:''}
+    ${conseqHTML?`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">Active Consequences</div>${conseqHTML}</div>`:''}
     <details class="panel" style="margin-bottom:8px" open>
       <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;font-size:11px;font-weight:600;color:var(--gold)">History <button class="btn sm" style="font-size:10px;padding:2px 6px;margin-left:auto" onclick="event.stopPropagation();addLocHistory('${id}')">+ Entry</button></summary>
       <div style="margin-top:8px">${histHTML}</div>
     </details>
     ${invHTML}
+    ${incomeHTML}
     <div class="panel" style="margin-bottom:8px;padding:8px 10px">
       <div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">Player Notes</div>
       <textarea style="width:100%;min-height:55px;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px;box-sizing:border-box;resize:vertical" oninput="updateLocNotes('${id}','player',this.value)" placeholder="Notes visible to players...">${esc(loc.playerNotes||'')}</textarea>
