@@ -7511,6 +7511,8 @@ Object.assign(window, {
   toggleTestMode, clearTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,
+  populateVoices, openResetModal, requestNotifPermission,
+  saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
 });
 // Live getter so inline onclick/oninput can access `state` even after Firebase reassigns it
 Object.defineProperty(window,'state',{get(){return state;},configurable:true});
