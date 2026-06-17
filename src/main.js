@@ -2484,6 +2484,13 @@ function _renderPDFImport(sections,filename,totalPages){
   if(!status)return;
   let html='<div style="padding:8px;border:1px solid var(--gold-dim);border-radius:var(--radius-sm);margin-bottom:10px;background:var(--surface)">';
   html+='<div style="font-size:12px;font-weight:600;color:var(--text-bright);margin-bottom:6px">📄 '+esc(filename)+' <span style="font-weight:400;color:var(--text-dim)">('+totalPages+' pages → '+sections.length+' sections detected)</span></div>';
+  const hasExisting=(state.moduleProgress||[]).length>0;
+  if(hasExisting){
+    html+='<div style="padding:8px;margin-bottom:8px;background:var(--surface2);border-radius:4px;display:flex;align-items:center;gap:8px">';
+    html+='<label style="font-size:11px;color:var(--text-bright);cursor:pointer"><input type="radio" name="pdf-import-mode" value="replace" checked style="margin-right:4px">Replace current module</label>';
+    html+='<label style="font-size:11px;color:var(--text);cursor:pointer"><input type="radio" name="pdf-import-mode" value="add" style="margin-right:4px">Add to current</label>';
+    html+='</div>';
+  }
   html+='<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Map each section to an episode, or load into Module Reference. Unassigned sections are skipped.</div>';
   const epOpts=((state.moduleProgress||[]).map((ep,i)=>'<option value="'+i+'">Ep '+(i+1)+': '+esc(ep.name)+'</option>').join(''));
   sections.forEach((s,si)=>{
@@ -2527,6 +2534,8 @@ function previewPDFSection(si){
 
 function autoAssignPDF(){
   if(!_pdfSections.length)return;
+  const modeRadio=document.querySelector('input[name="pdf-import-mode"]:checked');
+  const replaceMode=modeRadio&&modeRadio.value==='replace';
   const eps=state.moduleProgress||[];
   _pdfSections.forEach((s,si)=>{
     const sel=document.getElementById('pdf-assign-'+si);
@@ -2534,6 +2543,9 @@ function autoAssignPDF(){
     const titleLow=s.title.toLowerCase();
     if(titleLow.includes('introduction')||titleLow.includes('appendix')||titleLow.includes('prologue')){
       sel.value='ref';return;
+    }
+    if(replaceMode||eps.length===0){
+      sel.value='new';return;
     }
     let bestMatch=-1;let bestScore=0;
     eps.forEach((ep,ei)=>{
@@ -2548,8 +2560,6 @@ function autoAssignPDF(){
     });
     if(bestMatch>=0&&bestScore>=2){
       sel.value=String(bestMatch);
-    }else if(eps.length===0){
-      sel.value='new';
     }
   });
   toast('⚡ Auto-assigned — review and adjust before importing');
@@ -2557,6 +2567,13 @@ function autoAssignPDF(){
 
 function applyPDFImport(){
   if(!_pdfSections.length)return;
+  const modeRadio=document.querySelector('input[name="pdf-import-mode"]:checked');
+  const replaceMode=modeRadio&&modeRadio.value==='replace';
+  if(replaceMode){
+    if(!confirm('This will replace ALL current episodes and module reference with the PDF content. Continue?'))return;
+    state.moduleProgress=[];
+    state.moduleReference='';
+  }
   let imported=0;let refAdded=0;let epsCreated=0;
   _pdfSections.forEach((s,si)=>{
     const sel=document.getElementById('pdf-assign-'+si);
@@ -2577,11 +2594,12 @@ function applyPDFImport(){
       }
     }
   });
+  if(replaceMode&&state.moduleProgress.length>0)state.moduleProgress[0].status='active';
   save();renderModuleTracker();
   const status=document.getElementById('pdf-import-status');
   if(status)status.style.display='none';
   _pdfSections=[];
-  toast('📄 Imported '+imported+' sections'+(epsCreated?' ('+epsCreated+' new episodes)':'')+(refAdded?' ('+refAdded+' to reference)':''));
+  toast('📄 '+(replaceMode?'Replaced module: ':'Imported ')+imported+' sections'+(epsCreated?' ('+epsCreated+' new episodes)':'')+(refAdded?' ('+refAdded+' to reference)':''));
 }
 
 function cancelPDFImport(){
