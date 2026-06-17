@@ -52,6 +52,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 ## Design Principles
 - **Interactive-first** — every UI element should have a function
+- **Discoverable** — hidden features are dead features; surface capabilities via suggestion chips, contextual hints, //explain
 - **Minimize scrolling** — tap, swipe, and collapse over long vertical lists
 - **Lock/unlock editing** — character data is read-only during play; deliberate unlock to edit
 - **Compact + data-dense** — condense into small, scannable tiles and chips
@@ -105,6 +106,12 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - **Quest→Chapter linking** (Flag 5/9) — needs design
 - **Familiar/animal home** (Flag 10) — needs design
 - **Quest log UX refresh** (Flag 12) — needs design
+
+### From Gameplay UX Audit (medium-effort, not yet built)
+- **Condition duration tracking** — track rounds remaining on conditions, auto-expire
+- **Quick enemy clone** — duplicate an existing combatant for fast encounter setup
+- **Combat quick-panel** — context strip becomes tappable combat action bar during combat
+- **Unified step bar with targeting** — step bar integrates with combat zone targeting
 
 ### Panel Removal Queue (replace, don't hide)
 Panels to remove once their replacement matures:
