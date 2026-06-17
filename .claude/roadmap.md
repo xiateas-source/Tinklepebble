@@ -135,8 +135,9 @@ Location Journal (data) + Area Map (renderer). One screen answering "where are w
 Six zones: Frontline / Backline / Left Flank / Right Flank / Air / Rear. Tokens = colored tiles with HP bars, conditions, active-turn highlighting. Initiative strip (horizontal scrollable chips). Active character card with quick HP +/-. AI-driven + manual movement toggle. AI mechanics: `zone_move:`, `zone_add_enemy:`, `zone_remove:`, `zone_effect:`, `zone_label:`, `combat_start:`, `combat_end:`. State: `state.combat.zones{}`, `state.combat.moveMode`, per-combatant `zone` property. genLedger outputs zone grid; buildPrompt documents all zone rules for AI.
 
 **Drop 4 remaining work:**
-- Chronicle View wrapper — location-anchored NPCs/quests/consequences below zone grid
-- Exploration mode zones — AI labels zones for current scene outside combat
+- ✅ Chronicle View — location-anchored NPCs/quests/consequences/rep/income in detail sheet
+- ✅ Exploration mode zones — zone grid visible outside combat when zones have custom labels
+- ✅ Area Map overlay — upload map images, place location pins with tap-to-place workflow
 - Fog of war (zone-level hidden/revealed)
 - Anchor `incomeLog` entries to locations
 - NPC `lastSeen` → location node anchoring

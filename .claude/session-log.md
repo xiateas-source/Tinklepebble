@@ -1,47 +1,50 @@
 # Session Log — Handoff Note
 
-## Session 12 · 2026-06-17
+## Session 13 · 2026-06-17
 
 ### Shipped
-- **Drop 4: Zone Combat Map** — replaced grid combat with 6-zone tactical system
-  - 6 zones: Frontline, Backline, Left Flank, Right Flank, Air Space, Rear Guard
-  - Zone grid renders token chips with HP bars, conditions, active-turn highlighting
-  - Initiative strip: horizontal scrollable chips replacing vertical list
-  - Active character card with quick HP +/- buttons
-  - AI-driven movement (default) with manual override toggle
-  - Air Space conditionally visible only when flying creatures exist
-  - 7 new parseMechanics handlers: zone_move, zone_add_enemy, zone_remove, zone_effect, zone_label, combat_start, combat_end
-  - SAVE_VERSION 11→12 with migration gate for zones/moveMode/zone fields
-  - Party auto-add includes Grit + Wagon in Rear Guard
-  - End combat writes summary to location history
-- **AI integration for zones** — genLedger outputs zone grid with positions; buildPrompt documents full zone combat system for AI
-- **Vanishing messages v3 fix** (from previous session) — removed 15-message search window in _mergeChatHistories, full-array search + fork-merge for diverged histories
-- **Drop 4 player brief** — `.claude/drop4-player-brief.md` for Slasher feedback
+- **Overlay persistence fix** — `closeDrawer()` now calls `_closeAllOverlays()` to dismiss all fixed overlays (loc-ov, grit-ov, familiar-ov, loc-seed) when navigating away
+- **HTML structure fix** — removed extra `</div>` at line 1015 that caused negative div depth, breaking page layout
+- **Chronicle View: location-anchored data** (from Session 12 branch, merged to main)
+  - Location detail shows anchored NPCs (merged from loc.npcs + state.npcs lastSeen matching)
+  - Active quests filtered by location name
+  - Active consequences filtered by location
+  - Town rep, income log filtered by location
+  - NPC auto-anchor on npc_add to current location
+  - Income/expense entries tagged with current location
+- **Exploration mode zones** — zone grid visible outside combat when zones have custom labels
+- **Area Map overlay** — upload dungeon/area map images, place location pins on top
+  - File upload (stored in localStorage via `tt_area_map`, max 10MB)
+  - List/Map view toggle in Location Journal
+  - Tap-to-place workflow: select location chip, tap map to position pin
+  - SVG drop-pin markers colored by status (gold=current) and rep (green/red/dim)
+  - Pin labels with text shadow for readability over any map
+  - "Place on Map" / "Move on Map" button in location detail overlay
+  - Percentage-based positioning — pins survive viewport resize
+  - Map stored separately from Firebase sync (too large for realtime DB)
 
 ### Decisions Made
-- Adjacent-only zone movement (not free movement) — positioning matters
-- AI-driven movement by default, manual toggle for corrections
-- Zones serve dual purpose: combat grid AND exploration orientation tool
-- User explicitly delegated design decisions: "build whatever you think will run the best"
-- Zone grid always visible during combat; Air Space conditional on flying creatures
+- Map images stored in localStorage only (not Firebase) — too large for realtime DB
+- `state.locations[].mapPos` = `{x: %, y: %}` percentage coordinates — syncs via Firebase since it's tiny
+- `_locViewMode` module variable with `setLocView()` wrapper for inline onclick access
+- `_LOC_MAP_KEY = 'tt_area_map'` — separate localStorage key for map image
 
 ### Known Issues
-- Zone combat not yet playtested in actual session
+- Cannot run Playwright in this environment (cdn.playwright.dev blocked by network egress)
+- Zone combat not yet playtested
 - Flag 13 still open: treasure log audit / duplicate loot detection
 
 ### In Progress
-- Nothing actively in progress — zone combat core is complete
+- Nothing actively in progress
 
 ### Next Up
-- **Chronicle View wrapper** — location-anchored NPCs/quests/consequences displayed below zone grid, filtered by current location
-- **Exploration mode zones** — AI labels zones for current scene during non-combat (user insight: "zones become the star outside combat")
+- **User sent Dragon Hatchery map** — ready to test the map overlay feature with it
 - **Fog of war** (zone-level hidden/revealed)
-- **Anchor incomeLog entries to locations**
-- **NPC lastSeen → location node anchoring**
-- Inventory UX overhaul (Issue 21) — subcategories, fuzzy dedup, name truncation
+- **Drop 4 remaining**: Chronicle View wrapper below zone grid, anchor incomeLog to locations
+- Inventory UX overhaul (Issue 21)
 - Expand term glossary — 50+ D&D terms
 
 ### Branch State
 - Branch: `claude/new-session-rvx6tn`
-- Ahead of main by: ~5 commits (player brief + zone combat + AI integration)
-- Last commit: `bb4303b` (AI integration for zones)
+- In sync with main (all merged)
+- Last commit: `14d12e1` (Area Map overlay)

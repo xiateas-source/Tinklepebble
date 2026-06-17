@@ -58,12 +58,18 @@ Three sub-tabs via `showWorldTab()`:
   - `#income-log`, `#npc-list`, `#quest-list`, `#town-rep-list`, `#campaign-secrets-list`
 - **Locations Panel** (`#world-locations-panel`)
   - `state.locations[]` — one entry per city/camp/dungeon
-  - Node Map SVG visualization with status-colored circles
-  - Tap node → location detail bottom sheet (`#loc-ov`)
-  - Player/DM view toggle (`_locationViewMode`)
-  - 🌱 Seed button — `openLocationSeed()` drafts locations from travelLog, townReputation, NPC.lastSeen
+  - **List view**: Node Map SVG + location list cards
+  - **Map view**: Uploaded area map image with SVG drop-pin markers at percentage positions
+  - Toggle: `setLocView('list'|'map')` — `_locViewMode` module variable
+  - Tap node/pin → location detail bottom sheet (`#loc-ov`)
+  - Detail shows anchored NPCs, quests, consequences, town rep, income log filtered by location
+  - Player/DM view toggle (`toggleLocDmMode()`)
+  - 🌱 Seed button — `openLocationSeed()` drafts from travelLog, townReputation, NPC.lastSeen
   - AI mechanics: `location_add:`, `location_visit:`, `location_history:`, `location_investment:`
-  - `mapPos: null` on each entry — becomes map pin when Drop 5 adds renderer
+  - `mapPos: {x:%, y:%}` — percentage-based pin position on area map
+  - Area map in localStorage (`tt_area_map`), NOT Firebase
+  - `uploadAreaMap()` / `removeAreaMap()` / `startMapPlace()` / `handleMapTap()` — map workflow
+  - `_closeAllOverlays()` — closes all fixed overlays on drawer close
 - **Operations Panel** (`#world-ops-panel`)
   - Business profile, Campaign Secrets, World Consequences
 
@@ -284,9 +290,14 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `detectUnloggedGold()` / `detectUnloggedNPC()` / `detectUnloggedItem()` — Confirm-chip prompts for unlogged mechanics
 
 ### Location System
-- `renderLocations()` — Node Map SVG + location cards
+- `renderLocations()` — List view (Node Map SVG + cards) or Map view (area map + pins)
+- `_renderAreaMap()` — Area map image with positioned pin markers
+- `setLocView(mode)` — Toggle between 'list' and 'map' views
+- `uploadAreaMap()` / `removeAreaMap()` — Map image management (localStorage)
+- `startMapPlace(id)` / `cancelMapPlace()` / `handleMapTap(e)` — Tap-to-place workflow
 - `openLocationSeed()` / `closeLocSeed()` / `confirmLocationSeed()` — Draft locations from campaign data
-- Location detail bottom sheet (`#loc-ov`) — tap node to open
+- `openLocationDetail(id)` — Detail bottom sheet with anchored NPCs, quests, consequences, rep, income
+- `_closeAllOverlays()` — Closes all fixed overlays (loc-ov, grit-ov, familiar-ov, loc-seed)
 
 ### Zone Combat
 - `renderCombat()` — Zone grid with token chips, initiative strip, active character card
