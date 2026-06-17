@@ -4190,6 +4190,7 @@ Rules:
 - If a numeric value is estimated, append (est) — e.g. wagon_cell_add: Cave Bear, Large, hostile, DC18, 400 (est)
 - primary_mission: [text] — set or update the party's main quest objective
 - quest_fail: [partial name] — mark a quest as failed/abandoned
+- quest_update: [partial name] | [status/note text] — update notes on an existing quest (e.g. quest_update: Stop the Cult | Status: Critical; infiltration planned)
 - module_episode: N, active|complete — when the party enters a new story episode or completes one. N is the episode number. Auto-marks prior episodes complete when advancing. Output this whenever a major story chapter begins or ends
 - EVERY item found, foraged, bought, stolen, or acquired MUST have an item_add: line. No exceptions. If the player forages mushrooms, the mechanics block must include item_add even if you mentioned them in prose
 - NEVER generate JSON for the players to paste. ALL state updates go through the mechanics block only. Generating paste JSON will corrupt the game state
@@ -4269,7 +4270,7 @@ ALWAYS use zone_move to reposition characters during combat based on the narrati
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
-const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
+const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|quest_update|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
 const _NAKED_MECH_RE=new RegExp('^('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
@@ -4475,6 +4476,16 @@ function parseMechanics(responseText, pendingMsgId=null){
       }else if(key==='primary_mission'){if(val){state.worldData.primaryMission=val;changes.push({text:'Main Quest → '+val.slice(0,40)});}}
       else if(key==='quest_done'){const q=state.quests.find(qu=>qu.text.toLowerCase().includes(val.toLowerCase()));if(q&&q.status!=='done'){q.status='done';changes.push({text:'Quest ✓: '+q.text.slice(0,30)});}}
       else if(key==='quest_fail'){const q=state.quests.find(qu=>qu.text.toLowerCase().includes(val.toLowerCase()));if(q){q.status='failed';changes.push({text:'Quest ✗: '+q.text.slice(0,30)});}}
+      else if(key==='quest_update'){
+        const parts=val.split('|').map(p=>p.trim());
+        const name=parts[0];
+        const q=state.quests.find(qu=>qu.text.toLowerCase().includes(name.toLowerCase()));
+        if(q){
+          const note=parts.slice(1).join(' | ').trim();
+          if(note)q.notes=(q.notes?q.notes+'\n':'')+note;
+          changes.push({text:'Quest ✎: '+q.text.slice(0,30)});
+        }
+      }
       else if(key==='quest_add'){
         // Dedup: skip if a quest with near-identical text already exists
         const norm=val.split('|')[0].toLowerCase().trim().slice(0,30);
