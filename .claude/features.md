@@ -382,6 +382,35 @@ Parsed from AI response blocks in format: `key: value`
 
 ---
 
+## `//` Command System
+
+Type `//` before a message in any chat input to run a dev command instead of sending to AI.
+
+| Command | Action |
+|---------|--------|
+| `// any text` | Log a dev note with game time + location |
+| `//flag [N] reason` | Export last N messages (default 20) to clipboard for dev review |
+| `//add item "name" [to cargo\|hoard]` | Quick-add item to party inventory, wagon cargo, or hoard |
+| `//hp +/-N` | Adjust active PC's HP |
+| `//gold +/-N` | Adjust treasury gold |
+| `//explain topic` | Show in-chat help toast (16 topics: actions, combat, map, pins, inventory, ooc, contracts, dice, rest, spells, notes, flags, commands, export, shortcuts, context strip) |
+| `//help` | List all available commands |
+
+Functions: `_handleSlashCmd(raw)` — command dispatcher; `SUGGEST_CHIPS{}` — per-channel chip definitions; `EXPLAINS{}` — 16 topic help texts
+
+### Suggestion Chips
+- `renderSuggestChips(tab)` — Renders contextual chip row above chat input
+- `fillSuggest(el, text)` — Fills chat input from chip tap
+- Chips change per channel (narrative/ooc/party/test), include `//` commands for discoverability
+- CSS: `.chat-suggest` (scrollable row), `.chat-suggest-chip` (individual chip)
+
+### Gameplay Log Export
+- `exportGameplayLog(mode)` — Dev tab panel; 'recent' = last 40 messages, 'full' = entire chat + session archive
+- `exportMoment(msgIdx)` — Per-message export via ⚠️ button in chat overflow menu; exports target message + 10 before/after with PC state, mechanics, nearby flags, and analysis prompt
+- Both include structured "PROMPT FOR DEV" sections for cross-referencing against shipped features
+
+---
+
 ## Additional Features
 
 - **Dice Roller** — d4–d20, send roll to narrative chat with context

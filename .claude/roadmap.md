@@ -72,7 +72,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 13** (2026-06-17): Area Map overlay (upload maps + place location pins + drag-to-reposition), fog of war (zone-level hide/reveal + `zone_fog:` mechanic), Chronicle View (location context below zone grid), inventory UX overhaul (chip layout + subcategories + fuzzy dedup), panel cleanup (removed Premise/Plot from Ops, moved Snippets to AI Tools), 19 bug fixes (11 broken onclick handlers, overlay persistence, context strip float, map edge cases).
 
-**Session 14** (2026-06-17): Code review fixes (9 — strict fuzzy match, fog rendering, pin drag capture, CSQ_COLORS, area map caching). Wagon cargo/hoard chip UX (shared `_renderInvChips()`, filter bar, tap-to-expand). 5 combat quick wins (inline HP +/-, turn context injection, concentration alerts, combat-only condition sync, rich context refresh). Map pin UX (tap→action bar with Move/Unpin/Details, `unpinFromMap()`, `movePin()`, chip ✕ affordances).
+**Session 14** (2026-06-17): Code review fixes (9 — strict fuzzy match, fog rendering, pin drag capture, CSQ_COLORS, area map caching). Wagon cargo/hoard chip UX (shared `_renderInvChips()`, filter bar, tap-to-expand). 5 combat quick wins (inline HP +/-, turn context injection, concentration alerts, combat-only condition sync, rich context refresh). Map pin UX (tap→action bar with Move/Unpin/Details, `unpinFromMap()`, `movePin()`, chip ✕ affordances). Ops debrief prompt upgrade (cross-reference flags against shipped features, INCOMPLETE FIX vs NEW). Gameplay log export (Dev tab — last 40 or full chat+archive, formatted for dev review). Per-message moment export (⚠️ in overflow menu, 10-msg context window). `//` command system (note, flag N, add item, hp, gold, explain, help). Suggestion chips above chat input (contextual per channel, surfaces hidden features). `//explain` in-chat help (16 topics).
 
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
@@ -86,8 +86,25 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ ~~**Inventory UX overhaul (Issue 21)** — party inv, wagon cargo, hoard all use chip layout~~
 - ✅ ~~**Combat quick wins** — inline HP, turn context, concentration alerts, condition sync, context refresh~~
 - ✅ ~~**Map pin UX** — action bar, unplace individual pins, movePin()~~
+- ✅ ~~**// command system** — note, flag, add, hp, gold, explain, help + suggestion chips~~
+- ✅ ~~**Gameplay log export** — full chat export, per-message moment export (⚠️), ops debrief upgrade~~
 - **Expand term glossary** — add 50+ more D&D terms to tooltip system
 - ⏸ **Con Scorecard** — `state.slasherOI`, income parsing, town survival stats (needs design)
+
+### From Ops Debrief (14 gameplay flags — prioritized for next session)
+- **Encumbrance tracking** (Flag 14) — weight calc in genLedger + AI contract clause
+- **Expertise double-prof** (Flag 8) — incomplete fix, skill calc doesn't multiply
+- **Cantrip level-0 display** (Flag 3) — spellbook has no level-0 group
+- **Story pacing contract** (Flag 7) — "never resolve unannounced actions" clause
+- **OOC accuracy** (Flag 6) — OOC channel lacks latest narrative context
+- **Multi-category items** (Flag 2) — items can be foraged+ingredient
+- **Test chat export** (Flag 1) — incomplete, needs export button
+- **Per-PC inventory in Cargo** (Flag 13) — character buttons in Cargo view
+- **Treasure audit inline** (Flag 4/13) — dedup from income log
+- **Context strip carousel** (Flag 11) — tap to cycle location→char→quest→module
+- **Quest→Chapter linking** (Flag 5/9) — needs design
+- **Familiar/animal home** (Flag 10) — needs design
+- **Quest log UX refresh** (Flag 12) — needs design
 
 ### Panel Removal Queue (replace, don't hide)
 Panels to remove once their replacement matures:
