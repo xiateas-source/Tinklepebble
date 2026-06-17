@@ -7153,17 +7153,20 @@ function _renderAreaMap(locs,typeIcon,repColor){
     const isCur=loc.status==='current';
     const fill=isCur?'var(--gold-bright)':'var(--surface3)';
     const stroke=repColor(loc);
-    const menuOpen=_pinMenuId===loc.id;
-    return`<div class="map-pin${isCur?' pin-current':' pin-visited'}" data-loc-id="${esc(loc.id)}" style="left:${loc.mapPos.x}%;top:${loc.mapPos.y}%" onclick="event.stopPropagation();pinAction('${esc(loc.id)}')" title="${esc(loc.name)} — tap for actions">
+    const selected=_pinMenuId===loc.id;
+    return`<div class="map-pin${isCur?' pin-current':' pin-visited'}${selected?' pin-selected':''}" data-loc-id="${esc(loc.id)}" style="left:${loc.mapPos.x}%;top:${loc.mapPos.y}%" onclick="event.stopPropagation();pinAction('${esc(loc.id)}')" title="${esc(loc.name)} — tap for actions">
       ${pinSVG(fill,stroke)}
       <span class="map-pin-label">${esc(loc.name.length>14?loc.name.slice(0,13)+'…':loc.name)}</span>
-      ${menuOpen?`<div class="pin-menu" onclick="event.stopPropagation()">
-        <button onclick="event.stopPropagation();closePinMenu();closeLocDetail();setLocView('map');startMapPlace('${esc(loc.id)}')">↻ Move</button>
-        <button onclick="event.stopPropagation();unpinFromMap('${esc(loc.id)}')">✕ Unplace</button>
-        <button onclick="event.stopPropagation();closePinMenu();openLocationDetail('${esc(loc.id)}')">⋯ Details</button>
-      </div>`:''}
     </div>`;
   }).join('');
+
+  const selectedLoc=_pinMenuId?placedLocs.find(l=>l.id===_pinMenuId):null;
+  const pinBar=selectedLoc?`<div class="pin-action-bar" onclick="event.stopPropagation()">
+    <span class="pin-action-name">${typeIcon[selectedLoc.type]||'📍'} ${esc(selectedLoc.name)}</span>
+    <button class="btn sm" onclick="closePinMenu();closeLocDetail();setLocView('map');startMapPlace('${esc(selectedLoc.id)}')">↻ Move</button>
+    <button class="btn sm" onclick="unpinFromMap('${esc(selectedLoc.id)}')">✕ Unpin</button>
+    <button class="btn sm" onclick="closePinMenu();openLocationDetail('${esc(selectedLoc.id)}')">⋯ Details</button>
+  </div>`:'';
 
   const placeChips=locs.map(loc=>{
     const isActive=_mapPlaceId===loc.id;
@@ -7179,6 +7182,7 @@ function _renderAreaMap(locs,typeIcon,repColor){
       <img src="${mapUrl}" alt="Area map" draggable="false">
       ${pinsHTML}
     </div>
+    ${pinBar}
     ${unplacedLocs.length?`<div style="font-size:10px;color:var(--text-dim);padding:4px 0 2px">Unplaced (${unplacedLocs.length}) — tap a chip then tap the map:</div>`:''}
     <div class="map-toolbar">${placeChips}</div>
     <button class="btn sm" onclick="removeAreaMap()" style="font-size:10px;padding:3px 8px;border-color:var(--red);color:var(--red);margin-top:4px">Remove Map</button>
