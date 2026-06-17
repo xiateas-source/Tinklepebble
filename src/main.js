@@ -2326,7 +2326,9 @@ function renderModuleTracker(){
   const list=document.getElementById('module-episode-list');if(!list)return;
   const namEl=document.getElementById('module-campaign-name');
   const bar=document.getElementById('module-progress-bar');
+  const refEl=document.getElementById('module-reference');
   if(!Array.isArray(state.moduleProgress))state.moduleProgress=[];
+  if(refEl&&refEl.value!==(state.moduleReference||''))refEl.value=state.moduleReference||'';
   const eps=state.moduleProgress;
   const done=eps.filter(e=>e.status==='complete').length;
   const pct=eps.length?Math.round(done/eps.length*100):0;
@@ -2339,10 +2341,13 @@ function renderModuleTracker(){
   eps.forEach((ep,i)=>{
     const col=ep.status==='complete'?'var(--green)':ep.status==='active'?'var(--gold)':'var(--text-dim)';
     const icon=ep.status==='complete'?'✓':ep.status==='active'?'▶':'○';
+    const hasContent=!!(ep.content||'').trim();
     const d=document.createElement('div');
     d.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)';
     d.innerHTML=`<span style="color:${col};font-size:14px;flex-shrink:0;width:18px">${icon}</span>`+
       `<input type="text" value="${esc(ep.name)}" style="flex:1;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;font-size:12px;color:var(--text)" onchange="updModuleEp(${i},'name',this.value)">`+
+      (hasContent?'<span style="font-size:9px;color:var(--gold)">📖</span>':'')+
+      `<button class="btn sm" style="font-size:9px;padding:2px 6px" onclick="toggleEpContent(${i})">📄</button>`+
       `<select style="font-size:11px;padding:3px 5px;width:90px;color:${col}" onchange="updModuleEp(${i},'status',this.value)">`+
         `<option value="pending"${ep.status==='pending'?' selected':''}>Pending</option>`+
         `<option value="active"${ep.status==='active'?' selected':''}>▶ Active</option>`+
@@ -2352,11 +2357,23 @@ function renderModuleTracker(){
     list.appendChild(d);
     if(ep.notes||ep.status==='active'){
       const nd=document.createElement('div');
-      nd.style.cssText='padding:4px 26px 8px;';
-      nd.innerHTML=`<textarea style="width:100%;min-height:40px;font-size:11px;background:transparent;border-color:var(--border)" placeholder="Notes..." onchange="updModuleEp(${i},'notes',this.value)">${esc(ep.notes||'')}</textarea>`;
+      nd.style.cssText='padding:2px 26px 4px;';
+      nd.innerHTML=`<input type="text" value="${esc(ep.notes||'')}" style="width:100%;font-size:10px;background:transparent;border:none;border-bottom:1px solid var(--border);border-radius:0;color:var(--text-dim)" placeholder="Short note..." onchange="updModuleEp(${i},'notes',this.value)">`;
       list.appendChild(nd);
     }
+    if(ep._showContent){
+      const cd=document.createElement('div');
+      cd.style.cssText='padding:4px 26px 10px;';
+      cd.innerHTML=`<div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">📖 Episode Brief — paste key NPCs, locations, encounters, plot points from the module. <span style="color:var(--gold)">${ep.status==='active'?'Active — injected into AI prompt':'Stored — injected when this episode is active'}</span></div>`+
+        `<textarea style="width:100%;min-height:100px;font-size:11px;background:var(--surface);border-color:var(--border)" placeholder="Paste module content for this episode: key NPCs, locations, encounters, plot summary, important dialogue or events..." onchange="updModuleEp(${i},'content',this.value)">${esc(ep.content||'')}</textarea>`;
+      list.appendChild(cd);
+    }
   });
+}
+function toggleEpContent(i){
+  if(!state.moduleProgress[i])return;
+  state.moduleProgress[i]._showContent=!state.moduleProgress[i]._showContent;
+  renderModuleTracker();
 }
 function addModuleEpisode(){
   if(!Array.isArray(state.moduleProgress))state.moduleProgress=[];
@@ -3347,7 +3364,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences','headerShortcuts'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences','headerShortcuts','moduleProgress','moduleReference'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -3809,6 +3826,8 @@ ALWAYS use zone_move to reposition characters during combat based on the narrati
     const activeEp=state.moduleProgress.find(e=>e.status==='active');
     const done=state.moduleProgress.filter(e=>e.status==='complete').length;
     const epList=state.moduleProgress.map((ep,i)=>'  '+(ep.status==='complete'?'[✓]':ep.status==='active'?'[▶]':'[ ]')+' Ep '+(i+1)+': '+ep.name+(ep.notes?' — '+ep.notes:'')).join('\n');
+    const globalRef=(state.moduleReference||'').trim();
+    const epContent=activeEp?(activeEp.content||'').trim():'';
     moduleSection='\nCONTRACT 9 — MODULE FIDELITY (MANDATORY):\n'
       +'This campaign is running the official module: '+modName+'\n'
       +'Progress: '+done+'/'+state.moduleProgress.length+' episodes complete.\n'
@@ -3821,7 +3840,9 @@ ALWAYS use zone_move to reposition characters during combat based on the narrati
       +'- The party\'s unique elements (the wagon, the con, the tinctures business) are overlaid ONTO the module — they do not replace it.\n'
       +'- When a player asks "where are we in the module," answer with the actual episode name and published content.\n'
       +'- Custom flavor and side content is fine, but the backbone must follow the module\'s chapter/episode progression.\n'
-      +'- Use module_episode: N, active|complete in mechanics blocks to advance the tracker.\n';
+      +'- Use module_episode: N, active|complete in mechanics blocks to advance the tracker.\n'
+      +(globalRef?'\nMODULE REFERENCE (always active):\n'+globalRef+'\n':'')
+      +(epContent?'\nACTIVE EPISODE CONTENT — '+activeEp.name+':\n'+epContent+'\n':'');
   }
   return g('ai-persona')+'\n'+premiseSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
 }
@@ -8566,7 +8587,7 @@ Object.assign(window, {
   setSheetTab, setStepTarget, setTtsProvider,
   showChatTab, renderSuggestChips, fillSuggest, showSessionMode, showSessionTab, showSetupStep, showTab, showWorldTab,
   speakActiveScene, speakIdx, speakScene, st, submitFlag, sw, switchUser,
-  testTts, toggleCombCond, toggleCond, toggleDeathSave, toggleDockDice, toggleFlagVerdict, toggleInspiration,
+  testTts, toggleCombCond, toggleCond, toggleDeathSave, toggleDockDice, toggleEpContent, toggleFlagVerdict, toggleInspiration,
   toggleHeaderMenu, toggleHeaderEdit, execHeaderSC, renderHeaderShortcuts,
   togglePremise, toggleQAContext, toggleQAMenu, toggleSkillProf,
   toggleSlot, toggleSuperpower, toggleTabOverflow, toggleThemeMode, toggleVis,
