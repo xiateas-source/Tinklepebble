@@ -4890,6 +4890,12 @@ async function sendMsg(){
     triggerChk('Save Game');
     return;
   }
+  // ── // command intercept ──
+  if(text.startsWith('//')){
+    inp.value='';
+    _handleSlashCmd(text.slice(2).trim());
+    return;
+  }
   const key=getKey();if(!key){toast('Set an API key in the AI DM tab first.');return;}
   if(!playerName){populateSetup();openModal('setup-modal');toast('Set your player name first.');return;}
   const sendBtn=document.getElementById('send-btn');
