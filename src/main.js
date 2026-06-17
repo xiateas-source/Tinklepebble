@@ -1,4 +1,12 @@
 // CSS loaded via <link rel="stylesheet"> in index.html — no import needed
+var _pdfjsLib=null;
+async function _loadPdfJs(){
+  if(_pdfjsLib)return _pdfjsLib;
+  const lib=await import('pdfjs-dist');
+  lib.GlobalWorkerOptions.workerSrc=new URL('pdfjs-dist/build/pdf.worker.min.mjs',import.meta.url).href;
+  _pdfjsLib=lib;
+  return lib;
+}
 
 // ═══ CONSTANTS ═══
 const ALL_CONDS=['Blinded','Charmed','Deafened','Exhausted','Frightened','Grappled','Incapacitated','Invisible','Paralyzed','Petrified','Poisoned','Prone','Restrained','Stunned','Unconscious'];
@@ -2382,6 +2390,197 @@ function addModuleEpisode(){
 }
 function updModuleEp(i,k,v){state.moduleProgress[i][k]=v;save();renderModuleTracker();}
 function remModuleEp(i){state.moduleProgress.splice(i,1);save();renderModuleTracker();}
+
+// ═══ PDF MODULE IMPORT ═══
+var _pdfSections=[];
+async function handleModulePDF(file){
+  if(!file)return;
+  const status=document.getElementById('pdf-import-status');
+  if(!status)return;
+  status.style.display='block';
+  status.innerHTML='<div style="padding:8px;font-size:11px;color:var(--gold)">📄 Loading PDF reader… <span id="pdf-progress">0%</span></div>';
+  try{
+    const pdfjsLib=await _loadPdfJs();
+    const prog=document.getElementById('pdf-progress');
+    if(prog)prog.textContent='Reading…';
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    const totalPages=pdf.numPages;
+    const pages=[];
+    for(let i=1;i<=totalPages;i++){
+      const page=await pdf.getPage(i);
+      const tc=await page.getTextContent();
+      const text=tc.items.map(it=>it.str).join(' ').replace(/\s+/g,' ').trim();
+      pages.push({num:i,text});
+      const prog=document.getElementById('pdf-progress');
+      if(prog)prog.textContent=Math.round(i/totalPages*100)+'%';
+    }
+    const sections=_splitIntoChapters(pages,file.name);
+    _pdfSections=sections;
+    _renderPDFImport(sections,file.name,totalPages);
+  }catch(err){
+    status.innerHTML='<div style="padding:8px;font-size:11px;color:var(--red)">❌ Failed to read PDF: '+esc(err.message)+'</div>';
+  }
+}
+
+function _splitIntoChapters(pages,filename){
+  const chapterPatterns=[
+    /\b(chapter|episode|part)\s+(\d+)\s*[:\.\—\-–]\s*(.+?)(?:\s{2,}|$)/i,
+    /\b(chapter|episode|part)\s+(\d+)\b/i,
+    /^(introduction|appendix\s*[a-z]?|epilogue|prologue)\s*[:\.\—\-–]?\s*(.*)/im,
+  ];
+  const sections=[];
+  let currentSection=null;
+  pages.forEach(p=>{
+    let matched=false;
+    for(const pat of chapterPatterns){
+      const m=p.text.match(pat);
+      if(m&&p.text.indexOf(m[0])<150){
+        if(currentSection)sections.push(currentSection);
+        const title=m[3]?m[1]+' '+m[2]+': '+m[3].trim():m[0].trim();
+        currentSection={title:title.slice(0,80),startPage:p.num,pages:[p],text:''};
+        matched=true;
+        break;
+      }
+    }
+    if(!matched&&!currentSection){
+      currentSection={title:'Introduction',startPage:p.num,pages:[p],text:''};
+    }else if(!matched&&currentSection){
+      currentSection.pages.push(p);
+    }
+  });
+  if(currentSection)sections.push(currentSection);
+  sections.forEach(s=>{
+    s.text=s.pages.map(p=>p.text).join('\n\n');
+    s.endPage=s.pages[s.pages.length-1].num;
+    s.pageCount=s.pages.length;
+    delete s.pages;
+  });
+  if(!sections.length&&pages.length){
+    const chunkSize=Math.ceil(pages.length/8);
+    for(let i=0;i<pages.length;i+=chunkSize){
+      const chunk=pages.slice(i,i+chunkSize);
+      sections.push({
+        title:'Section '+(Math.floor(i/chunkSize)+1)+' (pages '+(i+1)+'–'+(i+chunkSize)+')',
+        startPage:i+1,endPage:Math.min(i+chunkSize,pages.length),
+        pageCount:chunk.length,
+        text:chunk.map(p=>p.text).join('\n\n')
+      });
+    }
+  }
+  return sections;
+}
+
+function _renderPDFImport(sections,filename,totalPages){
+  const status=document.getElementById('pdf-import-status');
+  if(!status)return;
+  let html='<div style="padding:8px;border:1px solid var(--gold-dim);border-radius:var(--radius-sm);margin-bottom:10px;background:var(--surface)">';
+  html+='<div style="font-size:12px;font-weight:600;color:var(--text-bright);margin-bottom:6px">📄 '+esc(filename)+' <span style="font-weight:400;color:var(--text-dim)">('+totalPages+' pages → '+sections.length+' sections detected)</span></div>';
+  html+='<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Map each section to an episode, or load into Module Reference. Unassigned sections are skipped.</div>';
+  const epOpts=((state.moduleProgress||[]).map((ep,i)=>'<option value="'+i+'">Ep '+(i+1)+': '+esc(ep.name)+'</option>').join(''));
+  sections.forEach((s,si)=>{
+    const preview=s.text.slice(0,200).replace(/\n/g,' ')+'…';
+    html+='<div style="padding:6px 0;border-bottom:1px solid var(--border)">';
+    html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">';
+    html+='<span style="font-size:10px;color:var(--text-dim);flex-shrink:0">§'+( si+1)+'</span>';
+    html+='<span style="font-size:11px;color:var(--text-bright);flex:1">'+esc(s.title)+'</span>';
+    html+='<span style="font-size:9px;color:var(--text-dim)">pp.'+s.startPage+'–'+s.endPage+' ('+s.pageCount+' pg, '+Math.round(s.text.length/1000)+'k chars)</span>';
+    html+='</div>';
+    html+='<div style="display:flex;align-items:center;gap:6px">';
+    html+='<select id="pdf-assign-'+si+'" style="font-size:10px;padding:2px 4px;flex:1">';
+    html+='<option value="">— Skip —</option>';
+    html+='<option value="ref">→ Module Reference</option>';
+    html+='<option value="new">→ Create New Episode</option>';
+    html+=epOpts;
+    html+='</select>';
+    html+='<button class="btn sm" style="font-size:9px" onclick="previewPDFSection('+si+')">👁</button>';
+    html+='</div>';
+    html+='<div id="pdf-preview-'+si+'" style="display:none;margin-top:4px;padding:6px;background:var(--surface2);border-radius:4px;font-size:10px;color:var(--text-dim);max-height:150px;overflow-y:auto;white-space:pre-wrap">'+esc(preview)+'</div>';
+    html+='</div>';
+  });
+  html+='<div style="margin-top:10px;display:flex;gap:8px">';
+  html+='<button class="btn green" onclick="applyPDFImport()">✓ Import Selected</button>';
+  html+='<button class="btn" onclick="autoAssignPDF()">⚡ Auto-Assign</button>';
+  html+='<button class="btn red" onclick="cancelPDFImport()">✕ Cancel</button>';
+  html+='</div></div>';
+  status.innerHTML=html;
+}
+
+function previewPDFSection(si){
+  const el=document.getElementById('pdf-preview-'+si);
+  if(!el||!_pdfSections[si])return;
+  if(el.style.display==='none'){
+    el.style.display='block';
+    el.textContent=_pdfSections[si].text.slice(0,2000)+((_pdfSections[si].text.length>2000)?'\n\n… ('+Math.round(_pdfSections[si].text.length/1000)+'k chars total)':'');
+  }else{
+    el.style.display='none';
+  }
+}
+
+function autoAssignPDF(){
+  if(!_pdfSections.length)return;
+  const eps=state.moduleProgress||[];
+  _pdfSections.forEach((s,si)=>{
+    const sel=document.getElementById('pdf-assign-'+si);
+    if(!sel)return;
+    const titleLow=s.title.toLowerCase();
+    if(titleLow.includes('introduction')||titleLow.includes('appendix')||titleLow.includes('prologue')){
+      sel.value='ref';return;
+    }
+    let bestMatch=-1;let bestScore=0;
+    eps.forEach((ep,ei)=>{
+      const epLow=ep.name.toLowerCase();
+      const epWords=epLow.split(/\s+/);
+      let score=0;
+      epWords.forEach(w=>{if(w.length>3&&titleLow.includes(w))score+=2;});
+      const epNum=ep.name.match(/\d+/);
+      const secNum=s.title.match(/\d+/);
+      if(epNum&&secNum&&epNum[0]===secNum[0])score+=3;
+      if(score>bestScore){bestScore=score;bestMatch=ei;}
+    });
+    if(bestMatch>=0&&bestScore>=2){
+      sel.value=String(bestMatch);
+    }else if(eps.length===0){
+      sel.value='new';
+    }
+  });
+  toast('⚡ Auto-assigned — review and adjust before importing');
+}
+
+function applyPDFImport(){
+  if(!_pdfSections.length)return;
+  let imported=0;let refAdded=0;let epsCreated=0;
+  _pdfSections.forEach((s,si)=>{
+    const sel=document.getElementById('pdf-assign-'+si);
+    if(!sel||!sel.value)return;
+    if(sel.value==='ref'){
+      state.moduleReference=(state.moduleReference||'')+'\n\n=== '+s.title+' ===\n'+s.text;
+      refAdded++;imported++;
+    }else if(sel.value==='new'){
+      if(!Array.isArray(state.moduleProgress))state.moduleProgress=[];
+      state.moduleProgress.push({name:s.title,status:'pending',notes:'',content:s.text});
+      epsCreated++;imported++;
+    }else{
+      const idx=parseInt(sel.value);
+      if(!isNaN(idx)&&state.moduleProgress[idx]){
+        const existing=(state.moduleProgress[idx].content||'').trim();
+        state.moduleProgress[idx].content=existing?(existing+'\n\n=== '+s.title+' ===\n'+s.text):s.text;
+        imported++;
+      }
+    }
+  });
+  save();renderModuleTracker();
+  const status=document.getElementById('pdf-import-status');
+  if(status)status.style.display='none';
+  _pdfSections=[];
+  toast('📄 Imported '+imported+' sections'+(epsCreated?' ('+epsCreated+' new episodes)':'')+(refAdded?' ('+refAdded+' to reference)':''));
+}
+
+function cancelPDFImport(){
+  _pdfSections=[];
+  const status=document.getElementById('pdf-import-status');
+  if(status){status.style.display='none';status.innerHTML='';}
+}
 
 // ═══ MODULE SCENES ═══
 function renderScenes(){
@@ -8607,7 +8806,7 @@ Object.assign(window, {
   setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
   uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView, pinAction, closePinMenu, movePin, unpinFromMap,
   openSheetPicker, dismissRollRequest,
-  renderSessionArchive,
+  renderSessionArchive, handleModulePDF, previewPDFSection, autoAssignPDF, applyPDFImport, cancelPDFImport,
   verifyContracts, clearFlagNote,
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
