@@ -1698,6 +1698,11 @@ body{display:flex;flex-direction:column;height:100svh;height:100dvh;min-height:0
 .step-btn:active{background:var(--surface2);}
 .step-btn.dec{color:var(--red);}
 .step-btn.inc{color:var(--green);}
+.chat-suggest{display:flex;gap:4px;padding:4px 10px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.chat-suggest:empty{display:none;}
+.chat-suggest::-webkit-scrollbar{display:none;}
+.chat-suggest-chip{white-space:nowrap;padding:3px 10px;font-size:10px;border-radius:12px;border:1px solid var(--border);color:var(--text-dim);background:var(--surface2);cursor:pointer;flex-shrink:0;transition:border-color .15s;}
+.chat-suggest-chip:active{border-color:var(--gold);color:var(--gold-bright);}
 .chat-quick-bar{display:flex;padding:5px 10px;gap:6px;background:var(--bg);align-items:center;}
 .chat-quick-input{flex:1;height:36px;background:var(--surface2);border:1px solid var(--border-bright);border-radius:6px;padding:0 10px;font-family:var(--sans);color:var(--text);font-size:13px;-webkit-appearance:none;}
 .chat-quick-input:focus{outline:none;border-color:var(--gold-dim);}

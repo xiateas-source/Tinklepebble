@@ -641,6 +641,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   })();
   renderAll();genLedger();
   renderQAMenu();
+  renderSuggestChips('narrative');
   showSessionMode('play'); // set initial session mode
   injectPanelFlags();
   setInterval(renderStatusMini,60000);
@@ -4530,6 +4531,44 @@ function scrollActiveChatTop(){
   const el=document.getElementById(ids[_activeTab]||'chat-msgs');
   if(el)el.scrollTop=0;
 }
+const SUGGEST_CHIPS={
+  narrative:[
+    {label:'I search the area',fill:'I search the area for anything useful.'},
+    {label:'I talk to…',fill:'I approach and say "'},
+    {label:'I attack',fill:'I attack '},
+    {label:'What do I see?',fill:'I take a moment to observe my surroundings. What do I notice?'},
+    {label:'Short rest',fill:'We take a short rest.'},
+    {label:'// quick note',fill:'// '},
+  ],
+  ooc:[
+    {label:'How does this work?',fill:'How does '},
+    {label:'What are the rules for…',fill:'What are the rules for '},
+    {label:'Spell save DC?',fill:'What is my spell save DC and how is it calculated?'},
+    {label:'Can I do this?',fill:'Can I use my bonus action to '},
+    {label:'// quick note',fill:'// '},
+  ],
+  party:[
+    {label:'Should we rest?',fill:'Should we take a short or long rest?'},
+    {label:'What\'s the plan?',fill:'What\'s the plan here?'},
+    {label:'Check inventory',fill:'What supplies do we have left?'},
+  ],
+  test:[
+    {label:'Test mechanic',fill:'[Test] Apply: '},
+    {label:'Test prompt',fill:'Describe the current scene in detail.'},
+  ]
+};
+function renderSuggestChips(tab){
+  const c=document.getElementById('chat-suggest');if(!c)return;
+  const chips=SUGGEST_CHIPS[tab||'narrative']||SUGGEST_CHIPS.narrative;
+  c.innerHTML=chips.map(ch=>`<span class="chat-suggest-chip" onclick="fillSuggest(this,'${ch.fill.replace(/'/g,"\\'")}')">${ch.label}</span>`).join('');
+}
+function fillSuggest(el,text){
+  const qi=document.getElementById('chat-quick-input');
+  if(!qi)return;
+  qi.value=text;
+  qi.focus();
+  if(text.endsWith(' ')||text.endsWith('"'))qi.setSelectionRange(text.length,text.length);
+}
 function showChatTab(tab){
   _activeTab=tab;
   ['narrative','ooc','party','test'].forEach(t=>{
@@ -4546,6 +4585,7 @@ function showChatTab(tab){
     else qi.placeholder='Command AI DM…';
   }
   if(tab==='test')renderTestChat();
+  renderSuggestChips(tab);
   requestAnimationFrame(()=>scrollActiveChatBottom());
 }
 function renderOOC(){
@@ -8333,7 +8373,7 @@ Object.assign(window, {
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
   sendRollToChat, sendSceneToDM, sessionRecap, setProvider, setScene,
   setSheetTab, setStepTarget, setTtsProvider,
-  showChatTab, showSessionMode, showSessionTab, showSetupStep, showTab, showWorldTab,
+  showChatTab, renderSuggestChips, fillSuggest, showSessionMode, showSessionTab, showSetupStep, showTab, showWorldTab,
   speakActiveScene, speakIdx, speakScene, st, submitFlag, sw, switchUser,
   testTts, toggleCombCond, toggleCond, toggleDeathSave, toggleDockDice, toggleFlagVerdict, toggleInspiration,
   toggleHeaderMenu, toggleHeaderEdit, execHeaderSC, renderHeaderShortcuts,
