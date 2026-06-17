@@ -9,7 +9,7 @@ const MAX_LB=1080;
 const ZONE_IDS=['front','back','left','right','air','rear'];
 const ZONE_LABELS={front:'Frontline',back:'Backline',left:'Left Flank',right:'Right Flank',air:'Air Space',rear:'Rear Guard'};
 const ZONE_ADJ={front:['left','right','back','air'],back:['front','rear'],left:['front'],right:['front'],air:['front'],rear:['back']};
-function _defaultZones(){var z={};ZONE_IDS.forEach(function(id){z[id]={label:ZONE_LABELS[id],effect:'',terrain:''};});return z;}
+function _defaultZones(){var z={};ZONE_IDS.forEach(function(id){z[id]={label:ZONE_LABELS[id],effect:'',terrain:'',hidden:false};});return z;}
 let _zoneMoveSel=null;
 const ITYPES=['supply','foraged','ingredient','trade','loot','hoard','misc','key'];
 const PC_ITEM_TYPES=['weapon','armor','shield','tool','potion','scroll','consumable','loot','misc','key'];
@@ -1605,6 +1605,7 @@ function renderCombat(){
       if(grid)grid.innerHTML='';
       if(noCombat)noCombat.style.display='';
     }
+    _renderZoneChronicle();
     return;
   }
   if(noCombat)noCombat.style.display='none';
@@ -1659,13 +1660,47 @@ function renderCombat(){
       +'<button class="btn sm" onclick="addCombCond('+idx+')" style="margin-left:8px">+Cond</button></div>'
       +(conds||conc?'<div class="zac-conds">'+conds+conc+'</div>':'');
   }else if(card){card.style.display='none';}
+  _renderZoneChronicle();
+}
+function _renderZoneChronicle(){
+  const el=document.getElementById('zone-chronicle');if(!el)return;
+  const locName=(state.worldData?.location||'').trim();
+  if(!locName){el.innerHTML='';return;}
+  const loc=(state.locations||[]).find(l=>l.name.toLowerCase()===locName.toLowerCase());
+  const npcNames=[...new Set([...(loc?.npcs||[]),...(state.npcs||[]).filter(n=>n.lastSeen&&n.lastSeen.toLowerCase()===locName.toLowerCase()&&n.status!=='deceased').map(n=>n.name)])];
+  const locQuests=(state.quests||[]).filter(q=>q.status==='active'&&q.text&&q.text.toLowerCase().includes(locName.toLowerCase()));
+  const locConseq=(state.consequences||[]).filter(cs=>!cs.resolved&&cs.location&&cs.location.toLowerCase()===locName.toLowerCase());
+  if(!npcNames.length&&!locQuests.length&&!locConseq.length){el.innerHTML='';return;}
+  const dcol=n=>{const npc=(state.npcs||[]).find(x=>x.name.toLowerCase()===n.toLowerCase());return npc?(npc.disposition==='Friendly'||npc.disposition==='Ally'?'var(--green)':npc.disposition==='Hostile'||npc.disposition==='Enemy'?'var(--red)':'var(--text-dim)'):'var(--text-dim)';};
+  const CSQ_C={background:'var(--text-dim)',faction:'var(--blue)',personal:'var(--gold)',escalation:'var(--red)'};
+  let html='<div style="border:1px solid var(--border);border-radius:6px;padding:8px 10px;background:var(--surface)">';
+  html+='<div style="font-size:10px;font-weight:700;color:var(--gold-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+esc(locName)+'</div>';
+  if(npcNames.length){
+    html+='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">';
+    npcNames.forEach(name=>{html+='<span style="display:inline-block;background:var(--surface3);border-radius:8px;padding:1px 7px;font-size:10px;border-left:2px solid '+dcol(name)+'">'+esc(name)+'</span>';});
+    html+='</div>';
+  }
+  if(locQuests.length){
+    locQuests.forEach(q=>{html+='<div style="font-size:10px;padding:2px 0;color:var(--green)">🟢 '+esc(q.text)+'</div>';});
+  }
+  if(locConseq.length){
+    locConseq.forEach(cs=>{html+='<div style="font-size:10px;padding:2px 0;border-left:2px solid '+(CSQ_C[cs.type]||'var(--text-dim)')+';padding-left:6px;color:var(--text-dim)"><span style="font-size:8px;text-transform:uppercase;font-weight:700;color:'+(CSQ_C[cs.type]||'var(--text-dim)')+'">'+esc(cs.type||'bg')+'</span> '+esc(cs.text)+'</div>';});
+  }
+  html+='</div>';
+  el.innerHTML=html;
 }
 function _zoneBoxHTML(zid,zones){
-  const z=zones[zid]||{label:ZONE_LABELS[zid],effect:'',terrain:''};
+  const z=zones[zid]||{label:ZONE_LABELS[zid],effect:'',terrain:'',hidden:false};
   const tokens=(state.combat.list||[]).filter(c=>(c.zone||'front')===zid);
   const adj=_zoneMoveSel!==null&&ZONE_ADJ[zid]?.includes(state.combat.list[_zoneMoveSel]?.zone);
-  return '<div class="zone-box'+(adj?' zb-adj':'')+'" onclick="zoneBoxTap(\''+zid+'\')">'
+  if(z.hidden&&state._locDmMode===false){
+    return '<div class="zone-box zb-fog" onclick="zoneBoxTap(\''+zid+'\')">'
+      +'<div class="zb-hdr"><span class="zb-label" style="opacity:.5">???</span></div></div>';
+  }
+  const fogBadge=z.hidden?'<span class="zb-fog-badge" onclick="event.stopPropagation();toggleZoneFog(\''+zid+'\')">🌫</span>':'';
+  return '<div class="zone-box'+(adj?' zb-adj':'')+(z.hidden?' zb-fogged':'')+'" onclick="zoneBoxTap(\''+zid+'\')">'
     +'<div class="zb-hdr"><span class="zb-label">'+esc(z.label)+'</span>'
+    +fogBadge
     +(z.effect?'<span class="zb-effect">'+esc(z.effect)+'</span>':'')
     +(z.terrain?'<span class="zb-terrain">'+esc(z.terrain)+'</span>':'')
     +'</div>'
@@ -1676,11 +1711,16 @@ function _zoneBoxHTML(zid,zones){
     +'</div>';
 }
 function _exploreZoneHTML(zid,zones){
-  const z=zones[zid]||{label:ZONE_LABELS[zid],effect:'',terrain:''};
-  const isDefault=z.label===ZONE_LABELS[zid]&&!z.effect&&!z.terrain;
+  const z=zones[zid]||{label:ZONE_LABELS[zid],effect:'',terrain:'',hidden:false};
+  if(z.hidden&&state._locDmMode===false){
+    return '<div class="zone-box zb-explore zb-fog"><div class="zb-hdr"><span class="zb-label" style="opacity:.5">???</span></div></div>';
+  }
+  const isDefault=z.label===ZONE_LABELS[zid]&&!z.effect&&!z.terrain&&!z.hidden;
+  const fogBadge=z.hidden?'<span class="zb-fog-badge" onclick="event.stopPropagation();toggleZoneFog(\''+zid+'\')">🌫</span>':'';
   if(isDefault)return '<div class="zone-box zb-explore"><div class="zb-hdr"><span class="zb-label" style="opacity:.4">'+esc(z.label)+'</span></div></div>';
-  return '<div class="zone-box zb-explore">'
+  return '<div class="zone-box zb-explore'+(z.hidden?' zb-fogged':'')+'">'
     +'<div class="zb-hdr"><span class="zb-label">'+esc(z.label)+'</span>'
+    +fogBadge
     +(z.effect?'<span class="zb-effect">'+esc(z.effect)+'</span>':'')
     +(z.terrain?'<span class="zb-terrain">'+esc(z.terrain)+'</span>':'')
     +'</div></div>';
@@ -1703,6 +1743,13 @@ function zoneBoxTap(zid){
   ent.zone=zid;_zoneMoveSel=null;
   state.logs.push({ts:state.worldData.time,type:'combat',body:ent.name+' moved to '+(state.combat.zones[zid]?.label||zid)});
   saveRefresh();
+}
+function toggleZoneFog(zid){
+  if(!state.combat.zones)state.combat.zones=_defaultZones();
+  if(!state.combat.zones[zid])state.combat.zones[zid]={label:ZONE_LABELS[zid],effect:'',terrain:'',hidden:false};
+  state.combat.zones[zid].hidden=!state.combat.zones[zid].hidden;
+  save();renderCombat();
+  toast(state.combat.zones[zid].hidden?'Zone hidden from players':'Zone revealed');
 }
 function zoneHPAdj(idx,dir){
   const amt=parseInt(prompt((dir>0?'Heal':'Damage')+' by how much?'));
@@ -3625,6 +3672,9 @@ Zone mechanics commands:
 - zone_remove: [name] — remove a combatant (dead, fled, etc). Example: zone_remove: Cultist
 - zone_effect: [zone_id] | [effect text] | [type] — apply an effect to a zone. type: terrain or effect (default). Example: zone_effect: front | Fog Cloud — obscured | effect. Example: zone_effect: back | Difficult terrain (rubble) | terrain
 - zone_label: [zone_id] | [new label] — rename a zone for narrative context. Example: zone_label: left | Collapsed Tower. Example: zone_label: rear | Wagon Circle
+- zone_fog: [zone_id] | hide — hide a zone from the player view (fog of war). Example: zone_fog: rear | hide
+- zone_fog: [zone_id] | reveal — reveal a previously hidden zone. Example: zone_fog: left | reveal
+Use fog of war to hide unexplored areas, secret rooms, or zones the party hasn't reached yet. Reveal zones as the party explores or discovers them.
 
 Starting positions when combat begins:
 - Melee fighters (Slasher): Frontline
@@ -3644,7 +3694,7 @@ ALWAYS use zone_move to reposition characters during combat based on the narrati
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
-const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|none';
+const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
 const _NAKED_MECH_RE=new RegExp('^('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
@@ -4019,6 +4069,15 @@ function parseMechanics(responseText, pendingMsgId=null){
           if(!state.combat.zones[zid])state.combat.zones[zid]={label:ZONE_LABELS[zid],effect:'',terrain:''};
           state.combat.zones[zid].label=zlbl;
           changes.push({text:'Zone renamed: '+zlbl});
+        }
+      }else if(key==='zone_fog'){
+        const zp=val.split('|').map(s=>s.trim());
+        const zid=(zp[0]||'').toLowerCase();const action=(zp[1]||'hide').toLowerCase();
+        if(ZONE_IDS.includes(zid)){
+          if(!state.combat.zones)state.combat.zones=_defaultZones();
+          if(!state.combat.zones[zid])state.combat.zones[zid]={label:ZONE_LABELS[zid],effect:'',terrain:'',hidden:false};
+          state.combat.zones[zid].hidden=action!=='reveal';
+          changes.push({text:(state.combat.zones[zid].label||zid)+(action==='reveal'?' revealed':' hidden')});
         }
       }else if(key==='combat_start'){
         state.combat.active=true;
@@ -7335,6 +7394,7 @@ function openDrawer(tabId){
   // Show backdrop + sheet
   document.getElementById('drawer-backdrop')?.classList.add('is-open');
   document.getElementById('drawer-sheet')?.classList.add('is-open');
+  document.getElementById('context-strip')?.style && (document.getElementById('context-strip').style.visibility='hidden');
   // Sync nav
   const navMap={'tab-party':'party','tab-world':'logistics','tab-wagon':'logistics','tab-combat':'logistics','tab-session':'systems','tab-ait':'systems','tab-ait-chk':'systems','tab-dev':'systems','tab-setup':'systems'};
   const navKey=navMap[tabId]||null;
@@ -7351,6 +7411,7 @@ function openDrawer(tabId){
 function closeDrawer(){
   document.getElementById('drawer-backdrop')?.classList.remove('is-open');
   document.getElementById('drawer-sheet')?.classList.remove('is-open');
+  document.getElementById('context-strip')?.style && (document.getElementById('context-strip').style.visibility='');
   ['log','party','logistics','systems'].forEach(k=>{
     document.getElementById('nav-btn-'+k)?.classList.toggle('active',k==='log');
   });
@@ -7952,7 +8013,7 @@ Object.assign(window, {
   previouslyOn, viewQuestInChat,
   populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
-  zoneTokenTap, zoneBoxTap, zoneHPAdj, toggleMoveMode,
+  zoneTokenTap, zoneBoxTap, zoneHPAdj, toggleMoveMode, toggleZoneFog,
   renderSetupLock, setSetupUnlocked, remAtk, rewindTo,
   renderPCOverview, renderHUD, renderCharTabs,
   remPcItem, remResource, renderCapacity, renderErrorLog,
