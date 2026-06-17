@@ -7163,7 +7163,7 @@ function _renderAreaMap(locs,typeIcon,repColor){
   const selectedLoc=_pinMenuId?placedLocs.find(l=>l.id===_pinMenuId):null;
   const pinBar=selectedLoc?`<div class="pin-action-bar" onclick="event.stopPropagation()">
     <span class="pin-action-name">${typeIcon[selectedLoc.type]||'📍'} ${esc(selectedLoc.name)}</span>
-    <button class="btn sm" onclick="closePinMenu();closeLocDetail();setLocView('map');startMapPlace('${esc(selectedLoc.id)}')">↻ Move</button>
+    <button class="btn sm" onclick="movePin('${esc(selectedLoc.id)}')">↻ Move</button>
     <button class="btn sm" onclick="unpinFromMap('${esc(selectedLoc.id)}')">✕ Unpin</button>
     <button class="btn sm" onclick="closePinMenu();openLocationDetail('${esc(selectedLoc.id)}')">⋯ Details</button>
   </div>`:'';
@@ -7252,6 +7252,13 @@ function pinAction(locId){
 }
 function closePinMenu(){
   _pinMenuId=null;
+}
+function movePin(locId){
+  _pinMenuId=null;
+  _mapPlaceId=locId;
+  _locViewMode='map';
+  closeLocDetail();
+  renderLocations();
 }
 function unpinFromMap(locId){
   const loc=(state.locations||[]).find(l=>l.id===locId);
@@ -7361,7 +7368,7 @@ function openLocationDetail(id){
     ${_dm?`<div class="panel" style="margin-bottom:8px;padding:8px 10px"><div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px">DM Notes</div><textarea style="width:100%;min-height:55px;font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:6px;box-sizing:border-box;resize:vertical" oninput="updateLocNotes('${id}','dm',this.value)" placeholder="DM-only notes...">${esc(loc.dmNotes||'')}</textarea></div>`:''}
     <div style="display:flex;gap:6px;justify-content:space-between;flex-wrap:wrap;margin-top:4px">
       <button class="btn sm" onclick="setLocStatus('${id}','current')" style="border-color:var(--gold);color:var(--gold)">📍 Set Current</button>
-      <div style="display:flex;gap:6px">${_getAreaMap()?`<button class="btn sm" onclick="closeLocDetail();setLocView('map');startMapPlace('${id}')" style="border-color:var(--gold)">🗺 ${loc.mapPos?'Move':'Place'} on Map</button>${loc.mapPos?`<button class="btn sm" onclick="unpinFromMap('${id}');closeLocDetail()" style="border-color:var(--text-dim);color:var(--text-dim)">✕ Unplace</button>`:''}`:''}${_dm?`<button class="btn sm" onclick="addLocInvestment('${id}')">+ Invest</button>`:''}
+      <div style="display:flex;gap:6px">${_getAreaMap()?`<button class="btn sm" onclick="movePin('${id}')" style="border-color:var(--gold)">🗺 ${loc.mapPos?'Move':'Place'} on Map</button>${loc.mapPos?`<button class="btn sm" onclick="unpinFromMap('${id}');closeLocDetail()" style="border-color:var(--text-dim);color:var(--text-dim)">✕ Unplace</button>`:''}`:''}${_dm?`<button class="btn sm" onclick="addLocInvestment('${id}')">+ Invest</button>`:''}
         <button class="btn sm" style="border-color:var(--red);color:var(--red)" onclick="deleteLocation('${id}')">Delete</button>
       </div>
     </div>`;
@@ -8197,7 +8204,7 @@ Object.assign(window, {
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
   setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
-  uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView, pinAction, closePinMenu, unpinFromMap,
+  uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView, pinAction, closePinMenu, movePin, unpinFromMap,
   openSheetPicker, dismissRollRequest,
   renderSessionArchive,
   verifyContracts, clearFlagNote,
