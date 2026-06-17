@@ -7234,9 +7234,13 @@ function closeDrawer(){
   document.querySelectorAll('.tab-section:not(.drawer-body .tab-section)').forEach(e=>e.classList.remove('active'));
   document.getElementById('tab-dm')?.classList.add('active');
   currentTab='tab-dm';
-  // Auto-lock all character sheets on drawer close
+  _closeAllOverlays();
   if(Array.isArray(state.pcs)){state.pcs.forEach(p=>{p.sheetLocked=true;});save();}
   renderQAMenu();
+}
+function _closeAllOverlays(){
+  ['loc-ov','loc-ov-bd','loc-seed','loc-seed-bd','grit-ov','grit-ov-bd','familiar-ov','familiar-ov-bd'].forEach(id=>{document.getElementById(id)?.classList.remove('is-open');});
+  const picker=document.getElementById('sheet-picker-sheet');if(picker){picker.remove();document.getElementById('sheet-picker-bd')?.remove();}
 }
 
 let _logisticsTab='world';
