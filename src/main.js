@@ -3560,6 +3560,91 @@ function migrate(s){
         notes:'Invisible Mage Hand Legerdemain familiar. Scouting, pick-pockets, disarm traps, stow objects — cannot attack. Dismissed/re-summoned as bonus action.'};
     }
   });
+
+  // ── Seed HotDQ episode content if episodes exist but have no content ──
+  if(Array.isArray(s.moduleProgress)&&s.moduleProgress.length&&!s.moduleProgress.some(ep=>ep.content)){
+    const _HOTDQ_BRIEFS=[
+`SETTING: Town of Greenest, under attack by Cult of the Dragon and a blue dragon (Lennithon)
+OBJECTIVE: Survive the night, protect townspeople, complete missions from Governor Nighthill
+KEY NPCs: Governor Nighthill (quest giver), Castellan Escobert (knows secret tunnel), Langdedrosa Cyanwrath (half-blue dragon champion)
+LOCATIONS: Greenest Keep (safe haven), Temple of Chauntea, Old Tunnel under keep
+MISSIONS: Save the Mill, Sanctuary (rescue from temple), Half-Dragon Champion duel, Dragon Attack
+KEY EVENTS: Cyanwrath challenges party champion to single combat (trades 4 prisoners). Town under siege all night. Blue dragon Lennithon circles but retreats if bloodied.
+LEVEL: Characters start at 1, reach 2 after completing. LOOT: 250gp each from Nighthill.`,
+`SETTING: Cult raider camp in rocky plateau, 12 miles from Greenest
+OBJECTIVE: Infiltrate camp, rescue prisoners (especially Leosin Erlanthar), gather intel
+KEY NPCs: Leosin Erlanthar (captured Harper monk), Frulam Mondath (cult leader), Langdedrosa Cyanwrath (guards camp)
+LOCATIONS: Raider camp plateau, prisoner area, Mondath's tent, Cyanwrath's tent
+KEY EVENTS: Infiltrate disguised as cultists. Leosin tied to stake. ~200 cultists/kobolds. Cave entrance leads to Dragon Hatchery (Ep 3).
+STEALTH: DC 5 to sneak in. Can bluff with cult robes. LEVEL: Reach 3. REWARDS: 250gp each, 250 XP for Leosin.`,
+`SETTING: Cave system behind raider camp (Dragon Hatchery)
+OBJECTIVE: Clear hatchery, recover dragon eggs, defeat remaining cult forces
+KEY NPCs: Frulam Mondath (in cave), Langdedrosa Cyanwrath (guards with berserkers)
+LOCATIONS: Fungus garden, Bat cavern, Dragon shrine (Tiamat), Frulam's chamber, Hatchery (3 black dragon eggs), Cyanwrath's lair
+KEY ENCOUNTERS: Troglodytes, stirges, violet fungi, guard drakes, kobolds, Cyanwrath rematch
+KEY EVENTS: Dragon eggs can be destroyed or taken. Mondath has map → loot goes to Naerytar.
+TREASURE: Cult regalia, maps, pearls (300gp). LEVEL: Reach 4.`,
+`SETTING: Journey Greenest → Elturel → Baldur's Gate → caravan to Waterdeep
+OBJECTIVE: Follow cult treasure shipment north, infiltrate caravan, gather intelligence
+KEY NPCs: Leosin Erlanthar (quest giver), Ontharr Frume (Order of the Gauntlet, Elturel), Azbara Jos (Red Wizard with cult), Jamna Gleamsilver (gnome Harper spy)
+FACTIONS: Harpers (Leosin), Order of the Gauntlet (Ontharr) — party may join one
+CARAVAN: Fellow travelers with side plots. Cult wagons carry looted treasure. ~2 months on road.
+KEY EVENTS: Assassination attempt (bone slivers), meet Gleamsilver, road encounters. NO level up per milestone.`,
+`SETTING: Waterdeep, north along High Road to Carnath Roadhouse
+OBJECTIVE: Track cult treasure, discover tunnel to Mere of Dead Men
+KEY NPCs: Bog Luck (half-orc, cult ally runs roadhouse), Ardred Briferhew (guard commander), Gristle Pete (cook)
+LOCATIONS: Carnath Roadhouse, Strong room (locked), Secret tunnel to swamp
+KEY EVENTS: Treasure to strong room at night. Lizardfolk carry it through tunnel under roadhouse into Mere of Dead Men.
+DISCOVERY: Tunnel leads to Castle Naerytar. LEVEL: Reach 5.`,
+`SETTING: Mere of Dead Men swamp, Castle Naerytar
+OBJECTIVE: Infiltrate or assault Castle Naerytar, find teleportation portal
+KEY NPCs: Dralmorrer Borngray (elf, cult commander), Pharblex Spattergoo (bullywug shaman), Rezmir (half-black dragon, Black Dragon Mask), Snapjaw (lizardfolk ally)
+LOCATIONS: Mere of Dead Men, Lizardfolk camp, Castle Naerytar (3 floors + dungeon), Portal in dungeon
+FACTIONS: Lizardfolk (ally via Snapjaw), Bullywugs (Pharblex), Cult (Borngray)
+KEY EVENTS: Ally lizardfolk vs bullywugs. Rezmir escapes through portal. Portal → Hunting Lodge. LEVEL: Reach 6.`,
+`SETTING: Hunting Lodge in Greypeak Mountains, then Parnast village
+OBJECTIVE: Clear lodge, learn about Skyreach Castle, travel to Parnast
+KEY NPCs: Talis the White (cult leader, may negotiate — wants Rezmir's position), Captain Othelstan, Perytons (roof)
+LOCATIONS: Hunting Lodge (2 floors + roof), Parnast village
+KEY EVENTS: Talis bitter about being passed over — temporary ally. Provides cultist disguises + Skyreach info. Portal from Naerytar exits here. Parnast cult-controlled.
+NEGOTIATION: Talis helps infiltrate Skyreach if party undermines Rezmir. LEVEL: Reach 7.`,
+`SETTING: Parnast village, Skyreach Castle (cloud giant flying fortress)
+OBJECTIVE: Board Skyreach Castle, stop cult treasure transport, defeat occupants
+KEY NPCs: Blagothkus (cloud giant, uneasy cult ally), Rezmir (final boss), Glazhael the Cloudchaser (adult white dragon), Rath Modar & Azbara Jos (Red Wizards)
+LOCATIONS: Parnast, Skyreach Castle (courtyards, towers, ice cavern with dragon, giant's tower)
+KEY EVENTS: Castle lifts off — must board before it leaves. Blagothkus can turn on cult. Glazhael guards massive hoard. Rezmir must be defeated.
+FINAL BATTLE: Cult leaders + white dragon. Blagothkus potential ally.
+TREASURE: Dragon hoard, Black Dragon Mask, flying castle. LEVEL: 7-8, ready for Rise of Tiamat.`
+    ];
+    s.moduleProgress.forEach((ep,i)=>{
+      if(i<_HOTDQ_BRIEFS.length&&!ep.content)ep.content=_HOTDQ_BRIEFS[i];
+    });
+    if(!s.moduleReference){
+      s.moduleReference=`CAMPAIGN: Hoard of the Dragon Queen (Tyranny of Dragons Part 1)
+SETTING: Sword Coast, Forgotten Realms — Greenest to Waterdeep to Skyreach Castle
+
+MAIN THREAT: Cult of the Dragon gathering treasure for ritual to summon Tiamat, Queen of Evil Dragons.
+CULT LEADERSHIP: Severin Silrajin (overall leader), Rezmir (field commander, half-black dragon), five Dragon Masks needed.
+
+RECURRING NPCs:
+- Langdedrosa Cyanwrath — half-blue dragon, cult champion. Duels party Ep 1, rematch Ep 3.
+- Frulam Mondath — Wearer of Purple, cult leader. Present Ep 1-3.
+- Rezmir — half-black dragon, senior cult leader, Black Dragon Mask. Present Ep 5-8.
+- Leosin Erlanthar — half-elf monk, Harper agent. Captured Ep 2, quest giver Ep 4+.
+- Ontharr Frume — dwarf paladin, Order of the Gauntlet. Ally from Ep 4+.
+- Azbara Jos — Red Wizard of Thay, cult ally. Caravan Ep 4, Skyreach Ep 8.
+
+FACTIONS:
+- Cult of the Dragon — main antagonists, collecting treasure for Tiamat ritual
+- Harpers — secret intelligence network (Leosin)
+- Order of the Gauntlet — militant defenders (Ontharr)
+- Red Wizards of Thay — allied with cult for own purposes
+
+TREASURE ROUTE: Greenest → Raider Camp → Dragon Hatchery → Baldur's Gate caravan → Waterdeep → Carnath Roadhouse → Castle Naerytar portal → Hunting Lodge → Skyreach Castle
+
+DRAGON MASKS: Five masks (Black, White, Blue, Green, Red) needed to summon Tiamat. Rezmir has the Black Dragon Mask.`;
+    }
+  }
 }
 // ═══ PERSISTENCE ═══
 // ═══ SAVE / LOAD — Firebase-ready layer ═══
