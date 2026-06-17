@@ -1759,6 +1759,7 @@ details.panel>summary::-webkit-details-marker,details.panel.accent>summary::-web
 .area-map-wrap{position:relative;width:100%;overflow:hidden;border-radius:6px;border:1px solid var(--border);background:var(--surface);touch-action:pan-x pan-y;}
 .area-map-wrap img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none;pointer-events:none;}
 .area-map-wrap.placing{cursor:crosshair;}
+.area-map-wrap.placing .map-pin{pointer-events:none;}
 .map-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:2;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));transition:transform .12s;}
 .map-pin:active{transform:translate(-50%,-100%) scale(1.2);}
 .map-pin svg{display:block;}

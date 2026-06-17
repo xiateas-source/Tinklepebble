@@ -6881,7 +6881,7 @@ let _locViewMode='list';
 let _mapPlaceId=null;
 const _LOC_MAP_KEY='tt_area_map';
 function _getAreaMap(){try{return localStorage.getItem(_LOC_MAP_KEY)||null;}catch(e){return null;}}
-function _setAreaMap(dataUrl){try{localStorage.setItem(_LOC_MAP_KEY,dataUrl);}catch(e){toast('Map too large to store');}}
+function _setAreaMap(dataUrl){try{localStorage.setItem(_LOC_MAP_KEY,dataUrl);return true;}catch(e){toast('Map too large to store — try a smaller image');return false;}}
 function _removeAreaMap(){try{localStorage.removeItem(_LOC_MAP_KEY);}catch(e){}}
 
 function renderLocations(){
@@ -6956,8 +6956,9 @@ function renderLocations(){
 function _renderAreaMap(locs,typeIcon,repColor){
   const mapUrl=_getAreaMap();
   if(!mapUrl)return'<div style="text-align:center;color:var(--text-dim);padding:24px;font-size:12px">No map uploaded.</div>';
-  const placedLocs=locs.filter(l=>l.mapPos);
-  const unplacedLocs=locs.filter(l=>!l.mapPos);
+  const _validPos=l=>l.mapPos&&typeof l.mapPos.x==='number'&&typeof l.mapPos.y==='number';
+  const placedLocs=locs.filter(_validPos);
+  const unplacedLocs=locs.filter(l=>!_validPos(l));
 
   const pinSVG=(fill,stroke)=>`<svg width="20" height="26" viewBox="0 0 20 26"><path class="pin-fill" d="M10 0C4.5 0 0 4.5 0 10c0 7.5 10 16 10 16s10-8.5 10-16C20 4.5 15.5 0 10 0z" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/><circle cx="10" cy="10" r="4" fill="rgba(0,0,0,.3)"/></svg>`;
 
@@ -6987,7 +6988,7 @@ function _renderAreaMap(locs,typeIcon,repColor){
     </div>
     ${unplacedLocs.length?`<div style="font-size:10px;color:var(--text-dim);padding:4px 0 2px">Unplaced (${unplacedLocs.length}) — tap a chip then tap the map:</div>`:''}
     <div class="map-toolbar">${placeChips}</div>
-    ${_getAreaMap()?`<button class="btn sm" onclick="removeAreaMap()" style="font-size:10px;padding:3px 8px;border-color:var(--red);color:var(--red);margin-top:4px">Remove Map</button>`:''}
+    ${mapUrl?`<button class="btn sm" onclick="removeAreaMap()" style="font-size:10px;padding:3px 8px;border-color:var(--red);color:var(--red);margin-top:4px">Remove Map</button>`:''}
   `;
 }
 
@@ -6996,10 +6997,10 @@ function uploadAreaMap(){
   inp.type='file';inp.accept='image/*';
   inp.onchange=()=>{
     const file=inp.files[0];if(!file)return;
-    if(file.size>10*1024*1024){toast('Image must be under 10 MB');return;}
+    if(file.size>3.5*1024*1024){toast('Image must be under 3.5 MB (base64 expands ~33%)');return;}
     const reader=new FileReader();
     reader.onload=()=>{
-      _setAreaMap(reader.result);
+      if(!_setAreaMap(reader.result))return;
       _locViewMode='map';
       renderLocations();
       toast('Map uploaded');
@@ -7036,8 +7037,8 @@ function handleMapTap(e){
   const container=document.getElementById('area-map-container');
   if(!container)return;
   const rect=container.getBoundingClientRect();
-  const x=((e.clientX-rect.left)/rect.width)*100;
-  const y=((e.clientY-rect.top)/rect.height)*100;
+  const x=Math.max(0,Math.min(100,((e.clientX-rect.left)/rect.width)*100));
+  const y=Math.max(0,Math.min(100,((e.clientY-rect.top)/rect.height)*100));
   const loc=(state.locations||[]).find(l=>l.id===_mapPlaceId);
   if(!loc)return;
   loc.mapPos={x:Math.round(x*100)/100,y:Math.round(y*100)/100};
@@ -7047,7 +7048,7 @@ function handleMapTap(e){
   toast(`${loc.name} placed on map`);
 }
 function openLocationDetail(id){
-  const loc=state.locations.find(l=>l.id===id);if(!loc)return;
+  const loc=(state.locations||[]).find(l=>l.id===id);if(!loc)return;
   const _dm=state._locDmMode!==false;
   const typeIcon={town:'🏘',city:'🏙',camp:'⛺',ruin:'🏚',dungeon:'🗝',waypoint:'📍'};
   const typeLabels={town:'Town',city:'City',camp:'Camp',ruin:'Ruin',dungeon:'Dungeon',waypoint:'Waypoint'};
@@ -7120,7 +7121,8 @@ function addLocationManual(){
   const validTypes=['town','city','camp','ruin','dungeon','waypoint'];
   const type=validTypes.includes(typeStr)?typeStr:'waypoint';
   const id='loc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  state.locations.push({id,name,type,status:'visited',firstVisited:state.worldData.time||'',lastVisited:state.worldData.time||'',rep:{disposition:'Neutral',notes:''},npcs:[],investments:[],history:[],dmNotes:'',playerNotes:'',mapPos:null});
+  if(!Array.isArray(state.locations))state.locations=[];
+  state.locations.push({id,name,type,status:'visited',firstVisited:state.worldData?.time||'',lastVisited:state.worldData?.time||'',rep:{disposition:'Neutral',notes:''},npcs:[],investments:[],history:[],dmNotes:'',playerNotes:'',mapPos:null});
   save();renderLocations();
 }
 function updateLocNotes(id,field,value){
@@ -7312,7 +7314,7 @@ function executeStep(delta){
 }
 
 function openDrawer(tabId){
-  closeQAMenu();
+  closeQAMenu();_closeAllOverlays();
   document.getElementById('drawer-subnav')?.style && (document.getElementById('drawer-subnav').style.display='none');
   const drawerBody=document.getElementById('drawer-body');
   if(!drawerBody)return;
@@ -7361,6 +7363,7 @@ function closeDrawer(){
 function _closeAllOverlays(){
   ['loc-ov','loc-ov-bd','loc-seed','loc-seed-bd','grit-ov','grit-ov-bd','familiar-ov','familiar-ov-bd'].forEach(id=>{document.getElementById(id)?.classList.remove('is-open');});
   const picker=document.getElementById('sheet-picker-sheet');if(picker){picker.remove();document.getElementById('sheet-picker-bd')?.remove();}
+  const pcOv=document.getElementById('pc-overview-sheet');if(pcOv){closePCOverview();}
 }
 
 let _logisticsTab='world';
