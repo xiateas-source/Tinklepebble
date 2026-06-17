@@ -3803,7 +3803,27 @@ ALWAYS use zone_move to reposition characters during combat based on the narrati
   const secretsSection=state.dmSecrets?'\nCONTRACT 7 — SECRET DM NOTES (NEVER reveal to players):\n'+state.dmSecrets+'\n':'';
   const snipsSection=activeSnips?'\nCONTRACT 8 — REFERENCE MATERIAL:\n'+activeSnips+'\n':'';
   const summarySection=state.prevSessionSummary?'\nCAMPAIGN HISTORY (auto-archived):\n'+state.prevSessionSummary+'\n':'';
-  return g('ai-persona')+'\n'+premiseSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
+  let moduleSection='';
+  if(Array.isArray(state.moduleProgress)&&state.moduleProgress.length){
+    const modName=state.worldData.setting?.split('\n')[0]||'';
+    const activeEp=state.moduleProgress.find(e=>e.status==='active');
+    const done=state.moduleProgress.filter(e=>e.status==='complete').length;
+    const epList=state.moduleProgress.map((ep,i)=>'  '+(ep.status==='complete'?'[✓]':ep.status==='active'?'[▶]':'[ ]')+' Ep '+(i+1)+': '+ep.name+(ep.notes?' — '+ep.notes:'')).join('\n');
+    moduleSection='\nCONTRACT 9 — MODULE FIDELITY (MANDATORY):\n'
+      +'This campaign is running the official module: '+modName+'\n'
+      +'Progress: '+done+'/'+state.moduleProgress.length+' episodes complete.\n'
+      +(activeEp?'Current episode: '+activeEp.name+(activeEp.notes?' — '+activeEp.notes:'')+'\n':'')
+      +'Episode tracker:\n'+epList+'\n\n'
+      +'RULES:\n'
+      +'- You are running a PUBLISHED MODULE, not a homebrew campaign. Never claim otherwise.\n'
+      +'- All locations, NPCs, plot points, and encounters must come from or be consistent with the source module.\n'
+      +'- Do NOT invent major plot arcs, organizations, or MacGuffins that do not exist in the module.\n'
+      +'- The party\'s unique elements (the wagon, the con, the tinctures business) are overlaid ONTO the module — they do not replace it.\n'
+      +'- When a player asks "where are we in the module," answer with the actual episode name and published content.\n'
+      +'- Custom flavor and side content is fine, but the backbone must follow the module\'s chapter/episode progression.\n'
+      +'- Use module_episode: N, active|complete in mechanics blocks to advance the tracker.\n';
+  }
+  return g('ai-persona')+'\n'+premiseSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
 }
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
