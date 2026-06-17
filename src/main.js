@@ -4450,7 +4450,7 @@ function renderChat(){
     const mId=`msg-over-${msgIdx}`;
     const ttsBtn=isDM?`<button class="tts-btn" onclick="speakIdx(${msgIdx},this)" title="Read aloud">🔊</button>`:'';
     const flagBtn=isDM?`<button class="flag-btn" onclick="openFlagModal(${msgIdx})" title="Flag this response">⚑</button>`:'';
-    const exportBtn=`<button class="flag-btn" onclick="exportMoment(${msgIdx})" title="Export this moment for dev review">📤</button>`;
+    const exportBtn=`<button class="flag-btn" onclick="exportMoment(${msgIdx})" title="Export this moment for dev review">⚠️</button>`;
     const overflowMenu=`<div id="${mId}" style="display:none;position:absolute;right:0;top:100%;background:var(--surface3);border:1px solid var(--border);border-radius:6px;z-index:200;padding:4px;display:none;gap:2px;flex-direction:row">${ttsBtn}${flagBtn}${exportBtn}<button class="flag-btn" onclick="deleteChatMsg(${msgIdx})" title="Delete message" style="color:#c05050">✕</button></div>`;
     const moreBtn=`<div style="position:relative;display:inline-flex"><button class="copy-btn" onclick="(function(el){var m=document.getElementById('${mId}');m.style.display=m.style.display==='flex'?'none':'flex';document.addEventListener('click',function h(e){if(!el.contains(e.target)){m.style.display='none';document.removeEventListener('click',h);}},{once:true,capture:true});event.stopPropagation()})(this.parentElement)" title="More actions" style="font-size:11px;padding:0 5px;min-width:22px">⋮</button>${overflowMenu}</div>`;
     const copyBtn=`<button class="copy-btn" onclick="copyIdx(${msgIdx})" title="Copy message">📋</button>`;
