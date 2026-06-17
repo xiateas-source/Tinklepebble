@@ -2709,7 +2709,10 @@ function recalibrateModule(){
   // Keep NPCs that are from the module, clear fabricated ones
   // We'll keep all NPCs but user can clean up manually
 
-  save();renderAll();
+  state._ts=Date.now();
+  save();
+  setTimeout(()=>{state._ts=Date.now();save();},500);
+  renderAll();
   toast('🔄 Campaign recalibrated — Episode 1 active. Send a message to begin!');
 }
 
@@ -4252,9 +4255,11 @@ ALWAYS use zone_move to reposition characters during combat based on the narrati
       +'- You are running a PUBLISHED MODULE, not a homebrew campaign. Never claim otherwise.\n'
       +'- All locations, NPCs, plot points, and encounters must come from or be consistent with the source module.\n'
       +'- Do NOT invent major plot arcs, organizations, or MacGuffins that do not exist in the module.\n'
+      +'- If the chat history contains fabricated content (locations, quests, plot devices not in the module), treat it as NON-CANONICAL. Do not continue fabricated storylines.\n'
       +'- The party\'s unique elements (the wagon, the con, the tinctures business) are overlaid ONTO the module — they do not replace it.\n'
       +'- When a player asks "where are we in the module," answer with the actual episode name and published content.\n'
       +'- Custom flavor and side content is fine, but the backbone must follow the module\'s chapter/episode progression.\n'
+      +'- NEVER call this campaign "homebrew" or "DM original." It is a published module with party-specific flavor.\n'
       +'- Use module_episode: N, active|complete in mechanics blocks to advance the tracker.\n'
       +(globalRef?'\nMODULE REFERENCE (always active):\n'+globalRef+'\n':'')
       +(epContent?'\nACTIVE EPISODE CONTENT — '+activeEp.name+':\n'+epContent+'\n':'');
