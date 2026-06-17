@@ -6712,6 +6712,77 @@ function sessionRecap(){
   copyText(report,'✓ Ops report ready — paste to dev');
 }
 
+function exportGameplayLog(mode){
+  const msgs=state.chatHistory||[];
+  const slice=mode==='recent'?msgs.slice(-40):msgs;
+  const archive=state.sessionArchive||[];
+  const flags=(state.errorLog||[]).filter(f=>!f.resolved);
+  let log='=== TINKLE\'S TINCTURES — GAMEPLAY LOG FOR DEV REVIEW ===\n';
+  log+='Exported: '+new Date().toISOString().slice(0,16)+'\n';
+  log+='Location: '+(state.worldData?.location||'—')+'\n';
+  log+='PCs: '+(state.pcs||[]).map(p=>p.name+' ('+p.class+' '+p.level+', '+p.hp+'/'+p.hp_max+' HP)').join(', ')+'\n';
+  log+='Messages in export: '+slice.length+' of '+msgs.length+' total\n\n';
+
+  if(archive.length){
+    log+='--- SESSION ARCHIVE ('+archive.length+' summaries, newest first) ---\n';
+    const archSlice=mode==='recent'?archive.slice(-3):archive;
+    archSlice.slice().reverse().forEach(a=>{
+      log+='['+a.gameTs+'] ('+a.msgCount+' msgs)\n'+a.summary+'\n\n';
+    });
+  }
+
+  log+='--- CHAT LOG ---\n';
+  log+='Format: [game_time] ROLE (character): message\n';
+  log+='Mechanics lines show what the app parsed from the AI response.\n\n';
+
+  slice.forEach(m=>{
+    const ts=m.ts||'';
+    const role=m.role==='assistant'?'DM':m.role==='user'?'PLAYER':'SYSTEM';
+    const who=m.playerChar?' ('+m.playerChar+')':m.playerName?' ('+m.playerName+')':'';
+    const content=(m.content||'').replace(/\n{3,}/g,'\n\n').trim();
+    if(!content)return;
+    log+='['+ts+'] '+role+who+':\n';
+    const lines=content.split('\n');
+    const mechLines=[];
+    const textLines=[];
+    lines.forEach(line=>{
+      if(/^[a-z_]+:/.test(line.trim()))mechLines.push(line.trim());
+      else textLines.push(line);
+    });
+    if(textLines.length)log+=textLines.join('\n')+'\n';
+    if(mechLines.length)log+='  MECHANICS: '+mechLines.join(' | ')+'\n';
+    log+='\n';
+  });
+
+  if(flags.length){
+    log+='--- OPEN FLAGS ('+flags.length+') ---\n';
+    const FLAG_CATS_LOCAL={bug:{label:'Bug'},story:{label:'Story Error'},rule:{label:'Wrong Rule'},idea:{label:'Idea / Feature'},app:{label:'App Issue'},other:{label:'Other'}};
+    flags.forEach((f,i)=>{
+      const cat=FLAG_CATS_LOCAL[f.category]||FLAG_CATS_LOCAL.other;
+      log+=(i+1)+'. ['+cat.label+']'+(f.sectionCtx?' in '+f.sectionCtx:'')+(f.location?' @ '+f.location:'')+'\n';
+      if(f.note)log+='   '+f.note+'\n';
+    });
+  }
+
+  log+='\n--- PROMPT FOR DEV ---\n';
+  log+='You are reviewing actual gameplay logs from Tinkle\'s Tinctures, a D&D 5e campaign management app.\n';
+  log+='Cross-reference these logs against .claude/roadmap.md and .claude/features.md.\n\n';
+  log+='Analyze for:\n';
+  log+='1. UNMET PLAYER NEEDS — moments where the player wanted something the app couldn\'t do, or had to work around a limitation\n';
+  log+='2. AI FAILURE PATTERNS — rules the DM got wrong repeatedly, context it lacked, mechanics it skipped\n';
+  log+='3. AI SUCCESS PATTERNS — what the DM did well that should be preserved or reinforced\n';
+  log+='4. UX FRICTION — interactions that took too many steps, confused the player, or broke flow\n';
+  log+='5. INCOMPLETE FIXES — flags that match already-shipped features (mark what exists vs what\'s still missing)\n\n';
+  log+='For each finding, state: what happened, where in the log, whether a fix exists, and what to change.\n';
+  log+='Rank findings by gameplay impact. Suggest 2-3 specific, actionable changes.\n';
+
+  const out=document.getElementById('dev-log-out');
+  const txt=document.getElementById('dev-log-text');
+  if(out)out.style.display='block';
+  if(txt){txt.value=log;setTimeout(()=>txt.select(),50);}
+  copyText(log,'✓ Gameplay log copied — paste to dev session');
+}
+
 // ═══ TOAST ═══
 function toast(msg,dur){
   const t=document.getElementById('toast');if(!t)return;
@@ -8216,7 +8287,7 @@ Object.assign(window, {
   toggleTestMode, clearTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,
-  populateVoices, openResetModal, requestNotifPermission,
+  exportGameplayLog, populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
   zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
   renderSetupLock, setSetupUnlocked, remAtk, rewindTo,

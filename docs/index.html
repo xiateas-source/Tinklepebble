@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.CkYea_fr.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.Dg2v6nJQ.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.CpGaAjMQ.css">
 </head>
 <body>
@@ -476,6 +476,18 @@
     <div id="dev-recap-out" style="display:none;margin-top:10px">
       <textarea id="dev-recap-text" readonly style="min-height:160px;font-size:10px;font-family:var(--mono);color:var(--text-dim);border-color:var(--gold)"></textarea>
       <button class="btn gold full" style="margin-top:6px" onclick="copyText(document.getElementById('dev-recap-text').value,'✓ Ops report copied!')">📋 Copy — Paste to Dev</button>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <div class="panel-title">📜 Gameplay Log Export</div>
+    <div style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Export chat logs for dev review — includes narrative, mechanics, and session archive.</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn full" onclick="exportGameplayLog('recent')">Last 40 Messages</button>
+      <button class="btn full" onclick="exportGameplayLog('full')">Full Chat + Archive</button>
+    </div>
+    <div id="dev-log-out" style="display:none;margin-top:10px">
+      <textarea id="dev-log-text" readonly style="min-height:160px;font-size:10px;font-family:var(--mono);color:var(--text-dim);border-color:var(--gold)"></textarea>
+      <button class="btn gold full" style="margin-top:6px" onclick="copyText(document.getElementById('dev-log-text').value,'✓ Log copied!')">📋 Copy — Paste to Dev</button>
     </div>
   </div>
 </div>
