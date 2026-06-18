@@ -2452,16 +2452,16 @@ function addPartyToCombat(){
   state.pcs.forEach(pc=>{
     if(!state.combat.list.some(c=>c.name===pc.name)){
       const roll=Math.floor(Math.random()*20)+1;const val=roll+(pc.initiative||0);
-      const zone=pc.id==='slasher'?'front':'back';
+      const zone=(pc.class||'').toLowerCase()==='fighter'?'front':'back';
       state.combat.list.push({name:pc.name,val,hp:pc.hp,hp_max:pc.hp_max,ac:pc.ac,isPC:true,zone,conditions:[],concentrating:''});
       state.logs.push({ts:state.worldData.time,type:'combat',body:pc.name+' joined '+ZONE_LABELS[zone]+' (d20['+roll+']+'+pc.initiative+'='+val+')'});
     }
   });
-  // Add Grit + Wagon to Rear Guard if not already present
-  if(!state.combat.list.some(c=>c.name==='Grit')){
-    const ox=state.wagon?.ox;if(ox){
-      state.combat.list.push({name:'Grit',val:0,hp:ox.hp||15,hp_max:ox.hp_max||15,ac:ox.ac||11,isPC:false,zone:'rear',conditions:[],concentrating:''});
-    }
+  // Add mount + Wagon to Rear Guard if not already present
+  const ox=state.wagon?.ox;
+  const mountName=ox?.name||'';
+  if(mountName&&ox.hp_max>0&&!state.combat.list.some(c=>c.name===mountName)){
+    state.combat.list.push({name:mountName,val:0,hp:ox.hp||0,hp_max:ox.hp_max||0,ac:ox.ac||10,isPC:false,zone:'rear',conditions:[],concentrating:''});
   }
   if(!state.combat.list.some(c=>c.name==='Wagon')){
     state.combat.list.push({name:'Wagon',val:0,hp:state.wagon?.hp||20,hp_max:state.wagon?.hp_max||20,ac:state.wagon?.ac||11,isPC:false,zone:'rear',conditions:[],concentrating:''});
@@ -2528,7 +2528,7 @@ function endCombat(){
   state.combat.list.forEach(ent=>{
     if(ent.isPC)return;
     state.pcs.forEach(p=>{if(p.familiar&&p.familiar.name===ent.name){p.familiar.hp=Math.max(0,ent.hp);}});
-    if(state.wagon?.ox&&ent.name==='Grit')state.wagon.ox.hp=Math.max(0,ent.hp);
+    if(state.wagon?.ox&&state.wagon.ox.name&&ent.name===state.wagon.ox.name)state.wagon.ox.hp=Math.max(0,ent.hp);
   });
   state.combat={active:false,round:1,currentIdx:0,list:[],zones:_defaultZones(),moveMode:'ai'};
   _zoneMoveSel=null;
@@ -3634,7 +3634,7 @@ function genLedger(){
       if(p.familiar){const f=p.familiar;l+='  Familiar '+f.name+': HP '+f.hp+'/'+f.hp_max+'\n';}
     });
     const cb=_combatLedgerBlock();if(cb)l+='\n'+cb;
-    const ox=state.wagon.ox;l+="\nGrit: HP "+ox.hp+"/"+ox.hp_max+" | Feed: "+ox.feed+"\n";
+    const ox=state.wagon.ox;if(ox.name&&ox.hp_max>0)l+="\n"+(ox.name)+": HP "+ox.hp+"/"+ox.hp_max+" | Feed: "+ox.feed+"\n";
     l+="Treasury: GP "+state.treasuryData.gp+"\n";
     l+="=== END COMPACT ===";
     if(out){out.value=l;const chars=l.length;const toks=Math.round(chars/4);document.getElementById('ledger-chars').innerText=chars+' chars';document.getElementById('ledger-tokens').innerText='~'+toks+' tokens';}
@@ -4427,7 +4427,7 @@ function migrate(s){
     {id:'qa_3',label:'Clear Conditions',type:'condition_clear',params:{},context:['tab-party','tab-combat']},
     {id:'qa_4',label:'Use Resource',type:'resource_use',params:{},context:['tab-party','tab-combat','tab-dm']},
     {id:'qa_5',label:'Add Foraged Item',type:'item_add_foraged',params:{},context:['tab-wagon','tab-world','tab-dm']},
-    {id:'qa_6',label:'Feed Grit',type:'ox_feed',params:{},context:['tab-wagon']},
+    {id:'qa_6',label:'Feed Mount',type:'ox_feed',params:{},context:['tab-wagon']},
     {id:'qa_7',label:'Advance Time',type:'time_advance',params:{},context:['tab-world','tab-session','tab-dm']},
     {id:'qa_8',label:'Save Game',type:'save_game',params:{},context:['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dm']},
     {id:'qa_9',label:'Next Turn',type:'combat_next',params:{},context:['tab-combat','tab-dm']},
@@ -4482,8 +4482,8 @@ function migrate(s){
   if(!s.treasuryData||typeof s.treasuryData!=='object')s.treasuryData={pp:0,gp:0,ep:0,sp:0,cp:0,lifestyle:'',incomeLog:[]};
   if(!Array.isArray(s.treasuryData.incomeLog))s.treasuryData.incomeLog=[];
   if(!s.wagon||typeof s.wagon!=='object')s.wagon={};
-  if(!s.wagon.ox||typeof s.wagon.ox!=='object')s.wagon.ox={name:'Grit',hp:15,hp_max:15,ac:11,conditions:'None',feed:'fed',backstory:'',personality:'',bonds:{},quirks:[],experimentLog:''};
-  if(!s.wagon.ox.name)s.wagon.ox.name='Grit';
+  if(!s.wagon.ox||typeof s.wagon.ox!=='object')s.wagon.ox={name:'',hp:0,hp_max:0,ac:10,conditions:'None',feed:'N/A',backstory:'',personality:'',bonds:{},quirks:[],experimentLog:''};
+  if(s.wagon.ox.name===undefined)s.wagon.ox.name='';
   if(!s.wagon.ox.backstory)s.wagon.ox.backstory='Raised from a calf by Tinkle. The only member of the operation who has never been asked to lie about anything. Has been used as a test subject for new batches on at least three documented occasions.';
   if(!s.wagon.ox.personality)s.wagon.ox.personality='Stoic and dependable. Unusually calm around Tinkle specifically. Skittish around loud magic. Stubborn on roads he has decided are bad ideas.';
   if(!s.wagon.ox.bonds||typeof s.wagon.ox.bonds!=='object')s.wagon.ox.bonds={};
@@ -5941,7 +5941,7 @@ function _validateMechanics(changes){
 
   // Ox HP above max
   const ox=state.wagon?.ox;
-  if(ox&&ox.hp>ox.hp_max){warnings.push('Grit HP '+ox.hp+' clamped to max '+ox.hp_max);ox.hp=ox.hp_max;}
+  if(ox&&ox.hp>ox.hp_max){warnings.push((ox.name||'Mount')+' HP '+ox.hp+' clamped to max '+ox.hp_max);ox.hp=ox.hp_max;}
   state.pcs.forEach(p=>{if(p.familiar&&p.familiar.hp>p.familiar.hp_max){warnings.push(p.familiar.name+' HP clamped to max '+p.familiar.hp_max);p.familiar.hp=p.familiar.hp_max;}});
 
   // Wagon HP above max
@@ -7413,14 +7413,25 @@ function syncBP(){
 }
 
 // ═══ OX PROFILE SYNC ═══
+function syncMountTitle(){
+  const t=document.getElementById('mount-panel-title');
+  const name=state.wagon?.ox?.name;
+  if(t)t.textContent=name?name+' — Mount / Draft Animal':'Mount / Draft Animal';
+}
 function syncOxProfile(){
   const ox=state.wagon.ox||{};
-  const fields={backstory:'ox-backstory',personality:'ox-personality','bonds.tinkle':'ox-bond-tinkle','bonds.pebble':'ox-bond-pebble','bonds.slasher':'ox-bond-slasher',experimentLog:'ox-exp-log'};
-  Object.entries(fields).forEach(([k,id])=>{
-    const el=document.getElementById(id);if(!el)return;
-    if(k.includes('.')){const[obj,sub]=k.split('.');el.value=(ox[obj]||{})[sub]||'';}
-    else el.value=ox[k]||'';
-  });
+  const el1=document.getElementById('ox-backstory');if(el1)el1.value=ox.backstory||'';
+  const el2=document.getElementById('ox-personality');if(el2)el2.value=ox.personality||'';
+  syncMountTitle();
+  const bc=document.getElementById('mount-bonds');
+  if(bc){
+    const bonds=ox.bonds||{};
+    bc.innerHTML=state.pcs.map((p,i)=>{
+      const key=p.id||('pc'+(i+1));
+      const label=p.name||('Character '+(i+1));
+      return '<div class="form-group"><label class="field-label">Bond — '+esc(label)+'</label><input type="text" style="font-size:11px" value="'+esc(bonds[key]||'')+'" oninput="if(!state.wagon.ox.bonds)state.wagon.ox.bonds={};state.wagon.ox.bonds[\''+key+'\']=this.value;save()"></div>';
+    }).join('');
+  }
 }
 
 // ═══ PROVIDER STATUS MINI ═══
@@ -7641,7 +7652,7 @@ function executeQA(action){
     case 'save_game': save();triggerChk('Save Game');break;
     case 'combat_next': nextTurn();break;
     case 'context_refresh': sendContextRefresh();break;
-    case 'ox_feed': state.wagon.ox.feed='fed';save();renderWagon();toast('✓ Grit fed.');break;
+    case 'ox_feed': state.wagon.ox.feed='fed';save();renderWagon();toast('✓ '+(state.wagon.ox.name||'Mount')+' fed.');break;
     case 'time_advance':
       openQASheet(action.label,`
         <div class="form-group"><label class="field-label">Advance time by</label>
@@ -9121,7 +9132,7 @@ function renderHUD(){
     const gritTile=document.createElement('div');
     gritTile.className='hud-tile grit-tile';
     gritTile.onclick=openGritOverview;
-    gritTile.innerHTML='<div class="hud-name" style="color:var(--green)">🐂 '+esc(ox.name||'Grit')+'</div>'
+    gritTile.innerHTML='<div class="hud-name" style="color:var(--green)">🐂 '+esc(ox.name||'No mount')+'</div>'
       +'<div class="hud-val">'+ghp+'<span style="font-size:9px;color:var(--text-dim)">/'+gmax+'</span></div>'
       +'<div class="hud-spark '+gsparkCls+'" style="width:'+gpct.toFixed(1)+'%"></div>';
     mosaic.appendChild(gritTile);
@@ -9682,7 +9693,7 @@ function openGritOverview(){
   const feedEmoji={fed:'✅',hungry:'⚠',starving:'🔴'}[ox.feed||'fed']||'✅';
   const titleEl=document.getElementById('grit-ov-title');
   const bodyEl=document.getElementById('grit-ov-body');
-  if(titleEl)titleEl.textContent='🐂 '+esc(ox.name||'Grit');
+  if(titleEl)titleEl.textContent='🐂 '+esc(ox.name||'Mount');
   if(bodyEl)bodyEl.innerHTML=`
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
       <span style="font-size:11px;color:var(--text-dim)">AC ${ox.ac||11} · ${feedEmoji} ${ox.feed||'fed'} · ${esc(ox.conditions||'No conditions')}</span>
@@ -10532,7 +10543,7 @@ Object.assign(window, {
   sendRollToChat, addPartyItem, remPI, updPI, closeInvEdit,
   showTermTip, rollStatCheck, rollInitiative,
   _expandedMsgs, openCompendiumFromOverview, setCompFilter, setSpellFilter, toggleCompendium,
-  openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview,
+  openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview, syncMountTitle,
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
   setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
