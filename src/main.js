@@ -3250,7 +3250,15 @@ async function handleModulePDF(file){
     for(let i=1;i<=totalPages;i++){
       const page=await pdf.getPage(i);
       const tc=await page.getTextContent();
-      const text=tc.items.map(it=>it.str).join(' ').replace(/\s+/g,' ').trim();
+      let lastY=null;const lines=[];let cur='';
+      tc.items.forEach(it=>{
+        if(lastY!==null&&Math.abs(it.transform[5]-lastY)>2){
+          if(cur.trim())lines.push(cur.trim());cur='';
+        }
+        cur+=(cur?' ':'')+it.str;lastY=it.transform[5];
+      });
+      if(cur.trim())lines.push(cur.trim());
+      const text=lines.join('\n');
       pages.push({num:i,text});
       const pEl=document.getElementById('pdf-progress');
       if(pEl)pEl.textContent=Math.round(i/totalPages*100)+'%';
@@ -3265,24 +3273,30 @@ async function handleModulePDF(file){
 
 function _splitIntoChapters(pages,filename){
   const chapterPatterns=[
-    /\b(chapter|episode|part|act|section)\s+(\d+)\s*[:\.\—\-–]\s*(.+?)(?:\s{2,}|$)/i,
-    /\b(chapter|episode|part|act|section)\s+(\d+)\b/i,
-    /^(introduction|appendix\s*[a-z]?|epilogue|prologue|adventure\s+background|adventure\s+overview|adventure\s+hooks?|the\s+story\s+so\s+far|adventure\s+summary|rewards?|conclusion)\s*[:\.\—\-–]?\s*(.*)/im,
-    /\b(mission|quest|encounter|objective)\s+(\d+)\s*[:\.\—\-–]\s*(.+?)(?:\s{2,}|$)/i,
+    /^(chapter|episode|part|act|section)\s+(\d+)\s*[:\.\—\-–]\s*(.+)/i,
+    /^(chapter|episode|part|act|section)\s+(\d+)\b\s*(.*)/i,
+    /^(introduction|appendix\s*[a-z]?|epilogue|prologue|adventure\s+background|adventure\s+overview|adventure\s+hooks?|the\s+story\s+so\s+far|adventure\s+summary|conclusion)\s*[:\.\—\-–]?\s*(.*)/i,
+    /^(mission|quest|encounter|objective)\s+(\d+)\s*[:\.\—\-–]\s*(.+)/i,
   ];
   const sections=[];
   let currentSection=null;
   pages.forEach(p=>{
     let matched=false;
-    for(const pat of chapterPatterns){
-      const m=p.text.match(pat);
-      if(m&&p.text.indexOf(m[0])<300){
-        if(currentSection)sections.push(currentSection);
-        const title=m[3]?m[1]+' '+m[2]+': '+m[3].trim():m[0].trim();
-        currentSection={title:title.slice(0,80),startPage:p.num,pages:[p],text:''};
-        matched=true;
-        break;
+    const lines=p.text.split('\n');
+    for(const line of lines.slice(0,15)){
+      const trimmed=line.trim();
+      if(!trimmed||trimmed.length>120)continue;
+      for(const pat of chapterPatterns){
+        const m=trimmed.match(pat);
+        if(m){
+          if(currentSection)sections.push(currentSection);
+          const title=m[3]?m[1]+' '+m[2]+': '+m[3].trim():m[0].trim();
+          currentSection={title:title.slice(0,80),startPage:p.num,pages:[p],text:''};
+          matched=true;
+          break;
+        }
       }
+      if(matched)break;
     }
     if(!matched&&!currentSection){
       currentSection={title:'Introduction',startPage:p.num,pages:[p],text:''};
@@ -3297,17 +3311,26 @@ function _splitIntoChapters(pages,filename){
     s.pageCount=s.pages.length;
     delete s.pages;
   });
-  if(sections.length<=1&&pages.length>5){
+  const avgSize=sections.length?pages.length/sections.length:pages.length;
+  if((sections.length<=1&&pages.length>5)||(sections.length>1&&avgSize>40)){
     sections.length=0;
-    const chunkSize=Math.max(3,Math.ceil(pages.length/Math.min(8,Math.ceil(pages.length/5))));
+    const chunkSize=Math.max(3,Math.ceil(pages.length/Math.min(12,Math.ceil(pages.length/5))));
     for(let i=0;i<pages.length;i+=chunkSize){
       const chunk=pages.slice(i,i+chunkSize);
-      const firstWords=chunk[0].text.slice(0,60).replace(/\s+/g,' ').trim();
+      let label='Section '+(Math.floor(i/chunkSize)+1);
+      for(const cp of chunk){
+        const cLines=cp.text.split('\n');
+        for(const cl of cLines.slice(0,10)){
+          const ct=cl.trim();
+          if(ct.length>=5&&ct.length<=80&&!/^\d+$/.test(ct)){label=ct;break;}
+        }
+        if(label!=='Section '+(Math.floor(i/chunkSize)+1))break;
+      }
       sections.push({
-        title:firstWords.length>10?firstWords+'…':'Section '+(Math.floor(i/chunkSize)+1),
-        startPage:i+1,endPage:Math.min(i+chunkSize,pages.length),
+        title:label,
+        startPage:chunk[0].num,endPage:chunk[chunk.length-1].num,
         pageCount:chunk.length,
-        text:chunk.map(p=>p.text).join('\n\n')
+        text:chunk.map(cp=>cp.text).join('\n\n')
       });
     }
   }else if(!sections.length&&pages.length){
