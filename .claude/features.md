@@ -286,7 +286,9 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `callAI(messages, sysProm, maxTok)` — Retry wrapper (2x, 1.2s/2.4s, 5xx); free-model fallback
 - `summarizeAndPrune()` — Background summary at 75 msgs → pushes to `sessionArchive[]` (50-cap)
 - `sendContextRefresh()` — Full context refresh via `_ctxInject`: location, PC HP/conditions/concentration, combat zone grid (if active)
-- `_renderInvChips(items, editIdx, setEditFn, updFn, remFn, prefix)` — Shared chip renderer for party inv, wagon cargo, and hoard
+- `_renderInvChips(items, editIdx, setEditFn, updFn, remFn, prefix)` — Shared chip renderer for party inv, wagon cargo, hoard, and PC inventory
+- `setCargoPCFilter(name)` — Toggle per-PC inventory view in Cargo tab (Wagon/Slasher/Tinkle/Pebble buttons)
+- `_getWList(list)` — Resolves list type string ('cargo'/'hoard'/'pc_N') to the correct item array
 - `resyncAI()` — Full ledger re-sync
 - `verifyContracts()` — Validates all 10 contract checks + injects contracts into next AI send
 - `detectUnloggedGold()` / `detectUnloggedNPC()` / `detectUnloggedItem()` — Confirm-chip prompts for unlogged mechanics
@@ -336,6 +338,10 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 
 ### Level-Up Wizard
 - `checkLevelUp(pc)` → `openLevelUpWizard(idx)` → `_renderLevelUpStep()` → `applyLevelUp()`
+- **Feat selection** — ASI/Feat toggle on ASI step. `FEATS_DB` (56 feats: 42 PHB + 14 TCoE) with descriptions, half-feat ability picker, search filter
+- **Current ability scores** — compact score display at top of ASI step for reference
+- **Spell swap** — optional step for spellcasters to replace one known spell with another from class list
+- Helper functions: `_luSetASIMode()`, `_luSelectFeat()`, `_luUpdateFeatAbility()`, `_luFilterFeats()`, `_luSelectSwapOld()`, `_luSelectSwapNew()`, `_luParseKnownSpells()`, `_luGetSwapPool()`
 
 ### Flags & Dev
 - `flagIt()` / `openFlagModal()` / `submitFlag()` — Error flag capture with `uiCtx` auto-build
@@ -433,3 +439,5 @@ Functions: `_handleSlashCmd(raw)` — command dispatcher; `SUGGEST_CHIPS{}` — 
 - **Spell Compendium** — `SPELL_DB` (~65 spells, Bard + Wizard cantrips–3rd level), `MANEUVER_DB` (16 Battle Master maneuvers). Functions: `toggleCompendium(idx)`, `openCompendiumFromOverview(idx)`, `setCompFilter(idx,k,v)`, `addFromCompendium(idx,spellName)`, `addManeuverToPC(idx,name)`, `renderCompendium(idx)`. Class/level dropdowns, search, one-tap add to spellbook.
 - **Dynamic Skill Calc** — `genLedger()` computes skill modifiers from ability scores + proficiency + expertise instead of stale hardcoded strings
 - **Contract 9 — Module Fidelity** — Auto-injected into `buildPrompt()` when `moduleProgress` has entries. Anti-fabrication rules: fabricated content is NON-CANONICAL, never call campaign homebrew.
+- **D&D Term Glossary** — `TERM_TIPS` (84 terms): 14 conditions, combat actions, saving throws, combat mechanics (initiative, AC, HP, death saves, crits, weapon properties), spellcasting, resting, terrain, vision, damage types, economy, class features. `_highlightTerms()` auto-links terms in AI messages; `showTermTip()` renders tap popup.
+- **Feats Database** — `FEATS_DB` (56 feats: 42 PHB + 14 TCoE). Each entry: name, description, half-feat ability options, prerequisites, source book. Used by level-up wizard ASI/Feat toggle.
