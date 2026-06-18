@@ -5351,7 +5351,7 @@ LEVEL-UP RULES (STRICT — NEVER VIOLATE):
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
 const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|familiar_hp|income|expense|xp|quest_add|quest_done|quest_fail|quest_update|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
-const _NAKED_MECH_RE=new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+','m');
+const _NAKED_MECH_RE=new RegExp('^[-*•]?\\s*(?:[A-Za-z][A-Za-z0-9 ]*:\\s*)?('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
   let match=null;
@@ -5368,9 +5368,15 @@ function parseMechanics(responseText, pendingMsgId=null){
     if(mechIdx>-1) match={1:cleanText.slice(mechIdx+10)};
   }
   // Final fallback: naked mechanic lines in body with no MECHANICS header at all
-  if(!match&&_NAKED_MECH_RE.test(cleanText)){
-    const nakedRe=new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+','mg');
-    const lines=[];let m;while((m=nakedRe.exec(cleanText))!==null)lines.push(m[0].replace(/^[-*•]\s+/,''));
+  // Also catches "CharName: mechanic_key: value" pattern (AI prefixes lines with character names)
+  if(!match){
+    const nakedRe=new RegExp('^[-*•]?\\s*(?:[A-Za-z][A-Za-z0-9 ]*:\\s*)?('+_MECH_KEYS+'): .+','mg');
+    const lines=[];let m;while((m=nakedRe.exec(cleanText))!==null){
+      let line=m[0].replace(/^[-*•]\s+/,'');
+      const ci=line.indexOf(':');
+      if(ci>-1){const k=line.slice(0,ci).trim().toLowerCase();if(!_MECH_KEYS.split('|').includes(k)){const rest=line.slice(ci+1).trim();line=rest;}}
+      lines.push(line);
+    }
     if(lines.length) match={1:lines.join('\n')};
   }
   if(!match)return null;
@@ -5378,7 +5384,17 @@ function parseMechanics(responseText, pendingMsgId=null){
   if(block==='none'||block==='')return null;
   const changes=[];
   const _rejected=[];
-  const rawLines=block.split('\n').map(l=>l.trim().replace(/^[-*•]\s+/,'')).filter(Boolean);
+  const _mechKeySet=new Set(_MECH_KEYS.split('|'));
+  const rawLines=block.split('\n').map(l=>{
+    l=l.trim().replace(/^[-*•]\s+/,'');
+    const ci=l.indexOf(':');
+    if(ci>-1&&!_mechKeySet.has(l.slice(0,ci).trim().toLowerCase())){
+      const rest=l.slice(ci+1).trim();
+      const ci2=rest.indexOf(':');
+      if(ci2>-1&&_mechKeySet.has(rest.slice(0,ci2).trim().toLowerCase()))l=rest;
+    }
+    return l;
+  }).filter(Boolean);
   const lines=rawLines.filter(line=>{
     const ci=line.indexOf(':');if(ci===-1)return true;
     const k=line.slice(0,ci).trim().toLowerCase();
