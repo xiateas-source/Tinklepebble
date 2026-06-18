@@ -1789,6 +1789,7 @@ function dedupQuests(){
 
 // ═══ CONSEQUENCES ═══
 const CSQ_COLORS={background:'var(--text-dim)',faction:'var(--gold)',personal:'var(--green)',escalation:'var(--red)'};
+const CSQ_TYPES=['background','faction','personal','escalation'];
 function renderConsequences(){
   const c=document.getElementById('consequence-list');if(!c)return;c.innerHTML='';
   const all=state.consequences||[];
@@ -1800,26 +1801,46 @@ function renderConsequences(){
     bar.innerHTML='<button onclick="dedupConsequences()" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;font-family:var(--sans)">🧹 Dedup</button>';
     c.appendChild(bar);
   }
-  const render=(cs,idx)=>{
+  const render=(cs,arrIdx,isResolved)=>{
+    const realIdx=all.indexOf(cs);
     const col=CSQ_COLORS[cs.type]||'var(--text-dim)';
-    const d=document.createElement('div');
-    d.style.cssText=`margin-bottom:5px;padding:6px 8px;border:1px solid var(--border);border-left:3px solid ${col};border-radius:6px;background:var(--surface2);${cs.resolved?'opacity:.5':''}`;
-    d.innerHTML=`<div style="display:flex;align-items:flex-start;gap:6px"><div style="flex:1"><div style="font-size:10px;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">${cs.type||'background'}${cs.location?' · '+esc(cs.location):''}</div><div style="font-size:12px;color:${cs.resolved?'var(--text-dim)':'var(--text)'};${cs.resolved?'text-decoration:line-through':''}">${esc(cs.text)}</div>${cs.ts?`<div style="font-size:9px;color:var(--text-dim);margin-top:3px">${esc(cs.ts)}</div>`:''}</div>${!cs.resolved?`<button onclick="resolveConsequence('${cs.id}')" style="flex-shrink:0;font-size:10px;padding:3px 8px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer" title="Mark resolved">✓</button>`:''}</div>`;
-    c.appendChild(d);
+    const det=document.createElement('details');
+    det.style.cssText=`margin-bottom:5px;border:1px solid var(--border);border-left:3px solid ${col};border-radius:6px;background:var(--surface2);${isResolved?'opacity:.5':''}`;
+    det.innerHTML=`<summary style="list-style:none;cursor:pointer;padding:6px 8px;display:flex;align-items:center;gap:6px">
+      <span style="font-size:10px;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.5px;flex-shrink:0">${cs.type||'background'}</span>
+      <span style="flex:1;font-size:11px;color:${isResolved?'var(--text-dim)':'var(--text)'};${isResolved?'text-decoration:line-through':''};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(cs.text)}</span>
+      ${cs.location?`<span style="font-size:9px;color:var(--text-dim);flex-shrink:0">📍 ${esc(cs.location)}</span>`:''}
+      ${!isResolved?`<button onclick="event.stopPropagation();resolveConsequence('${cs.id}')" style="flex-shrink:0;font-size:9px;padding:2px 6px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer" title="Mark resolved">✓</button>`:''}
+    </summary>
+    <div style="padding:8px 10px;border-top:1px solid var(--border)">
+      <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;align-items:center">
+        <select style="width:90px;font-size:10px;padding:3px;border-color:${col};color:${col}" onchange="updConsequence(${realIdx},'type',this.value)">${CSQ_TYPES.map(t=>`<option value="${t}" ${cs.type===t?'selected':''}>${t}</option>`).join('')}</select>
+        <input type="text" value="${esc(cs.location||'')}" placeholder="Location" style="width:90px;font-size:10px" onchange="updConsequence(${realIdx},'location',this.value)">
+        <button class="btn sm red icon-btn" onclick="remConsequence(${realIdx})" style="margin-left:auto" title="Delete">&times;</button>
+      </div>
+      <textarea style="font-size:11px;width:100%;box-sizing:border-box;min-height:50px" onchange="updConsequence(${realIdx},'text',this.value)">${esc(cs.text||'')}</textarea>
+      ${cs.ts?`<div style="font-size:9px;color:var(--text-dim);margin-top:3px">${esc(cs.ts)}</div>`:''}
+      ${cs.resolvedTs?`<div style="font-size:9px;color:var(--text-dim);margin-top:2px">Resolved: ${esc(cs.resolvedTs)}</div>`:''}
+    </div>`;
+    return det;
   };
-  active.forEach((cs,i)=>render(cs,i));
+  active.forEach((cs,i)=>c.appendChild(render(cs,i,false)));
   if(resolved.length){
     const det=document.createElement('details');
     det.style.cssText='margin-top:8px';
     const sum=document.createElement('summary');sum.style.cssText='font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;cursor:pointer;list-style:none;padding:4px 0';sum.textContent='▶ Resolved ('+resolved.length+')';
     det.appendChild(sum);
-    resolved.forEach((cs,i)=>{
-      render(cs,active.length+i);
-      det.appendChild(c.lastChild);
-    });
+    resolved.forEach((cs,i)=>det.appendChild(render(cs,active.length+i,true)));
     c.appendChild(det);
   }
 }
+function addConsequence(){
+  if(!Array.isArray(state.consequences))state.consequences=[];
+  state.consequences.push({id:'csq_'+Date.now(),text:'',type:'background',resolved:false,ts:state.worldData.time,location:state.worldData.location||''});
+  save();renderConsequences();
+}
+function updConsequence(i,k,v){if(state.consequences[i]){state.consequences[i][k]=v;save();renderConsequences();}}
+function remConsequence(i){if(!confirm('Delete this consequence?'))return;state.consequences.splice(i,1);save();renderConsequences();}
 function resolveConsequence(id){
   const cs=state.consequences.find(c=>c.id===id);
   if(cs){cs.resolved=true;cs.resolvedTs=new Date().toLocaleString();save();renderConsequences();toast('✓ Consequence resolved.');}
@@ -10463,7 +10484,7 @@ Object.assign(window, {
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
   remSecret, remSlotLvl, remSnip, remSpell, remTown, remWItem,
-  renderAll, renderSheets, renderCards, resolveConsequence, dedupConsequences, dedupNPCs, dedupQuests, dedupLocations, dedupTownRep, rollAttack, rollStatCheck, rollInitiative,
+  renderAll, renderSheets, renderCards, resolveConsequence, addConsequence, updConsequence, remConsequence, dedupConsequences, dedupNPCs, dedupQuests, dedupLocations, dedupTownRep, rollAttack, rollStatCheck, rollInitiative,
   saveRefresh, saveSetupPC, saveTts, saveBP,
   scrollStoryBottom, scrollStoryTop, selectFlagCat,
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
