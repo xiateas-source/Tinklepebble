@@ -79,7 +79,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 16** (2026-06-18): Quest announcement system — `quest_add` auto-anchors to current location, writes location history entry, shows persistent ⚔ quest chips on originating DM message (tap → quest detail with highlight), 📍 location link in quest detail (tap → Location Journal). Partially addresses Flag 5/9 (Quest→Chapter linking).
 
-**Session 17** (2026-06-18): Level-up wizard overhaul — feat selection (56 feats: 42 PHB + 14 TCoE, with descriptions, search, half-feat ability picker), current ability scores display on ASI step, ASI/Feat toggle, spell swap step for spellcasters (optional replace one known spell). Term glossary expansion (27→84 terms: conditions, saves, combat mechanics, spellcasting, resting, terrain, vision, damage types, class features). Per-PC inventory buttons in Cargo (Flag 13): Wagon/PC toggle, browse each character's personal inventory with full chip edit UI.
+**Session 17** (2026-06-18): Level-up wizard overhaul — feat selection (56 feats: 42 PHB + 14 TCoE, with descriptions, search, half-feat ability picker), current ability scores display on ASI step, ASI/Feat toggle, spell swap step for spellcasters (optional replace one known spell). Term glossary expansion (27→84 terms: conditions, saves, combat mechanics, spellcasting, resting, terrain, vision, damage types, class features). Per-PC inventory buttons in Cargo (Flag 13): Wagon/PC toggle, browse each character's personal inventory with full chip edit UI. Condition duration tracking (optional rounds on conditions, auto-expire at end of turn, duration badges on tokens/active card). Quick enemy clone (one-tap duplicate non-PC combatant with auto-numbered suffix).
 
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
@@ -114,8 +114,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - **Quest log UX refresh** (Flag 12) — needs design
 
 ### From Gameplay UX Audit (medium-effort, not yet built)
-- **Condition duration tracking** — track rounds remaining on conditions, auto-expire
-- **Quick enemy clone** — duplicate an existing combatant for fast encounter setup
+- ✅ ~~**Condition duration tracking** — track rounds remaining on conditions, auto-expire~~ — Session 17
+- ✅ ~~**Quick enemy clone** — duplicate an existing combatant for fast encounter setup~~ — Session 17
 - **Combat quick-panel** — context strip becomes tappable combat action bar during combat
 - **Unified step bar with targeting** — step bar integrates with combat zone targeting
 
