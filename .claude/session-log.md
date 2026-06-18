@@ -3,41 +3,49 @@
 ## Session 19 · 2026-06-18
 
 ### Shipped
-- **Spell descriptions in level-up wizard** — Spell picker now shows school, cast time, range, and truncated description from SPELL_DB for each spell. Max-height increased 240→360px
-- **Tappable mechanic pills** — ⚡ Changes pills are now clickable; `_mechPillNav(el)` pattern-matches pill textContent to navigate to relevant app section (party/wagon/world/combat/session). CSS: `cursor:pointer` + `:active` press feedback
-- **Journal consolidation** — World tab (`tab-world`) replaced 3-panel toggle layout with single scrollable Journal view combining quests, locations, NPCs, travel log, town reputation, consequences, and secrets into collapsible `<details>` sections. Ghost containers kept as empty hidden divs for backward compat
-- **Journal header** — `renderJournalHeader()` shows location, time/weather, HP bars, quest/NPC/location counts, "Previously On" and "Catch Up" chip buttons
-- **Journal town rep** — `renderJournalRep()` duplicate renderer targeting `#journal-rep-list` in Journal (Wagon tab keeps `#town-rep-list`)
-- **Enhanced "Previously On"** — `previouslyOn()` detects sparse trackers (questCount<3 || locCount<3 || npcCount<3), sends 20 msgs (vs 8), adds MECHANICS instructions for quest_add/location_add/npc_add/town_rep, runs parseMechanics on response, strips mechanics from display
-- **"Catch Up" audit** — `catchUpAudit()` sends tracker snapshot + recent 20 messages, asks AI to audit and fill gaps, runs parseMechanics on response. QA chip `qa_25`, slash commands `//catchup` / `//catch-up`
-- **Travel timeline cross-linking** — `renderTravelLog()` enriched with labeled tappable chips showing linked quests, NPCs, and town reputation at each location. Chips navigate to relevant Journal sections
-- **Environment AI contract fix** — Added explicit instructions for `location:`, `weather:`, and `location_add:` mechanics when party moves or conditions change
-- **Journey log reversed** — Travel log now shows most recent entries first (`[...log].reverse()`), scroll position resets to top
+- **Spell descriptions in level-up wizard** — Spell picker now shows school, cast time, range, and truncated description from SPELL_DB
+- **Tappable mechanic pills** — ⚡ Changes pills clickable via `_mechPillNav(el)` pattern-matching navigation
+- **Journal consolidation** — World tab replaced with single scrollable Journal view (quests, locations, NPCs, travel log, town rep, consequences, secrets in collapsible `<details>`)
+- **Journal header** — `renderJournalHeader()` with location/time/weather, HP bars, tracker counts, "Previously On" + "Catch Up" chips
+- **Enhanced "Previously On"** — sparse tracker detection, 20-msg context, auto-seeds quest_add/location_add/npc_add/town_rep
+- **"Catch Up" audit** — `catchUpAudit()` tracker snapshot + recent 20 messages, QA chip `qa_25`, `//catchup`
+- **Deep Seed** — `deepSeed()` multi-pass auto-audit: up to 4 passes over progressively older context, re-snapshots between passes, stops when no new entries. `//deepseed` command
+- **Travel timeline cross-linking** — labeled tappable chips for quests/NPCs/rep at each location
+- **Journey log reversed** — most recent entries first
+- **OOC message actions** — ⚠️ export, copy, delete now directly visible on each OOC message (no longer hidden behind ⋮ menu)
+- **Consequence dedup** — fuzzy 60% word overlap at insertion time + `dedupConsequences()` cleanup utility
+- **Logistics 2-tab subnav** — Journal + Cargo (Combat accessible via `navTo('combat')` but not in subnav)
+- **Familiar system** — `state.pcs[idx].familiar` object, `familiar_hp` mechanic, auto-combat-add to Rear Guard, HP sync after combat, HUD tile, ledger lines
+- **Quest Timeline** — `renderQuests()` location-grouped with NPC chips, status badges, editable location/notes
+- **Dedup buttons on all trackers** — 🧹 buttons on NPCs, quests, locations, town rep, consequences (>3 entries)
+- **Consequences rewrite** — expandable `<details>` cards with inline edit (type/location/text), add/delete/resolve. `addConsequence()`, `updConsequence()`, `remConsequence()`
+- **Broadened npc_add contract** — fires on any named NPC reference (not just formal introductions)
+- **6-flag pass**: DM persona closed by default, PC overview sheet display:none fix (duplicate display property), OOC ⚠️ directly visible, QA customize scrolls to editor, header menu reorganized (Save & Load / Player / Danger Zone sections)
 
 ### Decisions Made
-- World tab renamed to "Journal" in logistics subnav (📔 Journal)
 - Journal is one scrollable page with collapsible sections, not sub-tabs
-- "Previously On" auto-seeds sparse trackers (fewer than 3 quests, locations, or NPCs)
-- "Catch Up" is a separate lighter audit tool for ongoing maintenance
-- Travel timeline uses labeled chips instead of 8px dots (mobile-friendly, tappable)
-- Journey log ordered most-recent-first for easier orientation
+- Deep Seed replaces manual Catch Up spam — automated multi-pass with dedup
+- OOC actions shown directly (not behind ⋮ submenu) since OOC has fewer buttons
+- Header menu grouped into labeled sections: Save & Load, Player, Danger Zone
+- NPC inline name linking logged as planned feature (not built yet)
 
 ### Known Issues
 - `executeStep()` is dead code — not exported, calls no-op functions. Safe to delete
 - `state.worldData.plot/timers` fields orphaned
-- Remaining open flags: 10 (Familiar home), 12 (Quest log refresh) — both need user design input
+- **Flag 2 unclear** — user said "Remind me why this feature is here? Have we replaced it? This feels like a relic" — needs screenshot/clarification to identify which feature
+- **Flag 3 hashtags** — user reports "hashtags by the names" in character sheet. No `#` found in name rendering code. May be device-specific rendering artifact — needs screenshot
 
 ### In Progress
 - Nothing actively in progress — all committed and deployed
 
 ### Next Up
-1. **Clean up dead code** — remove `executeStep()`, `_stepTarget`, step-related refs
-2. **Familiar/animal home** (Flag 10) — needs design
-3. **Quest log UX refresh** (Flag 12) — needs design
-4. **Combat quick-panel** — context strip as tappable combat action bar
-5. Update `parseMechanics` handler count in docs (currently says 60+, may have grown)
+1. **Clarify Flag 2** — need user to identify which feature "feels like a relic"
+2. **Clarify Flag 3 hashtags** — need screenshot to identify source
+3. **Clean up dead code** — remove `executeStep()`, `_stepTarget`, step-related refs
+4. **Inline NPC name linking** — scan DM messages for tracked NPC names, make tappable
+5. **Combat quick-panel** — context strip as tappable combat action bar
+6. **Con Scorecard** — `state.slasherOI`, income parsing, town survival stats (needs design)
 
 ### Branch State
 - Branch: `claude/new-session-rvx6tn`
-- Last commit: `ce11d07` (Reverse journey log to show most recent entries first)
-- Merged to main and live
+- All changes committed and merged to main

@@ -6224,13 +6224,10 @@ function renderOOC(){
     const sender=isSys?'System':isDM?'DM (OOC)':(msg.playerName||playerName||'Party');
     let tsHtml='';
     if(msg.gameTs||msg.ts){tsHtml='<span style="font-size:9px;opacity:.5">';if(msg.gameTs)tsHtml+=esc(msg.gameTs);if(msg.gameTs&&msg.ts)tsHtml+=' · ';if(msg.ts)tsHtml+=esc(msg.ts);tsHtml+='</span>';}
-    const omId=`ooc-over-${idx}`;
     const copyBtn=`<button class="copy-btn" onclick="navigator.clipboard.writeText(state.oocHistory[${idx}].content||'');toast('Copied')" title="Copy">📋</button>`;
     const exportBtn=`<button class="flag-btn" onclick="exportOOCMoment(${idx})" title="Export this moment">⚠️</button>`;
     const delBtn=`<button class="flag-btn" onclick="deleteOOCMsg(${idx})" title="Delete" style="color:#c05050">✕</button>`;
-    const overMenu=`<div id="${omId}" style="display:none;position:absolute;right:0;top:100%;background:var(--surface3);border:1px solid var(--border);border-radius:6px;z-index:200;padding:4px;gap:2px;flex-direction:row">${exportBtn}${delBtn}</div>`;
-    const moreBtn=`<div style="position:relative;display:inline-flex"><button class="copy-btn" onclick="(function(el){var m=document.getElementById('${omId}');m.style.display=m.style.display==='flex'?'none':'flex';document.addEventListener('click',function h(e){if(!el.contains(e.target)){m.style.display='none';document.removeEventListener('click',h);}},{once:true,capture:true});event.stopPropagation()})(this.parentElement)" title="More" style="font-size:11px;padding:0 5px;min-width:22px">⋮</button>${overMenu}</div>`;
-    d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
+    d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${exportBtn}${delBtn}${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
     if(msg.id)d.id='oocmsg_'+msg.id;
     c.appendChild(d);
   });

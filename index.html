@@ -147,15 +147,28 @@
   </div>
 </header>
 <div id="header-menu" style="display:none;position:fixed;top:58px;right:0;left:0;background:var(--surface);border-bottom:1px solid var(--border-bright);z-index:1000;padding:14px 16px 12px;box-shadow:0 8px 32px rgba(0,0,0,.7);" onclick="if(event.target===this)closeHeaderMenu()">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-    <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
-    <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
-    <button onclick="openDashboard('changelog');closeHeaderMenu()" class="btn">📋 Patch Notes</button>
-    <button onclick="exportConfig();closeHeaderMenu()" class="btn gold">📤 Export</button>
-    <button onclick="copyStateCompact();closeHeaderMenu()" class="btn">📋 Copy State</button>
-    <button onclick="switchUser()" class="btn" style="border-color:var(--purple-bright);color:var(--purple-bright)!important">👤 Switch Player</button>
-    <button onclick="openResetModal('campaign');closeHeaderMenu()" class="btn" style="border-color:var(--gold);color:var(--gold)!important">🌅 New Campaign</button>
-    <button onclick="openResetModal('full');closeHeaderMenu()" class="btn" style="border-color:var(--red);color:var(--red-bright)!important">⚠ Full Reset</button>
+  <div style="margin-bottom:10px">
+    <span style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Save &amp; Load</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
+      <button onclick="exportConfig();closeHeaderMenu()" class="btn gold">📤 Export</button>
+      <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
+      <button onclick="copyStateCompact();closeHeaderMenu()" class="btn">📋 Copy State</button>
+      <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
+    </div>
+  </div>
+  <div style="margin-bottom:10px;padding-top:8px;border-top:1px solid var(--border)">
+    <span style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px">Player</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
+      <button onclick="switchUser()" class="btn" style="border-color:var(--purple-bright);color:var(--purple-bright)!important">👤 Switch Player</button>
+      <button onclick="openDashboard('changelog');closeHeaderMenu()" class="btn">📋 Patch Notes</button>
+    </div>
+  </div>
+  <div style="margin-bottom:10px;padding-top:8px;border-top:1px solid var(--border)">
+    <span style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;color:var(--red)">Danger Zone</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
+      <button onclick="openResetModal('campaign');closeHeaderMenu()" class="btn" style="border-color:var(--gold);color:var(--gold)!important">🌅 New Campaign</button>
+      <button onclick="openResetModal('full');closeHeaderMenu()" class="btn" style="border-color:var(--red);color:var(--red-bright)!important">⚠ Full Reset</button>
+    </div>
   </div>
   <div style="display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
     <span style="font-size:10px;color:var(--text-dim);text-transform:uppercase">Shortcuts</span>
@@ -639,7 +652,7 @@
       </details>
       <div class="panel accent">
         <div class="panel-title">AI System Prompt Contracts <button class="btn sm" onclick="verifyContracts()" style="margin-left:6px;font-size:10px;padding:2px 8px;flex-shrink:0;border-color:var(--green);color:var(--green)" title="Check all required contract clauses are present">🔍 Verify</button><button class="btn sm" onclick="copyContracts()" style="margin-left:6px;font-size:10px;padding:2px 8px;flex-shrink:0" title="Copy all contracts to clipboard">📋 Copy all</button></div>
-        <details class="bs" open style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--gold)">①</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">DM Persona &amp; Tone</span><span style="font-size:9px;color:var(--text-dim)">Character voices, tone, Slasher con-protection</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-persona" style="min-height:70px" oninput="saveContract('persona',this.value)">You are the Dungeon Master for Tinkle's Tinctures, a D&D 5e campaign. Narrate immersively, enforce strict RAW mechanics, and treat every player action seriously. Maintain consistent narrator voice — do not drift more casual or formal over time.
+        <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--gold)">①</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">DM Persona &amp; Tone</span><span style="font-size:9px;color:var(--text-dim)">Character voices, tone, Slasher con-protection</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-persona" style="min-height:70px" oninput="saveContract('persona',this.value)">You are the Dungeon Master for Tinkle's Tinctures, a D&D 5e campaign. Narrate immersively, enforce strict RAW mechanics, and treat every player action seriously. Maintain consistent narrator voice — do not drift more casual or formal over time.
 
 Tone: Gritty traveling-con-artist fantasy. Grounded, low-magic, darkly comic. The operation is morally grey and everyone knows it. Dry wit welcome. Melodrama earned, not given.
 
@@ -1094,7 +1107,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 
 <!-- PC OVERVIEW SHEET (tap HUD tile) -->
 <div id="pc-overview-backdrop" onclick="closePCOverview()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:810;-webkit-tap-highlight-color:transparent"></div>
-<div id="pc-overview-sheet" style="display:none;position:fixed;bottom:0;left:0;width:100vw;max-height:82vh;background:var(--surface);border-top:2px solid var(--gold-dim);border-radius:14px 14px 0 0;z-index:820;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);transform:translateY(100%);transition:transform .25s cubic-bezier(.1,.75,.55,1)">
+<div id="pc-overview-sheet" style="display:none;position:fixed;bottom:0;left:0;width:100vw;max-height:82vh;background:var(--surface);border-top:2px solid var(--gold-dim);border-radius:14px 14px 0 0;z-index:820;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);transform:translateY(100%);transition:transform .25s cubic-bezier(.1,.75,.55,1)">
   <div style="width:36px;height:4px;background:var(--border-bright);border-radius:2px;margin:10px auto 0;flex-shrink:0"></div>
   <div id="pc-overview-hdr" style="display:flex;align-items:center;padding:10px 14px 6px;border-bottom:1px solid var(--border);gap:10px;flex-shrink:0">
     <div style="flex:1">
@@ -1116,7 +1129,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
   </div>
   <div class="qa-menu-body" id="qa-menu-items"></div>
   <div class="qa-menu-footer">
-    <button onclick="closeQAMenu();navTo('ait')">✎ Customize actions &amp; icon…</button>
+    <button onclick="closeQAMenu();navTo('ait');setTimeout(()=>{const el=document.getElementById('qa-editor-list');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},350)">✎ Customize actions &amp; icon…</button>
   </div>
 </div>
 <div id="qa-fab-wrap" style="position:fixed;bottom:calc(160px + env(safe-area-inset-bottom,0px));right:16px;z-index:750;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none;user-select:none">

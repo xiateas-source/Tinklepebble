@@ -449,3 +449,14 @@ Functions: `_handleSlashCmd(raw)` — command dispatcher; `SUGGEST_CHIPS{}` — 
 - **Condition Duration Tracking** — `condDurations` map on combat.list entries. Optional rounds on conditions. Duration input on quick-add row (`#zac-cond-dur`). Badges show remaining rounds (e.g., "Stunned 2r"). `_tickCondDurations(entIdx)` auto-expires at end of combatant's turn. Turn context injection includes durations for AI.
 - **Spellbook Auto-Sort** — `_sortSpellbook(book)` sorts by level (cantrips first) then alphabetically. Applied on: spell_add mechanic, spell picker, manual add, name/level edit, migrate().
 - **Test Chat Scenario Chips** — 13 AI-facing prompts in test channel: Award XP, Add condition, Drop loot, Start combat, NPC intro, Damage + cond, Glossary, Rest & recover, Quest hook, Level announce, Test level up. Quote escaping via `&quot;` in onclick attributes.
+- **Deep Seed** — `deepSeed()` multi-pass auto-audit: up to 4 passes over progressively older context (recent→older→archive), re-snapshots trackers between passes, stops when no new entries found. `//deepseed` command.
+- **Consequence Editor** — `renderConsequences()` expandable `<details>` cards with inline editing (type dropdown, location input, text textarea). `addConsequence()`, `updConsequence(i,k,v)`, `remConsequence(i)`. `+` button in section header.
+- **Tracker Dedup Buttons** — `dedupConsequences()`, `dedupNPCs()`, `dedupQuests()`, `dedupLocations()`, `dedupTownRep()` — fuzzy 60% word overlap. 🧹 buttons on each tracker section when >3 entries.
+- **Familiar System** — `state.pcs[idx].familiar` object (`{name, type, ac, hp, hp_max, abilities}`). `familiar_hp` mechanic handler. `addFamiliar(idx)`, `updFamiliar(idx,k,v)`. Auto-added to Rear Guard in combat (`addPartyToCombat`). HP synced back after combat (`endCombat`). Familiar HUD tile + overview panel. Compact+full ledger lines.
+- **Quest Timeline** — `renderQuests()` grouped by location with timeline dots, NPC chips, status badges, editable location field, always-visible notes.
+
+---
+
+## Planned (Not Yet Built)
+
+- **Inline NPC name linking** — Scan DM messages for known NPC names from `state.npcs`, wrap matches in tappable chips/links that navigate to the NPC tracker entry and highlight it. Enables the "I see a name, I want to know more" instinct.
