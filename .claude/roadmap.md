@@ -75,6 +75,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 14** (2026-06-17): Code review fixes (9 — strict fuzzy match, fog rendering, pin drag capture, CSQ_COLORS, area map caching). Wagon cargo/hoard chip UX (shared `_renderInvChips()`, filter bar, tap-to-expand). 5 combat quick wins (inline HP +/-, turn context injection, concentration alerts, combat-only condition sync, rich context refresh). Map pin UX (tap→action bar with Move/Unpin/Details, `unpinFromMap()`, `movePin()`, chip ✕ affordances). Ops debrief prompt upgrade (cross-reference flags against shipped features, INCOMPLETE FIX vs NEW). Gameplay log export (Dev tab — last 40 or full chat+archive, formatted for dev review). Per-message moment export (⚠️ in overflow menu, 10-msg context window). `//` command system (note, flag N, add item, hp, gold, explain, help). Suggestion chips above chat input (contextual per channel, surfaces hidden features). `//explain` in-chat help (16 topics).
 
+**Session 15** (2026-06-18): PDF module import improvements (better chapter detection, Replace/Add mode toggle, auto-split fallback). Contract 9 anti-fabrication (NON-CANONICAL fabricated content, no "homebrew" label, double-save recalibrate). `quest_update` mechanic. Level-up context injection (choice hints from LEVEL_UP_DATA). Spell compendium (SPELL_DB ~65 spells, MANEUVER_DB 16 maneuvers, browsable UI with filters + one-tap add). 5 flags addressed: merged Spells+Spellbook tabs (Flag 3), dynamic skill calc (Flag 8), story pacing contract (Flag 7), test chat export (Flag 1), compendium browse. Compendium button fix ×2 (module-scope vars, onclick escaping, render path, overview→edit navigation).
+
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
@@ -94,12 +96,12 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 ### From Ops Debrief (14 gameplay flags — prioritized for next session)
 - **Encumbrance tracking** (Flag 14) — weight calc in genLedger + AI contract clause
-- **Expertise double-prof** (Flag 8) — incomplete fix, skill calc doesn't multiply
-- **Cantrip level-0 display** (Flag 3) — spellbook has no level-0 group
-- **Story pacing contract** (Flag 7) — "never resolve unannounced actions" clause
+- ✅ ~~**Expertise double-prof** (Flag 8) — dynamic skill calc multiplies proficiency~~ — Session 15
+- ✅ ~~**Cantrip level-0 display** (Flag 3) — Spells+Spellbook merged, compendium browser~~ — Session 15
+- ✅ ~~**Story pacing contract** (Flag 7) — added to ai-actions~~ — Session 15
 - **OOC accuracy** (Flag 6) — OOC channel lacks latest narrative context
 - **Multi-category items** (Flag 2) — items can be foraged+ingredient
-- **Test chat export** (Flag 1) — incomplete, needs export button
+- ✅ ~~**Test chat export** (Flag 1) — exportTestChat() added~~ — Session 15
 - **Per-PC inventory in Cargo** (Flag 13) — character buttons in Cargo view
 - **Treasure audit inline** (Flag 4/13) — dedup from income log
 - **Context strip carousel** (Flag 11) — tap to cycle location→char→quest→module
