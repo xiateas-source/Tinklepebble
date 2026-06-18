@@ -251,6 +251,7 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `renderChat()` — Chat message display
 - `renderCards()` / `renderCharTabs()` / `renderSheets()` — Character cards and edit forms
 - `renderCharSheet(idx)` — 6-tab digital sheet (Core/Skills/Combat/Spells/Gear/Features)
+- `renderCompendium(idx)` — Browsable spell/maneuver compendium with class/level filters, search, grouped by level, + Add button
 - `renderPartyPCList()` — Compact PC list with HP bars and XP progress
 - `renderSessionArchive()` — Collapsible session archive entries, newest-first
 - `renderLocations()` — Node Map SVG + location list
@@ -349,7 +350,7 @@ Parsed from AI response blocks in format: `key: value`
 
 **Wagon:** `wagon_cell_add`/`update`/`remove`, `wagon_hp`, `ox_hp`, `ox_condition`
 
-**Story:** `quest_add`, `quest_done`, `quest_fail`, `primary_mission`, `npc_add`, `npc_mood`, `consequence_add`, `consequence_resolve`, `chapter_add`, `module_episode`
+**Story:** `quest_add`, `quest_done`, `quest_fail`, `quest_update` (name|status text), `primary_mission`, `npc_add`, `npc_mood`, `consequence_add`, `consequence_resolve`, `chapter_add`, `module_episode`
 
 **Location Journal:** `location_add`, `location_visit`, `location_history`, `location_investment`
 
@@ -422,3 +423,6 @@ Functions: `_handleSlashCmd(raw)` — command dispatcher; `SUGGEST_CHIPS{}` — 
 - **Checkpoint System** — Manual + auto triggers (long rest, level-up, 0 HP, every N messages)
 - **Skill Proficiency Inference** — Parses `pc.skills` text as fallback when `skillProfs[]` is empty; Expertise detection via "(Expertise)" pattern
 - **Firebase Sync** — Config modal, real-time bidirectional sync, clock-independent chat merge
+- **Spell Compendium** — `SPELL_DB` (~65 spells, Bard + Wizard cantrips–3rd level), `MANEUVER_DB` (16 Battle Master maneuvers). Functions: `toggleCompendium(idx)`, `openCompendiumFromOverview(idx)`, `setCompFilter(idx,k,v)`, `addFromCompendium(idx,spellName)`, `addManeuverToPC(idx,name)`, `renderCompendium(idx)`. Class/level dropdowns, search, one-tap add to spellbook.
+- **Dynamic Skill Calc** — `genLedger()` computes skill modifiers from ability scores + proficiency + expertise instead of stale hardcoded strings
+- **Contract 9 — Module Fidelity** — Auto-injected into `buildPrompt()` when `moduleProgress` has entries. Anti-fabrication rules: fabricated content is NON-CANONICAL, never call campaign homebrew.
