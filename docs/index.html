@@ -12,8 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.DYiIKCFp.js"></script>
-  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.Bq5Wtc5c.css">
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.ttbT-mEO.js"></script>
+  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.BiXkBky9.css">
 </head>
 <body>
 
@@ -1025,16 +1025,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 <!-- BOTTOM DOCK -->
 <footer class="lower-dock">
   <div id="context-strip" onclick="_tapCtxStrip()" style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-dim);padding:3px 2px 2px;line-height:1.3;min-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer"></div>
-  <div id="step-target-label" class="step-target-label" style="display:block">Tap a name above to select · then adjust HP below</div>
-  <div style="display:flex;align-items:center;gap:4px">
-  <div id="step-bar" class="step-bar" style="flex:1">
-    <button class="step-btn dec" onclick="executeStep(-5)">-5</button>
-    <button class="step-btn dec" onclick="executeStep(-1)">-1</button>
-    <button class="step-btn inc" onclick="executeStep(1)">+1</button>
-    <button class="step-btn inc" onclick="executeStep(5)">+5</button>
-  </div>
-  <button onclick="openStepConfig()" title="Configure HP steps" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:13px;color:var(--text-dim);cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent">⚙</button>
-  </div>
+  <div id="turn-tracker" style="display:none;font-size:10px;padding:2px 4px;display:flex;align-items:center;gap:6px;overflow-x:auto;white-space:nowrap"></div>
   <div id="cmd-result" class="cmd-result" onclick="this.classList.toggle('expanded')" style="display:none"></div>
   <div id="chat-suggest" class="chat-suggest"></div>
   <div class="chat-quick-bar">
