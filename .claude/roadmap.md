@@ -21,7 +21,7 @@ This fragment must survive every refactor. `buildPrompt()` validates this fragme
 - `renderAll()` = central render; `renderChat()` = narrative chat
 - `callAI()` = retry wrapper (2x, 1.2s/2.4s, 5xx only) + OpenRouter free-model fallback
 - `summarizeAndPrune()` = rolling AI summary at 75 msgs → appends to `sessionArchive[]` (50-cap), `prevSessionSummary` = last 3 batches joined
-- `parseMechanics()` = 43+ handlers; `_MECH_KEYS` controls display stripping
+- `parseMechanics()` = 60 handlers / 65 keys; `_MECH_KEYS` controls display stripping
 - `buildPrompt()` / `genLedger()` = AI system prompt assembly
 - Navigation: 4-tab bottom nav (AI DM / Sheet / Logistics / Systems) with composite drawers; `navTo()` routes all tab access
 - Body layout: `display:flex; flex-direction:column; height:100dvh` — `#tab-dm{flex:1}` fills viewport
@@ -81,6 +81,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 17** (2026-06-18): Level-up wizard overhaul — feat selection (56 feats: 42 PHB + 14 TCoE, with descriptions, search, half-feat ability picker), current ability scores display on ASI step, ASI/Feat toggle, spell swap step for spellcasters (optional replace one known spell). Term glossary expansion (27→84 terms: conditions, saves, combat mechanics, spellcasting, resting, terrain, vision, damage types, class features). Per-PC inventory buttons in Cargo (Flag 13): Wagon/PC toggle, browse each character's personal inventory with full chip edit UI. Condition duration tracking (optional rounds on conditions, auto-expire at end of turn, duration badges on tokens/active card). Quick enemy clone (one-tap duplicate non-PC combatant with auto-numbered suffix).
 
+**Session 18** (2026-06-18): Context strip carousel (Flag 11 closed) — 7-slide rotation (location, time, weather, quest, combat round, party HP, module episode) with 5s auto-rotate and manual tap cycling. Combat turn tracker replacing HP step bar — horizontal initiative strip in lower-dock. Spellbook auto-sort (level then alphabetical). `//testlevelup` command. Test chat scenario chips (13 AI-facing prompts). Quick Actions panel z-index fix (202→800) and rename ("DM Actions"→"Quick Actions"). 7 bug fixes: suggestion chip quote escaping, export moment stale indices after prune, mechanics markdown prefix stripping, `**MECHANICS**` header format support, conditions hyphen parsing (findPC validation), previewMechanics fallback, turn-tracker duplicate display property.
+
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
@@ -108,7 +110,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ ~~**Test chat export** (Flag 1) — exportTestChat() added~~ — Session 15
 - ✅ ~~**Per-PC inventory in Cargo** (Flag 13) — Wagon/PC toggle buttons in Cargo~~ — Session 17
 - ✅ ~~**Treasure audit inline** (Flag 4) — income log dedup in validator~~ — Session 15
-- **Context strip carousel** (Flag 11) — tap to cycle location→char→quest→module
+- ✅ ~~**Context strip carousel** (Flag 11) — 7-slide auto-rotation + tap cycling~~ — Session 18
 - ✅ ~~**Quest→Location linking** (Flag 5/9) — quest_add anchors to location, ⚔ chat chips, 📍 location links~~ — Session 16
 - **Familiar/animal home** (Flag 10) — needs design
 - **Quest log UX refresh** (Flag 12) — needs design
@@ -117,7 +119,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ ~~**Condition duration tracking** — track rounds remaining on conditions, auto-expire~~ — Session 17
 - ✅ ~~**Quick enemy clone** — duplicate an existing combatant for fast encounter setup~~ — Session 17
 - **Combat quick-panel** — context strip becomes tappable combat action bar during combat
-- **Unified step bar with targeting** — step bar integrates with combat zone targeting
+- ~~**Unified step bar with targeting**~~ — OBSOLETE: step bar removed in Session 18 (replaced by turn tracker)
 
 ### Panel Removal Queue (replace, don't hide)
 Panels to remove once their replacement matures:
