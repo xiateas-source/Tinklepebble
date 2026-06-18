@@ -1835,9 +1835,9 @@ function renderTravelLog(){
   const c=document.getElementById('travel-log-visual');if(!c)return;
   const log=state.worldData.travelLog||[];
   if(!log.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;font-style:italic">No travel recorded yet.</div>';return;}
+  const _locMatch=(name,target)=>name&&target&&name.toLowerCase().includes(target.toLowerCase());
   c.innerHTML=log.map((entry,i)=>{
     const isLast=i===log.length-1;
-    // Format: "Day 1, 9:00 AM: Greenest → Cleft of Sighs | optional note"
     const colIdx=entry.indexOf(':');
     let ts='',rest=entry;
     if(colIdx>-1&&colIdx<30){ts=entry.slice(0,colIdx).trim();rest=entry.slice(colIdx+1).trim();}
@@ -1848,14 +1848,35 @@ function renderTravelLog(){
     const dest=pipeIdx>-1?afterArrow.slice(0,pipeIdx).trim():afterArrow;
     const note=pipeIdx>-1?afterArrow.slice(pipeIdx+3).trim():'';
     const label=isLast?(from?dest:dest)+' ← now':dest||from;
+    const locName=dest||from;
+    let dots='';
+    if(locName){
+      const quests=(state.quests||[]).filter(q=>_locMatch(q.location,locName));
+      const npcs=(state.npcs||[]).filter(n=>_locMatch(n.lastSeen,locName)&&n.status==='active');
+      const rep=(state.worldData.townReputation||[]).find(t=>_locMatch(t.town,locName));
+      const locObj=(state.locations||[]).find(l=>_locMatch(l.name,locName));
+      quests.forEach((q,qi)=>{
+        const qIdx=(state.quests||[]).indexOf(q);
+        const col=q.status==='done'?'var(--text-dim)':q.status==='failed'?'var(--red)':'var(--gold)';
+        dots+=`<span onclick="event.stopPropagation();var d=document.getElementById('journal-sec-quests');if(d)d.open=true;var e=document.getElementById('quest-det-${qIdx}');if(e){e.open=true;e.scrollIntoView({behavior:'smooth',block:'center'});e.style.outline='2px solid var(--gold)';setTimeout(function(){e.style.outline=''},2200)}" style="cursor:pointer;display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};border:1px solid ${col};margin-right:2px" title="${esc((q.text||'').split('|')[0].slice(0,40))}"></span>`;
+      });
+      npcs.forEach(n=>{
+        dots+=`<span onclick="event.stopPropagation();var d=document.getElementById('journal-sec-npcs');if(d)d.open=true" style="cursor:pointer;display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);border:1px solid var(--green);margin-right:2px" title="${esc(n.name)}"></span>`;
+      });
+      if(rep){
+        const rc=rep.status==='good'?'var(--green)':rep.status==='burned'||rep.status==='fled'?'var(--red)':'var(--text-dim)';
+        dots+=`<span onclick="event.stopPropagation();var d=document.getElementById('journal-sec-rep');if(d){d.open=true;d.scrollIntoView({behavior:'smooth'})}" style="cursor:pointer;display:inline-block;width:8px;height:8px;border-radius:50%;background:transparent;border:2px solid ${rc};margin-right:2px" title="${esc(rep.town)}: ${rep.status}"></span>`;
+      }
+    }
     return `<div style="display:flex;gap:8px;min-height:${isLast?'32':'42'}px">
       <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:14px;padding-top:2px">
         <div style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:${isLast?'var(--gold)':'var(--surface3)'};border:2px solid ${isLast?'var(--gold-bright)':'var(--border-bright)'}"></div>
         ${!isLast?`<div style="width:1px;flex:1;background:var(--border);margin:3px 0"></div>`:''}
       </div>
-      <div style="padding-bottom:${isLast?'0':'10'}px;min-width:0">
+      <div style="padding-bottom:${isLast?'0':'10'}px;min-width:0;flex:1">
         ${ts?`<div style="font-size:9px;color:var(--text-dim);letter-spacing:.3px;margin-bottom:1px">${esc(ts)}</div>`:''}
         <div style="font-size:12px;font-weight:${isLast?'600':'400'};color:${isLast?'var(--gold-bright)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(label)}</div>
+        ${dots?`<div style="display:flex;align-items:center;gap:1px;margin-top:3px">${dots}</div>`:''}
         ${note?`<div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-top:2px">${esc(note)}</div>`:''}
       </div>
     </div>`;
@@ -4905,6 +4926,9 @@ Rules:
 - Never wrap the mechanics block in markdown code fences, bold, or any formatting
 - If nothing changed still write: ---MECHANICS---\nnone\n---END---
 - Always update time: when meaningful time has passed (travel, rests, combat)
+- Always update location: when the party moves to a new named area, building, or region
+- Always update weather: when weather conditions change or when entering a new outdoor area
+- Always emit location_add: for ANY new named location the party visits (town, dungeon, camp, waypoint, building)
 - ENCUMBRANCE: The ledger shows carry weight for each PC and the wagon. If any PC is over STR×15 lbs or the wagon is over 1080 lbs, you MUST enforce travel speed penalties, disadvantage on physical checks, and narrate the strain. When adding items, always emit item_add with a weight estimate. Do not ignore encumbrance — it is a core survival mechanic
 - short_rest: [name] restores Bardic Inspiration, Stone's Endurance uses, and other short-rest features
 - consequence_add: [text] | [type] — log a world consequence. Types: background (ambient, slow-burn), faction (NPC group action), personal (affects a PC directly), escalation (urgent, building threat). Use for burned-town fallout, faction retaliation, PC reputation shifts, and ticking threats. Example: consequence_add: Thornhaven guards are now searching for a "tortoiseshell alchemist" | faction
