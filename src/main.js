@@ -1447,6 +1447,7 @@ function renderQuests(){
         <button class="btn sm red icon-btn" onclick="remQ(${idx})" style="margin-left:auto">&times;</button>
       </div>
       <input type="text" value="${esc(q.text||'')}" style="font-size:12px;width:100%;box-sizing:border-box;margin-bottom:8px" placeholder="Quest objective..." onchange="updQ(${idx},'text',this.value)">
+      ${q.location?`<div style="font-size:10px;color:var(--text-dim);margin-bottom:6px;display:flex;align-items:center;gap:4px"><span>📍</span><span style="cursor:pointer;color:var(--gold);text-decoration:underline" onclick="openLocationDetail((state.locations||[]).find(l=>l.name.toLowerCase()==='${esc(q.location).toLowerCase()}')?.id)">${esc(q.location)}</span></div>`:''}
       ${q.discovery?`<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg);border-radius:4px;border-left:3px solid var(--gold-dim)"><div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>📖 Discovery · ${esc(q.discovery.ts||'')}</span>${q.chatMsgId?`<button onclick="viewQuestInChat(${JSON.stringify(q.chatMsgId)})" style="font-size:9px;background:none;border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);padding:1px 5px;cursor:pointer" title="Jump to discovery moment in chat">↗ Chat</button>`:''}</div><div style="font-size:11px;color:var(--text);line-height:1.5;font-style:italic">${esc(q.discovery.text||'')}</div></div>`:''}
       ${q.notes!==undefined?`<div class="form-group" style="margin-bottom:0"><label class="field-label">Notes</label><textarea style="min-height:50px;font-size:11px" onchange="updQ(${idx},'notes',this.value)">${esc(q.notes||'')}</textarea></div>`:''}
     </div>`;
@@ -4673,10 +4674,14 @@ function parseMechanics(responseText, pendingMsgId=null){
             const hits=sentences.filter(s=>titleWords.some(w=>s.toLowerCase().includes(w)));
             discovery=hits.length?hits.slice(0,3).join(' ').trim().slice(0,400):proseOnly.slice(0,300).trim();
           }
-          const questObj={text:val,status:'active',hidden:false,discovery:discovery?{text:discovery,ts:new Date().toLocaleString()}:null,chatMsgId:pendingMsgId||null};
+          const questLoc=state.worldData?.location||'';
+          const questObj={text:val,status:'active',hidden:false,discovery:discovery?{text:discovery,ts:new Date().toLocaleString()}:null,chatMsgId:pendingMsgId||null,location:questLoc,notes:''};
           state.quests.push(questObj);
           const newQuestIdx=state.quests.length-1;
           changes.push({text:'New quest: '+val.slice(0,30)});
+          // Anchor quest to current location's history
+          const _ql=(state.locations||[]).find(l=>l.name.toLowerCase()===questLoc.toLowerCase());
+          if(_ql){if(!Array.isArray(_ql.history))_ql.history=[];_ql.history.push({ts:state.worldData?.time||'',text:'Quest discovered: '+questTitle,dmOnly:false});}
           // Tappable navToast — tap opens World tab → scrolls to & opens the specific quest
           setTimeout(()=>navToast('⚔','New Quest',questTitle.slice(0,40),()=>{
             navTo('world');
@@ -5271,7 +5276,9 @@ function renderChat(){
       mechBadge=`<div class="mech-badge"><div class="mech-badge-hdr" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='flex'?'none':'flex'"><span class="mech-badge-lbl">⚡ Changes</span><span style="font-size:10px;color:var(--green-bright);margin-left:4px">${msg.mechanics.length} — tap to expand</span></div><div class="mech-pills" style="display:none">${pills}</div></div>`;
     }
     const isExpanded=_expandedMsgs.has(msgIdx);
-    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${isLong&&!isExpanded?`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});this.previousElementSibling.classList.remove('msg-collapsed');this.remove()">Read more ▼</span>`:''}${mechBadge}`;
+    let questChips='';
+    if(isDM&&msg.msgId){const linked=(state.quests||[]).map((q,qi)=>({q,qi})).filter(({q})=>q.chatMsgId===msg.msgId);if(linked.length)questChips='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">'+linked.map(({q,qi})=>`<span onclick="navTo('world');setTimeout(()=>{const d=document.getElementById('quest-det-${qi}');if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'});d.style.outline='2px solid var(--gold)';d.style.borderRadius='6px';setTimeout(()=>{d.style.outline='';},2200);}},350)" style="cursor:pointer;font-size:10px;background:var(--surface3);border:1px solid var(--gold-dim);border-radius:4px;padding:2px 8px;color:var(--gold)">⚔ ${esc((q.text||'').split('|')[0].slice(0,35))}</span>`).join('')+'</div>';}
+    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${isLong&&!isExpanded?`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});this.previousElementSibling.classList.remove('msg-collapsed');this.remove()">Read more ▼</span>`:''}${mechBadge}${questChips}`;
     c.appendChild(d);
   });
   const distWas=prevHeight-prevScroll-c.clientHeight;
@@ -8468,7 +8475,7 @@ function openLocationDetail(id){
   const npcHTML=npcNames.length
     ?npcNames.map(name=>{const npc=(state.npcs||[]).find(n=>n.name.toLowerCase()===name.toLowerCase());const dcol=npc?(npc.disposition==='Friendly'||npc.disposition==='Ally'?'var(--green)':npc.disposition==='Hostile'||npc.disposition==='Enemy'?'var(--red)':'var(--text-dim)'):'var(--text-dim)';return`<span style="display:inline-block;background:var(--surface3);border-radius:10px;padding:2px 8px;font-size:11px;margin:2px 2px 0 0;border-left:3px solid ${dcol}">${esc(name)}${npc?' <span style="font-size:9px;color:'+dcol+'">'+esc(npc.disposition||'')+'</span>':''}</span>`;}).join('')
     :'<span style="font-size:11px;color:var(--text-dim)">None recorded</span>';
-  const locQuests=(state.quests||[]).filter(q=>q.status==='active'&&q.text&&q.text.toLowerCase().includes(loc.name.toLowerCase()));
+  const locQuests=(state.quests||[]).filter(q=>q.status==='active'&&(q.location?.toLowerCase()===loc.name.toLowerCase()||(q.text&&q.text.toLowerCase().includes(loc.name.toLowerCase()))));
   const questHTML=locQuests.length?locQuests.map(q=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px"><span style="color:var(--green);font-size:10px">🟢</span><span style="flex:1">${esc(q.text)}</span></div>`).join(''):'';
   const locConseq=(state.consequences||[]).filter(cs=>!cs.resolved&&cs.location&&cs.location.toLowerCase()===loc.name.toLowerCase());
   const CSQ_C=CSQ_COLORS;
