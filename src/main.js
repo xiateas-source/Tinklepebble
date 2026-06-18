@@ -1634,6 +1634,7 @@ function renderNPCs(){
   });
   const DISPS=['Friendly','Neutral','Hostile','Ally','Enemy','Unknown'];
   if(!sorted.length){c.innerHTML='<div style="font-size:11px;color:var(--text-dim);padding:4px 0">No NPCs recorded.</div>';return;}
+  if(sorted.length>3){const bar=document.createElement('div');bar.style.cssText='display:flex;justify-content:flex-end;margin-bottom:4px';bar.innerHTML='<button onclick="dedupNPCs()" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;font-family:var(--sans)">🧹 Dedup</button>';c.appendChild(bar);}
   sorted.forEach(({n,i:idx})=>{
     const dead=n.status==='deceased'||n.status==='departed';
     const dispCol=n.disposition==='Friendly'||n.disposition==='Ally'?'var(--green)':n.disposition==='Hostile'||n.disposition==='Enemy'?'var(--red)':'var(--text-dim)';
@@ -1664,6 +1665,18 @@ function renderNPCs(){
 function addNPC(){state.npcs.push({name:'',disposition:'Neutral',details:'',status:'active',hp:0,lastSeen:state.worldData.location||''});saveRefresh();}
 function updNPC(i,k,v){state.npcs[i][k]=v;save();}
 function remNPC(i){state.npcs.splice(i,1);saveRefresh();}
+function dedupNPCs(){
+  const all=state.npcs||[];if(!all.length){toast('No NPCs to dedup');return;}
+  const kept=[];let removed=0;
+  all.forEach(n=>{
+    const nLow=(n.name||'').toLowerCase().trim();
+    if(!nLow){kept.push(n);return;}
+    if(kept.some(k=>(k.name||'').toLowerCase().trim()===nLow))removed++;
+    else kept.push(n);
+  });
+  if(!removed){toast('No duplicate NPCs found');return;}
+  state.npcs=kept;save();renderNPCs();toast('Removed '+removed+' duplicate NPC'+(removed===1?'':'s'));
+}
 
 // ═══ QUESTS ═══
 function renderQuests(){
@@ -1674,7 +1687,10 @@ function renderQuests(){
   });
   if(!sorted.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No quests. Tap + Quest.</div>';return;}
   const active=state.quests.filter(q=>q.status==='active').length;
-  if(active){const h=document.createElement('div');h.style.cssText='font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px';h.textContent='⬤ '+active+' Active';c.appendChild(h);}
+  {const hdr=document.createElement('div');hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:6px';
+  hdr.innerHTML=(active?'<span style="font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.7px">⬤ '+active+' Active</span>':'<span></span>')
+    +(sorted.length>3?'<button onclick="dedupQuests()" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;font-family:var(--sans)">🧹 Dedup</button>':'');
+  c.appendChild(hdr);}
   sorted.forEach(({q,i:idx})=>{
     const det=document.createElement('details');det.id='quest-det-'+idx;det.style.cssText='margin-bottom:6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2)';
     const qst=q.status||'active';
@@ -1714,6 +1730,24 @@ function viewQuestInChat(msgId){
 }
 function updQ(i,k,v){state.quests[i][k]=v;saveRefresh();}
 function remQ(i){state.quests.splice(i,1);saveRefresh();}
+function dedupQuests(){
+  const all=state.quests||[];if(!all.length){toast('No quests to dedup');return;}
+  const kept=[];let removed=0;
+  all.forEach(q=>{
+    const qLow=(q.text||'').toLowerCase().slice(0,40);
+    if(!qLow){kept.push(q);return;}
+    const isDupe=kept.some(k=>{
+      const kLow=(k.text||'').toLowerCase().slice(0,40);
+      if(kLow===qLow)return true;
+      const words=qLow.split(/\s+/).filter(w=>w.length>3);
+      if(words.length<2)return false;
+      return words.filter(w=>kLow.includes(w)).length/words.length>=0.6;
+    });
+    if(isDupe)removed++;else kept.push(q);
+  });
+  if(!removed){toast('No duplicate quests found');return;}
+  state.quests=kept;save();renderQuests();toast('Removed '+removed+' duplicate quest'+(removed===1?'':'s'));
+}
 
 // ═══ CONSEQUENCES ═══
 const CSQ_COLORS={background:'var(--text-dim)',faction:'var(--gold)',personal:'var(--green)',escalation:'var(--red)'};
@@ -7280,6 +7314,7 @@ function renderTownRep(){
   if(!Array.isArray(state.worldData.townReputation))state.worldData.townReputation=[];
   c.innerHTML='';
   if(!state.worldData.townReputation.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No towns visited yet.</div>';return;}
+  if(state.worldData.townReputation.length>2){const bar=document.createElement('div');bar.style.cssText='display:flex;justify-content:flex-end;margin-bottom:4px';bar.innerHTML='<button onclick="dedupTownRep()" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;font-family:var(--sans)">🧹 Dedup</button>';c.appendChild(bar);}
   state.worldData.townReputation.forEach((t,i)=>{
     const d=document.createElement('div');d.className='town-row '+(t.status||'neutral');
     const statuses=['good','neutral','burned','fled'];
@@ -7293,6 +7328,18 @@ function renderTownRep(){
   });
 }
 function addTownRep(){if(!Array.isArray(state.worldData.townReputation))state.worldData.townReputation=[];state.worldData.townReputation.push({town:'',status:'neutral',notes:'',ts:state.worldData.time});save();renderTownRep();}
+function dedupTownRep(){
+  const all=state.worldData.townReputation||[];if(!all.length){toast('No town rep to dedup');return;}
+  const kept=[];let removed=0;
+  all.forEach(t=>{
+    const nLow=(t.town||'').toLowerCase().trim();
+    if(!nLow){kept.push(t);return;}
+    if(kept.some(k=>(k.town||'').toLowerCase().trim()===nLow))removed++;
+    else kept.push(t);
+  });
+  if(!removed){toast('No duplicate town rep found');return;}
+  state.worldData.townReputation=kept;save();renderTownRep();renderJournalRep();toast('Removed '+removed+' duplicate'+(removed===1?'':'s'));
+}
 function updTown(i,k,v){state.worldData.townReputation[i][k]=v;save();}
 function remTown(i){state.worldData.townReputation.splice(i,1);save();renderTownRep();}
 
@@ -9098,6 +9145,7 @@ function renderLocations(){
     ${toggleBtns}
     <div style="display:flex;gap:4px">
       <button class="btn sm" onclick="uploadAreaMap()" title="${hasMap?'Change map image':'Upload map image'}" style="font-size:10px;padding:3px 8px">${hasMap?'🗺 Change':'🗺 Upload'}</button>
+      ${locs.length>3?'<button class="btn sm" onclick="dedupLocations()" style="font-size:9px;padding:2px 6px" title="Remove duplicate locations">🧹</button>':''}
       <button class="btn sm" onclick="addLocationManual()" style="font-size:10px;padding:3px 8px">+ Add</button>
     </div>
   </div>`;
@@ -9398,6 +9446,18 @@ function addLocationManual(){
   if(!Array.isArray(state.locations))state.locations=[];
   state.locations.push({id,name,type,status:'visited',firstVisited:state.worldData?.time||'',lastVisited:state.worldData?.time||'',rep:{disposition:'Neutral',notes:''},npcs:[],investments:[],history:[],dmNotes:'',playerNotes:'',mapPos:null});
   save();renderLocations();
+}
+function dedupLocations(){
+  const all=state.locations||[];if(!all.length){toast('No locations to dedup');return;}
+  const kept=[];let removed=0;
+  all.forEach(loc=>{
+    const nLow=(loc.name||'').toLowerCase().trim();
+    if(!nLow){kept.push(loc);return;}
+    if(kept.some(k=>(k.name||'').toLowerCase().trim()===nLow))removed++;
+    else kept.push(loc);
+  });
+  if(!removed){toast('No duplicate locations found');return;}
+  state.locations=kept;save();renderLocations();toast('Removed '+removed+' duplicate location'+(removed===1?'':'s'));
 }
 function updateLocNotes(id,field,value){
   const loc=state.locations.find(l=>l.id===id);if(!loc)return;
@@ -10365,7 +10425,7 @@ Object.assign(window, {
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
   remSecret, remSlotLvl, remSnip, remSpell, remTown, remWItem,
-  renderAll, renderSheets, renderCards, resolveConsequence, dedupConsequences, rollAttack, rollStatCheck, rollInitiative,
+  renderAll, renderSheets, renderCards, resolveConsequence, dedupConsequences, dedupNPCs, dedupQuests, dedupLocations, dedupTownRep, rollAttack, rollStatCheck, rollInitiative,
   saveRefresh, saveSetupPC, saveTts, saveBP,
   scrollStoryBottom, scrollStoryTop, selectFlagCat,
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
