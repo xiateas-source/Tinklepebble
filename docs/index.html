@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.BVpEX9bv.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.DeDxM475.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.BOdPIJ6x.css">
 </head>
 <body>
@@ -525,6 +525,21 @@
       <button class="btn gold full" style="margin-top:6px" onclick="copyText(document.getElementById('dev-log-text').value,'✓ Log copied!')">📋 Copy — Paste to Dev</button>
     </div>
   </div>
+  <div class="panel" style="margin-top:12px">
+    <div class="panel-title">Ledger Settings <span style="font-size:10px;color:var(--text-dim);font-weight:normal;margin-left:4px">Dev tool — auto-compiled by AI DM</span></div>
+    <div class="form-group"><label class="field-label">Context Format</label>
+      <select id="ledger-fmt">
+        <option value="compact" selected>Compact (~600 tokens) — default for active play</option>
+        <option value="full">Full (~2500 tokens) — session start / resync only</option>
+        <option value="combat">Combat Focus (~800 tokens)</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="field-label">Ledger Prefix</label><textarea id="ledger-prefix" style="min-height:50px">Before taking any action, confirm you have read this entire state ledger. Verify HP and active conditions for all PCs before proceeding.</textarea></div>
+    <div class="btn-row" style="flex-direction:column;gap:6px">
+      <button class="btn gold full" onclick="genLedger()">⚡ Compile Ledger</button>
+      <button class="btn full" onclick="copyText(document.getElementById('ledger-out').value,'✓ Ledger copied!')">📋 Copy Ledger</button>
+    </div>
+  </div>
 </div>
 
 <!-- CAMPAIGN SETUP TAB -->
@@ -757,21 +772,6 @@ Multiple players may send messages tagged with their name and character. Treat e
 In combat, treat each player message as that character's turn action in initiative order. If a player acts out of turn, resolve it but note the correct initiative position. Do not wait for all players to submit before narrating — resolve each action as it arrives and advance the tracker.
 
 When the party travels through wilderness, arrives at a new outdoor location, or takes a rest outdoors: note 1-3 harvestable ingredients appropriate to the biome. Do not mention ingredients in every message — only on arrival and rest.</textarea></div></div></details>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Ledger Settings</div>
-        <div class="form-group"><label class="field-label">Context Format</label>
-          <select id="ledger-fmt">
-            <option value="compact" selected>Compact (~600 tokens) — default for active play</option>
-            <option value="full">Full (~2500 tokens) — session start / resync only</option>
-            <option value="combat">Combat Focus (~800 tokens)</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="field-label">Ledger Prefix</label><textarea id="ledger-prefix" style="min-height:50px">Before taking any action, confirm you have read this entire state ledger. Verify HP and active conditions for all PCs before proceeding.</textarea></div>
-        <div class="btn-row" style="flex-direction:column;gap:6px">
-          <button class="btn gold full" onclick="genLedger()">⚡ Compile Ledger</button>
-          <button class="btn full" onclick="copyText(document.getElementById('ledger-out').value,'✓ Ledger copied!')">📋 Copy Ledger</button>
-        </div>
       </div>
     </div>
     <div class="col">
@@ -1129,7 +1129,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
   </div>
   <div class="qa-menu-body" id="qa-menu-items"></div>
   <div class="qa-menu-footer">
-    <button onclick="closeQAMenu();navTo('ait');setTimeout(()=>{const el=document.getElementById('qa-editor-list');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},350)">✎ Customize actions &amp; icon…</button>
+    <button onclick="closeQAMenu();navTo('ait-chk');setTimeout(()=>{const el=document.getElementById('qa-editor-list');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},350)">✎ Customize actions &amp; icon…</button>
   </div>
 </div>
 <div id="qa-fab-wrap" style="position:fixed;bottom:calc(160px + env(safe-area-inset-bottom,0px));right:16px;z-index:750;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none;user-select:none">
