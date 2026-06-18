@@ -55,6 +55,118 @@ const BARD_SPELLS={
   3:['Bestow Curse','Clairvoyance','Dispel Magic','Fear','Hypnotic Pattern','Major Image','Nondetection','Plant Growth','Sending','Slow','Speak with Dead','Stinking Cloud','Tongues']
 };
 
+// ═══ SPELL COMPENDIUM ═══
+const SPELL_DB=[
+// ── Cantrips ──
+{name:'Acid Splash',level:0,school:'Conjuration',castTime:'1 action',range:'60 ft',duration:'Instantaneous',components:'V, S',desc:'Hurl a bubble of acid. One creature in range or two within 5 ft of each other must succeed DEX save or take 1d6 acid damage. Scales: 2d6 at 5th, 3d6 at 11th, 4d6 at 17th.',classes:['wizard']},
+{name:'Blade Ward',level:0,school:'Abjuration',castTime:'1 action',range:'Self',duration:'1 round',components:'V, S',desc:'You gain resistance to bludgeoning, piercing, and slashing damage from weapon attacks until the start of your next turn.',classes:['bard','wizard']},
+{name:'Booming Blade',level:0,school:'Evocation',castTime:'1 action',range:'Self (5-ft radius)',duration:'1 round',components:'S, M (a melee weapon worth at least 1 sp)',desc:'Make a melee attack with your weapon. On hit, the target takes normal damage plus, if it willingly moves before your next turn, it takes 1d8 thunder damage. Both scale at 5th level.',classes:['wizard']},
+{name:'Chill Touch',level:0,school:'Necromancy',castTime:'1 action',range:'120 ft',duration:'1 round',components:'V, S',desc:'Ranged spell attack. 1d8 necrotic damage and target can\'t regain HP until your next turn. Against undead, also has disadvantage on attacks against you. Scales at 5th/11th/17th.',classes:['wizard']},
+{name:'Dancing Lights',level:0,school:'Evocation',castTime:'1 action',range:'120 ft',duration:'Concentration, 1 min',components:'V, S, M (phosphorus or wychwood)',desc:'Create up to four torch-sized lights within range. Each sheds dim light in 10-ft radius. You can move them up to 60 ft as a bonus action.',classes:['bard','wizard']},
+{name:'Fire Bolt',level:0,school:'Evocation',castTime:'1 action',range:'120 ft',duration:'Instantaneous',components:'V, S',desc:'Ranged spell attack. 1d10 fire damage. Ignites unattended flammable objects. Scales: 2d10 at 5th, 3d10 at 11th, 4d10 at 17th.',classes:['wizard']},
+{name:'Friends',level:0,school:'Enchantment',castTime:'1 action',range:'Self',duration:'Concentration, 1 min',components:'S, M (makeup)',desc:'You have advantage on CHA checks against one creature that isn\'t hostile. When the spell ends, the creature realizes you used magic and becomes hostile.',classes:['bard','wizard']},
+{name:'Green-Flame Blade',level:0,school:'Evocation',castTime:'1 action',range:'Self (5-ft radius)',duration:'Instantaneous',components:'S, M (a melee weapon worth at least 1 sp)',desc:'Make a melee attack. On hit, green fire leaps to a different creature within 5 ft of target, dealing fire damage equal to your spellcasting modifier. Both scale at 5th level.',classes:['wizard']},
+{name:'Light',level:0,school:'Evocation',castTime:'1 action',range:'Touch',duration:'1 hour',components:'V, M (firefly or phosphorescent moss)',desc:'Touch one object no larger than 10 ft. It sheds bright light in a 20-ft radius and dim light for an additional 20 ft. Hostile creature gets DEX save.',classes:['bard','wizard']},
+{name:'Mage Hand',level:0,school:'Conjuration',castTime:'1 action',range:'30 ft',duration:'1 min',components:'V, S',desc:'A spectral floating hand appears. It can manipulate objects, open doors, stow/retrieve items, or pour out vials. Can\'t attack, activate magic items, or carry more than 10 lbs. Arcane Trickster version is invisible.',classes:['bard','wizard']},
+{name:'Mending',level:0,school:'Transmutation',castTime:'1 min',range:'Touch',duration:'Instantaneous',components:'V, S, M (two lodestones)',desc:'Repair a single break or tear in an object you touch (broken chain link, two halves of a key, torn cloak). The break can be no larger than 1 ft in any dimension.',classes:['bard','wizard']},
+{name:'Message',level:0,school:'Transmutation',castTime:'1 action',range:'120 ft',duration:'1 round',components:'V, S, M (copper wire)',desc:'Whisper a message to a creature in range. Only the target hears it and can reply in a whisper that only you hear. Can cast through solid objects if you are familiar with the target.',classes:['bard','wizard']},
+{name:'Minor Illusion',level:0,school:'Illusion',castTime:'1 action',range:'30 ft',duration:'1 min',components:'S, M (a bit of fleece)',desc:'Create a sound or an image of an object within range. Sound can be any volume from whisper to scream. Image must fit in a 5-ft cube and can\'t create sensory effects. Investigation check vs your spell DC reveals it as illusion.',classes:['bard','wizard']},
+{name:'Poison Spray',level:0,school:'Conjuration',castTime:'1 action',range:'10 ft',duration:'Instantaneous',components:'V, S',desc:'Target must succeed on a CON save or take 1d12 poison damage. Scales: 2d12 at 5th, 3d12 at 11th, 4d12 at 17th.',classes:['wizard']},
+{name:'Prestidigitation',level:0,school:'Transmutation',castTime:'1 action',range:'10 ft',duration:'1 hour',components:'V, S',desc:'Minor magical trick: sensory effect, light/snuff candle, clean/soil 1 cu ft, chill/warm/flavor 1 cu ft of material, make a color/mark/symbol for 1 hour, create a trinket or illusory image that fits in your hand for 1 round.',classes:['bard','wizard']},
+{name:'Ray of Frost',level:0,school:'Evocation',castTime:'1 action',range:'60 ft',duration:'Instantaneous',components:'V, S',desc:'Ranged spell attack. 1d8 cold damage and target\'s speed is reduced by 10 ft until your next turn. Scales: 2d8 at 5th, 3d8 at 11th, 4d8 at 17th.',classes:['wizard']},
+{name:'Shocking Grasp',level:0,school:'Evocation',castTime:'1 action',range:'Touch',duration:'Instantaneous',components:'V, S',desc:'Melee spell attack with advantage if target wears metal armor. 1d8 lightning damage and target can\'t take reactions until its next turn. Scales at 5th/11th/17th.',classes:['wizard']},
+{name:'Thunderclap',level:0,school:'Evocation',castTime:'1 action',range:'5 ft',duration:'Instantaneous',components:'S',desc:'Each creature within 5 ft other than you must succeed on a CON save or take 1d6 thunder damage. The sound is audible 100 ft away. Scales at 5th/11th/17th.',classes:['bard']},
+{name:'True Strike',level:0,school:'Divination',castTime:'1 action',range:'30 ft',duration:'Concentration, 1 round',components:'S',desc:'You gain advantage on your first attack roll against the target on your next turn.',classes:['bard','wizard']},
+{name:'Vicious Mockery',level:0,school:'Enchantment',castTime:'1 action',range:'60 ft',duration:'Instantaneous',components:'V',desc:'Unleash a string of insults at a creature. WIS save or 1d4 psychic damage and disadvantage on next attack roll before end of its next turn. Scales at 5th/11th/17th.',classes:['bard']},
+// ── 1st Level ──
+{name:'Absorb Elements',level:1,school:'Abjuration',castTime:'1 reaction',range:'Self',duration:'1 round',components:'S',desc:'When you take acid, cold, fire, lightning, or thunder damage, you gain resistance to that damage type until your next turn. First melee attack on your next turn deals an extra 1d6 of that damage type.',classes:['wizard']},
+{name:'Animal Friendship',level:1,school:'Enchantment',castTime:'1 action',range:'30 ft',duration:'24 hours',components:'V, S, M (morsel of food)',desc:'Convince a beast that you mean it no harm. WIS save (fails if INT 4+). Beast is charmed for the duration. At higher levels: +1 beast per slot level.',classes:['bard']},
+{name:'Bane',level:1,school:'Enchantment',castTime:'1 action',range:'30 ft',duration:'Concentration, 1 min',components:'V, S, M (drop of blood)',desc:'Up to 3 creatures must make CHA saves. On failure, subtract 1d4 from all attack rolls and saving throws for the duration. At higher levels: +1 creature per slot.',classes:['bard']},
+{name:'Charm Person',level:1,school:'Enchantment',castTime:'1 action',range:'30 ft',duration:'1 hour',components:'V, S',desc:'Charm a humanoid you can see. WIS save (advantage if you\'re fighting it). Charmed creature regards you as a friendly acquaintance. It knows it was charmed when the spell ends. Higher levels: +1 target per slot.',classes:['bard','wizard']},
+{name:'Color Spray',level:1,school:'Illusion',castTime:'1 action',range:'Self (15-ft cone)',duration:'1 round',components:'V, S, M (pinch of powder)',desc:'Roll 6d10; that many HP of creatures are blinded (starting with lowest current HP). At higher levels: +2d10 per slot level above 1st.',classes:['wizard']},
+{name:'Comprehend Languages',level:1,school:'Divination',castTime:'1 action (ritual)',range:'Self',duration:'1 hour',components:'V, S, M (pinch of soot and salt)',desc:'You understand the literal meaning of any spoken language you hear and any written language you see. It takes about 1 minute to read one page of text. Doesn\'t decode secret messages or glyphs.',classes:['bard','wizard']},
+{name:'Cure Wounds',level:1,school:'Evocation',castTime:'1 action',range:'Touch',duration:'Instantaneous',components:'V, S',desc:'Creature you touch regains 1d8 + your spellcasting modifier hit points. No effect on undead or constructs. At higher levels: +1d8 per slot level above 1st.',classes:['bard']},
+{name:'Detect Magic',level:1,school:'Divination',castTime:'1 action (ritual)',range:'Self',duration:'Concentration, 10 min',components:'V, S',desc:'You sense magic within 30 ft. You can use your action to see a faint aura around any visible creature or object that bears magic, and learn its school. Blocked by 1 ft of stone, 1 inch of metal, thin sheet of lead, or 3 ft of wood/dirt.',classes:['bard','wizard']},
+{name:'Disguise Self',level:1,school:'Illusion',castTime:'1 action',range:'Self',duration:'1 hour',components:'V, S',desc:'You make yourself—including clothing, armor, weapons, and belongings—look different. You can change height by up to 1 ft, appear thinner/fatter, and change body type. Investigation check vs your spell DC to discern illusion.',classes:['bard','wizard']},
+{name:'Dissonant Whispers',level:1,school:'Enchantment',castTime:'1 action',range:'60 ft',duration:'Instantaneous',components:'V',desc:'Whisper a discordant melody. Target makes WIS save. Fail: 3d6 psychic damage and must use reaction to move away from you. Pass: half damage, no movement. Deafened creatures auto-succeed. Higher levels: +1d6 per slot.',classes:['bard']},
+{name:'Faerie Fire',level:1,school:'Evocation',castTime:'1 action',range:'60 ft',duration:'Concentration, 1 min',components:'V',desc:'Objects and creatures in a 20-ft cube are outlined in blue, green, or violet light. DEX save or affected creature sheds dim light in 10-ft radius. Attacks against affected creatures have advantage. Invisible creatures become visible.',classes:['bard']},
+{name:'Feather Fall',level:1,school:'Transmutation',castTime:'1 reaction',range:'60 ft',duration:'1 min',components:'V, M (small feather or piece of down)',desc:'Choose up to 5 falling creatures within range. Their rate of descent slows to 60 ft per round. If they land before the spell ends, they take no falling damage and can land on their feet.',classes:['bard','wizard']},
+{name:'Find Familiar',level:1,school:'Conjuration',castTime:'1 hour (ritual)',range:'10 ft',duration:'Instantaneous',components:'V, S, M (10 gp of charcoal, incense, herbs)',desc:'Summon a spirit as a familiar (bat, cat, hawk, owl, rat, raven, spider, etc.). You can communicate telepathically within 100 ft, see through its eyes as an action, and deliver touch spells through it. Disappears at 0 HP.',classes:['wizard']},
+{name:'Healing Word',level:1,school:'Evocation',castTime:'1 bonus action',range:'60 ft',duration:'Instantaneous',components:'V',desc:'Creature you can see within range regains 1d4 + your spellcasting modifier hit points. No effect on undead or constructs. At higher levels: +1d4 per slot level above 1st.',classes:['bard']},
+{name:'Heroism',level:1,school:'Enchantment',castTime:'1 action',range:'Touch',duration:'Concentration, 1 min',components:'V, S',desc:'Creature you touch gains temporary HP equal to your spellcasting modifier at the start of each of its turns. Also immune to being frightened. Higher levels: +1 creature per slot.',classes:['bard']},
+{name:'Identify',level:1,school:'Divination',castTime:'1 min (ritual)',range:'Touch',duration:'Instantaneous',components:'V, S, M (a pearl worth at least 100 gp and an owl feather)',desc:'Learn the properties and how to use a magic item or spell-affected object. Touching a creature reveals any spells currently affecting it.',classes:['bard','wizard']},
+{name:'Illusory Script',level:1,school:'Illusion',castTime:'1 min (ritual)',range:'Touch',duration:'10 days',components:'S, M (a lead-based ink worth at least 10 gp)',desc:'Write on parchment/paper/other surface. To you and creatures you designate, the writing appears normal. To all others, it appears as an unknown or magical script, or a different message you choose.',classes:['bard','wizard']},
+{name:'Longstrider',level:1,school:'Transmutation',castTime:'1 action',range:'Touch',duration:'1 hour',components:'V, S, M (pinch of dirt)',desc:'Touch a creature. Its speed increases by 10 ft for the duration. At higher levels: +1 creature per slot level above 1st.',classes:['bard','wizard']},
+{name:'Shield',level:1,school:'Abjuration',castTime:'1 reaction',range:'Self',duration:'1 round',components:'V, S',desc:'When you are hit by an attack or targeted by magic missile, gain +5 AC until the start of your next turn, including against the triggering attack. You take no damage from magic missile.',classes:['wizard']},
+{name:'Silent Image',level:1,school:'Illusion',castTime:'1 action',range:'60 ft',duration:'Concentration, 10 min',components:'V, S, M (a bit of fleece)',desc:'Create an image of an object, creature, or other visible phenomenon no larger than a 15-ft cube. It seems real but has no sound, smell, or tactile effect. You can move it within range as an action. Investigation check reveals it.',classes:['bard','wizard']},
+{name:'Sleep',level:1,school:'Enchantment',castTime:'1 action',range:'90 ft',duration:'1 min',components:'V, S, M (pinch of sand, rose petals, or a cricket)',desc:'Roll 5d8; that many HP of creatures in a 20-ft radius sphere fall unconscious (starting with lowest current HP). Undead and creatures immune to being charmed are unaffected. Higher levels: +2d8 per slot.',classes:['bard','wizard']},
+{name:'Snare',level:1,school:'Abjuration',castTime:'1 min',range:'Touch',duration:'8 hours',components:'S, M (25 ft of rope)',desc:'Create a trap with a 5-ft-radius circle of rope. Nearly invisible (Investigation vs spell DC to spot). Creature entering the area is hoisted 3 ft in the air, restrained and hanging upside down. DEX save to avoid.',classes:['wizard']},
+{name:'Speak with Animals',level:1,school:'Divination',castTime:'1 action (ritual)',range:'Self',duration:'10 min',components:'V, S',desc:'You gain the ability to comprehend and verbally communicate with beasts. Their knowledge and awareness is limited by their intelligence. You can persuade a beast for a short favor.',classes:['bard']},
+{name:'Tasha\'s Hideous Laughter',level:1,school:'Enchantment',castTime:'1 action',range:'30 ft',duration:'Concentration, 1 min',components:'V, S, M (tiny tarts and a feather)',desc:'Target falls prone and becomes incapacitated, unable to stand. WIS save each turn to end. Creatures with INT 4 or lower are unaffected. Target saves again when it takes damage.',classes:['bard','wizard']},
+{name:'Thunderwave',level:1,school:'Evocation',castTime:'1 action',range:'Self (15-ft cube)',duration:'Instantaneous',components:'V, S',desc:'Wave of thunderous force. Each creature in a 15-ft cube originating from you makes a CON save. Fail: 2d8 thunder damage and pushed 10 ft away. Pass: half damage, no push. Audible 300 ft. Higher levels: +1d8 per slot.',classes:['bard','wizard']},
+{name:'Unseen Servant',level:1,school:'Conjuration',castTime:'1 action (ritual)',range:'60 ft',duration:'1 hour',components:'V, S, M (a piece of string and a bit of wood)',desc:'Create an invisible, mindless, shapeless force to perform simple tasks: fetch things, clean, mend, fold clothes, light fires, serve food, pour wine. AC 10, 1 HP, STR 2, can\'t attack. Moves 15 ft per round.',classes:['bard','wizard']},
+// ── 2nd Level ──
+{name:'Animal Messenger',level:2,school:'Enchantment',castTime:'1 action (ritual)',range:'30 ft',duration:'24 hours',components:'V, S, M (morsel of food)',desc:'A Tiny beast delivers a 25-word message. You specify location, recipient description, and the message. Beast travels 50 miles/24 hours (flying) or 25 miles (other). Higher slots extend duration.',classes:['bard']},
+{name:'Blindness/Deafness',level:2,school:'Necromancy',castTime:'1 action',range:'30 ft',duration:'1 min',components:'V',desc:'Blind or deafen a creature. CON save each turn to end. No concentration. At higher levels: +1 target per slot level above 2nd.',classes:['bard','wizard']},
+{name:'Blur',level:2,school:'Illusion',castTime:'1 action',range:'Self',duration:'Concentration, 1 min',components:'V',desc:'Your body becomes blurred. Any creature that makes an attack roll against you has disadvantage. Doesn\'t work if attacker has truesight, blindsight, or can see through illusions.',classes:['wizard']},
+{name:'Calm Emotions',level:2,school:'Enchantment',castTime:'1 action',range:'60 ft',duration:'Concentration, 1 min',components:'V, S',desc:'Each humanoid in a 20-ft-radius sphere makes CHA save. On fail, you can suppress charm/frighten effects OR make the target indifferent toward creatures of your choice that it is hostile toward.',classes:['bard']},
+{name:'Cloud of Daggers',level:2,school:'Conjuration',castTime:'1 action',range:'60 ft',duration:'Concentration, 1 min',components:'V, S, M (a sliver of glass)',desc:'Fill a 5-ft cube with spinning daggers. A creature takes 4d4 slashing damage when it enters the area for the first time on a turn or starts its turn there. Higher levels: +2d4 per slot.',classes:['bard','wizard']},
+{name:'Crown of Madness',level:2,school:'Enchantment',castTime:'1 action',range:'120 ft',duration:'Concentration, 1 min',components:'V, S',desc:'One humanoid must succeed on WIS save or become charmed. While charmed, must use its action to make a melee attack against a creature you choose (other than itself). WIS save at end of each turn to end.',classes:['bard','wizard']},
+{name:'Detect Thoughts',level:2,school:'Divination',castTime:'1 action',range:'Self',duration:'Concentration, 1 min',components:'V, S, M (a copper piece)',desc:'Read surface thoughts of creatures within 30 ft. As an action, probe deeper (WIS save to resist; on fail, you gain insight into its reasoning, emotional state, and something that looms large in its mind).',classes:['bard','wizard']},
+{name:'Enhance Ability',level:2,school:'Transmutation',castTime:'1 action',range:'Touch',duration:'Concentration, 1 hour',components:'V, S, M (fur or feather)',desc:'Touch a creature and grant one effect: Bear (advantage STR checks, +2d6 carry), Bull (advantage STR checks), Cat (advantage DEX, no fall damage ≤20 ft), Eagle (advantage CHA), Fox (advantage INT), Owl (advantage WIS). Higher levels: +1 target.',classes:['bard']},
+{name:'Enthrall',level:2,school:'Enchantment',castTime:'1 action',range:'60 ft',duration:'1 min',components:'V, S',desc:'Weave a distracting string of words. Creatures that can hear you must make WIS save (advantage if fighting you). Fail: disadvantage on Perception checks to perceive any creature other than you.',classes:['bard']},
+{name:'Heat Metal',level:2,school:'Transmutation',castTime:'1 action',range:'60 ft',duration:'Concentration, 1 min',components:'V, S, M (iron and a flame)',desc:'A manufactured metal object you can see becomes red-hot. Creature in contact takes 2d8 fire damage. Until the spell ends, you can use a bonus action to deal damage again. Creature wearing it has disadvantage on attacks and checks unless it drops the object (CON save). Higher levels: +1d8 per slot.',classes:['bard']},
+{name:'Hold Person',level:2,school:'Enchantment',castTime:'1 action',range:'60 ft',duration:'Concentration, 1 min',components:'V, S, M (small piece of iron)',desc:'Humanoid must succeed on WIS save or be paralyzed. Target makes a new save at end of each turn. Attacks within 5 ft are automatic crits. Higher levels: +1 target per slot above 2nd.',classes:['bard','wizard']},
+{name:'Invisibility',level:2,school:'Illusion',castTime:'1 action',range:'Touch',duration:'Concentration, 1 hour',components:'V, S, M (eyelash in gum arabic)',desc:'Creature you touch becomes invisible until the spell ends. Anything the target is wearing or carrying is invisible too. Spell ends if the target attacks or casts a spell. Higher levels: +1 target per slot.',classes:['bard','wizard']},
+{name:'Knock',level:2,school:'Transmutation',castTime:'1 action',range:'60 ft',duration:'Instantaneous',components:'V',desc:'Choose an object within range. If it is locked, the lock opens. If it has multiple locks, only one is unlocked. If barred, the bar lifts. If held shut by Arcane Lock, that spell is suppressed for 10 minutes. The knock is audible 300 ft away.',classes:['bard','wizard']},
+{name:'Lesser Restoration',level:2,school:'Abjuration',castTime:'1 action',range:'Touch',duration:'Instantaneous',components:'V, S',desc:'Touch a creature and end one disease or one condition afflicting it: blinded, deafened, paralyzed, or poisoned.',classes:['bard']},
+{name:'Locate Object',level:2,school:'Divination',castTime:'1 action',range:'Self',duration:'Concentration, 10 min',components:'V, S, M (a forked twig)',desc:'Sense the direction of an object you\'re familiar with or that you can describe, as long as it\'s within 1,000 ft. If the object is moving, you know the direction of its movement. Can\'t locate if any thickness of lead blocks the path.',classes:['bard','wizard']},
+{name:'Magic Mouth',level:2,school:'Illusion',castTime:'1 min (ritual)',range:'30 ft',duration:'Until dispelled',components:'V, S, M (honeycomb and jade dust worth 10 gp)',desc:'Implant a message (25 words, up to 10 min to deliver) within an object. When a trigger condition is met, a magical mouth appears on the object and recites the message. Can be set to repeat or deliver once.',classes:['bard','wizard']},
+{name:'Mirror Image',level:2,school:'Illusion',castTime:'1 action',range:'Self',duration:'1 min',components:'V, S',desc:'Three illusory duplicates appear. Each time you\'re targeted by an attack, roll to see if it hits a duplicate instead (3 dupes: 6+, 2 dupes: 8+, 1 dupe: 11+). A duplicate has AC 10 + your DEX mod. No concentration.',classes:['wizard']},
+{name:'Misty Step',level:2,school:'Conjuration',castTime:'1 bonus action',range:'Self',duration:'Instantaneous',components:'V',desc:'Briefly surrounded by silvery mist, you teleport up to 30 ft to an unoccupied space that you can see.',classes:['wizard']},
+{name:'Phantasmal Force',level:2,school:'Illusion',castTime:'1 action',range:'60 ft',duration:'Concentration, 1 min',components:'V, S, M (a bit of fleece)',desc:'Craft an illusion in the mind of a creature. INT save to resist. The phantasm is perceived only by the target. The target treats it as real and rationalizes illogical outcomes. Can deal 1d6 psychic damage per turn. Investigation check vs spell DC to end.',classes:['bard','wizard']},
+{name:'See Invisibility',level:2,school:'Divination',castTime:'1 action',range:'Self',duration:'1 hour',components:'V, S, M (a pinch of talc and powdered silver)',desc:'You can see invisible creatures and objects as if they were visible, and you can see into the Ethereal Plane. Ethereal creatures and objects appear ghostly and translucent.',classes:['bard','wizard']},
+{name:'Shadow Blade',level:2,school:'Illusion',castTime:'1 bonus action',range:'Self',duration:'Concentration, 1 min',components:'V, S',desc:'You weave threads of shadow to create a sword of solidified gloom. Simple melee weapon, finesse, light, thrown (20/60 ft). 2d8 psychic damage. You have advantage on attacks in dim light or darkness. Higher levels: 3d8 at 3rd, 4d8 at 5th, 5d8 at 7th.',classes:['wizard']},
+{name:'Shatter',level:2,school:'Evocation',castTime:'1 action',range:'60 ft',duration:'Instantaneous',components:'V, S, M (a chip of mica)',desc:'A sudden loud noise painfully intense erupts. Each creature in a 10-ft-radius sphere centered on a point must make a CON save. Fail: 3d8 thunder damage. Pass: half. Nonmagical objects that aren\'t worn also take damage. Higher levels: +1d8 per slot.',classes:['bard','wizard']},
+{name:'Silence',level:2,school:'Illusion',castTime:'1 action (ritual)',range:'120 ft',duration:'Concentration, 10 min',components:'V, S',desc:'Create a 20-ft-radius sphere of silence. No sound can be created or pass through the area. Creatures inside are immune to thunder damage. Casting spells with verbal components is impossible inside.',classes:['bard']},
+{name:'Suggestion',level:2,school:'Enchantment',castTime:'1 action',range:'30 ft',duration:'Concentration, 8 hours',components:'V, M (a snake\'s tongue and either honeycomb or a drop of sweet oil)',desc:'Suggest a course of activity (limited to a sentence or two) to a creature that can hear and understand you. WIS save to resist. The suggestion must sound reasonable. The target pursues the activity to the best of its ability.',classes:['bard','wizard']},
+{name:'Zone of Truth',level:2,school:'Enchantment',castTime:'1 action',range:'60 ft',duration:'10 min',components:'V, S',desc:'Create a 15-ft-radius sphere where creatures can\'t deliberately lie. CHA save — you know whether each creature succeeded or failed. Affected creatures are aware of the spell and can be evasive but cannot lie.',classes:['bard']},
+// ── 3rd Level ──
+{name:'Bestow Curse',level:3,school:'Necromancy',castTime:'1 action',range:'Touch',duration:'Concentration, 1 min',components:'V, S',desc:'Touch a creature. WIS save or be cursed. Choose one: disadvantage on one ability\'s checks and saves; disadvantage on attacks against you; WIS save each turn or waste action doing nothing; your attacks deal extra 1d8 necrotic. At 5th slot: 8 hours, no concentration. At 7th: permanent.',classes:['bard','wizard']},
+{name:'Clairvoyance',level:3,school:'Divination',castTime:'10 min',range:'1 mile',duration:'Concentration, 10 min',components:'V, S, M (a focus worth at least 100 gp)',desc:'Create an invisible sensor at a point within range that you\'re familiar with. Choose seeing or hearing when you cast. You can switch as an action. The sensor has normal capabilities and can be detected with Detect Magic.',classes:['bard','wizard']},
+{name:'Dispel Magic',level:3,school:'Abjuration',castTime:'1 action',range:'120 ft',duration:'Instantaneous',components:'V, S',desc:'Choose one creature, object, or magical effect within range. Any spell of 3rd level or lower on the target ends. For higher-level spells, make an ability check using your spellcasting ability (DC = 10 + the spell\'s level).',classes:['bard','wizard']},
+{name:'Fear',level:3,school:'Illusion',castTime:'1 action',range:'Self (30-ft cone)',duration:'Concentration, 1 min',components:'V, S, M (a white feather or the heart of a hen)',desc:'Each creature in a 30-ft cone must succeed on a WIS save or drop what it\'s holding and become frightened. Must take the Dash action to move away from you each turn. WIS save at end of turn if it can\'t see you.',classes:['bard','wizard']},
+{name:'Hypnotic Pattern',level:3,school:'Illusion',castTime:'1 action',range:'120 ft',duration:'Concentration, 1 min',components:'S, M (a glowing stick of incense or a crystal vial filled with phosphorescent material)',desc:'Create a twisting pattern of colors in a 30-ft cube. Each creature that sees it must make WIS save or become charmed: incapacitated and speed 0. Effect ends if creature takes damage or someone uses an action to shake it out.',classes:['bard','wizard']},
+{name:'Leomund\'s Tiny Hut',level:3,school:'Evocation',castTime:'1 min (ritual)',range:'Self (10-ft-radius hemisphere)',duration:'8 hours',components:'V, S, M (a small crystal bead)',desc:'A 10-ft-radius immobile dome of force springs into existence around you. Up to 9 Medium creatures can fit inside. No spell effects or weather can pass through it. You can designate who can pass through. Interior climate is comfortable and dry.',classes:['bard','wizard']},
+{name:'Major Image',level:3,school:'Illusion',castTime:'1 action',range:'120 ft',duration:'Concentration, 10 min',components:'V, S, M (a bit of fleece)',desc:'Create the image of an object, creature, or other phenomenon no larger than a 20-ft cube. It seems perfectly real, including sounds, smells, and temperature appropriate to the thing depicted. Investigation check vs spell DC to reveal. At 6th level: permanent, no concentration.',classes:['bard','wizard']},
+{name:'Nondetection',level:3,school:'Abjuration',castTime:'1 action',range:'Touch',duration:'8 hours',components:'V, S, M (a pinch of diamond dust worth 25 gp)',desc:'You hide a target from divination magic. The target can be a willing creature, a place, or an object no larger than 10 ft in any dimension. The target can\'t be targeted by any divination magic or perceived through magical scrying sensors.',classes:['bard','wizard']},
+{name:'Plant Growth',level:3,school:'Transmutation',castTime:'1 action or 8 hours',range:'150 ft',duration:'Instantaneous',components:'V, S',desc:'(1 action) All normal plants in a 100-ft radius become thick and overgrown, making the area difficult terrain (costs 4 ft of movement per 1 ft). (8 hours) Enriches plants in a half-mile radius, doubling yield for 1 year.',classes:['bard']},
+{name:'Sending',level:3,school:'Evocation',castTime:'1 action',range:'Unlimited',duration:'1 round',components:'V, S, M (a short piece of fine copper wire)',desc:'Send a 25-word message to a creature you are familiar with. The creature hears the message, recognizes you, and can reply immediately with a 25-word message. Works across planes (5% fail chance).',classes:['bard','wizard']},
+{name:'Slow',level:3,school:'Transmutation',castTime:'1 action',range:'120 ft',duration:'Concentration, 1 min',components:'V, S, M (a drop of molasses)',desc:'Up to 6 creatures in a 40-ft cube make WIS saves. On fail: speed halved, -2 AC, -2 DEX saves, no reactions, only 1 attack per turn (action OR bonus action, not both), and if casting a spell, 50% chance it delays to next turn.',classes:['bard','wizard']},
+{name:'Speak with Dead',level:3,school:'Necromancy',castTime:'1 action',range:'10 ft',duration:'10 min',components:'V, S, M (burning incense)',desc:'Grant a corpse the semblance of life. You can ask up to 5 questions. The corpse knows only what it knew in life and speaks in languages it knew. Answers are often brief, cryptic, or repetitive. Can\'t be used on the same corpse again for 10 days.',classes:['bard','wizard']},
+{name:'Stinking Cloud',level:3,school:'Conjuration',castTime:'1 action',range:'90 ft',duration:'Concentration, 1 min',components:'V, S, M (a rotten egg or several skunk cabbage leaves)',desc:'Create a 20-ft-radius sphere of nauseating gas. Each creature starting its turn in the area must make a CON save or spend its action retching and reeling. Creatures immune to poison are unaffected. Moderate wind disperses in 4 rounds.',classes:['bard','wizard']},
+{name:'Tongues',level:3,school:'Divination',castTime:'1 action',range:'Touch',duration:'1 hour',components:'V, M (a small clay model of a ziggurat)',desc:'The creature you touch gains the ability to understand any spoken language it hears. When it speaks, any creature that knows at least one language can understand it.',classes:['bard','wizard']},
+];
+
+const MANEUVER_DB=[
+{name:'Commander\'s Strike',desc:'When you take the Attack action, forgo one attack. A friendly creature who can see or hear you can use its reaction to make one weapon attack, adding your superiority die to the damage roll.'},
+{name:'Disarming Attack',desc:'When you hit with a weapon attack, add superiority die to the damage. Target must make a STR save or drop one held item of your choice, which lands at its feet.'},
+{name:'Distracting Strike',desc:'When you hit with a weapon attack, add superiority die to the damage. The next attack roll against the target by an attacker other than you has advantage (if before the start of your next turn).'},
+{name:'Evasive Footwork',desc:'When you move, add superiority die to your AC until you stop moving.'},
+{name:'Feinting Attack',desc:'Use a bonus action to feint against one creature within 5 ft. You have advantage on your next attack roll against that creature this turn. If it hits, add superiority die to the damage.'},
+{name:'Goading Attack',desc:'When you hit with a weapon attack, add superiority die to the damage. Target must make a WIS save or have disadvantage on all attack rolls against targets other than you until end of your next turn.'},
+{name:'Lunging Attack',desc:'When you make a melee weapon attack on your turn, you can increase your reach by 5 ft. If you hit, add superiority die to the damage.'},
+{name:'Maneuvering Attack',desc:'When you hit with a weapon attack, add superiority die to the damage. Choose a friendly creature who can see or hear you — it can use its reaction to move up to half its speed without provoking opportunity attacks.'},
+{name:'Menacing Attack',desc:'When you hit with a weapon attack, add superiority die to the damage. Target must make a WIS save or be frightened of you until the end of your next turn.'},
+{name:'Parry',desc:'When another creature damages you with a melee attack, use your reaction to reduce the damage by your superiority die + your DEX modifier.'},
+{name:'Precision Attack',desc:'When you make a weapon attack roll, add superiority die to the roll. You can use this before or after making the attack roll, but before any effects are applied.'},
+{name:'Pushing Attack',desc:'When you hit with a weapon attack, add superiority die to the damage. If the target is Large or smaller, it must make a STR save or be pushed up to 15 ft away from you.'},
+{name:'Rally',desc:'Use a bonus action. A friendly creature who can see or hear you gains temporary hit points equal to your superiority die + your CHA modifier.'},
+{name:'Riposte',desc:'When a creature misses you with a melee attack, use your reaction to make a melee weapon attack against that creature. If you hit, add superiority die to the damage.'},
+{name:'Sweeping Attack',desc:'When you hit with a melee weapon attack, choose another creature within 5 ft of the original target and within your reach. If the original attack roll would hit that creature, it takes damage equal to your superiority die.'},
+{name:'Trip Attack',desc:'When you hit with a weapon attack, add superiority die to the damage. If the target is Large or smaller, it must make a STR save or be knocked prone.'},
+];
+
 // ═══ D&D TERM GLOSSARY ═══
 const TERM_TIPS={
   'Prone':'Attacks against: advantage if adj (5 ft), disadvantage if ranged. Costs half movement to stand.',
@@ -1023,10 +1135,14 @@ function renderSheets(){
     <div class="form-group"><label class="field-label">Spell Slots <button class="slot-add-btn" onclick="addSlotLvl(${idx})">+ Add Level</button></label><div id="slot-ed-${idx}"></div></div>
     `:''}
     ${_pcSheetTab===4?`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px">
       <span style="font-size:11px;color:var(--text-dim)">✨ ${pc.spellbook&&pc.spellbook.length?pc.spellbook.length+' spell'+(pc.spellbook.length===1?'':'s'):'No spells yet'}</span>
-      <button class="btn sm gold" onclick="addSpell(${idx})">+ Add Spell</button>
+      <div style="display:flex;gap:4px">
+        <button class="btn sm" onclick="toggleCompendium(${idx})" style="font-size:10px">${_compOpen?'Close':'📚 Browse'}</button>
+        <button class="btn sm gold" onclick="addSpell(${idx})">+ Manual</button>
+      </div>
     </div>
+    <div id="compendium-panel-${idx}">${_compOpen?'':'<!-- closed -->'}</div>
     <div id="spellbook-panel-${idx}"></div>
     `:''}
     ${_pcSheetTab===5?`
@@ -1064,6 +1180,7 @@ function renderSheets(){
   renderPcInvEditor(idx);
   renderRelationships(idx);
   renderSpellbook(idx);
+  if(_compOpen)renderCompendium(idx);
   renderFamiliarPanel(idx);
   // Set textarea values directly — innerHTML doesn't reliably populate textareas on mobile browsers
   const setTA=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
@@ -5920,6 +6037,117 @@ function addRelationship(fromId){
 function updRel(i,k,v){if(state.relationships[i])state.relationships[i][k]=v;save();}
 function remRel(i){state.relationships.splice(i,1);save();renderSheets();}
 
+// ─── SPELL COMPENDIUM BROWSER ───
+let _compOpen=false;
+let _compClass='all';
+let _compLevel='all';
+let _compSearch='';
+
+function toggleCompendium(idx){
+  _compOpen=!_compOpen;
+  renderSpellbook(idx);
+}
+
+function setCompFilter(idx,k,v){
+  if(k==='class')_compClass=v;
+  else if(k==='level')_compLevel=v;
+  else if(k==='search')_compSearch=v;
+  renderCompendium(idx);
+}
+
+function addFromCompendium(idx,spellName){
+  const pc=state.pcs[idx];if(!pc)return;
+  if(!Array.isArray(pc.spellbook))pc.spellbook=[];
+  if(pc.spellbook.find(s=>s.name.toLowerCase()===spellName.toLowerCase())){toast('Already in spellbook');return;}
+  const entry=SPELL_DB.find(s=>s.name===spellName);
+  if(entry){
+    pc.spellbook.push({name:entry.name,level:entry.level,school:entry.school,castTime:entry.castTime,range:entry.range,duration:entry.duration,components:entry.components,desc:entry.desc});
+    save();renderSpellbook(idx);
+    toast('Added '+entry.name);
+  }
+}
+
+function addManeuverToPC(idx,name){
+  const pc=state.pcs[idx];if(!pc)return;
+  const entry=MANEUVER_DB.find(m=>m.name===name);
+  if(!entry)return;
+  const existing=(pc.features||'');
+  if(existing.includes(name)){toast('Already known');return;}
+  pc.features=(existing?existing+'\n':'')+name+': '+entry.desc;
+  save();renderSheets();
+  toast('Added '+name);
+}
+
+function renderCompendium(idx){
+  const c=document.getElementById('compendium-panel-'+idx);if(!c)return;
+  const pc=state.pcs[idx];if(!pc)return;
+  const cls=(pc.class||'').toLowerCase();
+  const isBard=cls.includes('bard');
+  const isWizard=cls.includes('wizard')||cls.includes('arcane trickster');
+  const isFighter=cls.includes('fighter')||cls.includes('battle master');
+  const known=(pc.spellbook||[]).map(s=>s.name.toLowerCase());
+
+  let html='<div style="padding:8px;background:var(--surface);border:1px solid var(--gold-dim);border-radius:var(--radius-sm);margin-bottom:10px">';
+
+  if(isFighter){
+    html+='<div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:8px">Battle Master Maneuvers</div>';
+    const knownFeats=(pc.features||'').toLowerCase();
+    MANEUVER_DB.forEach(m=>{
+      const has=knownFeats.includes(m.name.toLowerCase());
+      html+='<details style="margin-bottom:4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);'+(has?'opacity:.5':'')+'"><summary style="padding:6px 8px;font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer">';
+      html+='<span style="flex:1;color:var(--text-bright);font-weight:600">'+esc(m.name)+'</span>';
+      html+=has?'<span style="font-size:9px;color:var(--green)">Known</span>':'<button class="btn sm gold" onclick="event.stopPropagation();addManeuverToPC('+idx+',\''+esc(m.name.replace(/'/g,"\\'"))+'\')">+ Add</button>';
+      html+='</summary><div style="padding:6px 8px;font-size:11px;color:var(--text);line-height:1.5;border-top:1px solid var(--border)">'+esc(m.desc)+'</div></details>';
+    });
+    if(!isWizard&&!isBard){html+='</div>';c.innerHTML=html;return;}
+    html+='<div style="border-top:1px solid var(--gold-dim);margin:12px 0 8px"></div>';
+  }
+
+  html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">';
+  html+='<span style="font-size:11px;font-weight:600;color:var(--gold)">Spell Compendium</span>';
+  html+='<select style="font-size:10px;padding:2px 4px" onchange="setCompFilter('+idx+',\'class\',this.value)">';
+  html+='<option value="all"'+ (_compClass==='all'?' selected':'')+'>All Classes</option>';
+  html+='<option value="bard"'+(_compClass==='bard'?' selected':'')+'>Bard</option>';
+  html+='<option value="wizard"'+(_compClass==='wizard'?' selected':'')+'>Wizard</option>';
+  html+='</select>';
+  html+='<select style="font-size:10px;padding:2px 4px" onchange="setCompFilter('+idx+',\'level\',this.value)">';
+  html+='<option value="all"'+(_compLevel==='all'?' selected':'')+'>All Levels</option>';
+  html+='<option value="0"'+(_compLevel==='0'?' selected':'')+'>Cantrips</option>';
+  ['1st','2nd','3rd'].forEach((l,i)=>{html+='<option value="'+(i+1)+'"'+(_compLevel===String(i+1)?' selected':'')+'>'+l+' Level</option>';});
+  html+='</select>';
+  html+='</div>';
+  html+='<input type="text" placeholder="Search spells..." value="'+esc(_compSearch)+'" oninput="setCompFilter('+idx+',\'search\',this.value)" style="font-size:11px;padding:4px 8px;margin-bottom:8px;width:100%;box-sizing:border-box">';
+
+  let filtered=SPELL_DB;
+  if(_compClass!=='all')filtered=filtered.filter(s=>s.classes.includes(_compClass));
+  if(_compLevel!=='all')filtered=filtered.filter(s=>s.level===parseInt(_compLevel));
+  if(_compSearch){const q=_compSearch.toLowerCase();filtered=filtered.filter(s=>s.name.toLowerCase().includes(q)||s.school.toLowerCase().includes(q));}
+
+  const LVLS=['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
+  if(!filtered.length){html+='<div style="font-size:11px;color:var(--text-dim);padding:8px">No spells match your filters.</div>';}
+  else{
+    const grouped={};filtered.forEach(s=>{const k=s.level;if(!grouped[k])grouped[k]=[];grouped[k].push(s);});
+    Object.keys(grouped).sort((a,b)=>a-b).forEach(lv=>{
+      const lvLabel=parseInt(lv)===0?'Cantrips':LVLS[parseInt(lv)]+' Level';
+      html+='<div style="font-size:9px;font-weight:700;color:var(--gold-dim);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px;border-bottom:1px solid var(--border);padding-bottom:2px">'+lvLabel+' ('+grouped[lv].length+')</div>';
+      grouped[lv].forEach(sp=>{
+        const has=known.includes(sp.name.toLowerCase());
+        html+='<details style="margin-bottom:3px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);'+(has?'opacity:.5':'')+'"><summary style="padding:5px 8px;font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer">';
+        html+='<span style="flex:1;min-width:0"><span style="color:var(--text-bright);font-weight:600">'+esc(sp.name)+'</span>';
+        html+=' <span style="font-size:9px;color:var(--text-dim)">'+esc(sp.school)+'</span></span>';
+        html+='<span style="font-size:9px;color:var(--text-dim);white-space:nowrap">'+esc(sp.castTime)+'</span>';
+        html+=has?'<span style="font-size:9px;color:var(--green);flex-shrink:0">In Book</span>':'<button class="btn sm gold" style="font-size:9px;flex-shrink:0" onclick="event.stopPropagation();addFromCompendium('+idx+',\''+esc(sp.name.replace(/'/g,"\\'"))+'\')">+</button>';
+        html+='</summary><div style="padding:6px 8px;border-top:1px solid var(--border);font-size:11px;line-height:1.5">';
+        html+='<div style="color:var(--text-dim);margin-bottom:4px">'+esc(sp.castTime)+' · '+esc(sp.range)+' · '+esc(sp.duration)+' · '+esc(sp.components)+'</div>';
+        html+='<div style="color:var(--text)">'+esc(sp.desc)+'</div>';
+        html+='</div></details>';
+      });
+    });
+  }
+  html+='</div>';
+  c.innerHTML=html;
+}
+
 // ─── SPELLBOOK ───
 function setSpellFilter(f){_spellFilter=f;const idx=state.activeEditTab||0;renderSpellbook(idx);}
 function renderSpellbook(idx){
@@ -9003,7 +9231,7 @@ Object.assign(window, {
   addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, addCondFromPicker,
   addFamiliar, addIncome, addLogEntry, addModuleEpisode, addNPC, addNewChar,
   addPartyItem, addPartyToCombat, addPcItem, addPreset, addQA, addQuest,
-  addResource, addScene, addSlotLvl, addSnip, addSpell, addTownRep, addWagonItem,
+  addFromCompendium, addManeuverToPC, addResource, addScene, addSlotLvl, addSnip, addSpell, addTownRep, addWagonItem,
   adjHP, applyLevelUp, askDMFromParty, auditWithAI, awardXP,
   buildAISummary, buildRawSummary,
   chatKey, chatKeyQuick, checkResetConfirm, clearChat, clearChkHist,
@@ -9045,7 +9273,7 @@ Object.assign(window, {
   useResource, verifyElKey, renderSceneLabel, renderPartyPCList, toggleSkillProf,
   sendRollToChat, addPartyItem, remPI, updPI, closeInvEdit,
   showTermTip, rollStatCheck, rollInitiative,
-  _expandedMsgs, setSpellFilter,
+  _expandedMsgs, setCompFilter, setSpellFilter, toggleCompendium,
   renderStepBar, setHpStep,
   openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview,
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
