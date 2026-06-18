@@ -5780,16 +5780,16 @@ const SUGGEST_CHIPS={
   test:[
     {label:'Test mechanic',fill:'[Test] Apply: '},
     {label:'Test prompt',fill:'Describe the current scene in detail.'},
-    {label:'Level up',fill:'//levelup'},
-    {label:'Add condition',fill:'[Test] Apply condition Stunned for 3 rounds to the current combatant.'},
-    {label:'Clone enemy',fill:'[Test] Clone the first enemy in combat and verify initiative and naming.'},
-    {label:'XP award',fill:'[Test] Award 300 XP to the party and check for level-up threshold.'},
-    {label:'Feat check',fill:'[Test] Verify feat selection during level-up: pick Alert and confirm it appears in features.'},
-    {label:'Spell swap',fill:'[Test] Swap a known spell during level-up and verify the old spell is removed.'},
-    {label:'PC inventory',fill:'[Test] Add a Healing Potion to Tinkle\'s personal inventory via Cargo tab.'},
+    {label:'Award XP',fill:'Award 300 XP to the party for defeating the bandits.'},
+    {label:'Add condition',fill:'A bandit casts Hold Person on Slasher. Apply the Paralyzed condition.'},
+    {label:'Drop loot',fill:'The chest contains a Potion of Greater Healing, 45 gold, and a mysterious letter. Distribute it.'},
+    {label:'Start combat',fill:'Three goblins and an ogre ambush the party on the road. Roll initiative.'},
+    {label:'NPC intro',fill:'We enter the tavern and meet the bartender. Who are they?'},
+    {label:'Damage + cond',fill:'The dragon breathes fire on the party. Dex saves all around, 8d6 fire damage. Apply Frightened on fail.'},
     {label:'Glossary',fill:'//explain grappled'},
-    {label:'Cond expire',fill:'[Test] Advance combat turns and verify condition durations tick down and expire with a toast.'},
-    {label:'Combat setup',fill:'[Test] Add 3 Goblins to combat, clone one, then start initiative. Verify zone assignments.'},
+    {label:'Rest & recover',fill:'We take a long rest at the inn. Restore HP and spell slots.'},
+    {label:'Quest hook',fill:'The mayor asks us to clear the mine of undead. She offers 200 gold.'},
+    {label:'Level announce',fill:'After turning in the quest, the party levels up. Announce it.'},
   ]
 };
 function renderSuggestChips(tab){
