@@ -4272,6 +4272,7 @@ function migrate(s){
     if(pc.hp===undefined||pc.hp===null)pc.hp=pc.hp_max;
     if(pc.levelReady===undefined)pc.levelReady=false;
     if(!Array.isArray(pc.spellbook))pc.spellbook=[];
+    if(pc.spellbook.length>1)_sortSpellbook(pc.spellbook);
     if(pc.familiar===undefined)pc.familiar=null;
     if(!pc.death_saves)pc.death_saves={successes:0,failures:0};
     if(pc.inspiration===undefined)pc.inspiration=false;
@@ -5215,6 +5216,7 @@ function parseMechanics(responseText, pendingMsgId=null){
           if(!Array.isArray(tpc.spellbook))tpc.spellbook=[];
           if(!tpc.spellbook.find(s=>s.name.toLowerCase()===spName.toLowerCase())){
             tpc.spellbook.push(spData);
+            _sortSpellbook(tpc.spellbook);
             changes.push({text:'Spell added: '+spName+(lvl?' ('+lvl+'th lvl)':' (cantrip)')+' → '+tpc.name});
           }
         }
@@ -6755,6 +6757,7 @@ function addFromCompendium(idx,spellName){
   const entry=SPELL_DB.find(s=>s.name===spellName);
   if(entry){
     pc.spellbook.push({name:entry.name,level:entry.level,school:entry.school,castTime:entry.castTime,range:entry.range,duration:entry.duration,components:entry.components,desc:entry.desc});
+    _sortSpellbook(pc.spellbook);
     save();renderSpellbook(idx);
     toast('Added '+entry.name);
   }
@@ -6897,13 +6900,20 @@ function renderSpellbook(idx){
     const ta=d.querySelector('#spell-desc-'+idx+'-'+si);if(ta)ta.value=sp.desc||'';
   });
 }
+function _sortSpellbook(book){
+  book.sort((a,b)=>{
+    const la=parseInt(a.level)||0,lb=parseInt(b.level)||0;
+    if(la!==lb)return la-lb;
+    return(a.name||'').toLowerCase().localeCompare((b.name||'').toLowerCase());
+  });
+}
 function addSpell(idx){
   if(!state.pcs[idx])return;
   if(!Array.isArray(state.pcs[idx].spellbook))state.pcs[idx].spellbook=[];
   state.pcs[idx].spellbook.push({name:'',level:1,school:'',castTime:'1 action',range:'',duration:'',components:'V, S',desc:''});
   save();_pcSheetTab=3;renderSheets();
 }
-function updSpell(idx,si,k,v){const sp=state.pcs[idx]?.spellbook?.[si];if(!sp)return;sp[k]=v;save();}
+function updSpell(idx,si,k,v){const sp=state.pcs[idx]?.spellbook?.[si];if(!sp)return;sp[k]=v;if(k==='level'||k==='name')_sortSpellbook(state.pcs[idx].spellbook);save();if(k==='level'||k==='name')renderSheets();}
 function remSpell(idx,si){state.pcs[idx].spellbook.splice(si,1);save();renderSheets();}
 function toggleSkillProf(idx,name,checked){
   const pc=state.pcs[idx];if(!pc)return;
