@@ -3895,6 +3895,7 @@ function resetState(mode, startingGold){
     state.locations=[];
     state.sessionNotes='';
     state.errorLog=[];
+    state.aiContracts={};
   }
   save();
   if(window.fbSave)fbSave();
@@ -5005,18 +5006,18 @@ After EVERY response, end with a mechanics block. Use exact format. If nothing c
 This block is machine-parsed by the app — format must be exact. It is stripped from displayed text.
 
 ---MECHANICS---
-hp: gareth=4
-hp_max: meren=8
-conditions: gareth+poisoned, meren-charmed
-slot_use: meren=1
-slot_restore: meren=all
-short_rest: gareth
+hp: [name]=4
+hp_max: [name]=8
+conditions: [name]+poisoned, [name]-charmed
+slot_use: [name]=1
+slot_restore: [name]=all
+short_rest: [name]
 location: The Sunken Vault
 time: Day 2, dusk
 weather: Heavy rain
-income: 8, real_stock, Sold Clarity Tonic to farmer
+income: 8, reward, Rescued merchant caravan
 expense: 3, Stable fee at the Broken Axle
-item_add: meren, Iron Key, 1, key, 0
+item_add: [name], Iron Key, 1, key, 0
 item_remove: party, Torch, 2
 item_add: wagon, Mushroom Cluster, 3, foraged, 0.1
 wagon_cell_add: Goblin Scout, Small, hostile, DC14, 40
@@ -5026,12 +5027,12 @@ wagon_hp: 14
 ox_hp: 12
 ox_condition: exhausted
 familiar_hp: Pip|0
-xp: gareth+50, meren+50, lyra+50
+xp: [name]+50, [name]+50, [name]+50
 quest_done: Find the missing cart
 quest_add: Investigate the old mill
 npc_mood: Durgrim=hostile
 npc_add: Mira, Neutral, Halfling innkeeper
-pc_update: gareth, class, Fighter/Champion
+pc_update: [name], class, Fighter/Champion
 pc_add: Grimtooth, Half-Orc, Barbarian, 1, 14, 14, 15
 pc_delete: Grimtooth
 ---END---
@@ -5039,7 +5040,7 @@ pc_delete: Grimtooth
 Rules:
 - One command per line, only include lines where something actually changed
 - Never invent HP values — only change HP by exact stated or rolled amounts
-- income: [amount], [category], [description] — USE THIS for all gold earned (logs to income ledger). Category: real_stock/snake_oil/reagents/misc
+- income: [amount], [category], [description] — USE THIS for all gold earned (logs to income ledger). Category: reward/found/loot/quest/trade/misc
 - expense: [amount], [description] — USE THIS for all gold spent (logs to expense ledger and deducts from GP)
 - gp: use a plain number to SET an absolute GP value (corrections only — does not create a log entry)
 - npc_add: EVERY TIME a named NPC is mentioned by name — whether formally introduced, referenced in dialogue, or recalled from lore — output npc_add if that NPC is not already in the tracker. Every time.
