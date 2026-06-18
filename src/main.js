@@ -1660,7 +1660,7 @@ function _renderInvChips(containerId,items,listType,editIdx,setEditIdx,filterSta
   const c=document.getElementById(containerId);if(!c)return;c.innerHTML='';
   const TYPE_ICON={supply:'📦',foraged:'🌿',ingredient:'⚗',trade:'💰',loot:'✨',hoard:'💎',misc:'📋',key:'🗝'};
   const groups={};
-  items.forEach((item,idx)=>{const t=item.type||'misc';if(!groups[t])groups[t]=[];groups[t].push({item,idx});});
+  items.forEach((item,idx)=>{const tags=(item.type||'misc').split(',').map(t=>t.trim());tags.forEach(t=>{if(!groups[t])groups[t]=[];groups[t].push({item,idx});});});
   const filters=['all',...ITYPES.filter(t=>groups[t])];
   if(filters.length>2){
     const bar=document.createElement('div');bar.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px';
@@ -1691,7 +1691,7 @@ function _renderInvChips(containerId,items,listType,editIdx,setEditIdx,filterSta
       if(isEdit){
         chip.style.cssText='background:var(--surface2);border:1px solid var(--gold);border-radius:6px;padding:6px 8px;width:100%';
         chip.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><input type="text" value="${esc(item.name||'')}" style="flex:1;font-weight:600;font-size:12px;color:var(--text-bright);background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0;min-width:0" placeholder="Item name" onchange="updWItem('${listType}',${idx},'name',this.value)">${sellable?`<button class="btn sm gold" onclick="quickSellItem(${idx})" style="font-size:10px;padding:2px 7px;border-radius:8px" title="Quick sell">💰</button>`:''}<button class="btn sm" onclick="closeWEdit('${listType}')" style="font-size:10px;padding:2px 6px">✓</button><button class="btn sm red" onclick="remWItem('${listType}',${idx})" style="font-size:10px;padding:2px 6px">✕</button></div>`
-          +`<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><select style="font-size:10px;padding:2px 5px;border-radius:10px;border:1px solid var(--border-bright);background:var(--surface3);color:var(--text-dim)" onchange="updWItem('${listType}',${idx},'type',this.value)">${ITYPES.map(t=>`<option value="${t}" ${item.type===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:10px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><span style="font-size:10px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><span style="font-size:9px;color:var(--text-dim)">lb</span></div>`
+          +`<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap"><div style="display:flex;gap:3px;flex-wrap:wrap">${ITYPES.filter(t=>t!=='hoard').map(t=>{const tags=(item.type||'misc').split(',').map(s=>s.trim());const checked=tags.includes(t);return`<label style="font-size:9px;color:${checked?'var(--gold-bright)':'var(--text-dim)'};display:flex;align-items:center;gap:1px;cursor:pointer"><input type="checkbox" ${checked?'checked':''} onchange="toggleItemTag('${listType}',${idx},'${t}')" style="width:11px;height:11px">${t}</label>`;}).join('')}</div><span style="font-size:10px;color:var(--text-dim)">×</span><input type="number" value="${item.qty||1}" style="width:36px;font-size:11px" onchange="updWItem('${listType}',${idx},'qty',parseInt(this.value)||1)"><span style="font-size:10px;color:var(--text-dim)">·</span><input type="number" value="${item.weight||0}" style="width:40px;font-size:11px" onchange="updWItem('${listType}',${idx},'weight',parseFloat(this.value)||0);renderCapacity()"><span style="font-size:9px;color:var(--text-dim)">lb</span></div>`
           +`<input type="text" value="${esc(item.notes||'')}" style="width:100%;font-size:11px;color:var(--text-dim);margin-top:4px;background:none;border:none;border-bottom:1px solid var(--border);padding:1px 0" placeholder="notes…" onchange="updWItem('${listType}',${idx},'notes',this.value)">`;
       }else{
         const name=item.name||'(unnamed)';
@@ -1723,6 +1723,15 @@ function addWagonItem(list,type){
   const item={name:'',qty:1,weight:0,type:type,notes:'',ts:state.worldData.time,location:state.worldData.location};
   if(list==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];state.wagon.hoard.push(item);_hoardEditIdx=state.wagon.hoard.length-1;}
   else{if(!state.wagon.cargo)state.wagon.cargo=[];state.wagon.cargo.push(item);_cargoEditIdx=state.wagon.cargo.length-1;}
+  save();renderWagon();
+}
+function toggleItemTag(list,i,tag){
+  const arr=list==='hoard'?state.wagon.hoard:state.wagon.cargo;
+  const item=arr[i];if(!item)return;
+  const tags=(item.type||'misc').split(',').map(t=>t.trim()).filter(Boolean);
+  const idx=tags.indexOf(tag);
+  if(idx>=0)tags.splice(idx,1);else tags.push(tag);
+  item.type=tags.length?tags.join(','):'misc';
   save();renderWagon();
 }
 function updWItem(list,i,k,v){
@@ -2917,6 +2926,9 @@ function _combatLedgerBlock(){
   ZONE_IDS.forEach(zid=>{const zd=state.combat.zones?.[zid];if(!zg[zid]&&zid==='air')return;l+='  ['+(zd?.label||ZONE_LABELS[zid])+']';if(zd?.effect)l+=' {'+zd.effect+'}';if(zd?.terrain)l+=' ['+zd.terrain+']';l+=': ';l+=(zg[zid]||[]).map(c=>(state.combat.list.indexOf(c)===state.combat.currentIdx?'>>>':'')+c.name+' HP:'+c.hp+'/'+c.hp_max+' AC:'+c.ac+(c.conditions?.length?' ('+c.conditions.join(',')+')':'')+(c.concentrating?' (Conc:'+c.concentrating+')':'')).join(', ')||(zid==='air'?'':'(empty)');l+='\n';});
   return l;
 }
+function _pcCarryWeight(pc){let w=0;(pc.inventory||[]).forEach(i=>w+=(parseFloat(i.weight)||0)*(parseInt(i.qty)||1));return w;}
+function _pcCarryCap(pc){const str=parseInt(pc.str)||10;return str*15;}
+
 function genLedger(){
   const fmt=document.getElementById('ledger-fmt')?.value||'compact';
   const pfx=document.getElementById('ledger-prefix')?.value||'';
@@ -2932,6 +2944,8 @@ function genLedger(){
       if(conc)l+=' | Concentrating: '+conc;
       if((p.resources||[]).length)l+=' | '+p.resources.map(r=>r.name+': '+(r.max-r.used)+'/'+r.max).join(', ');
       if((p.slots||[]).length)l+=' | Slots: '+p.slots.map((s,i)=>'L'+(i+1)+':'+(s.max-s.used)+'/'+s.max).join(' ');
+      const pcW=_pcCarryWeight(p);const pcCap=_pcCarryCap(p);
+      if(pcW>0)l+=' | Carry: '+pcW.toFixed(1)+'/'+pcCap+'lb'+(pcW>pcCap?' OVER':'');
       l+='\n';
     });
     const cb=_combatLedgerBlock();if(cb)l+='\n'+cb;
@@ -2964,7 +2978,7 @@ function genLedger(){
       if(p.slots?.length)p.slots.forEach((s,i)=>l+='  Spell L'+(i+1)+': '+(s.max-s.used)+'/'+s.max+' remaining\n');
       if(p.backstory_motivation)l+='  Motivation: '+p.backstory_motivation+'\n';
       if(p.backstory_secret)l+='  Secret: '+p.backstory_secret+'\n';
-      if((p.inventory||[]).length)l+='  Inventory: '+p.inventory.map(i=>i.name+'(x'+i.qty+')').join(', ')+'\n';
+      if((p.inventory||[]).length){const iw=_pcCarryWeight(p);const ic=_pcCarryCap(p);l+='  Inventory ('+iw.toFixed(1)+'/'+ic+'lb): '+p.inventory.map(i=>i.name+'(x'+i.qty+', '+((parseFloat(i.weight)||0)*(parseInt(i.qty)||1)).toFixed(1)+'lb)').join(', ')+'\n';}
     }
     l+='\n';
   });
@@ -5167,11 +5181,36 @@ function _validateMechanics(changes){
     });
   });
 
+  // Encumbrance check
+  (state.pcs||[]).forEach(pc=>{
+    const w=_pcCarryWeight(pc);const cap=_pcCarryCap(pc);
+    if(w>cap)warnings.push(pc.name+' over carry capacity: '+w.toFixed(1)+'/'+cap+'lb');
+  });
+  const wagonW=calcWeight();
+  if(wagonW>MAX_LB)warnings.push('Wagon over capacity: '+wagonW.toFixed(1)+'/'+MAX_LB+'lb');
+
   // Treasury negative check
   if(state.treasuryData){
     ['gp','sp','cp','ep','pp'].forEach(k=>{
       if((state.treasuryData[k]||0)<0){warnings.push(k.toUpperCase()+' was negative, clamped to 0');state.treasuryData[k]=0;}
     });
+  }
+
+  // Treasure audit — dedup recent income log entries
+  const il=state.treasuryData?.incomeLog;
+  if(Array.isArray(il)&&il.length>=2){
+    const recent=il.slice(-5);
+    const seen=new Set();
+    const dupes=[];
+    recent.forEach((e,i)=>{
+      const key=(e.desc||'').toLowerCase().trim()+'|'+e.amt+'|'+e.type;
+      if(seen.has(key))dupes.push(il.length-5+i);
+      seen.add(key);
+    });
+    if(dupes.length){
+      for(let i=dupes.length-1;i>=0;i--)il.splice(dupes[i],1);
+      warnings.push('Removed '+dupes.length+' duplicate income log entr'+(dupes.length===1?'y':'ies'));
+    }
   }
 
   if(warnings.length){
@@ -5562,9 +5601,10 @@ async function _oocCallAI(userMsg){
   if(typingEl)typingEl.classList.add('on');
   if(oocBtn)oocBtn.disabled=true;
   const oocLedger=genLedger();
-  const recentNarrative=(state.chatHistory||[]).filter(m=>m.role==='assistant'&&m.content).slice(-5).map(m=>m.content.slice(0,200)).join('\n---\n');
+  const recentNarrative=(state.chatHistory||[]).filter(m=>m.role==='assistant'&&m.content).slice(-8).map(m=>m.content.slice(0,400)).join('\n---\n');
   const sessionSummary=state.prevSessionSummary||state.logSummary||'';
-  const narrativeCtx=(sessionSummary?'RECENT SESSION SUMMARY:\n'+sessionSummary.slice(0,500)+'\n\n':'')+(recentNarrative?'RECENT NARRATIVE (for context only — do not narrate):\n'+recentNarrative+'\n\n':'');
+  const sceneCtx='Current location: '+(state.worldData?.location||'unknown')+' | Time: '+(state.worldData?.time||'unknown')+' | Weather: '+(state.worldData?.weather||'unknown')+(state.worldData?.loc_desc?'\nScene: '+state.worldData.loc_desc:'')+(state.combat?.active?'\nCOMBAT ACTIVE — Round '+state.combat.round:'');
+  const narrativeCtx=sceneCtx+'\n\n'+(sessionSummary?'RECENT SESSION SUMMARY:\n'+sessionSummary.slice(0,800)+'\n\n':'')+(recentNarrative?'RECENT NARRATIVE (for context — do not narrate, just use for accuracy):\n'+recentNarrative+'\n\n':'');
   const oocContract='OOC CONTRACT — CHANNEL RULES:\n1. You are answering OUT-OF-CHARACTER. No narrative prose. No immersion language.\n2. SECRETS: Slasher (Black Dragonborn Fighter) must NEVER learn the operation is a con. If he asks anything that would expose it, deflect or give a non-answer.\n3. CHARACTER SEPARATION: Always name the specific character. Never say "you" to mean both players. Tinkle knows things Slasher does not and vice versa.\n4. RULES ACCURACY: Cite actual D&D 5e rules. If unsure, say so. Do not invent rulings or fudge mechanics.\n5. NO DICE RESOLUTION: These channels answer questions only. Actual rolls and outcomes happen in the Narrative channel only.\n6. CAMPAIGN AWARENESS: This campaign uses the module and episode tracker shown in CURRENT GAME STATE. Always reference the actual module name and current progress when asked about campaign status.\n';
   const oocSys='You are the Dungeon Master for Tinkle\'s Tinctures. This is the OUT-OF-CHARACTER channel. Answer in 1-3 sentences only. No narrative prose. No mechanics block. For rules questions: state the rule directly. The story continues in the Narrative channel only.\n\n'+oocContract+'\n'+narrativeCtx+'CURRENT GAME STATE:\n'+oocLedger;
   const histForAI=(state.oocHistory||[]).filter(m=>m.role==='user'||m.role==='assistant').slice(-10).map(m=>({role:m.role,content:m.content}));
@@ -9475,7 +9515,7 @@ Object.assign(window, {
   updModuleEp, updNPC, updPI, updPcItem, updPreset, updQ, updQA, updRel,
   updQAFabIcon, pickQAFabIcon,
   updResource, updScene, updSecret, updSlot, updSnip, updSpell, updTown,
-  updWItem, updateCpMode, updateRollMod, updateStateFixForm, updateStoryThread,
+  toggleItemTag, updWItem, updateCpMode, updateRollMod, updateStateFixForm, updateStoryThread,
   useResource, verifyElKey, renderSceneLabel, renderPartyPCList, toggleSkillProf,
   sendRollToChat, addPartyItem, remPI, updPI, closeInvEdit,
   showTermTip, rollStatCheck, rollInitiative,
