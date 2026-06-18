@@ -3786,29 +3786,37 @@ function executeReset(){
   resetState(_resetMode, gold);
 }
 function resetState(mode, startingGold){
-  // Get canonical PCs from INITIAL_PCS
-  const canonical=getCanonicalPCs();
-  // Build clean PCs
-  const cleanPCs=canonical.map(function(pc){
-    const clean=JSON.parse(JSON.stringify(pc));
-    // Always reset session fields
-    clean.hp=clean.hp_max;
-    clean.conditions=[];
-    clean.concentrating='';
-    // Restore resources to full
-    if(clean.resources)clean.resources.forEach(function(r){r.used=0;});
-    if(clean.slots)clean.slots.forEach(function(s){s.used=0;});
-    if(mode==='full'){
-      // Full reset — also wipe progress fields
-      clean.xp=0;
-      clean.inventory=JSON.parse(JSON.stringify(pc.inventory||[]));
-      clean.backstory_origin='';
-      clean.backstory_motivation='';
-      clean.backstory_secret='';
-      clean.pending=pc.pending||[];
-    }
-    return clean;
-  });
+  let cleanPCs;
+  if(mode==='full'){
+    cleanPCs=[
+      {id:'pc1',name:'',race:'',class:'Fighter',level:1,background:'',alignment:'',
+       hp:10,hp_max:10,ac:10,initiative:0,speed:30,passive_perception:10,passive_insight:10,
+       xp:0,color:'#c04a3a',str:'10 (+0)',dex:'10 (+0)',con:'10 (+0)',int:'10 (+0)',wis:'10 (+0)',cha:'10 (+0)',
+       skills:'',features:'',magic:'',resources:[],conditions:[],slots:[],inventory:[],
+       backstory_origin:'',backstory_motivation:'',backstory_secret:'',pending:[]},
+      {id:'pc2',name:'',race:'',class:'Wizard',level:1,background:'',alignment:'',
+       hp:6,hp_max:6,ac:10,initiative:0,speed:30,passive_perception:10,passive_insight:10,
+       xp:0,color:'#4a7090',str:'10 (+0)',dex:'10 (+0)',con:'10 (+0)',int:'10 (+0)',wis:'10 (+0)',cha:'10 (+0)',
+       skills:'',features:'',magic:'',resources:[],conditions:[],slots:[],inventory:[],
+       backstory_origin:'',backstory_motivation:'',backstory_secret:'',pending:[]},
+      {id:'pc3',name:'',race:'',class:'Bard',level:1,background:'',alignment:'',
+       hp:8,hp_max:8,ac:10,initiative:0,speed:30,passive_perception:10,passive_insight:10,
+       xp:0,color:'#7060a0',str:'10 (+0)',dex:'10 (+0)',con:'10 (+0)',int:'10 (+0)',wis:'10 (+0)',cha:'10 (+0)',
+       skills:'',features:'',magic:'',resources:[],conditions:[],slots:[],inventory:[],
+       backstory_origin:'',backstory_motivation:'',backstory_secret:'',pending:[]}
+    ];
+  } else {
+    const canonical=getCanonicalPCs();
+    cleanPCs=canonical.map(function(pc){
+      const clean=JSON.parse(JSON.stringify(pc));
+      clean.hp=clean.hp_max;
+      clean.conditions=[];
+      clean.concentrating='';
+      if(clean.resources)clean.resources.forEach(function(r){r.used=0;});
+      if(clean.slots)clean.slots.forEach(function(s){s.used=0;});
+      return clean;
+    });
+  }
   // Build clean world data
   const cleanWorld={
     time:'Day 1, 9:00 AM',season:'Early Spring',weather:'Clear',
@@ -6828,6 +6836,18 @@ Confirm you have read this entire message. Output exactly:
 [Fill in actual values from the ledger above]
 Ready to begin. Awaiting your first action."`;
   const outEl=document.getElementById('s0-output');if(outEl)outEl.textContent=out;
+}
+
+function sendSessionZero(){
+  const out=document.getElementById('s0-output')?.textContent||'';
+  if(!out||out==='— Click Generate —'){toast('Generate the Session Zero first.');return;}
+  const key=getKey();if(!key){toast('Set an API key first (AI Tools tab).');return;}
+  _ctxInject=out;
+  closeModal('s0-modal');
+  showChatTab('narrative');
+  const input=document.getElementById('chat-quick-input');
+  if(input){input.value='Begin the campaign. Describe the opening scene.';input.focus();}
+  toast('⚡ Session Zero loaded — send your first message to begin.');
 }
 
 // ═══ MODALS ═══
@@ -10514,7 +10534,7 @@ Object.assign(window, {
   completeSetup, connectFirebase, copyIdx, copyStateCompact, copyText,
   delChar, deleteChatMsg, deleteFlag, doLongRest, doQAHP, doShortRest,
   doStateFix, editFlagNote, endCombat, executeReset,
-  exportConfig, exportFlagReport, fbDisconnect, genLedger, generateSessionZero,
+  exportConfig, exportFlagReport, fbDisconnect, genLedger, generateSessionZero, sendSessionZero,
   setFlagCatFilter, copyDevNotes,
   saveContract, renderContracts,
   handlePluginCmd, importConfig, importFromPaste, justSave, launchCampaign,
