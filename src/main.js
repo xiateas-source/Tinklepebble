@@ -231,6 +231,7 @@ const FEATS_DB=[
 
 // ═══ D&D TERM GLOSSARY ═══
 const TERM_TIPS={
+  // Conditions (14 D&D 5e conditions)
   'Prone':'Attacks against: advantage if adj (5 ft), disadvantage if ranged. Costs half movement to stand.',
   'Blinded':'Fails sight checks. Attacks: disadvantage. Attacks against: advantage.',
   'Stunned':'Incapacitated, can\'t move. Attacks: advantage. Fails STR/DEX saves.',
@@ -241,8 +242,13 @@ const TERM_TIPS={
   'Paralyzed':'Incapacitated, can\'t move or speak. Auto-fail STR/DEX saves. Attacks: advantage (crit if within 5 ft).',
   'Charmed':'Can\'t attack the charmer. Charmer has advantage on social checks vs. creature.',
   'Poisoned':'Disadvantage on attack rolls and ability checks.',
+  'Deafened':'Can\'t hear. Auto-fails checks that require hearing.',
+  'Invisible':'Impossible to see without special sense. Attacks: advantage. Attacks against: disadvantage.',
+  'Petrified':'Transformed to stone. Weight ×10. Incapacitated. Resistance to all damage. Immune to poison/disease.',
+  'Unconscious':'Incapacitated, drops items, falls prone. Auto-fail STR/DEX saves. Attacks: advantage (crit within 5 ft).',
   'Exhaustion':'Stacks 1–6: ×1 disadvantage on checks, ×2 speed halved, ×3 disadvantage attacks/saves, ×4 speed 0, ×5 max HP halved, ×6 death.',
   'Concentration':'Damaged → CON save (DC 10 or ½ damage). Casting another concentration spell ends previous.',
+  // Combat Actions
   'Sneak Attack':'Rogue: extra 1d6/2 levels/turn with finesse or ranged weapon + advantage OR ally adj to target.',
   'Opportunity Attack':'Triggered when creature voluntarily leaves reach. Uses reaction; one melee attack.',
   'Advantage':'Roll two d20s, use the higher result.',
@@ -258,6 +264,68 @@ const TERM_TIPS={
   'Grapple':'Athletics vs. target\'s Athletics/Acrobatics: target becomes Grappled.',
   'Flanking':'Optional rule: if two allies are on opposite sides, both have advantage on melee attacks.',
   'Cover':'Half: +2 AC/DEX saves. Three-quarters: +5. Full: can\'t be targeted.',
+  // Saving Throws & Checks
+  'Saving Throw':'Roll d20 + ability mod + proficiency (if proficient). Meet or beat the DC to succeed.',
+  'Ability Check':'Roll d20 + ability mod + proficiency (if applicable). Meet or beat the DC.',
+  'Difficulty Class':'DC — target number to succeed. 5 very easy, 10 easy, 15 medium, 20 hard, 25 very hard, 30 nearly impossible.',
+  'Proficiency Bonus':'Added to proficient skills, saves, attacks, spell DCs. +2 at L1–4, +3 at L5–8, +4 at L9–12.',
+  'Expertise':'Double your proficiency bonus for the chosen skill or tool check.',
+  'Passive Perception':'10 + Perception modifier. Used to detect hidden creatures, traps, and secret doors without rolling.',
+  // Combat Mechanics
+  'Initiative':'Roll d20 + DEX mod at combat start. Determines turn order (highest goes first).',
+  'Armor Class':'AC — target number an attacker must meet or beat to land a hit.',
+  'Hit Points':'HP — measure of vitality. 0 HP = unconscious and making death saves.',
+  'Death Save':'d20 roll at 0 HP: 10+ = success, 9- = failure. 3 successes = stable. 3 failures = death. Nat 20 = regain 1 HP.',
+  'Temporary HP':'Extra HP buffer. Doesn\'t stack (take highest). Lost first before real HP. Can\'t be healed.',
+  'Hit Dice':'Pool of dice used to heal during short rest. Spend any number, roll + CON mod per die. Regain half on long rest.',
+  'Critical Hit':'Natural 20 on attack roll. Double all damage dice. Always hits regardless of AC.',
+  'Natural 1':'Auto-miss on attack rolls regardless of modifiers. No special effect on ability checks/saves (common houserule).',
+  'Two-Weapon Fighting':'When you attack with a light melee weapon, use bonus action to attack with another light weapon in off hand. No ability mod to off-hand damage unless you have the Fighting Style.',
+  'Finesse':'Use STR or DEX for attack and damage rolls with this weapon.',
+  'Versatile':'Can be used one- or two-handed. Two-handed uses higher damage die.',
+  'Reach':'Adds 5 ft to melee attack range (10 ft total). Affects opportunity attacks too.',
+  'Thrown':'Can be thrown for a ranged attack using STR. Uses the same damage die as melee.',
+  'Heavy':'Small creatures have disadvantage on attack rolls with this weapon.',
+  'Light':'Can be used for two-weapon fighting without the Dual Wielder feat.',
+  // Spellcasting
+  'Spell Slot':'Resource spent to cast spells. Higher slots = stronger effects. Recovered on long rest (most classes).',
+  'Cantrip':'Level 0 spell. Cast at will, no spell slot needed. Damage scales at 5th, 11th, and 17th level.',
+  'Ritual':'Can be cast without spending a slot by adding 10 minutes to the cast time. Not all spells qualify.',
+  'Spell Attack':'Ranged or melee: d20 + spellcasting mod + proficiency vs. target AC.',
+  'Spell Save DC':'8 + proficiency bonus + spellcasting ability modifier. Target rolls save vs. this number.',
+  'Components':'V = verbal (speaking), S = somatic (gestures), M = material (specific items). War Caster helps with S while holding weapons/shield.',
+  'Upcasting':'Casting a spell with a higher slot than its base level for enhanced effects.',
+  // Resting
+  'Short Rest':'At least 1 hour of downtime. Spend Hit Dice to heal. Some abilities recharge.',
+  'Long Rest':'8 hours (6 sleeping). Full HP restored, regain half max Hit Dice, reset most abilities and spell slots.',
+  // Movement & Terrain
+  'Difficult Terrain':'Each foot of movement costs 2 feet. Applies to rough ground, thick vegetation, stairs, etc.',
+  'Climbing':'Costs 2 feet per foot moved (1 foot with climb speed). May require Athletics check on difficult surfaces.',
+  'Swimming':'Costs 2 feet per foot moved (1 foot with swim speed). May require Athletics check in rough water.',
+  // Light & Vision
+  'Darkvision':'See in dim light as bright, in darkness as dim (greyscale). Range varies by race (usually 60 ft).',
+  'Dim Light':'Lightly obscured. Disadvantage on Perception checks relying on sight.',
+  'Bright Light':'Normal vision. Most creatures see fine here.',
+  'Heavily Obscured':'Effectively blinded within the area. Darkness, opaque fog, dense foliage.',
+  // Damage Types
+  'Resistance':'Take half damage from this type. Doesn\'t stack with itself.',
+  'Vulnerability':'Take double damage from this type.',
+  'Immunity':'Take no damage from this type. Also blocks related conditions (e.g., poison immunity blocks poisoned).',
+  // Economy & Equipment
+  'Attunement':'Some magic items require attunement (short rest, 3 item limit). Ends if you exceed the limit or un-attune.',
+  'Encumbrance':'Variant rule: STR × 5 = no penalty, STR × 10 = speed -10 ft, STR × 15 = max carry (speed -20 ft, disadvantage on physical rolls).',
+  // Class Features
+  'Action Surge':'Fighter: Take one additional action on your turn. Once per short/long rest.',
+  'Second Wind':'Fighter: Bonus action to regain 1d10 + fighter level HP. Once per short rest.',
+  'Cunning Action':'Rogue: Dash, Disengage, or Hide as a bonus action each turn.',
+  'Bardic Inspiration':'Bard: Bonus action, give ally a die (d6–d12 by level) to add to one attack/check/save within 10 min.',
+  'Uncanny Dodge':'Rogue: Use reaction when hit by an attacker you can see to halve the damage.',
+  'Extra Attack':'Fighter/others: Make two attacks when you take the Attack action (three at 11th, four at 20th for Fighter).',
+  'Superiority Dice':'Battle Master: d8 pool (4 dice, 5 at 7th, 6 at 15th). Fuel maneuvers. Regain on short/long rest.',
+  'Lucky':'Halfling: Reroll natural 1s on d20 attack, check, or save. Feat: 3 luck points/long rest to roll extra d20.',
+  'Stone\'s Endurance':'Goliath: Reaction to reduce damage by 1d12 + CON mod. Once per short rest.',
+  'Shell Defense':'Tortle: Withdraw into shell as action. +4 AC, advantage on STR/CON saves, but speed 0, disadvantage on DEX saves, can\'t take reactions. End as bonus action.',
+  'Breath Weapon':'Dragonborn: Action to exhale elemental damage in a line or cone. DC 8 + CON mod + proficiency. 2d6 scaling. Once per short rest.',
 };
 const _termRe=new RegExp('(?<![a-zA-Z>])('+ Object.keys(TERM_TIPS).map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![a-zA-Z])', 'g');
 function _highlightTerms(text){return text.replace(_termRe,(m,t)=>`<span class="term-tip" onclick="showTermTip(event,'${t}')">${t}</span>`);}
@@ -1718,7 +1786,7 @@ function updCell(i,k,v){state.wagon.cells[i][k]=v;save();}
 function remCell(i){state.wagon.cells.splice(i,1);save();renderCells();renderCapacity();}
 
 let _cargoFilter='all';let _cargoEditIdx=null;
-let _hoardEditIdx=null;
+let _hoardEditIdx=null;let _cargoPCFilter=null;
 function _renderInvChips(containerId,items,listType,editIdx,setEditIdx,filterState,setFilterFn,emptyMsg){
   const c=document.getElementById(containerId);if(!c)return;c.innerHTML='';
   const TYPE_ICON={supply:'📦',foraged:'🌿',ingredient:'⚗',trade:'💰',loot:'✨',hoard:'💎',misc:'📋',key:'🗝'};
@@ -1771,17 +1839,46 @@ function _renderInvChips(containerId,items,listType,editIdx,setEditIdx,filterSta
     sec.appendChild(wrap);c.appendChild(sec);
   });
 }
+function setCargoPCFilter(name){_cargoPCFilter=_cargoPCFilter===name?null:name;_cargoEditIdx=null;renderCargo();}
 function renderCargo(){
-  _renderInvChips('wagon-cargo',state.wagon.cargo||[],'cargo',_cargoEditIdx,
-    idx=>{_cargoEditIdx=idx;renderCargo();},
-    _cargoFilter,f=>{_cargoFilter=f;renderCargo();},'No cargo.');
+  const c=document.getElementById('wagon-cargo');if(!c)return;
+  const pcs=state.pcs||[];
+  if(pcs.length){
+    let bar='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
+    const wSel=!_cargoPCFilter;
+    bar+='<button onclick="setCargoPCFilter(null)" style="font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid '+(wSel?'var(--gold)':'var(--border)')+';background:'+(wSel?'var(--gold-dim)':'none')+';color:'+(wSel?'var(--gold-bright)':'var(--text-dim)')+';cursor:pointer;font-family:var(--sans)">Wagon</button>';
+    pcs.forEach(pc=>{
+      const sel=_cargoPCFilter===pc.name;
+      const cnt=(pc.inventory||[]).length;
+      bar+='<button onclick="setCargoPCFilter(\''+esc(pc.name).replace(/'/g,"\\'")+'\')" style="font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid '+(sel?'var(--gold)':'var(--border)')+';background:'+(sel?'var(--gold-dim)':'none')+';color:'+(sel?'var(--gold-bright)':'var(--text-dim)')+';cursor:pointer;font-family:var(--sans)">'+esc(pc.name)+' '+cnt+'</button>';
+    });
+    bar+='</div>';
+    c.innerHTML=bar;
+  } else {c.innerHTML='';}
+  if(_cargoPCFilter){
+    const pc=pcs.find(p=>p.name===_cargoPCFilter);
+    if(!pc){_cargoPCFilter=null;renderCargo();return;}
+    const items=pc.inventory||[];
+    const pcIdx=pcs.indexOf(pc);
+    const wrap=document.createElement('div');wrap.id='wagon-cargo-pc';
+    c.appendChild(wrap);
+    _renderInvChips('wagon-cargo-pc',items,'pc_'+pcIdx,_cargoEditIdx,
+      idx=>{_cargoEditIdx=idx;renderCargo();},
+      _cargoFilter,f=>{_cargoFilter=f;renderCargo();},pc.name+' has no items.');
+  } else {
+    const wrap=document.createElement('div');wrap.id='wagon-cargo-items';
+    c.appendChild(wrap);
+    _renderInvChips('wagon-cargo-items',state.wagon.cargo||[],'cargo',_cargoEditIdx,
+      idx=>{_cargoEditIdx=idx;renderCargo();},
+      _cargoFilter,f=>{_cargoFilter=f;renderCargo();},'No cargo.');
+  }
 }
 function renderHoard(){
   _renderInvChips('wagon-hoard',state.wagon.hoard||[],'hoard',_hoardEditIdx,
     idx=>{_hoardEditIdx=idx;renderHoard();},
     'all',()=>{},'"Mine." — Pebble');
 }
-function closeWEdit(list){if(list==='hoard'){_hoardEditIdx=null;renderHoard();}else{_cargoEditIdx=null;renderCargo();}}
+function closeWEdit(list){if(list==='hoard'){_hoardEditIdx=null;renderHoard();}else{_cargoEditIdx=null;renderCargo();if(list.startsWith('pc_'))renderCards();}}
 function addWagonItem(list,type){
   const item={name:'',qty:1,weight:0,type:type,notes:'',ts:state.worldData.time,location:state.worldData.location};
   if(list==='hoard'){if(!state.wagon.hoard)state.wagon.hoard=[];state.wagon.hoard.push(item);_hoardEditIdx=state.wagon.hoard.length-1;}
@@ -1789,7 +1886,7 @@ function addWagonItem(list,type){
   save();renderWagon();
 }
 function toggleItemTag(list,i,tag){
-  const arr=list==='hoard'?state.wagon.hoard:state.wagon.cargo;
+  const arr=_getWList(list);
   const item=arr[i];if(!item)return;
   const tags=(item.type||'misc').split(',').map(t=>t.trim()).filter(Boolean);
   const idx=tags.indexOf(tag);
@@ -1797,14 +1894,20 @@ function toggleItemTag(list,i,tag){
   item.type=tags.length?tags.join(','):'misc';
   save();renderWagon();
 }
+function _getWList(list){
+  if(list==='hoard')return state.wagon.hoard;
+  if(list==='cargo')return state.wagon.cargo;
+  const m=list.match(/^pc_(\d+)$/);
+  if(m)return(state.pcs[parseInt(m[1])]||{}).inventory||[];
+  return state.wagon.cargo;
+}
 function updWItem(list,i,k,v){
-  if(list==='hoard')state.wagon.hoard[i][k]=v;
-  else state.wagon.cargo[i][k]=v;
+  const arr=_getWList(list);if(arr[i])arr[i][k]=v;
   save();renderCapacity();
 }
 function remWItem(list,i){
-  if(list==='hoard'){state.wagon.hoard.splice(i,1);_hoardEditIdx=null;}
-  else{state.wagon.cargo.splice(i,1);_cargoEditIdx=null;}
+  const arr=_getWList(list);arr.splice(i,1);
+  _cargoEditIdx=null;if(list==='hoard')_hoardEditIdx=null;
   save();renderWagon();
 }
 
@@ -9813,7 +9916,7 @@ Object.assign(window, {
   zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
   renderSetupLock, setSetupUnlocked, remAtk, rewindTo,
   renderPCOverview, renderHUD, renderCharTabs,
-  remPcItem, remResource, renderCapacity, renderErrorLog, closeWEdit,
+  remPcItem, remResource, renderCapacity, renderErrorLog, closeWEdit, setCargoPCFilter,
 });
 // Live getter so inline onclick/oninput can access `state` even after Firebase reassigns it
 Object.defineProperty(window,'state',{get(){return state;},configurable:true});
