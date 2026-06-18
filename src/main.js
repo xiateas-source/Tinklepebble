@@ -350,7 +350,7 @@ function showTermTip(event,term){
 const SAVE_VERSION=12;
 
 // ═══ FIREBASE DROP 2 ═══
-let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false;
+let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false,_chatMutatedAt=0;
 const FB_PATH='campaigns/tinklepebble/state';
 const FB_KEYS='campaigns/tinklepebble/keys';
 
@@ -460,9 +460,10 @@ function fbStartListening(){
       // Chat merge (clock-independent): always keep the longest chat that
       // contains all of our messages.  Messages are append-only, so the
       // longer array is the more complete one.
+      // Skip merge if a local delete/edit just happened — local is authoritative
       var localChat=state.chatHistory||[];
       var remoteChat=remote.chatHistory||[];
-      var chatMerged=_mergeChatHistories(localChat,remoteChat);
+      var chatMerged=(Date.now()-_chatMutatedAt<10000)?localChat:_mergeChatHistories(localChat,remoteChat);
       // Even when remote timestamp is stale, pick up new/merged chat messages
       if(remoteTs<=localTs){
         if(chatMerged.length>localChat.length||chatMerged!==localChat){
@@ -4399,6 +4400,7 @@ function save(){
     // Prune chatHistory to last 80 messages to prevent unbounded growth
     if(state.chatHistory&&state.chatHistory.length>80){
       state.chatHistory=state.chatHistory.slice(-80);
+      _chatMutatedAt=Date.now();
     }
     // Prune logs to last 200 entries
     if(state.logs&&state.logs.length>200){
@@ -5737,6 +5739,7 @@ function renderChat(){
 function deleteChatMsg(idx){
   if(!confirm('Delete this message?'))return;
   state.chatHistory.splice(idx,1);
+  _chatMutatedAt=Date.now();
   save();renderChat();
 }
 function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
@@ -5756,6 +5759,7 @@ async function summarizeAndPrune(){
     // prevSessionSummary = last 3 archive entries joined (AI context window)
     state.prevSessionSummary=state.sessionArchive.slice(-3).map(e=>e.summary).join('\n\n');
     state.chatHistory.splice(0,30);
+    _chatMutatedAt=Date.now();
     save();
     renderChat();
     toast('✓ Chat archived — oldest 30 messages summarized.');
