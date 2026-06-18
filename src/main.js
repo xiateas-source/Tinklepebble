@@ -7301,6 +7301,7 @@ function deepSeed(){
   const MAX_PASSES=4;
   const findings=[];
   let totalAdded=0;
+  let passesRun=0;
   function trackerSnap(){
     const s=[];
     s.push('QUESTS: '+(state.quests||[]).map(q=>'['+q.status+'] '+(q.text||'').slice(0,50)).join('; '));
@@ -7344,6 +7345,7 @@ function deepSeed(){
     toast('Deep Seed: pass '+(pass+1)+'/'+MAX_PASSES+'…');
     const beforeCount=countTrackers();
     callAI(msgs,sys,500).then(resp=>{
+      passesRun++;
       parseMechanics(resp);
       const afterCount=countTrackers();
       const added=afterCount-beforeCount;
@@ -7360,8 +7362,8 @@ function deepSeed(){
   function finish(){
     if(typEl)typEl.classList.remove('on');
     const summary=totalAdded===0
-      ?'Trackers are up to date — no gaps found.'
-      :'Added '+totalAdded+' entries across '+findings.length+' passes.\n\n'+findings.join('\n');
+      ?'Trackers are up to date — no gaps found. ('+passesRun+' pass'+(passesRun===1?'':'es')+' scanned)'
+      :'Added '+totalAdded+' entries across '+passesRun+' pass'+(passesRun===1?'':'es')+'.'+(findings.length?'\n\n'+findings.join('\n'):'');
     state.chatHistory.push({role:'sys',content:'🌱 Deep Seed Complete\n\n'+summary,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
     save();renderChat();renderAll();scrollActiveChatBottom();
     toast(totalAdded===0?'Trackers up to date':'Deep Seed: +'+totalAdded+' entries');
