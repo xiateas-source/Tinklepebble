@@ -118,6 +118,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ ~~**Markdown import** — `.md`/`.txt` file support alongside PDF~~ — Session 21
 - ✅ ~~**Auto-assign sections** — chapters→episodes, overview/appendices→reference~~ — Session 21
 - **PDF import revision** — garbled titles, false chapter breaks. Deprioritized; markdown is primary path
+- **Module import → world setup auto-fill** — when overview/reference content is imported, extract key info (setting, factions, secrets, primary mission) into worldData fields automatically so Setup wizard isn't left blank
 
 ### Character Creation Wizard
 - **Character Creation Wizard** — Level 1 setup flow (like Level Up wizard but for new characters). Race picker, stat roller/point-buy, class features, starting equipment, spell selection, proficiency picks. Fills blank template PCs into playable Level 1 characters. Would replace manual sheet entry for fresh campaigns.
