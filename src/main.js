@@ -4503,14 +4503,11 @@ function migrate(s){
   if(!s.wagon||typeof s.wagon!=='object')s.wagon={};
   if(!s.wagon.ox||typeof s.wagon.ox!=='object')s.wagon.ox={name:'',hp:0,hp_max:0,ac:10,conditions:'None',feed:'N/A',backstory:'',personality:'',bonds:{},quirks:[],experimentLog:''};
   if(s.wagon.ox.name===undefined)s.wagon.ox.name='';
-  if(!s.wagon.ox.backstory)s.wagon.ox.backstory='Raised from a calf by Tinkle. The only member of the operation who has never been asked to lie about anything. Has been used as a test subject for new batches on at least three documented occasions.';
-  if(!s.wagon.ox.personality)s.wagon.ox.personality='Stoic and dependable. Unusually calm around Tinkle specifically. Skittish around loud magic. Stubborn on roads he has decided are bad ideas.';
+  if(s.wagon.ox.backstory===undefined)s.wagon.ox.backstory='';
+  if(s.wagon.ox.personality===undefined)s.wagon.ox.personality='';
   if(!s.wagon.ox.bonds||typeof s.wagon.ox.bonds!=='object')s.wagon.ox.bonds={};
-  if(!s.wagon.ox.bonds.tinkle)s.wagon.ox.bonds.tinkle='Deeply bonded — raised from calf. Tolerates the experiments with resigned dignity.';
-  if(!s.wagon.ox.bonds.pebble)s.wagon.ox.bonds.pebble="Comfortable. Responds well to Pebble's voice. Possibly the most normal relationship on the wagon.";
-  if(!s.wagon.ox.bonds.slasher)s.wagon.ox.bonds.slasher='Wary. Has learned that when Slasher gets excited, something loud is about to happen.';
-  if(!Array.isArray(s.wagon.ox.quirks)||!s.wagon.ox.quirks.length)s.wagon.ox.quirks=['Refuses to cross bridges at a trot — walk only','Perks up noticeably around apples','Has a scar on his left flank from Experiment 7 — Tinkle does not discuss this','Occasionally regarded with suspicion by other animals, cause unknown'];
-  if(!s.wagon.ox.experimentLog)s.wagon.ox.experimentLog='Vol. 3 (current). Vols 1-2 were lost in a hasty departure from Millhaven.';
+  if(!Array.isArray(s.wagon.ox.quirks))s.wagon.ox.quirks=[];
+  if(s.wagon.ox.experimentLog===undefined)s.wagon.ox.experimentLog='';
   if(!Array.isArray(s.wagon.cells))s.wagon.cells=[];
   if(!Array.isArray(s.wagon.cargo))s.wagon.cargo=[];
   if(!Array.isArray(s.wagon.hoard))s.wagon.hoard=[];
@@ -4518,7 +4515,7 @@ function migrate(s){
   if(s.wagon.hp_max===undefined)s.wagon.hp_max=20;
   if(!s.wagon.ac)s.wagon.ac=11;
   if(!s.wagon.conditions)s.wagon.conditions='';
-  if(!s.wagon.wagonName)s.wagon.wagonName='The Shelled Alchemist';
+  if(s.wagon.wagonName===undefined)s.wagon.wagonName='';
   if(!s.combat||typeof s.combat!=='object')s.combat={active:false,round:1,currentIdx:0,list:[]};
   if(!Array.isArray(s.combat.list))s.combat.list=[];
   if(!s.combat.zones)s.combat.zones=_defaultZones();
@@ -6422,8 +6419,8 @@ async function askDMFromParty(){
   if(typingEl)typingEl.classList.add('on');
   if(dmBtn)dmBtn.disabled=true;
   const partyLedger=genLedger();
-  const oocContract='OOC CONTRACT — CHANNEL RULES:\n1. You are answering OUT-OF-CHARACTER. No narrative prose. No immersion language.\n2. SECRETS: Slasher (Black Dragonborn Fighter) must NEVER learn the operation is a con. If he asks anything that would expose it, deflect or give a non-answer.\n3. CHARACTER SEPARATION: Always name the specific character. Never say "you" to mean both players. Tinkle knows things Slasher does not and vice versa.\n4. RULES ACCURACY: Cite actual D&D 5e rules. If unsure, say so. Do not invent rulings or fudge mechanics.\n5. NO DICE RESOLUTION: These channels answer questions only. Actual rolls and outcomes happen in the Narrative channel only.\n';
-  const partySys='You are the Dungeon Master for Tinkle\'s Tinctures. A player has a question out-of-character. Answer only their most recent question. Keep it to 3-5 sentences. No mechanics block. No in-character narration unless asked.\n\n'+oocContract+'\nCURRENT GAME STATE:\n'+partyLedger;
+  const oocContract='OOC CONTRACT — CHANNEL RULES:\n1. You are answering OUT-OF-CHARACTER. No narrative prose. No immersion language.\n2. CHARACTER SEPARATION: Always name the specific character. Never say "you" to mean the whole party. Each PC may know things others do not.\n3. RULES ACCURACY: Cite actual D&D 5e rules. If unsure, say so. Do not invent rulings or fudge mechanics.\n4. NO DICE RESOLUTION: These channels answer questions only. Actual rolls and outcomes happen in the Narrative channel only.\n';
+  const partySys='You are the Dungeon Master for this D&D 5e campaign. A player has a question out-of-character. Answer only their most recent question. Keep it to 3-5 sentences. No mechanics block. No in-character narration unless asked.\n\n'+oocContract+'\nCURRENT GAME STATE:\n'+partyLedger;
   const msgs=(state.partyChat||[]).filter(m=>m.role==='player'||m.role==='dm').slice(-6).map(m=>({role:m.role==='dm'?'assistant':'user',content:(m.playerName?'['+m.playerName+']: ':'')+m.content}));
   if(!state.partyChat)state.partyChat=[];
   try{
@@ -6463,8 +6460,8 @@ async function _oocCallAI(userMsg){
   const sessionSummary=state.prevSessionSummary||state.logSummary||'';
   const sceneCtx='Current location: '+(state.worldData?.location||'unknown')+' | Time: '+(state.worldData?.time||'unknown')+' | Weather: '+(state.worldData?.weather||'unknown')+(state.worldData?.loc_desc?'\nScene: '+state.worldData.loc_desc:'')+(state.combat?.active?'\nCOMBAT ACTIVE — Round '+state.combat.round:'');
   const narrativeCtx=sceneCtx+'\n\n'+(sessionSummary?'RECENT SESSION SUMMARY:\n'+sessionSummary.slice(0,800)+'\n\n':'')+(recentNarrative?'RECENT NARRATIVE (for context — do not narrate, just use for accuracy):\n'+recentNarrative+'\n\n':'');
-  const oocContract='OOC CONTRACT — CHANNEL RULES:\n1. You are answering OUT-OF-CHARACTER. No narrative prose. No immersion language.\n2. SECRETS: Slasher (Black Dragonborn Fighter) must NEVER learn the operation is a con. If he asks anything that would expose it, deflect or give a non-answer.\n3. CHARACTER SEPARATION: Always name the specific character. Never say "you" to mean both players. Tinkle knows things Slasher does not and vice versa.\n4. RULES ACCURACY: Cite actual D&D 5e rules. If unsure, say so. Do not invent rulings or fudge mechanics.\n5. NO DICE RESOLUTION: These channels answer questions only. Actual rolls and outcomes happen in the Narrative channel only.\n6. CAMPAIGN AWARENESS: This campaign uses the module and episode tracker shown in CURRENT GAME STATE. Always reference the actual module name and current progress when asked about campaign status.\n7. INVENTORY LOOKUPS: You CAN and SHOULD answer questions about items, loot, and inventory. Check the CURRENT GAME STATE inventory section. If an item is listed, report its details. If it is NOT listed, say "That item isn\'t in the tracked inventory — it may not have been logged when looted. Try running Catch Up or Deep Seed to scan chat history for untracked items." NEVER fabricate item details.\n';
-  const oocSys='You are the Dungeon Master for Tinkle\'s Tinctures. This is the OUT-OF-CHARACTER channel. Answer in 1-3 sentences only. No narrative prose. No mechanics block. For rules questions: state the rule directly. The story continues in the Narrative channel only.\n\n'+oocContract+'\n'+narrativeCtx+'CURRENT GAME STATE:\n'+oocLedger;
+  const oocContract='OOC CONTRACT — CHANNEL RULES:\n1. You are answering OUT-OF-CHARACTER. No narrative prose. No immersion language.\n2. CHARACTER SEPARATION: Always name the specific character. Never say "you" to mean the whole party. Each PC may know things others do not.\n3. RULES ACCURACY: Cite actual D&D 5e rules. If unsure, say so. Do not invent rulings or fudge mechanics.\n4. NO DICE RESOLUTION: These channels answer questions only. Actual rolls and outcomes happen in the Narrative channel only.\n5. CAMPAIGN AWARENESS: This campaign uses the module and episode tracker shown in CURRENT GAME STATE. Always reference the actual module name and current progress when asked about campaign status.\n6. INVENTORY LOOKUPS: You CAN and SHOULD answer questions about items, loot, and inventory. Check the CURRENT GAME STATE inventory section. If an item is listed, report its details. If it is NOT listed, say "That item isn\'t in the tracked inventory." NEVER fabricate item details.\n';
+  const oocSys='You are the Dungeon Master for this D&D 5e campaign. This is the OUT-OF-CHARACTER channel. Answer in 1-3 sentences only. No narrative prose. No mechanics block. For rules questions: state the rule directly. The story continues in the Narrative channel only.\n\n'+oocContract+'\n'+narrativeCtx+'CURRENT GAME STATE:\n'+oocLedger;
   const histForAI=(state.oocHistory||[]).filter(m=>m.role==='user'||m.role==='assistant').slice(-10).map(m=>({role:m.role,content:m.content}));
   try{
     const response=await callAI(histForAI,oocSys,300);
@@ -7500,7 +7497,7 @@ function previouslyOn(){
     if(typEl)typEl.classList.remove('on');
     if(isSparse)parseMechanics(resp);
     const displayText=resp.replace(/---MECHANICS---[\s\S]*?(?:---END---|$)/gi,'').replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*/gi,'').trim();
-    state.chatHistory.push({role:'sys',content:'📺 Previously on Tinkle\'s Tinctures…\n\n'+displayText,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+    state.chatHistory.push({role:'sys',content:'📺 Previously on this campaign…\n\n'+displayText,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
     save();renderChat();renderAll();scrollActiveChatBottom();
   }).catch(err=>{if(typEl)typEl.classList.remove('on');toast('Recap failed: '+err.message);});
 }
@@ -7796,12 +7793,12 @@ function executeQA(action){
     case 'catch_up': catchUpAudit(); break;
     case 'deep_seed': deepSeed(); break;
     case 'shell_defense_toggle':{
-      const tinklePC=state.pcs.find(p=>p.name==='Tinkle');
-      if(!tinklePC){toast('Tinkle not found.');break;}
-      const inShell=tinklePC.conditions.includes('Shell Defense');
-      if(inShell){['Shell Defense','Prone','Incapacitated'].forEach(c=>{const i=tinklePC.conditions.indexOf(c);if(i>-1)tinklePC.conditions.splice(i,1);});}
-      else{['Shell Defense','Prone','Incapacitated'].forEach(c=>{if(!tinklePC.conditions.includes(c))tinklePC.conditions.push(c);});}
-      saveRefresh();toast(inShell?'🐢 Tinkle emerged from shell (conditions cleared)':'🛡 Tinkle entered Shell Defense (AC 21, Prone, Incapacitated)');
+      const shellPC=state.pcs.find(p=>(p.race||'').toLowerCase().includes('tortle'))||state.pcs.find(p=>(p.features||'').toLowerCase().includes('shell defense'));
+      if(!shellPC){toast('No Tortle PC found for Shell Defense.');break;}
+      const inShell=shellPC.conditions.includes('Shell Defense');
+      if(inShell){['Shell Defense','Prone','Incapacitated'].forEach(c=>{const i=shellPC.conditions.indexOf(c);if(i>-1)shellPC.conditions.splice(i,1);});}
+      else{['Shell Defense','Prone','Incapacitated'].forEach(c=>{if(!shellPC.conditions.includes(c))shellPC.conditions.push(c);});}
+      saveRefresh();toast(inShell?'🐢 '+(shellPC.name||'Tortle')+' emerged from shell (conditions cleared)':'🛡 '+(shellPC.name||'Tortle')+' entered Shell Defense (AC 21, Prone, Incapacitated)');
       break;}
     case 'state_fix': openStateFix(); break;
     case 'resync_ai': resyncAI(); break;
@@ -8844,7 +8841,7 @@ function exportGameplayLog(mode){
   }
 
   log+='\n--- PROMPT FOR DEV ---\n';
-  log+='You are reviewing actual gameplay logs from Tinkle\'s Tinctures, a D&D 5e campaign management app.\n';
+  log+='You are reviewing actual gameplay logs from a D&D 5e campaign management app.\n';
   log+='Cross-reference these logs against .claude/roadmap.md and .claude/features.md.\n\n';
   log+='Analyze for:\n';
   log+='1. UNMET PLAYER NEEDS — moments where the player wanted something the app couldn\'t do, or had to work around a limitation\n';
@@ -9970,7 +9967,7 @@ function _handleSlashCmd(raw){
       state.partyInventory.push({name:itemName,qty:1,weight:0,type:'loot',notes:''});
     }
     save();renderAll();
-    _cmdResult('📦 Added: '+itemName+' → '+(target==='cargo'?'wagon cargo':target==='hoard'?'Pebble\'s hoard':'party inventory'));
+    _cmdResult('📦 Added: '+itemName+' → '+(target==='cargo'?'wagon cargo':target==='hoard'?'wagon hoard':'party inventory'));
     return;
   }
 
@@ -10035,7 +10032,7 @@ function _handleSlashCmd(raw){
       +'  //testlevelup [N] — force open Level Up wizard (optional: level N, e.g. //testlu 8)\n'
       +'  //add item "rope"          — add to party inventory\n'
       +'  //add item "gem" to cargo  — add to wagon cargo\n'
-      +'  //add item "ring" to hoard — add to Pebble\'s hoard\n\n'
+      +'  //add item "ring" to hoard — add to wagon hoard\n\n'
       +'DEV TOOLS\n'
       +'  //flag 20 reason   — export last 20 messages to clipboard\n'
       +'  // any text here   — log a dev note to session notes\n\n'
@@ -10071,7 +10068,7 @@ function _handleSlashCmd(raw){
       'zones':         'Zone Combat uses 6 zones (Frontline/Backline/Flanks/Air/Rear). Add combatants, roll initiative, then the AI moves tokens. Tap a token for HP/conditions. Toggle Manual mode to move tokens yourself by tapping token → zone.',
       'map':           'Area Map: Upload a map image in Logistics > World > Locations (map icon). Tap a location chip → tap the map to place a pin. Tap a pin for Move/Unpin/Details.',
       'pins':          'Tap a map pin → action bar appears: ↻ Move (reposition), ✕ Unpin (remove from map), ⋯ Details (full location info). Long-press + drag also works for quick repositioning.',
-      'inventory':     'Party inventory is in the Sheet tab. Wagon cargo and Pebble\'s hoard are in Logistics > Wagon. Tap any item chip to expand and edit. Use //add item "name" to quickly add items.',
+      'inventory':     'Party inventory is in the Sheet tab. Wagon cargo and wagon hoard are in Logistics > Wagon. Tap any item chip to expand and edit. Use //add item "name" to quickly add items.',
       'ooc':           'The OOC tab (❓ Rules) is for rules questions — the AI answers as a rules reference, not as the DM character. The 🗨️ Party tab is for player-to-player chat outside the narrative.',
       'contracts':     'AI Contracts (Systems > AI Tools) control the DM\'s personality and rules. 5 contracts: Persona, Never Do, Actions, Continuity, Multi-Player. Edit these to fix recurring AI mistakes.',
       'context strip': 'The bar above the chat shows your current location and scene. It auto-updates when the AI changes location.',
