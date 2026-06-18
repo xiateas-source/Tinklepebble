@@ -91,11 +91,13 @@ const SPELL_DB=[
 {name:'Fire Bolt',level:0,school:'Evocation',castTime:'1 action',range:'120 ft',duration:'Instantaneous',components:'V, S',desc:'Ranged spell attack. 1d10 fire damage. Ignites unattended flammable objects. Scales: 2d10 at 5th, 3d10 at 11th, 4d10 at 17th.',classes:['wizard']},
 {name:'Friends',level:0,school:'Enchantment',castTime:'1 action',range:'Self',duration:'Concentration, 1 min',components:'S, M (makeup)',desc:'You have advantage on CHA checks against one creature that isn\'t hostile. When the spell ends, the creature realizes you used magic and becomes hostile.',classes:['bard','wizard']},
 {name:'Green-Flame Blade',level:0,school:'Evocation',castTime:'1 action',range:'Self (5-ft radius)',duration:'Instantaneous',components:'S, M (a melee weapon worth at least 1 sp)',desc:'Make a melee attack. On hit, green fire leaps to a different creature within 5 ft of target, dealing fire damage equal to your spellcasting modifier. Both scale at 5th level.',classes:['wizard']},
+{name:'Guidance',level:0,school:'Divination',castTime:'1 action',range:'Touch',duration:'Concentration, 1 min',components:'V, S',desc:'Touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice. It can roll the die before or after making the check. The spell then ends.',classes:['druid']},
 {name:'Light',level:0,school:'Evocation',castTime:'1 action',range:'Touch',duration:'1 hour',components:'V, M (firefly or phosphorescent moss)',desc:'Touch one object no larger than 10 ft. It sheds bright light in a 20-ft radius and dim light for an additional 20 ft. Hostile creature gets DEX save.',classes:['bard','wizard']},
 {name:'Mage Hand',level:0,school:'Conjuration',castTime:'1 action',range:'30 ft',duration:'1 min',components:'V, S',desc:'A spectral floating hand appears. It can manipulate objects, open doors, stow/retrieve items, or pour out vials. Can\'t attack, activate magic items, or carry more than 10 lbs. Arcane Trickster version is invisible.',classes:['bard','wizard']},
 {name:'Mending',level:0,school:'Transmutation',castTime:'1 min',range:'Touch',duration:'Instantaneous',components:'V, S, M (two lodestones)',desc:'Repair a single break or tear in an object you touch (broken chain link, two halves of a key, torn cloak). The break can be no larger than 1 ft in any dimension.',classes:['bard','wizard']},
 {name:'Message',level:0,school:'Transmutation',castTime:'1 action',range:'120 ft',duration:'1 round',components:'V, S, M (copper wire)',desc:'Whisper a message to a creature in range. Only the target hears it and can reply in a whisper that only you hear. Can cast through solid objects if you are familiar with the target.',classes:['bard','wizard']},
 {name:'Minor Illusion',level:0,school:'Illusion',castTime:'1 action',range:'30 ft',duration:'1 min',components:'S, M (a bit of fleece)',desc:'Create a sound or an image of an object within range. Sound can be any volume from whisper to scream. Image must fit in a 5-ft cube and can\'t create sensory effects. Investigation check vs your spell DC reveals it as illusion.',classes:['bard','wizard']},
+{name:'Mold Earth',level:0,school:'Transmutation',castTime:'1 action',range:'30 ft',duration:'Instantaneous or 1 hour',components:'S',desc:'Choose a portion of dirt or stone no larger than 5 ft on a side. You can: excavate it and move it up to 5 ft (loose earth only); cause shapes/colors/words to appear on dirt or stone for 1 hour; or make dirt/stone difficult or normal terrain for 1 hour. Two non-instantaneous effects max at once.',classes:['druid','wizard']},
 {name:'Poison Spray',level:0,school:'Conjuration',castTime:'1 action',range:'10 ft',duration:'Instantaneous',components:'V, S',desc:'Target must succeed on a CON save or take 1d12 poison damage. Scales: 2d12 at 5th, 3d12 at 11th, 4d12 at 17th.',classes:['wizard']},
 {name:'Prestidigitation',level:0,school:'Transmutation',castTime:'1 action',range:'10 ft',duration:'1 hour',components:'V, S',desc:'Minor magical trick: sensory effect, light/snuff candle, clean/soil 1 cu ft, chill/warm/flavor 1 cu ft of material, make a color/mark/symbol for 1 hour, create a trinket or illusory image that fits in your hand for 1 round.',classes:['bard','wizard']},
 {name:'Ray of Frost',level:0,school:'Evocation',castTime:'1 action',range:'60 ft',duration:'Instantaneous',components:'V, S',desc:'Ranged spell attack. 1d8 cold damage and target\'s speed is reduced by 10 ft until your next turn. Scales: 2d8 at 5th, 3d8 at 11th, 4d8 at 17th.',classes:['wizard']},
@@ -113,10 +115,12 @@ const SPELL_DB=[
 {name:'Cure Wounds',level:1,school:'Evocation',castTime:'1 action',range:'Touch',duration:'Instantaneous',components:'V, S',desc:'Creature you touch regains 1d8 + your spellcasting modifier hit points. No effect on undead or constructs. At higher levels: +1d8 per slot level above 1st.',classes:['bard']},
 {name:'Detect Magic',level:1,school:'Divination',castTime:'1 action (ritual)',range:'Self',duration:'Concentration, 10 min',components:'V, S',desc:'You sense magic within 30 ft. You can use your action to see a faint aura around any visible creature or object that bears magic, and learn its school. Blocked by 1 ft of stone, 1 inch of metal, thin sheet of lead, or 3 ft of wood/dirt.',classes:['bard','wizard']},
 {name:'Disguise Self',level:1,school:'Illusion',castTime:'1 action',range:'Self',duration:'1 hour',components:'V, S',desc:'You make yourself—including clothing, armor, weapons, and belongings—look different. You can change height by up to 1 ft, appear thinner/fatter, and change body type. Investigation check vs your spell DC to discern illusion.',classes:['bard','wizard']},
+{name:'Entangle',level:1,school:'Conjuration',castTime:'1 action',range:'90 ft',duration:'Concentration, 1 min',components:'V, S',desc:'Grasping weeds and vines sprout from the ground in a 20-ft square starting from a point within range. Creatures in the area must make a STR save or be restrained. A creature restrained can use its action to make a STR check vs your spell DC to free itself. The area is difficult terrain for the duration.',classes:['druid']},
 {name:'Dissonant Whispers',level:1,school:'Enchantment',castTime:'1 action',range:'60 ft',duration:'Instantaneous',components:'V',desc:'Whisper a discordant melody. Target makes WIS save. Fail: 3d6 psychic damage and must use reaction to move away from you. Pass: half damage, no movement. Deafened creatures auto-succeed. Higher levels: +1d6 per slot.',classes:['bard']},
 {name:'Faerie Fire',level:1,school:'Evocation',castTime:'1 action',range:'60 ft',duration:'Concentration, 1 min',components:'V',desc:'Objects and creatures in a 20-ft cube are outlined in blue, green, or violet light. DEX save or affected creature sheds dim light in 10-ft radius. Attacks against affected creatures have advantage. Invisible creatures become visible.',classes:['bard']},
 {name:'Feather Fall',level:1,school:'Transmutation',castTime:'1 reaction',range:'60 ft',duration:'1 min',components:'V, M (small feather or piece of down)',desc:'Choose up to 5 falling creatures within range. Their rate of descent slows to 60 ft per round. If they land before the spell ends, they take no falling damage and can land on their feet.',classes:['bard','wizard']},
 {name:'Find Familiar',level:1,school:'Conjuration',castTime:'1 hour (ritual)',range:'10 ft',duration:'Instantaneous',components:'V, S, M (10 gp of charcoal, incense, herbs)',desc:'Summon a spirit as a familiar (bat, cat, hawk, owl, rat, raven, spider, etc.). You can communicate telepathically within 100 ft, see through its eyes as an action, and deliver touch spells through it. Disappears at 0 HP.',classes:['wizard']},
+{name:'Grease',level:1,school:'Conjuration',castTime:'1 action',range:'60 ft',duration:'1 min',components:'V, S, M (a bit of pork rind or butter)',desc:'Slick grease covers the ground in a 10-ft square centered on a point within range. The area becomes difficult terrain. Each creature standing in the area when the spell is cast must succeed on a DEX save or fall prone. A creature that enters or ends its turn in the area must also make a DEX save or fall prone.',classes:['wizard']},
 {name:'Healing Word',level:1,school:'Evocation',castTime:'1 bonus action',range:'60 ft',duration:'Instantaneous',components:'V',desc:'Creature you can see within range regains 1d4 + your spellcasting modifier hit points. No effect on undead or constructs. At higher levels: +1d4 per slot level above 1st.',classes:['bard']},
 {name:'Heroism',level:1,school:'Enchantment',castTime:'1 action',range:'Touch',duration:'Concentration, 1 min',components:'V, S',desc:'Creature you touch gains temporary HP equal to your spellcasting modifier at the start of each of its turns. Also immune to being frightened. Higher levels: +1 creature per slot.',classes:['bard']},
 {name:'Identify',level:1,school:'Divination',castTime:'1 min (ritual)',range:'Touch',duration:'Instantaneous',components:'V, S, M (a pearl worth at least 100 gp and an owl feather)',desc:'Learn the properties and how to use a magic item or spell-affected object. Touching a creature reveals any spells currently affecting it.',classes:['bard','wizard']},
@@ -504,6 +508,10 @@ function fbStartListening(){
       // PC data is managed via import/migrate — remote Firebase data is authoritative.
       // No canonical merge needed here; migrate(remote) already handles version gates.
       remote.saveVersion=SAVE_VERSION;
+      // Preserve campaignSetup from local if remote has empty/missing version
+      if(state.campaignSetup&&Object.keys(state.campaignSetup).length&&(!remote.campaignSetup||!Object.keys(remote.campaignSetup).length)){
+        remote.campaignSetup=state.campaignSetup;
+      }
       state=remote;state._ts=remoteTs;
       renderAll();genLedger();autosaveDot();
       // Notify on new party messages from others
@@ -1025,7 +1033,7 @@ function renderAll(){
   renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();renderStoryRead();
   renderWagon();renderIncome();renderPartyInv();syncWorld();renderTreasuryTotal();
   renderCampaignSecrets();renderTownRep();renderConsequences();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
-  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();renderSetupLock();renderContracts();
+  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();renderSetupLock();renderContracts();loadSetupFields();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
     if(document.getElementById('sess-module-panel')?.style.display==='block'){
@@ -3508,6 +3516,10 @@ function applyPDFImport(){
     }
   });
   if(replaceMode&&state.moduleProgress.length>0)state.moduleProgress[0].status='active';
+  if(!replaceMode&&epsCreated&&!(state.moduleProgress||[]).some(e=>e.status==='active')){
+    const first=state.moduleProgress.find(e=>e.status==='pending');
+    if(first){first.status='active';toast('▶ '+first.name+' set to Active');}
+  }
   save();renderModuleTracker();
   const status=document.getElementById('pdf-import-status');
   if(status)status.style.display='none';
@@ -4353,8 +4365,16 @@ function lockPremise(){
 }
 function launchCampaign(){
   saveSetup();
-  // Sync all setup fields to state
   const g=(id)=>document.getElementById(id)?.value||'';
+  // Validation — warn about empty fields but don't block
+  const warnings=[];
+  const namedPCs=state.pcs.filter(p=>p.name);
+  if(!namedPCs.length)warnings.push('No characters have names (Step 1)');
+  if(!g('setup-setting')&&!state.worldData?.setting)warnings.push('Campaign setting is blank (Step 2)');
+  if(!g('setup-mission')&&!state.worldData?.primaryMission)warnings.push('Main quest is blank (Step 2)');
+  if(!state.aiContracts?.persona)warnings.push('AI Persona contract is empty (AI Tools tab)');
+  if(warnings.length&&!confirm('⚠ Launch with missing info?\n\n• '+warnings.join('\n• ')+'\n\nYou can fill these in later, but the AI DM will have less context.'))return;
+  // Sync all setup fields to state
   state.wagon.wagonName=g('setup-wagon-name');
   state.wagon.wagonDesc=g('setup-cover');
   state.worldData.primaryMission=g('setup-mission');
@@ -4362,9 +4382,12 @@ function launchCampaign(){
   state.worldData.plot=g('setup-factions');
   state.worldData.secrets=g('setup-secrets');
   state.treasuryData.gp=parseInt(g('setup-gold'))||15;
+  // Sync step 0 goal into primaryMission if mission is empty
+  if(!state.worldData.primaryMission&&state.campaignSetup?.goal){
+    state.worldData.primaryMission=state.campaignSetup.goal;
+  }
   state.campaignLaunched=true;
   save();
-  // Open Session Zero modal
   generateSessionZero();openModal('s0-modal');
   showTab('tab-dm');
   toast('✓ Session Zero generated. Copy it and send to the AI DM to begin.');
@@ -4394,6 +4417,7 @@ function migrate(s){
   if(!Array.isArray(s.locations))s.locations=[];
   if(!Array.isArray(s.sessionArchive))s.sessionArchive=[];
   if(!Array.isArray(s.headerShortcuts))s.headerShortcuts=[];
+  if(!s.campaignSetup||typeof s.campaignSetup!=='object')s.campaignSetup=s.campaignSetup||{};
   if(!s.aiContracts||typeof s.aiContracts!=='object')s.aiContracts={persona:'',never:'',actions:'',continuity:'',multi:''};
   // Auto-append missing contract clauses (idempotent — checks for marker text before appending)
   if(s.aiContracts.never&&!s.aiContracts.never.includes('DUNGEON SECRETS')){
@@ -4801,7 +4825,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences','headerShortcuts','moduleProgress','moduleReference'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences','headerShortcuts','moduleProgress','moduleReference','campaignSetup'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -5266,6 +5290,15 @@ LEVEL-UP RULES (STRICT — NEVER VIOLATE):
 - If you see a [LEVEL UP COMPLETE] context message, THEN you may narrate the advancement — but only echo what the wizard already applied. Never add extra stats.
 - NEVER fabricate stat blocks showing post-level-up HP, features, or spells unless you received a [LEVEL UP COMPLETE] confirmation.`;
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
+  const s0=state.campaignSetup||{};
+  let sessionZeroSection='';
+  if(s0.tone||s0.origin||s0.goal||s0.lines){
+    sessionZeroSection='\nSESSION ZERO — PERMANENT TABLE CONTRACT:\n';
+    if(s0.tone)sessionZeroSection+='Campaign Tone: '+s0.tone+'\n';
+    if(s0.origin)sessionZeroSection+='How the party met: '+s0.origin+'\n';
+    if(s0.goal)sessionZeroSection+='What they are trying to accomplish: '+s0.goal+'\n';
+    if(s0.lines)sessionZeroSection+='CONTENT BOUNDARIES (Lines & Veils — strictly enforced, never cross these):\n'+s0.lines+'\n';
+  }
   const secretsSection=state.dmSecrets?'\nCONTRACT 7 — SECRET DM NOTES (NEVER reveal to players):\n'+state.dmSecrets+'\n':'';
   const snipsSection=activeSnips?'\nCONTRACT 8 — REFERENCE MATERIAL:\n'+activeSnips+'\n':'';
   const summarySection=state.prevSessionSummary?'\nCAMPAIGN HISTORY (auto-archived):\n'+state.prevSessionSummary+'\n':'';
@@ -5301,7 +5334,7 @@ LEVEL-UP RULES (STRICT — NEVER VIOLATE):
     +'- NEVER fabricate magic item properties. If you do not know an item\'s stats, say so. Do not guess.\n'
     +'- If a player gives a specific item name you don\'t recognize, ask them to clarify rather than making something up.\n'
     +'- When an item IS attuned or identified, output item_add: in your mechanics block so it enters the tracked inventory.\n';
-  return g('ai-persona')+'\n'+premiseSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+inventoryGuard+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
+  return g('ai-persona')+'\n'+premiseSection+sessionZeroSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+inventoryGuard+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
 }
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
@@ -6967,12 +7000,13 @@ function generateSessionZero(){
   const ledger=document.getElementById('ledger-out')?.value||'';
   const verify=document.getElementById('s0-verify')?.value||'all PC names with current HP, location, and primary quest';
   const prompt=buildPrompt(ledger);
+  const campName=(state.worldData?.setting||'').split('\n')[0]||'a D&D 5e campaign';
   const out=`╔═══════════════════════════════════════════════════════════╗
 ║        SESSION ZERO — AI DM ONBOARDING CONTRACT           ║
 ╚═══════════════════════════════════════════════════════════╝
 
-You are being initialized as the AI Dungeon Master for Hoard of the Dragon Queen,
-a D&D 5e campaign on the Sword Coast. Read everything below before responding.
+You are being initialized as the AI Dungeon Master for ${campName}.
+Read everything below before responding.
 
 ${prompt}
 
