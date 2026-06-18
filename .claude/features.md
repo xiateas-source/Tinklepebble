@@ -290,6 +290,10 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `resyncAI()` — Full ledger re-sync
 - `verifyContracts()` — Validates all 10 contract checks + injects contracts into next AI send
 - `detectUnloggedGold()` / `detectUnloggedNPC()` / `detectUnloggedItem()` — Confirm-chip prompts for unlogged mechanics
+- `detectUnloggedDamage()` / `detectUnloggedHealing()` — Catch narrated HP changes without `hp:` mechanic
+- `detectUnloggedCondition()` — Catch narrated condition adds without `conditions:` mechanic (14 D&D conditions)
+- `detectUnloggedLocation()` — Catch narrated arrivals without `location:` mechanic
+- `_validateMechanics(changes)` — Post-parse audit: clamps HP/slots/resources to valid ranges, deduplicates conditions, floors treasury at 0, toasts corrections
 
 ### Location System
 - `renderLocations()` — List view (Node Map SVG + cards) or Map view (area map + pins)
@@ -394,6 +398,7 @@ Type `//` before a message in any chat input to run a dev command instead of sen
 | `//add item "name" [to cargo\|hoard]` | Quick-add item to party inventory, wagon cargo, or hoard |
 | `//hp +/-N` | Adjust active PC's HP |
 | `//gold +/-N` | Adjust treasury gold |
+| `//levelup` | Open Level Up wizard for the first ready PC |
 | `//explain topic` | Show in-chat help toast (16 topics: actions, combat, map, pins, inventory, ooc, contracts, dice, rest, spells, notes, flags, commands, export, shortcuts, context strip) |
 | `//help` | List all available commands |
 

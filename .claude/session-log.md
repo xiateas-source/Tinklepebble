@@ -3,26 +3,33 @@
 ## Session 15 · 2026-06-18
 
 ### Shipped
-- **PDF module import improvements** — better chapter detection patterns (section/act/mission/quest/encounter), position threshold 150→300, auto-split fallback for large PDFs with few detected sections, Replace/Add mode toggle with dynamic dropdown
-- **Contract 9 anti-fabrication** — new rules: "fabricated content is NON-CANONICAL", "NEVER call campaign homebrew", double-save in recalibrate with fresh timestamps
-- **`quest_update` mechanic** — new parseMechanics handler for in-place quest note updates (`quest_update: name|status text`)
-- **Level-up context injection** — `checkLevelUp()` now builds `choiceHints` from `LEVEL_UP_DATA` (subclass options, spell picks, ASI), tells AI to narrate milestone and prompt player choices
-- **Spell compendium** — `SPELL_DB` (~65 spells, Bard + Wizard cantrips through 3rd level), `MANEUVER_DB` (16 Battle Master maneuvers), browsable compendium UI with class/level filters, search, one-tap add
-- **5 flags addressed** — merged Spells+Spellbook into single tab (Flag 3: cantrip/level-0 display), dynamic skill calc in genLedger (Flag 8: expertise double-prof), story pacing contract (Flag 7), test chat export (Flag 1), compendium browse from overview
-- **Compendium button fix (×2)** — first fix: module-scope variable issue + onclick escaping for spell names with apostrophes + tab index shifts after merge. Second fix: `toggleCompendium()` calling wrong render function, `openCompendiumFromOverview()` not navigating from overview to edit drawer
+- **PDF module import improvements** — better chapter detection patterns, position threshold 150→300, auto-split fallback, Replace/Add mode toggle
+- **Contract 9 anti-fabrication** — "fabricated content is NON-CANONICAL", "NEVER call campaign homebrew", double-save in recalibrate
+- **`quest_update` mechanic** — new parseMechanics handler for in-place quest note updates
+- **Level-up context injection** — `checkLevelUp()` builds `choiceHints` from `LEVEL_UP_DATA` with actual spell names from `BARD_SPELLS`/`SPELL_DB`
+- **Spell compendium** — `SPELL_DB` (~65 spells), `MANEUVER_DB` (16 maneuvers), browsable UI with class/level filters, search, one-tap add. Spell level tags (`Cantrip`/`Lvl 2`) on summary line. Metadata (cast time/range/duration/components) visible without expanding.
+- **5 flags addressed** — merged Spells+Spellbook tabs (Flag 3), dynamic skill calc (Flag 8), story pacing contract (Flag 7), test chat export (Flag 1), compendium browse from overview
+- **Compendium button fix (×2)** — module-scope variable issue, onclick escaping, `toggleCompendium()` calling wrong render, `openCompendiumFromOverview()` now navigates properly. Auto-scroll to compendium panel on open.
+- **Strict level-up contract** — New "LEVEL-UP RULES" section always injected into AI prompt. AI cannot fabricate stat blocks, choose feats/spells, or apply HP changes. Must direct players to `//levelup` command or character sheet.
+- **`//levelup` command** — Opens Level Up wizard from chat for the first ready PC. Suggestion chip "⬆ Level Up" appears when any PC has `levelReady=true`.
+- **Expanded AI compliance detection** (4 new detectors):
+  - `detectUnloggedDamage` — "Slasher takes 8 damage" without `hp:` mechanic → confirm chip
+  - `detectUnloggedHealing` — "Pebble heals 5 HP" without `hp:` mechanic → confirm chip
+  - `detectUnloggedCondition` — "Tinkle is knocked Prone" without `conditions:` mechanic → confirm chip
+  - `detectUnloggedLocation` — "arrive at Greenest" without `location:` mechanic → confirm chip
+- **Post-parse mechanic validator** (`_validateMechanics`) — auto-clamps HP above max, duplicate conditions, slot/resource overuse, negative treasury, ox/wagon HP above max. Shows warning toasts when corrections applied.
 
 ### Decisions Made
-- Spells + Spellbook tabs merged into single tab (index 3); Gear shifted from 5→4
-- Spell compendium built from training knowledge (PDFs too large to upload)
-- `SPELL_DB` / `MANEUVER_DB` / compendium functions exported to window for inline onclick access
-- Module-scoped `_compOpen` accessed through exported wrapper functions
-- Dynamic skill calc computes modifiers from ability scores + proficiency instead of stale hardcoded strings
+- Level-up is strictly wizard-only — AI narrates milestone but cannot choose feats, spells, or apply stats
+- Contract compression deferred — risk of missing edge cases at transitions outweighs small token savings
+- Expanded detection uses confirm chips (not auto-apply) — player always has final say
+- Validator auto-clamps silently fixable issues (HP>max) but toasts the correction
 
 ### Known Issues
 - Flag 13 still open: treasure log audit / duplicate loot detection
-- Remaining flags from ops debrief: Flag 2 (multi-category items), Flag 14 (encumbrance), Flag 11 (context strip carousel), Flags 5/9/10/12 (need design)
+- Remaining flags: Flag 2 (multi-category items), Flag 14 (encumbrance), Flag 11 (context strip carousel), Flags 5/9/10/12 (need design)
 - `state.worldData.plot/timers` fields orphaned — data in state but no UI
-- Campaign may still have fabricated chat history from "Oakhaven Infiltration" / "Veil-Breaker" storyline — user should recalibrate in regular browser
+- Campaign may still have fabricated chat history from "Oakhaven/Veil-Breaker" — user should recalibrate
 
 ### In Progress
 - Nothing actively in progress — all committed and deployed
@@ -39,4 +46,4 @@
 ### Branch State
 - Branch: `claude/new-session-rvx6tn`
 - In sync with main (all merged)
-- Last commit: `d70e873` (Fix compendium browse button)
+- Last commit: `98d9a3a` (Add expanded mechanic detection + post-parse validator)
