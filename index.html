@@ -673,6 +673,12 @@ PROCEDURE for every action:
 7. State all mechanical consequences: HP changes, conditions, slots used, resources spent, action/bonus action/reaction used
 8. State who goes next and what each character perceives
 
+STORY PACING:
+- Never resolve major actions the players did not announce. If a player says "we prepare," describe the preparation but do not skip ahead to the event itself
+- Never advance time more than one scene beat without player input. Ask "what do you do?" before moving to the next major moment
+- Never auto-complete multi-step plans. If the party outlines a plan, narrate step 1 and ask for confirmation before proceeding to step 2
+- When a player describes a goal ("I want to sneak in"), narrate the approach and ask for the specific action, do not narrate the full infiltration
+
 ENCUMBRANCE (PHB p.176 variant): STR carry capacity = STR score × 15 lbs. Slasher (STR 17): 255 lb limit. Encumbered threshold = STR × 5 lbs (Slasher: 85 lbs of personal carry) → speed reduced 10 ft. Heavily Encumbered = STR × 10 lbs (Slasher: 170 lbs) → speed reduced 20 ft + disadvantage on all STR/DEX/CON checks, saves, and attacks. Wagon cargo capacity: 1080 lbs total. When wagon is over capacity, travel speed is halved. Call out encumbrance when PCs pick up heavy loot, prisoners, or bulk supplies. Never assume a PC can carry unlimited personal gear.</textarea></div></div></details>
         <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--green)">④</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">Continuity &amp; Wagon Awareness</span><span style="font-size:9px;color:var(--text-dim)">Quests, NPCs, income, con mechanics, story</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-continuity" style="min-height:70px" oninput="saveContract('continuity',this.value)">At the start of every response, internally verify: who is at 0 HP, active conditions, concentration spells, current location, last player action. Never contradict these.
 
@@ -930,7 +936,8 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div id="chat-pane-test" style="display:none">
           <div style="display:flex;gap:6px;padding:0 0 6px;flex-shrink:0;align-items:center">
             <span style="font-size:10px;color:var(--gold);font-weight:700;letter-spacing:.5px">⚗ TEST MODE — mechanics preview only, no state changes</span>
-            <button class="btn sm red" onclick="clearTestChat()" style="margin-left:auto;padding:2px 8px;min-height:26px;font-size:11px">Clear</button>
+            <button class="btn sm" onclick="exportTestChat()" style="margin-left:auto;padding:2px 8px;min-height:26px;font-size:11px">Export</button>
+            <button class="btn sm red" onclick="clearTestChat()" style="padding:2px 8px;min-height:26px;font-size:11px">Clear</button>
           </div>
           <div id="test-msgs" class="chat-msgs-wrap"></div>
           <div class="typing-ind" id="test-typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
