@@ -3416,7 +3416,7 @@ function _renderPDFImport(sections,filename,totalPages){
   }
   html+='<div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">Map each section to an episode, or load into Module Reference. Unassigned sections are skipped.</div>';
   const epOpts=((state.moduleProgress||[]).map((ep,i)=>'<option class="pdf-ep-opt" value="'+i+'">Ep '+(i+1)+': '+esc(ep.name)+'</option>').join(''));
-  const hideEps=hasExisting;
+  const defaultNew=hasExisting||!epOpts;
   sections.forEach((s,si)=>{
     const preview=s.text.slice(0,200).replace(/\n/g,' ')+'…';
     html+='<div style="padding:6px 0;border-bottom:1px solid var(--border)">';
@@ -3429,8 +3429,8 @@ function _renderPDFImport(sections,filename,totalPages){
     html+='<select id="pdf-assign-'+si+'" style="font-size:10px;padding:2px 4px;flex:1">';
     html+='<option value="">— Skip —</option>';
     html+='<option value="ref">→ Module Reference</option>';
-    html+='<option value="new"'+(hideEps?' selected':'')+'>→ Create New Episode</option>';
-    if(!hideEps)html+=epOpts;
+    html+='<option value="new"'+(defaultNew?' selected':'')+'>→ Create New Episode</option>';
+    if(!defaultNew)html+=epOpts;
     html+='</select>';
     html+='<button class="btn sm" style="font-size:9px" onclick="previewPDFSection('+si+')">👁</button>';
     html+='</div>';
@@ -3465,7 +3465,7 @@ function autoAssignPDF(){
     const sel=document.getElementById('pdf-assign-'+si);
     if(!sel)return;
     const titleLow=s.title.toLowerCase();
-    if(titleLow.includes('introduction')||titleLow.includes('appendix')||titleLow.includes('prologue')){
+    if(titleLow.includes('introduction')||titleLow.includes('appendix')||titleLow.includes('prologue')||titleLow.includes('overview')||titleLow.includes('credits')||titleLow.includes('monsters')||titleLow.includes('magic items')){
       sel.value='ref';return;
     }
     if(replaceMode||eps.length===0){
