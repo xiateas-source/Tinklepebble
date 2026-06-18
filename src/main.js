@@ -3443,6 +3443,7 @@ function _renderPDFImport(sections,filename,totalPages){
   html+='<button class="btn red" onclick="cancelPDFImport()">✕ Cancel</button>';
   html+='</div></div>';
   status.innerHTML=html;
+  setTimeout(()=>autoAssignPDF(),50);
 }
 
 function previewPDFSection(si){
