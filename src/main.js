@@ -1723,6 +1723,11 @@ function renderConsequences(){
   const active=all.filter(cs=>!cs.resolved);
   const resolved=all.filter(cs=>cs.resolved);
   if(!active.length&&!resolved.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No consequences yet. The AI logs ripple effects here.</div>';return;}
+  if(all.length>3){
+    const bar=document.createElement('div');bar.style.cssText='display:flex;justify-content:flex-end;margin-bottom:6px';
+    bar.innerHTML='<button onclick="dedupConsequences()" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;font-family:var(--sans)">🧹 Dedup</button>';
+    c.appendChild(bar);
+  }
   const render=(cs,idx)=>{
     const col=CSQ_COLORS[cs.type]||'var(--text-dim)';
     const d=document.createElement('div');
@@ -1746,6 +1751,29 @@ function renderConsequences(){
 function resolveConsequence(id){
   const cs=state.consequences.find(c=>c.id===id);
   if(cs){cs.resolved=true;cs.resolvedTs=new Date().toLocaleString();save();renderConsequences();toast('✓ Consequence resolved.');}
+}
+function dedupConsequences(){
+  const all=state.consequences||[];
+  if(!all.length){toast('No consequences to dedup');return;}
+  const kept=[];
+  let removed=0;
+  all.forEach(c=>{
+    const cWords=(c.text||'').toLowerCase().split(/\s+/).filter(w=>w.length>3);
+    const isDupe=kept.some(k=>{
+      const kLow=(k.text||'').toLowerCase();
+      const cLow=(c.text||'').toLowerCase();
+      if(kLow===cLow)return true;
+      if(!cWords.length)return false;
+      const hits=cWords.filter(w=>kLow.includes(w)).length;
+      return hits/cWords.length>=0.5;
+    });
+    if(isDupe)removed++;
+    else kept.push(c);
+  });
+  if(!removed){toast('No duplicates found');return;}
+  state.consequences=kept;
+  save();renderConsequences();
+  toast('Removed '+removed+' duplicate consequence'+(removed===1?'':'s'));
 }
 
 // ═══ PARTY INVENTORY ═══
@@ -10312,7 +10340,7 @@ Object.assign(window, {
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
   remSecret, remSlotLvl, remSnip, remSpell, remTown, remWItem,
-  renderAll, renderSheets, renderCards, resolveConsequence, rollAttack, rollStatCheck, rollInitiative,
+  renderAll, renderSheets, renderCards, resolveConsequence, dedupConsequences, rollAttack, rollStatCheck, rollInitiative,
   saveRefresh, saveSetupPC, saveTts, saveBP,
   scrollStoryBottom, scrollStoryTop, selectFlagCat,
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
