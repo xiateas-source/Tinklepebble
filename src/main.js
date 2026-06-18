@@ -7819,20 +7819,21 @@ function renderQAEditor(){
     {label:'AI',types:['context_refresh','resync_ai','surroundings','random_event','roleplay_npc','char_moment','send_scene','previously_on','catch_up','deep_seed','module_checkin']},
     {label:'Utility',types:['save_game','time_advance','log_entry','resource_use','item_add_foraged','ox_feed','town_rep','short_rest','state_fix','custom']}
   ];
-  const allTypes=typeGroups.flatMap(g=>g.types);
+  const contexts=Object.keys(tabLabels);
   state.quickActions.forEach((action,i)=>{
     const d=document.createElement('div');
-    d.style.cssText='margin-bottom:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px';
+    d.style.cssText='margin-bottom:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px';
     const typeOptions=typeGroups.map(g=>`<optgroup label="${g.label}">${g.types.map(t=>`<option value="${t}" ${action.type===t?'selected':''}>${typeLabels[t]||t}</option>`).join('')}</optgroup>`).join('');
-    const contexts=Object.keys(tabLabels);
-    d.innerHTML=`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
-        <input type="text" value="${esc(action.label)}" style="flex:1;font-size:12px;font-weight:600" placeholder="Button label" onchange="updQA(${i},'label',this.value)">
-        <button class="btn sm red icon-btn" onclick="remQA(${i})" style="flex-shrink:0">&times;</button>
+    const activeCount=(action.context||[]).length;
+    const tabSummary=activeCount===contexts.length?'All tabs':activeCount===0?'No tabs':activeCount+' tab'+(activeCount>1?'s':'');
+    const tabId='qa-tabs-'+i;
+    d.innerHTML=`<div style="display:flex;gap:6px;align-items:center">
+        <input type="text" value="${esc(action.label)}" style="flex:1;font-size:12px;font-weight:600;min-width:0" placeholder="Label" onchange="updQA(${i},'label',this.value)">
+        <select style="flex:1;font-size:10px;padding:3px;min-width:0" onchange="updQA(${i},'type',this.value)">${typeOptions}</select>
+        <span onclick="var el=document.getElementById('${tabId}');el.style.display=el.style.display==='flex'?'none':'flex'" style="font-size:9px;color:var(--text-dim);cursor:pointer;white-space:nowrap;border:1px solid var(--border);border-radius:3px;padding:2px 5px">${tabSummary}</span>
+        <button class="btn sm red icon-btn" onclick="remQA(${i})" style="flex-shrink:0;padding:0 6px">&times;</button>
       </div>
-      <div style="margin-bottom:6px">
-        <select style="width:100%;font-size:11px;padding:4px" onchange="updQA(${i},'type',this.value)">${typeOptions}</select>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${contexts.map(ctx=>`<label style="display:inline-flex;align-items:center;gap:3px;font-size:10px;cursor:pointer;background:${(action.context||[]).includes(ctx)?'var(--gold-dim)':'var(--surface3)'};border:1px solid var(--border);border-radius:3px;padding:2px 6px"><input type="checkbox" ${(action.context||[]).includes(ctx)?'checked':''} onchange="toggleQAContext(${i},'${ctx}',this.checked);renderQAEditor()" style="width:auto;margin:0">${tabLabels[ctx]}</label>`).join('')}</div>`;
+      <div id="${tabId}" style="display:none;flex-wrap:wrap;gap:3px;margin-top:5px">${contexts.map(ctx=>`<label style="display:inline-flex;align-items:center;gap:2px;font-size:9px;cursor:pointer;background:${(action.context||[]).includes(ctx)?'var(--gold-dim)':'var(--surface3)'};border:1px solid var(--border);border-radius:3px;padding:1px 5px"><input type="checkbox" ${(action.context||[]).includes(ctx)?'checked':''} onchange="toggleQAContext(${i},'${ctx}',this.checked);renderQAEditor()" style="width:auto;margin:0">${tabLabels[ctx]}</label>`).join('')}</div>`;
     c.appendChild(d);
   });
 }
