@@ -344,7 +344,7 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 
 ### Removed / No-Op
 - `renderStepBar()` / `renderSceneLabel()` — empty no-op functions (step bar replaced by turn tracker in Session 18)
-- `executeStep()` — dead code; not exported to window. Safe to delete along with `_stepTarget`
+- `executeStep()`, `_stepTarget` — removed from active codebase; only remnants in `index_monolith.html` (legacy)
 
 ### Flags & Dev
 - `flagIt()` / `openFlagModal()` / `submitFlag()` — Error flag capture with `uiCtx` auto-build

@@ -2382,6 +2382,12 @@ function addPartyToCombat(){
   if(!state.combat.list.some(c=>c.name==='Wagon')){
     state.combat.list.push({name:'Wagon',val:0,hp:state.wagon?.hp||20,hp_max:state.wagon?.hp_max||20,ac:state.wagon?.ac||11,isPC:false,zone:'rear',conditions:[],concentrating:''});
   }
+  state.pcs.forEach(p=>{
+    if(p.familiar&&!state.combat.list.some(c=>c.name===p.familiar.name)){
+      const f=p.familiar;
+      state.combat.list.push({name:f.name,val:0,hp:f.hp||1,hp_max:f.hp_max||1,ac:f.ac||10,isPC:false,zone:'rear',conditions:[],concentrating:''});
+    }
+  });
   sortComb();saveRefresh();
 }
 function sortComb(){state.combat.list.sort((a,b)=>b.val-a.val);}
@@ -2434,6 +2440,11 @@ function endCombat(){
     pc.conditions=persistent;
     pc.concentrating=ent.concentrating||'';
     if(persistent.length)synced.push(pc.name+': '+persistent.join(', '));
+  });
+  state.combat.list.forEach(ent=>{
+    if(ent.isPC)return;
+    state.pcs.forEach(p=>{if(p.familiar&&p.familiar.name===ent.name){p.familiar.hp=Math.max(0,ent.hp);}});
+    if(state.wagon?.ox&&ent.name==='Grit')state.wagon.ox.hp=Math.max(0,ent.hp);
   });
   state.combat={active:false,round:1,currentIdx:0,list:[],zones:_defaultZones(),moveMode:'ai'};
   _zoneMoveSel=null;
@@ -3536,6 +3547,7 @@ function genLedger(){
       const pcW=_pcCarryWeight(p);const pcCap=_pcCarryCap(p);
       if(pcW>0)l+=' | Carry: '+pcW.toFixed(1)+'/'+pcCap+'lb'+(pcW>pcCap?' OVER':'');
       l+='\n';
+      if(p.familiar){const f=p.familiar;l+='  Familiar '+f.name+': HP '+f.hp+'/'+f.hp_max+'\n';}
     });
     const cb=_combatLedgerBlock();if(cb)l+='\n'+cb;
     const ox=state.wagon.ox;l+="\nGrit: HP "+ox.hp+"/"+ox.hp_max+" | Feed: "+ox.feed+"\n";
@@ -3569,6 +3581,7 @@ function genLedger(){
       if(p.backstory_secret)l+='  Secret: '+p.backstory_secret+'\n';
       if((p.inventory||[]).length){const iw=_pcCarryWeight(p);const ic=_pcCarryCap(p);l+='  Inventory ('+iw.toFixed(1)+'/'+ic+'lb): '+p.inventory.map(i=>i.name+'(x'+i.qty+', '+((parseFloat(i.weight)||0)*(parseInt(i.qty)||1)).toFixed(1)+'lb)').join(', ')+'\n';}
     }
+    if(p.familiar){const f=p.familiar;l+='  Familiar: '+f.name+' ('+f.type+') HP '+f.hp+'/'+f.hp_max+' AC '+f.ac+' | PP '+(f.passive_perception||10)+(f.notes?' | '+f.notes.slice(0,80):'')+'\n';}
     l+='\n';
   });
   l+="━━━ WORLD ━━━\n";
@@ -4921,6 +4934,7 @@ wagon_cell_remove: Goblin Scout
 wagon_hp: 14
 ox_hp: 12
 ox_condition: exhausted
+familiar_hp: Pip|0
 xp: slasher+50, tinkle+50, pebble+50
 quest_done: Find the missing cart
 quest_add: Investigate the old mill
@@ -4942,6 +4956,7 @@ Rules:
 - resource_use: [pc], [resource name] — decrements a resource pip (Bardic Inspiration, Stone's Endurance, Lucky Points)
 - resource_restore: [pc], [resource name or all] — restores resource uses (short or long rest)
 - shell_defense: tinkle=on — Tinkle retreats into shell (prone, incapacitated, AC 21). shell_defense: tinkle=off — emerges
+- familiar_hp: [name]|[new HP] — set a familiar's HP (e.g. familiar_hp: Pip|0 when killed, familiar_hp: Pip|1 when resummoned). Familiars are tracked in the ledger under their owner's PC block
 - town_rep: [town name], [good/neutral/burned/fled], [brief notes] — updates town reputation log
 - income: [amount], [category], [description] — logs business income (category: real_stock/snake_oil/reagents/overhead/emergency)
 - If a numeric value is estimated, append (est) — e.g. wagon_cell_add: Cave Bear, Large, hostile, DC18, 400 (est)
@@ -5039,7 +5054,7 @@ LEVEL-UP RULES (STRICT — NEVER VIOLATE):
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
-const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|quest_update|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
+const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|familiar_hp|income|expense|xp|quest_add|quest_done|quest_fail|quest_update|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
 const _NAKED_MECH_RE=new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
@@ -5192,6 +5207,14 @@ function parseMechanics(responseText, pendingMsgId=null){
         if(state.wagon.cells){const i=state.wagon.cells.findIndex(c=>c.name.toLowerCase()===val.toLowerCase());if(i>-1){state.wagon.cells.splice(i,1);changes.push({text:'Cell removed: '+val});}}
       }else if(key==='ox_hp'){state.wagon.ox.hp=Math.max(0,parseInt(val)||0);changes.push({text:'Ox HP → '+state.wagon.ox.hp});}
       else if(key==='ox_condition'){state.wagon.ox.conditions=val;changes.push({text:'Ox → '+val});}
+      else if(key==='familiar_hp'){
+        const parts=val.split('|').map(s=>s.trim());
+        const fname=parts[0]||'';const fhp=parseInt(parts[1]);
+        if(!isNaN(fhp)){
+          const pc=state.pcs.find(p=>p.familiar&&p.familiar.name.toLowerCase()===fname.toLowerCase());
+          if(pc&&pc.familiar){pc.familiar.hp=Math.max(0,Math.min(pc.familiar.hp_max,fhp));changes.push({text:'Familiar '+pc.familiar.name+' HP → '+pc.familiar.hp});}
+        }
+      }
       else if(key==='save_game'||key==='save'){
         save();changes.push({text:'Game saved'});
       }
@@ -5825,6 +5848,7 @@ function _validateMechanics(changes){
   // Ox HP above max
   const ox=state.wagon?.ox;
   if(ox&&ox.hp>ox.hp_max){warnings.push('Grit HP '+ox.hp+' clamped to max '+ox.hp_max);ox.hp=ox.hp_max;}
+  state.pcs.forEach(p=>{if(p.familiar&&p.familiar.hp>p.familiar.hp_max){warnings.push(p.familiar.name+' HP clamped to max '+p.familiar.hp_max);p.familiar.hp=p.familiar.hp_max;}});
 
   // Wagon HP above max
   const wg=state.wagon;
@@ -8917,7 +8941,7 @@ function renderSuperpowers(){
 // ═══ NEW INTERFACE — HUD + DRAWER + DOCK ═══
 
 const _DRAWER_TABS=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-ait-chk','tab-dev','tab-setup'];
-const _DRAWER_TITLES={'tab-party':'Party','tab-world':'Journal','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-ait-chk':'Tools','tab-dev':'Dev','tab-setup':'Setup'};
+const _DRAWER_TITLES={'tab-party':'Party','tab-world':'Journal','tab-wagon':'Cargo','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-ait-chk':'Tools','tab-dev':'Dev','tab-setup':'Setup'};
 
 function renderHUD(){
   const mosaic=document.getElementById('hud-mosaic');
@@ -9628,7 +9652,8 @@ function navTo(key){
   if(key==='party'){openDrawer('tab-party');return;}
   if(key==='logistics'){openLogisticsDrawer();return;}
   if(key==='systems'){openSystemsDrawer();return;}
-  if(['world','wagon','combat'].includes(key)){openLogisticsDrawer(key);return;}
+  if(['world','wagon'].includes(key)){openLogisticsDrawer(key);return;}
+  if(key==='combat'){openDrawer('tab-combat');_setNavActive('logistics');renderCombat();return;}
   if(['session','ait','ait-chk','dev','setup'].includes(key)){openSystemsDrawer(key);return;}
   openDrawer('tab-'+key);
 }
@@ -9644,7 +9669,7 @@ function openLogisticsDrawer(sub){
   const sn=document.getElementById('drawer-subnav');
   if(sn){
     sn.style.display='flex';
-    sn.innerHTML=[['world','📔 Journal'],['wagon','🛒 Wagon'],['combat','⚔ Combat']]
+    sn.innerHTML=[['world','📔 Journal'],['wagon','📦 Cargo']]
       .map(([k,lbl])=>`<button class="drawer-subnav-btn${k===sub?' active':''}" onclick="switchLogisticsTab('${k}')">${lbl}</button>`).join('');
   }
   const t=document.getElementById('drawer-title');if(t)t.textContent='Logistics';
