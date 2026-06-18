@@ -293,7 +293,9 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `detectUnloggedDamage()` / `detectUnloggedHealing()` — Catch narrated HP changes without `hp:` mechanic
 - `detectUnloggedCondition()` — Catch narrated condition adds without `conditions:` mechanic (14 D&D conditions)
 - `detectUnloggedLocation()` — Catch narrated arrivals without `location:` mechanic
-- `_validateMechanics(changes)` — Post-parse audit: clamps HP/slots/resources to valid ranges, deduplicates conditions, floors treasury at 0, toasts corrections
+- `_validateMechanics(changes)` — Post-parse audit: clamps HP/slots/resources to valid ranges, deduplicates conditions, floors treasury at 0, encumbrance warnings (PC carry STR×15, wagon 1080lb), income log dedup (same desc+amt+type), toasts corrections
+- `_pcCarryWeight(pc)` / `_pcCarryCap(pc)` — PC personal carry weight from inventory, capacity = STR×15
+- `toggleItemTag(list, idx, tag)` — Toggle a type tag on/off for multi-category items (comma-separated)
 
 ### Location System
 - `renderLocations()` — List view (Node Map SVG + cards) or Map view (area map + pins)

@@ -95,15 +95,15 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ⏸ **Con Scorecard** — `state.slasherOI`, income parsing, town survival stats (needs design)
 
 ### From Ops Debrief (14 gameplay flags — prioritized for next session)
-- **Encumbrance tracking** (Flag 14) — weight calc in genLedger + AI contract clause
+- ✅ ~~**Encumbrance tracking** (Flag 14) — _pcCarryWeight/_pcCarryCap, ledger + validator~~ — Session 15
 - ✅ ~~**Expertise double-prof** (Flag 8) — dynamic skill calc multiplies proficiency~~ — Session 15
 - ✅ ~~**Cantrip level-0 display** (Flag 3) — Spells+Spellbook merged, compendium browser~~ — Session 15
 - ✅ ~~**Story pacing contract** (Flag 7) — added to ai-actions~~ — Session 15
-- **OOC accuracy** (Flag 6) — OOC channel lacks latest narrative context
-- **Multi-category items** (Flag 2) — items can be foraged+ingredient
+- ✅ ~~**OOC accuracy** (Flag 6) — 8 recent messages + scene context injected~~ — Session 15
+- ✅ ~~**Multi-category items** (Flag 2) — comma-separated tags, checkbox multi-select~~ — Session 15
 - ✅ ~~**Test chat export** (Flag 1) — exportTestChat() added~~ — Session 15
 - **Per-PC inventory in Cargo** (Flag 13) — character buttons in Cargo view
-- **Treasure audit inline** (Flag 4/13) — dedup from income log
+- ✅ ~~**Treasure audit inline** (Flag 4) — income log dedup in validator~~ — Session 15
 - **Context strip carousel** (Flag 11) — tap to cycle location→char→quest→module
 - **Quest→Chapter linking** (Flag 5/9) — needs design
 - **Familiar/animal home** (Flag 10) — needs design
