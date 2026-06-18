@@ -1,48 +1,42 @@
 # Session Log — Handoff Note
 
-## Session 21 · 2026-06-18
+## Session 22 · 2026-06-18
 
 ### Shipped
-- **Markdown/text module import** — `.md` and `.txt` files now accepted alongside PDF. Markdown parser splits on `#` headings, merges `##` subsections into parents. HotDQ markdown splits cleanly into 15 sections (8 chapters + overview + appendices)
-- **PDF text extraction fix** — Uses Y-coordinates to preserve line breaks instead of flattening all text into one string. Chapter patterns now match against individual lines (first 15 per page, anchored to `^`)
-- **PDF fallback threshold** — Triggers page-chunking when avg section > 40 pages (was only when ≤1 section). Up to 12 chunks with meaningful labels
-- **Auto-assign on import** — Runs smart section assignment automatically after file load. Chapters → episodes, overview/appendices/credits/monsters/magic items → Module Reference
-- **Import default fix** — Sections default to "Create New Episode" when no existing episodes (was defaulting to Skip)
-- **Button renamed** — "Import PDF" → "Import Module" to reflect broader file support
-- **PC import blank-template fix** — `importFromPaste()` detects blank PCs (no name) and fully replaces them instead of preserving empty HP/inventory/slots from templates
-- **migrate() stale contract cleanup** — Auto-clears contracts containing "MEREN SPELLS" or "CON OPERATION MECHANICS"
-- **migrate() ox defaults emptied** — Ox personality/bonds/quirks default to empty strings instead of old Tinkle-specific text
-- **genLedger() skip unnamed PCs** — `if(!p.name)return;` prevents blank PCs from polluting AI context
-- **Firebase sync fix** — Removed canonical PC merge from Firebase listener. Remote (DM) data is now authoritative — players joining on fresh/stale devices get correct character data without local overwrites
-- **Character template file** — `character-template.json` for AI-assisted character creation via Gemini
-- **PC import JSON** — `pc-import-ready.json` with Valenns/Slasher/Aria converted to app format
+- **Spell DB additions** — Added Guidance (cantrip, druid), Mold Earth (cantrip, druid/wizard), Entangle (1st level, druid), Grease (1st level, wizard) to SPELL_DB
+- **Session Zero Step 0 persistence fix** — Replaced `saveSetup()` intermediary with direct inline saves (`oninput="state.campaignSetup.tone=this.value;save()"`) matching the pattern Step 2 already uses
+- **Session Zero → AI prompt injection** — `buildPrompt()` now includes SESSION ZERO — PERMANENT TABLE CONTRACT section (tone, origin, goal, lines/veils) between premise and Contract 2
+- **Step 0 DOM load fix** — `loadSetupFields()` called once at init (not in `renderAll()` to avoid overwrite race), ensures fields render on page load
+- **Firebase sync campaignSetup preservation** — When remote state arrives, preserves local `campaignSetup` if remote is empty; also persists `state=remote` to localStorage immediately
+- **migrate() campaignSetup guard** — Structural guard ensures `campaignSetup` is always an object
+- **generateSessionZero() dynamic campaign name** — Uses `state.worldData.setting` first line instead of hardcoded "Hoard of the Dragon Queen"
+- **launchCampaign() validation** — Warns on unnamed PCs, blank setting, blank mission, empty AI persona; syncs step 0 goal into primaryMission if mission is empty
+- **Player Agency contract** — Added PLAYER AGENCY (STRICT) rules to Contract 5 (#ai-multi): one player cannot act for another's character, never assume PC actions
+- **roll_request enforcement** — Expanded roll_request contract to cover ALL roll types (attack, damage, spell), not just skill checks. Added: "ALWAYS use this instead of asking for a roll in prose text"
+- **STATE_KEYS updated** — Added `campaignSetup` to synced keys
 
 ### Decisions Made
-- Markdown import is preferred over PDF for module loading — PDF parsing is unreliable with D&D layout
-- PDF import kept but deprioritized for revision later
-- Firebase canonical PC merge removed entirely — was legacy from hardcoded PCs, broke import workflow
-- Character Creation Wizard added to roadmap as future feature
-- World data populated through Episode Tracker + natural AI play, not via Gemini template
-- Module Reference = campaign overview + appendices; Episodes = chapters 1-8
+- Step 0 fields use direct inline saves (same pattern as Step 2) — `saveSetup()` was the root cause of the persistence race condition
+- `loadSetupFields()` runs once at init, never inside `renderAll()` — prevents Firebase echo from clearing fields
+- Firebase `state=remote` must persist to localStorage immediately to survive refresh
+- Player agency is a strict contract rule, not a suggestion — AI must never narrate a PC's action without their player's input
+- `roll_request` must be used for ALL roll types, not just skill checks
 
 ### Known Issues
-- **Flag 3** — "hashtags by names" in character sheet: needs screenshot to reproduce
-- **Flag 6** — QA Editor buttons: needs device-specific testing
-- **PDF import quality** — garbled titles, false chapter breaks on "Rewards" text. Deprioritized in favor of markdown
-- **Old migrate() version gates** — v10/v11 gates still reference Tinkle/Pebble/Slasher by old IDs. Left alone per Session 20 decision (backward compat for old saves)
+- None new from this session
 
 ### In Progress
-- Nothing actively in progress — user is doing Full Reset + re-import sequence on device
+- Nothing actively in progress
 
 ### Next Up
-1. **Verify clean state** — user re-importing characters + module after reset, needs JSON audit
-2. **Set Chapter 1 Active** — all episodes currently pending
-3. **AL compliance clause** — player asked about it, user hasn't decided whether to add to contracts
-4. **Character Creation Wizard** — in roadmap, not yet built
-5. **Inline NPC name linking** — tap NPC names in chat to navigate to tracker
-6. **Combat quick-panel** — context strip as tappable combat action bar
+1. **Module import → world setup auto-fill** — extract key info from imported module into worldData fields
+2. **Character Creation Wizard** — Level 1 setup flow for new characters
+3. **Inline NPC name linking** — tap NPC names in chat to navigate to tracker
+4. **Combat quick-panel** — context strip as tappable combat action bar
+5. **PDF import revision** — deprioritized, markdown is primary path
 
 ### Branch State
 - Branch: `claude/new-session-rvx6tn`
 - All changes committed and merged to main
-- Last commit: 09e34e3 (Remove canonical PC merge from Firebase listener)
+- Main is pushed and up to date with origin/main
+- Last main commit: 36b6218 (Merge remote main — resolve bundle conflict)

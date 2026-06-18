@@ -200,6 +200,7 @@ state = {
   rewindStack: [state snapshots],
   activeEditTab: num, wagonFilter: string,
   quickActions: [{id, label, type, params, context}],
+  campaignSetup: { tone, origin, goal, lines },  // Session Zero Step 0 fields — persisted inline, injected into buildPrompt()
   saveVersion: 12
 }
 ```
@@ -208,7 +209,7 @@ state = {
 
 ## STATE_KEYS (Firebase sync)
 
-Synced: `pcs`, `worldData`, `npcs`, `quests`, `treasuryData`, `partyInventory`, `wagon`, `combat`, `encounterPresets`, `scenes`, `activeSceneIdx`, `snippets`, `dmSecrets`, `logSummary`, `logs`, `activeEditTab`, `turnCount`, `turnsSince`, `chkCount`, `chkMode`, `chkHistory`, `rewindStack`, `wagonFilter`, `chatHistory`, `oocHistory`, `partyChat`, `plugins`, `errorLog`, `sessionNotes`, `storyChapters`, `prevSessionSummary`, `aiContracts`, `sessionArchive`, `locations`, `consequences`, `headerShortcuts`
+Synced: `pcs`, `worldData`, `npcs`, `quests`, `treasuryData`, `partyInventory`, `wagon`, `combat`, `encounterPresets`, `scenes`, `activeSceneIdx`, `snippets`, `dmSecrets`, `logSummary`, `logs`, `activeEditTab`, `turnCount`, `turnsSince`, `chkCount`, `chkMode`, `chkHistory`, `rewindStack`, `wagonFilter`, `chatHistory`, `oocHistory`, `partyChat`, `plugins`, `errorLog`, `sessionNotes`, `storyChapters`, `prevSessionSummary`, `aiContracts`, `sessionArchive`, `locations`, `consequences`, `headerShortcuts`, `campaignSetup`
 
 Device-local only (not synced): API keys, provider/model selections, TTS settings, player name/character, offline cache.
 
