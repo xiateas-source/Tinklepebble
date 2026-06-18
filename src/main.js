@@ -508,6 +508,10 @@ function fbStartListening(){
       // PC data is managed via import/migrate — remote Firebase data is authoritative.
       // No canonical merge needed here; migrate(remote) already handles version gates.
       remote.saveVersion=SAVE_VERSION;
+      // Preserve campaignSetup from local if remote has empty/missing version
+      if(state.campaignSetup&&Object.keys(state.campaignSetup).length&&(!remote.campaignSetup||!Object.keys(remote.campaignSetup).length)){
+        remote.campaignSetup=state.campaignSetup;
+      }
       state=remote;state._ts=remoteTs;
       renderAll();genLedger();autosaveDot();
       // Notify on new party messages from others
@@ -1029,7 +1033,7 @@ function renderAll(){
   renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();renderStoryRead();
   renderWagon();renderIncome();renderPartyInv();syncWorld();renderTreasuryTotal();
   renderCampaignSecrets();renderTownRep();renderConsequences();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
-  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();renderSetupLock();renderContracts();
+  renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();renderSetupLock();renderContracts();loadSetupFields();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
     if(document.getElementById('sess-module-panel')?.style.display==='block'){
@@ -3512,6 +3516,10 @@ function applyPDFImport(){
     }
   });
   if(replaceMode&&state.moduleProgress.length>0)state.moduleProgress[0].status='active';
+  if(!replaceMode&&epsCreated&&!(state.moduleProgress||[]).some(e=>e.status==='active')){
+    const first=state.moduleProgress.find(e=>e.status==='pending');
+    if(first){first.status='active';toast('▶ '+first.name+' set to Active');}
+  }
   save();renderModuleTracker();
   const status=document.getElementById('pdf-import-status');
   if(status)status.style.display='none';
@@ -4357,8 +4365,16 @@ function lockPremise(){
 }
 function launchCampaign(){
   saveSetup();
-  // Sync all setup fields to state
   const g=(id)=>document.getElementById(id)?.value||'';
+  // Validation — warn about empty fields but don't block
+  const warnings=[];
+  const namedPCs=state.pcs.filter(p=>p.name);
+  if(!namedPCs.length)warnings.push('No characters have names (Step 1)');
+  if(!g('setup-setting')&&!state.worldData?.setting)warnings.push('Campaign setting is blank (Step 2)');
+  if(!g('setup-mission')&&!state.worldData?.primaryMission)warnings.push('Main quest is blank (Step 2)');
+  if(!state.aiContracts?.persona)warnings.push('AI Persona contract is empty (AI Tools tab)');
+  if(warnings.length&&!confirm('⚠ Launch with missing info?\n\n• '+warnings.join('\n• ')+'\n\nYou can fill these in later, but the AI DM will have less context.'))return;
+  // Sync all setup fields to state
   state.wagon.wagonName=g('setup-wagon-name');
   state.wagon.wagonDesc=g('setup-cover');
   state.worldData.primaryMission=g('setup-mission');
@@ -4366,9 +4382,12 @@ function launchCampaign(){
   state.worldData.plot=g('setup-factions');
   state.worldData.secrets=g('setup-secrets');
   state.treasuryData.gp=parseInt(g('setup-gold'))||15;
+  // Sync step 0 goal into primaryMission if mission is empty
+  if(!state.worldData.primaryMission&&state.campaignSetup?.goal){
+    state.worldData.primaryMission=state.campaignSetup.goal;
+  }
   state.campaignLaunched=true;
   save();
-  // Open Session Zero modal
   generateSessionZero();openModal('s0-modal');
   showTab('tab-dm');
   toast('✓ Session Zero generated. Copy it and send to the AI DM to begin.');
@@ -4398,6 +4417,7 @@ function migrate(s){
   if(!Array.isArray(s.locations))s.locations=[];
   if(!Array.isArray(s.sessionArchive))s.sessionArchive=[];
   if(!Array.isArray(s.headerShortcuts))s.headerShortcuts=[];
+  if(!s.campaignSetup||typeof s.campaignSetup!=='object')s.campaignSetup=s.campaignSetup||{};
   if(!s.aiContracts||typeof s.aiContracts!=='object')s.aiContracts={persona:'',never:'',actions:'',continuity:'',multi:''};
   // Auto-append missing contract clauses (idempotent — checks for marker text before appending)
   if(s.aiContracts.never&&!s.aiContracts.never.includes('DUNGEON SECRETS')){
@@ -4805,7 +4825,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences','headerShortcuts','moduleProgress','moduleReference'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences','headerShortcuts','moduleProgress','moduleReference','campaignSetup'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -5270,6 +5290,15 @@ LEVEL-UP RULES (STRICT — NEVER VIOLATE):
 - If you see a [LEVEL UP COMPLETE] context message, THEN you may narrate the advancement — but only echo what the wizard already applied. Never add extra stats.
 - NEVER fabricate stat blocks showing post-level-up HP, features, or spells unless you received a [LEVEL UP COMPLETE] confirmation.`;
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
+  const s0=state.campaignSetup||{};
+  let sessionZeroSection='';
+  if(s0.tone||s0.origin||s0.goal||s0.lines){
+    sessionZeroSection='\nSESSION ZERO — PERMANENT TABLE CONTRACT:\n';
+    if(s0.tone)sessionZeroSection+='Campaign Tone: '+s0.tone+'\n';
+    if(s0.origin)sessionZeroSection+='How the party met: '+s0.origin+'\n';
+    if(s0.goal)sessionZeroSection+='What they are trying to accomplish: '+s0.goal+'\n';
+    if(s0.lines)sessionZeroSection+='CONTENT BOUNDARIES (Lines & Veils — strictly enforced, never cross these):\n'+s0.lines+'\n';
+  }
   const secretsSection=state.dmSecrets?'\nCONTRACT 7 — SECRET DM NOTES (NEVER reveal to players):\n'+state.dmSecrets+'\n':'';
   const snipsSection=activeSnips?'\nCONTRACT 8 — REFERENCE MATERIAL:\n'+activeSnips+'\n':'';
   const summarySection=state.prevSessionSummary?'\nCAMPAIGN HISTORY (auto-archived):\n'+state.prevSessionSummary+'\n':'';
@@ -5305,7 +5334,7 @@ LEVEL-UP RULES (STRICT — NEVER VIOLATE):
     +'- NEVER fabricate magic item properties. If you do not know an item\'s stats, say so. Do not guess.\n'
     +'- If a player gives a specific item name you don\'t recognize, ask them to clarify rather than making something up.\n'
     +'- When an item IS attuned or identified, output item_add: in your mechanics block so it enters the tracked inventory.\n';
-  return g('ai-persona')+'\n'+premiseSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+inventoryGuard+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
+  return g('ai-persona')+'\n'+premiseSection+sessionZeroSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+inventoryGuard+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
 }
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
@@ -6971,12 +7000,13 @@ function generateSessionZero(){
   const ledger=document.getElementById('ledger-out')?.value||'';
   const verify=document.getElementById('s0-verify')?.value||'all PC names with current HP, location, and primary quest';
   const prompt=buildPrompt(ledger);
+  const campName=(state.worldData?.setting||'').split('\n')[0]||'a D&D 5e campaign';
   const out=`╔═══════════════════════════════════════════════════════════╗
 ║        SESSION ZERO — AI DM ONBOARDING CONTRACT           ║
 ╚═══════════════════════════════════════════════════════════╝
 
-You are being initialized as the AI Dungeon Master for Hoard of the Dragon Queen,
-a D&D 5e campaign on the Sword Coast. Read everything below before responding.
+You are being initialized as the AI Dungeon Master for ${campName}.
+Read everything below before responding.
 
 ${prompt}
 
