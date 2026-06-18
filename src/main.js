@@ -980,13 +980,11 @@ function showTab(id){
   }
 }
 function showWorldTab(tab){
-  document.getElementById('world-state-panel').style.display=tab==='state'?'':'none';
-  document.getElementById('world-ops-panel').style.display=tab==='ops'?'':'none';
-  const lp=document.getElementById('world-locations-panel');if(lp)lp.style.display=tab==='locations'?'':'none';
-  document.getElementById('world-btn-state').classList.toggle('active',tab==='state');
-  document.getElementById('world-btn-ops').classList.toggle('active',tab==='ops');
-  document.getElementById('world-btn-locs')?.classList.toggle('active',tab==='locations');
-  if(tab==='locations')renderLocations();
+  if(tab==='locations'){
+    const el=document.getElementById('journal-sec-locations');
+    if(el){el.open=true;el.scrollIntoView({behavior:'smooth'});}
+  }
+  renderLocations();
 }
 function showSessionMode(mode){
   const playPanel=document.getElementById('sess-play-panel');
@@ -1477,8 +1475,7 @@ function syncWorld(){
   const ds=document.getElementById('dm-secrets');if(ds)ds.value=state.dmSecrets||'';
   const qp=document.getElementById('q_primary');if(qp)qp.value=state.worldData.primaryMission||'';
   const tl=document.getElementById('w_travel_log');if(tl)tl.value=(state.worldData.travelLog||[]).join('\n');
-  renderTravelLog();
-  // Keep Setup fields in sync with World tab (same state keys, two UIs)
+  renderTravelLog();renderJournalHeader();renderJournalRep();
   const spr=document.getElementById('setup-premise');if(spr)spr.value=state.worldData.premise||'';
   const sst=document.getElementById('setup-setting');if(sst)sst.value=state.worldData.setting||'';
   const smq=document.getElementById('setup-mission');if(smq)smq.value=state.worldData.primaryMission||'';
@@ -1487,6 +1484,63 @@ function syncWorld(){
   const ox=state.wagon.ox;
   const om={name:'ox-name',hp:'ox-hp',hp_max:'ox-hp-max',ac:'ox-ac',conditions:'ox-cond',feed:'ox-feed'};
   Object.entries(om).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&ox[k]!==undefined)el.value=ox[k];});
+}
+function renderJournalHeader(){
+  const el=document.getElementById('journal-header');if(!el)return;
+  const w=state.worldData||{};
+  const loc=w.location||'Unknown';
+  const time=w.time||'';
+  const weather=w.weather||'';
+  const mission=w.primaryMission||'';
+  const pcs=state.pcs||[];
+  const hpLine=pcs.map(p=>{
+    const pct=p.hp_max?p.hp/p.hp_max:1;
+    const col=pct<=.25?'var(--red)':pct<=.5?'var(--gold)':'var(--green)';
+    return '<span style="color:'+col+'">'+esc(p.name.slice(0,3))+' '+p.hp+'/'+p.hp_max+'</span>';
+  }).join('&nbsp; ');
+  const activeQ=(state.quests||[]).filter(q=>q.status==='active').length;
+  const activeCsq=(state.consequences||[]).filter(c=>!c.resolved).length;
+  const locCount=(state.locations||[]).length;
+  const npcCount=(state.npcs||[]).filter(n=>n.status==='active').length;
+  el.innerHTML=
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'+
+      '<span style="font-size:16px">📍</span>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:14px;font-weight:700;color:var(--gold-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(loc)+'</div>'+
+        '<div style="font-size:10px;color:var(--text-dim)">'+(time?esc(time):'')+(time&&weather?' · ':'')+( weather?esc(weather):'')+'</div>'+
+      '</div>'+
+    '</div>'+
+    (mission?'<div style="font-size:11px;color:var(--text);padding:5px 10px;background:var(--surface3);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;margin-bottom:6px">⚔ '+esc(mission)+'</div>':'')+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px">'+
+      '<div style="font-size:10px;font-family:var(--mono,monospace);flex:1;min-width:0">'+hpLine+'</div>'+
+    '</div>'+
+    '<div style="display:flex;gap:4px;flex-wrap:wrap;font-size:9px;color:var(--text-dim)">'+
+      (activeQ?'<span>📜 '+activeQ+' quest'+(activeQ>1?'s':'')+'</span>':'')+
+      (locCount?'<span>📍 '+locCount+' loc'+(locCount>1?'s':'')+'</span>':'')+
+      (npcCount?'<span>👤 '+npcCount+' NPC'+(npcCount>1?'s':'')+'</span>':'')+
+      (activeCsq?'<span style="color:var(--red)">⚠ '+activeCsq+'</span>':'')+
+    '</div>'+
+    '<div style="display:flex;gap:6px;margin-top:8px">'+
+      '<span class="journal-chip" onclick="previouslyOn()">📺 Previously On</span>'+
+      '<span class="journal-chip" onclick="catchUpAudit()">🔍 Catch Up</span>'+
+    '</div>';
+}
+function renderJournalRep(){
+  const c=document.getElementById('journal-rep-list');if(!c)return;
+  if(!Array.isArray(state.worldData.townReputation))state.worldData.townReputation=[];
+  c.innerHTML='';
+  if(!state.worldData.townReputation.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No towns visited yet.</div>';return;}
+  const statuses=['good','neutral','burned','fled'];
+  state.worldData.townReputation.forEach((t,i)=>{
+    const d=document.createElement('div');d.className='town-row '+(t.status||'neutral');
+    d.innerHTML=`<input type="text" value="${esc(t.town||'')}" style="flex:1;min-width:80px;font-size:11px" placeholder="Town name" onchange="updTown(${i},'town',this.value);renderJournalRep()">
+      <select style="width:75px;font-size:10px;padding:3px" onchange="updTown(${i},'status',this.value);renderJournalRep()">
+        ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <input type="text" value="${esc(t.notes||'')}" style="flex:2;min-width:100px;font-size:11px" placeholder="Notes..." onchange="updTown(${i},'notes',this.value)">
+      <button class="btn sm red icon-btn" onclick="remTown(${i});renderJournalRep()">&times;</button>`;
+    c.appendChild(d);
+  });
 }
 function sw(k,v){state.worldData[k]=v;save();}
 // Flash nav dot to signal AI-triggered state change on a drawer sub-tab
@@ -1588,7 +1642,7 @@ function renderNPCs(){
     d.innerHTML=`<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;padding:6px 8px">
       <span style="flex:1;font-size:12px;font-weight:600;color:var(--text-bright);${dead?'text-decoration:line-through':''};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n.name)||'Unnamed'}</span>
       <span style="font-size:10px;color:${dispCol};flex-shrink:0">${esc(n.disposition||'Neutral')}</span>
-      ${n.lastSeen?`<span style="font-size:9px;color:var(--text-dim);flex-shrink:0">${esc(n.lastSeen)}</span>`:''}
+      ${n.lastSeen?`<span style="font-size:9px;color:var(--gold);cursor:pointer;flex-shrink:0;text-decoration:underline dotted" onclick="event.stopPropagation();var l=(state.locations||[]).find(function(x){return x.name.toLowerCase()==='${esc(n.lastSeen).toLowerCase()}'});if(l)openLocationDetail(l.id);else toast('${esc(n.lastSeen)} not in location journal')">📍 ${esc(n.lastSeen)}</span>`:''}
       ${dead?`<span style="font-size:9px;color:var(--text-dim);padding:1px 4px;border:1px solid var(--border);border-radius:3px;flex-shrink:0">${n.status}</span>`:''}
     </summary>
     <div style="padding:6px 8px 8px;border-top:1px solid var(--border)">
@@ -4235,7 +4289,8 @@ function migrate(s){
     {id:'qa_20',label:'Character Moment',type:'char_moment',params:{},context:['tab-dm','tab-party']},
     {id:'qa_21',label:'Send Active Scene',type:'send_scene',params:{},context:['tab-dm','tab-session']},
     {id:'qa_22',label:'Module Check-in',type:'module_checkin',params:{},context:['tab-dm','tab-session']},
-    {id:'qa_24',label:'Previously On…',type:'previously_on',params:{},context:['tab-dm']}
+    {id:'qa_24',label:'Previously On…',type:'previously_on',params:{},context:['tab-dm']},
+    {id:'qa_25',label:'Catch Up',type:'catch_up',params:{},context:['tab-dm','tab-world']}
   ];
   if(!s.quickActions.length){s.quickActions=canonicalQA;}
   else{canonicalQA.forEach(cqa=>{if(!s.quickActions.find(a=>a.id===cqa.id))s.quickActions.push(cqa);});}
@@ -7151,18 +7206,63 @@ function updProvStatusMini(){
 
 function previouslyOn(){
   const key=getKey();if(!key){toast('Set an API key first.');return;}
-  const recent=(state.chatHistory||[]).filter(m=>m.role==='assistant'||m.role==='user').slice(-8);
+  const questCount=(state.quests||[]).filter(q=>q.status==='active').length;
+  const locCount=(state.locations||[]).length;
+  const npcCount=(state.npcs||[]).filter(n=>n.status==='active').length;
+  const isSparse=questCount<3||locCount<3||npcCount<3;
+  const sliceN=isSparse?20:8;
+  const recent=(state.chatHistory||[]).filter(m=>m.role==='assistant'||m.role==='user').slice(-sliceN);
   if(recent.length<2){toast('Not enough chat history yet.');return;}
-  const sys='You are a narrator for a D&D campaign. Summarize the most recent events in exactly 2 sentences for a TV-style "Previously On…" opening. Past tense. No mechanics or stat references. Focus on dramatic or plot-relevant events. Write as if opening an episode.';
+  let sys='You are a narrator for a D&D campaign. Summarize the most recent events in exactly 2 sentences for a TV-style "Previously On…" opening. Past tense. No mechanics or stat references. Focus on dramatic or plot-relevant events. Write as if opening an episode.';
+  if(isSparse){
+    sys+='\n\nIMPORTANT — The campaign trackers are sparse. After your narrative recap, add a MECHANICS block to seed missing data:\n'
+      +'- quest_add: <quest objective text> (for any active objectives)\n'
+      +'- location_add: <name>|<type> (for named places: town, camp, dungeon, waypoint)\n'
+      +'- npc_add: <name>,<disposition>,<details> (for named NPCs)\n'
+      +'- town_rep: <town>,<status>,<notes> (for town attitudes)\n'
+      +'Only add entries clearly referenced in the chat. Use:\n---MECHANICS---\nkey: value\n---END---';
+  }
   const msgs=recent.map(m=>({role:m.role,content:String(m.content||'').slice(0,600)}));
-  msgs.push({role:'user',content:'Give me the 2-sentence "Previously On…" recap.'});
+  msgs.push({role:'user',content:'Give me the 2-sentence "Previously On…" recap.'+(isSparse?' Also audit and fill in any missing quest/location/NPC/town rep trackers.':'')});
   const typEl=document.getElementById('typing-ind');
   if(typEl)typEl.classList.add('on');
-  callAI(msgs,sys,120).then(resp=>{
+  toast(isSparse?'Generating recap + seeding trackers…':'Generating recap…');
+  callAI(msgs,sys,isSparse?500:120).then(resp=>{
     if(typEl)typEl.classList.remove('on');
-    state.chatHistory.push({role:'sys',content:'📺 Previously on Tinkle\'s Tinctures…\n\n'+resp,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
-    save();renderChat();scrollActiveChatBottom();
+    if(isSparse)parseMechanics(resp);
+    const displayText=resp.replace(/---MECHANICS---[\s\S]*?(?:---END---|$)/gi,'').replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*/gi,'').trim();
+    state.chatHistory.push({role:'sys',content:'📺 Previously on Tinkle\'s Tinctures…\n\n'+displayText,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+    save();renderChat();renderAll();scrollActiveChatBottom();
   }).catch(err=>{if(typEl)typEl.classList.remove('on');toast('Recap failed: '+err.message);});
+}
+function catchUpAudit(){
+  const key=getKey();if(!key){toast('Set an API key first.');return;}
+  const recent=(state.chatHistory||[]).filter(m=>m.role==='assistant'||m.role==='user').slice(-20);
+  if(recent.length<3){toast('Not enough chat history to audit.');return;}
+  const snap=[];
+  snap.push('QUESTS: '+(state.quests||[]).map(q=>'['+q.status+'] '+(q.text||'').slice(0,50)).join('; '));
+  snap.push('NPCs: '+(state.npcs||[]).filter(n=>n.status!=='deceased').map(n=>n.name+' ('+n.disposition+')').join(', '));
+  snap.push('LOCATIONS: '+((state.locations||[]).map(l=>l.name).join(', ')||'none'));
+  snap.push('TOWN REP: '+((state.worldData.townReputation||[]).map(t=>t.town+':'+t.status).join(', ')||'none'));
+  snap.push('CONSEQUENCES: '+((state.consequences||[]).filter(c=>!c.resolved).map(c=>(c.text||'').slice(0,50)).join('; ')||'none'));
+  const sys='You are an auditor for a D&D campaign tracker app. Compare the recent chat against the current tracker state. '
+    +'Identify any GAPS — NPCs mentioned but not tracked, quests implied but not logged, locations visited but not recorded, reputation changes not noted. '
+    +'For each gap, emit the appropriate mechanic. Do NOT duplicate existing entries. '
+    +'Before the mechanics block, write 1-2 sentences summarizing what you found.\n\n'
+    +'TRACKER STATE:\n'+snap.join('\n')+'\n\n'
+    +'Format:\n---MECHANICS---\nquest_add: <text>\nnpc_add: <name>,<disposition>,<details>\nlocation_add: <name>|<type>\ntown_rep: <town>,<status>,<notes>\nconsequence_add: <text>|<type>\n---END---';
+  const msgs=recent.map(m=>({role:m.role,content:String(m.content||'').slice(0,600)}));
+  msgs.push({role:'user',content:'Audit recent events against our trackers. Emit mechanics for anything missing.'});
+  const typEl=document.getElementById('typing-ind');
+  if(typEl)typEl.classList.add('on');
+  toast('Auditing trackers…');
+  callAI(msgs,sys,500).then(resp=>{
+    if(typEl)typEl.classList.remove('on');
+    parseMechanics(resp);
+    const displayText=resp.replace(/---MECHANICS---[\s\S]*?(?:---END---|$)/gi,'').replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*/gi,'').trim();
+    state.chatHistory.push({role:'sys',content:'🔍 Catch-Up Audit\n\n'+displayText,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+    save();renderChat();renderAll();scrollActiveChatBottom();
+  }).catch(err=>{if(typEl)typEl.classList.remove('on');toast('Catch-up failed: '+err.message);});
 }
 // ═══ CONTEXT-AWARE QUICK ACTIONS FAB ═══
 let currentTab='tab-dm';
@@ -7341,6 +7441,7 @@ function executeQA(action){
     case 'context_refresh_btn': sendContextRefresh(); break;
     case 'module_checkin': qa('Check the Campaign Progress tracker. Confirm which episode we\'re currently on, what\'s been completed, and what the next key objective is. Update any episode statuses that need changing via module_episode: mechanic.'); break;
     case 'previously_on': previouslyOn(); break;
+    case 'catch_up': catchUpAudit(); break;
     case 'shell_defense_toggle':{
       const tinklePC=state.pcs.find(p=>p.name==='Tinkle');
       if(!tinklePC){toast('Tinkle not found.');break;}
@@ -7653,6 +7754,7 @@ function execHeaderSC(id){
     case 'locations':openDrawer('tab-world');setTimeout(()=>showWorldTab('locations'),50);break;
     case 'verify':verifyContracts();break;
     case 'prev-on':previouslyOn();break;
+    case 'catchup':case 'catch-up':catchUpAudit();break;
     case 'refresh':sendContextRefresh();break;
     case 'checkpoint':triggerChk('Manual');break;
     case 'switch':switchUser();break;
@@ -8631,7 +8733,7 @@ function renderSuperpowers(){
 // ═══ NEW INTERFACE — HUD + DRAWER + DOCK ═══
 
 const _DRAWER_TABS=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-ait-chk','tab-dev','tab-setup'];
-const _DRAWER_TITLES={'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-ait-chk':'Tools','tab-dev':'Dev','tab-setup':'Setup'};
+const _DRAWER_TITLES={'tab-party':'Party','tab-world':'Journal','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-ait-chk':'Tools','tab-dev':'Dev','tab-setup':'Setup'};
 
 function renderHUD(){
   const mosaic=document.getElementById('hud-mosaic');
@@ -9358,7 +9460,7 @@ function openLogisticsDrawer(sub){
   const sn=document.getElementById('drawer-subnav');
   if(sn){
     sn.style.display='flex';
-    sn.innerHTML=[['world','🌍 World'],['wagon','🛒 Wagon'],['combat','⚔ Combat']]
+    sn.innerHTML=[['world','📔 Journal'],['wagon','🛒 Wagon'],['combat','⚔ Combat']]
       .map(([k,lbl])=>`<button class="drawer-subnav-btn${k===sub?' active':''}" onclick="switchLogisticsTab('${k}')">${lbl}</button>`).join('');
   }
   const t=document.getElementById('drawer-title');if(t)t.textContent='Logistics';
@@ -9385,7 +9487,7 @@ function switchLogisticsTab(sub){
     b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+sub+"'"));
   });
   if(sub==='wagon'){renderWagon();renderIncome();renderPartyInv();renderTreasuryTotal();}
-  if(sub==='world'){syncWorld();}
+  if(sub==='world'){syncWorld();renderLocations();renderNPCs();renderQuests();renderConsequences();renderCampaignSecrets();}
   if(sub==='combat'){renderCombat();}
   clearTabBadge('tab-'+sub);
   currentTab='tab-'+sub;
@@ -10087,7 +10189,7 @@ Object.assign(window, {
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, _tapCtxStrip, copyContracts,
-  navToast, _mechPillNav, scrollActiveChatBottom, scrollActiveChatTop,
+  navToast, _mechPillNav, catchUpAudit, renderJournalHeader, renderJournalRep, scrollActiveChatBottom, scrollActiveChatTop,
   toggleTestMode, clearTestChat, exportTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,

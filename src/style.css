@@ -254,6 +254,16 @@ details.bs[open] summary::before{content:"\25BC  ";}
 .mech-pill:active{background:var(--gold-dim);border-color:var(--gold);}
 .mech-pill.err{border-color:var(--red);color:var(--red);}
 
+/* ── JOURNAL ── */
+#journal-header{padding:10px 10px 8px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.journal-sec{margin:0;border-bottom:1px solid var(--border);}
+.journal-sec[open]{padding-bottom:8px;}
+.journal-sec-hdr{display:flex;align-items:center;gap:6px;padding:10px 10px 6px;font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;cursor:pointer;list-style:none;user-select:none;}
+.journal-sec-hdr .slot-add-btn{margin-left:auto;}
+.journal-sec>:not(summary){padding:0 10px;}
+.journal-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:4px 10px;border-radius:12px;border:1px solid var(--gold-dim);background:var(--surface3);color:var(--gold-bright);cursor:pointer;white-space:nowrap;font-family:var(--sans);}
+.journal-chip:active{background:var(--gold-dim);border-color:var(--gold);}
+
 /* ── INVENTORY ── */
 .inv-item{display:flex;gap:6px;margin-bottom:5px;align-items:center;flex-wrap:wrap;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);}
 .inv-item input{font-size:12px;padding:4px 6px;}
