@@ -5452,6 +5452,26 @@ function navToast(icon, label, caption, onTap, autoMs=6500){
   setTimeout(()=>{chip.style.opacity='1';chip.style.transform='translateX(0)';},30);
   setTimeout(()=>{chip.style.opacity='0';chip.style.transform='translateX(14px)';setTimeout(()=>chip.remove(),320);},autoMs);
 }
+function _mechPillNav(el){
+  const t=el.textContent||'';
+  const pcs=state.pcs||[];
+  let pi=-1;
+  for(let i=0;i<pcs.length;i++){if(pcs[i].name&&t.startsWith(pcs[i].name)){pi=i;break;}}
+  if(pi>=0){
+    state.activeEditTab=pi;
+    if(/slot/i.test(t))_pcSheetTab=3;
+    else if(/ used | restored|short rest/i.test(t))_pcSheetTab=1;
+    else if(/spell added/i.test(t))_pcSheetTab=3;
+    else _pcSheetTab=0;
+    navTo('party');return;
+  }
+  if(/→ wagon|→ hoard|→ party|^Removed |^Cell |^Ox |^Wagon HP|^\+.*→|×\+.*→/i.test(t)||
+     /^(GP|SP|CP|EP|PP)→/i.test(t)||/^Income:|^Expense:/i.test(t)){navTo('wagon');return;}
+  if(/^Location →|^Time →|^Weather →|^Travel note|^Loc desc|^Town rep|^Main Quest|^Episode |^Quest |^New quest|NPC|^Consequence|^Location:|^Visited:|^History →|^Investment/i.test(t)){navTo('world');return;}
+  if(/Combat|initiative|joined |zone|removed$|hidden$|revealed$/i.test(t)){navTo('combat');return;}
+  if(/^Chapter/i.test(t)){navTo('session');return;}
+  if(/^Added:|Spell added/i.test(t)){navTo('party');return;}
+}
 // Catch gold the AI narrated in prose but forgot to log via income:/expense:/gp:
 // Surfaces a one-tap confirm chip instead of forcing a tab-switch + manual entry.
 function detectUnloggedGold(prose,changes){
@@ -5797,7 +5817,7 @@ function renderChat(){
     if(msg.ts||msg.realTs){tsHtml='<span style="font-size:9px;opacity:.5">';if(msg.ts)tsHtml+=esc(msg.ts);if(msg.ts&&msg.realTs)tsHtml+=' · ';if(msg.realTs)tsHtml+=esc(msg.realTs);tsHtml+='</span>';}
     let mechBadge='';
     if(msg.mechanics?.length){
-      const pills=msg.mechanics.map(m=>`<span class="mech-pill${m.error?' err':''}">${esc(m.text)}</span>`).join('');
+      const pills=msg.mechanics.map(m=>`<span class="mech-pill${m.error?' err':''}" onclick="_mechPillNav(this)">${esc(m.text)}</span>`).join('');
       mechBadge=`<div class="mech-badge"><div class="mech-badge-hdr" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='flex'?'none':'flex'"><span class="mech-badge-lbl">⚡ Changes</span><span style="font-size:10px;color:var(--green-bright);margin-left:4px">${msg.mechanics.length} — tap to expand</span></div><div class="mech-pills" style="display:none">${pills}</div></div>`;
     }
     const isExpanded=_expandedMsgs.has(msgIdx);
@@ -10067,7 +10087,7 @@ Object.assign(window, {
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, _tapCtxStrip, copyContracts,
-  navToast, scrollActiveChatBottom, scrollActiveChatTop,
+  navToast, _mechPillNav, scrollActiveChatBottom, scrollActiveChatTop,
   toggleTestMode, clearTestChat, exportTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,

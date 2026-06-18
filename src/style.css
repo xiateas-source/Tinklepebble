@@ -250,7 +250,8 @@ details.bs[open] summary::before{content:"\25BC  ";}
 .mech-badge-hdr{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:2px 0;}
 .mech-badge-lbl{font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:1px;font-weight:600;}
 .mech-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;display:none;}
-.mech-pill{display:inline-block;background:var(--surface3);border:1px solid var(--green);color:var(--green-bright);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:500;}
+.mech-pill{display:inline-block;background:var(--surface3);border:1px solid var(--green);color:var(--green-bright);border-radius:12px;padding:2px 9px;font-size:10px;font-weight:500;cursor:pointer;}
+.mech-pill:active{background:var(--gold-dim);border-color:var(--gold);}
 .mech-pill.err{border-color:var(--red);color:var(--red);}
 
 /* ── INVENTORY ── */
