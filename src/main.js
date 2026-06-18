@@ -1099,7 +1099,7 @@ function renderSheets(){
       ${['str','dex','con','int','wis','cha'].map(s=>{const n=parseInt(pc[s])||10;const m=Math.floor((n-10)/2);const ms=(m>=0?'+':'')+m;return`<div style="text-align:center"><label class="field-label">${s.toUpperCase()}</label><input type="text" value="${n}" onchange="upd(${idx},'${s}',parseInt(this.value)||10)" style="text-align:center;font-size:15px;font-weight:600"><div style="font-size:13px;font-weight:700;color:var(--gold);margin-top:3px;letter-spacing:.5px">${ms}</div></div>`;}).join('')}
     </div>
     <div style="display:flex;gap:0;margin:14px 0 10px;border-bottom:1px solid var(--border)">
-      ${['Skills','Features','Attacks','Spells','Spellbook','Gear'].map((t,i)=>`<button onclick="setSheetTab(${i})" style="flex:1;padding:8px 2px;font-size:9px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;border:none;border-bottom:2px solid ${i===_pcSheetTab?'var(--gold)':'transparent'};background:none;color:${i===_pcSheetTab?'var(--gold)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans);min-height:36px;transition:color .15s">${t}</button>`).join('')}
+      ${['Skills','Features','Attacks','Spells','Gear'].map((t,i)=>`<button onclick="setSheetTab(${i})" style="flex:1;padding:8px 2px;font-size:9px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;border:none;border-bottom:2px solid ${i===_pcSheetTab?'var(--gold)':'transparent'};background:none;color:${i===_pcSheetTab?'var(--gold)':'var(--text-dim)'};cursor:pointer;font-family:var(--sans);min-height:36px;transition:color .15s">${t}</button>`).join('')}
     </div>
     ${_pcSheetTab===0?`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
@@ -1131,10 +1131,7 @@ function renderSheets(){
     <div id="attack-ed-${idx}"></div>
     `:''}
     ${_pcSheetTab===3?`
-    <div class="form-group"><label class="field-label">Spellcasting</label><textarea id="sheet-magic-${idx}" onchange="upd(${idx},'magic',this.value)" style="min-height:100px"></textarea></div>
     <div class="form-group"><label class="field-label">Spell Slots <button class="slot-add-btn" onclick="addSlotLvl(${idx})">+ Add Level</button></label><div id="slot-ed-${idx}"></div></div>
-    `:''}
-    ${_pcSheetTab===4?`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px">
       <span style="font-size:11px;color:var(--text-dim)">✨ ${pc.spellbook&&pc.spellbook.length?pc.spellbook.length+' spell'+(pc.spellbook.length===1?'':'s'):'No spells yet'}</span>
       <div style="display:flex;gap:4px">
@@ -1144,8 +1141,9 @@ function renderSheets(){
     </div>
     <div id="compendium-panel-${idx}">${_compOpen?'':'<!-- closed -->'}</div>
     <div id="spellbook-panel-${idx}"></div>
+    <details class="bs" style="margin-top:10px"><summary style="font-size:10px;color:var(--text-dim)">Spellcasting Notes</summary><div class="bs-body"><textarea id="sheet-magic-${idx}" onchange="upd(${idx},'magic',this.value)" style="min-height:80px"></textarea></div></details>
     `:''}
-    ${_pcSheetTab===5?`
+    ${_pcSheetTab===4?`
     <details class="bs" open>
       <summary>🎒 Inventory <button class="slot-add-btn" onclick="event.stopPropagation();addPcItem(${idx})">+ Add Item</button></summary>
       <div class="bs-body" id="inv-ed-${idx}"></div>
@@ -2942,7 +2940,18 @@ function genLedger(){
     l+='  STR '+p.str+' DEX '+p.dex+' CON '+p.con+' INT '+p.int+' WIS '+p.wis+' CHA '+p.cha+'\n';
     l+='  Conditions: ['+(p.conditions.length?p.conditions.join(', '):'None')+']\n';
     if(fmt==='full'){
-      l+='  Skills: '+p.skills+'\n  Features: '+p.features+'\n  Magic: '+p.magic+'\n';
+      const _prof=Math.floor(((p.level||1)-1)/4)+2;
+      const _mod=s=>{const n=parseInt(p[s])||10;return Math.floor((n-10)/2);};
+      const _sk=[['Athletics','str'],['Acrobatics','dex'],['Sleight of Hand','dex'],['Stealth','dex'],['Perception','wis'],['Insight','wis'],['Medicine','wis'],['Animal Handling','wis'],['Survival','wis'],['Persuasion','cha'],['Deception','cha'],['Intimidation','cha'],['Performance','cha'],['Arcana','int'],['History','int'],['Investigation','int'],['Nature','int'],['Religion','int']];
+      const _sText=(p.skills||'').toLowerCase();
+      const _hasExp=n=>new RegExp(n.toLowerCase()+'[^\\n]*expertise','i').test(_sText);
+      const _isProf=n=>new RegExp('\\b'+n+'\\b','i').test(_sText);
+      const _skillLine=_sk.filter(([n])=>_isProf(n)).map(([n,s])=>{
+        const b=_mod(s);const exp=_hasExp(n);
+        const tot=exp?b+(_prof*2):b+_prof;
+        return n+' '+(tot>=0?'+':'')+tot+(exp?' (Expertise)':'');
+      }).join(', ');
+      l+='  Skills: '+(_skillLine||p.skills||'None')+'\n  Features: '+p.features+'\n  Magic: '+p.magic+'\n';
       if(p.slots?.length)p.slots.forEach((s,i)=>l+='  Spell L'+(i+1)+': '+(s.max-s.used)+'/'+s.max+' remaining\n');
       if(p.backstory_motivation)l+='  Motivation: '+p.backstory_motivation+'\n';
       if(p.backstory_secret)l+='  Secret: '+p.backstory_secret+'\n';
@@ -5238,6 +5247,17 @@ function toggleTestMode(){
   else showChatTab('narrative');
 }
 function clearTestChat(){_testHistory=[];renderTestChat();}
+function exportTestChat(){
+  if(!_testHistory.length){toast('No test messages to export');return;}
+  const lines=_testHistory.map(m=>{
+    const role=m.role==='assistant'?'DM (Test)':m.role==='system'?'SYSTEM':'PLAYER';
+    let out='['+role+'] '+(m.content||'');
+    if(m.preview&&m.preview.length)out+='\n  MECHANICS: '+m.preview.map(p=>p.key+': '+p.val).join(', ');
+    return out;
+  });
+  const text='=== TEST CHAT EXPORT ===\n'+new Date().toISOString()+'\n'+lines.length+' messages\n\n'+lines.join('\n\n');
+  navigator.clipboard.writeText(text).then(()=>toast('Copied '+lines.length+' test messages')).catch(()=>toast('Export failed'));
+}
 function renderTestChat(){
   const c=document.getElementById('test-msgs');if(!c)return;c.innerHTML='';
   if(!_testHistory.length){
@@ -6205,7 +6225,7 @@ function addSpell(idx){
   if(!state.pcs[idx])return;
   if(!Array.isArray(state.pcs[idx].spellbook))state.pcs[idx].spellbook=[];
   state.pcs[idx].spellbook.push({name:'',level:1,school:'',castTime:'1 action',range:'',duration:'',components:'V, S',desc:''});
-  save();_pcSheetTab=4;renderSheets();
+  save();_pcSheetTab=3;renderSheets();
 }
 function updSpell(idx,si,k,v){const sp=state.pcs[idx]?.spellbook?.[si];if(!sp)return;sp[k]=v;save();}
 function remSpell(idx,si){state.pcs[idx].spellbook.splice(si,1);save();renderSheets();}
@@ -9086,7 +9106,8 @@ function renderCharSheet(idx,locked){
     if(pc.magic&&pc.magic!=='None'&&pc.magic.trim()){
       bookHtml=`<details style="margin-bottom:8px"><summary style="list-style:none;cursor:pointer;font-size:10px;font-weight:600;color:var(--purple-bright)">✨ Spellcasting Notes</summary><div style="font-size:10px;color:var(--text-dim);margin-top:5px;white-space:pre-line;line-height:1.7">${esc(pc.magic)}</div></details>`+bookHtml;
     }
-    return`<div class="sheet-section">${slotHtml}${bookHtml}</div>`;
+    const compBtn=`<div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sm" onclick="_compOpen=true;state.activeEditTab=${idx};_pcSheetTab=3;renderSheets()" style="font-size:10px">📚 Browse Compendium</button></div>`;
+    return`<div class="sheet-section">${slotHtml}${compBtn}${bookHtml}</div>`;
   }
 
   // ── GEAR TAB ──
@@ -9288,7 +9309,7 @@ Object.assign(window, {
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, copyContracts,
   navToast, scrollActiveChatBottom, scrollActiveChatTop,
-  toggleTestMode, clearTestChat, sendTestMsg,
+  toggleTestMode, clearTestChat, exportTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,
   exportGameplayLog, exportMoment, populateVoices, openResetModal, requestNotifPermission,
