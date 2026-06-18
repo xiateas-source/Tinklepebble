@@ -1681,39 +1681,77 @@ function dedupNPCs(){
 // ═══ QUESTS ═══
 function renderQuests(){
   const c=document.getElementById('quest-list');if(!c)return;c.innerHTML='';
-  const sorted=[...state.quests.map((q,i)=>({q,i}))].sort((a,b)=>{
-    const rank=s=>s==='active'?0:s==='failed'?1:2;
-    return rank(a.q.status)-rank(b.q.status);
-  });
-  if(!sorted.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No quests. Tap + Quest.</div>';return;}
-  const active=state.quests.filter(q=>q.status==='active').length;
-  {const hdr=document.createElement('div');hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:6px';
+  const all=state.quests||[];
+  if(!all.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px 0">No quests. Tap + Quest.</div>';return;}
+  const active=all.filter(q=>q.status==='active').length;
+  {const hdr=document.createElement('div');hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px';
   hdr.innerHTML=(active?'<span style="font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.7px">⬤ '+active+' Active</span>':'<span></span>')
-    +(sorted.length>3?'<button onclick="dedupQuests()" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;font-family:var(--sans)">🧹 Dedup</button>':'');
+    +(all.length>3?'<button onclick="dedupQuests()" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:none;color:var(--text-dim);cursor:pointer;font-family:var(--sans)">🧹 Dedup</button>':'');
   c.appendChild(hdr);}
-  sorted.forEach(({q,i:idx})=>{
-    const det=document.createElement('details');det.id='quest-det-'+idx;det.style.cssText='margin-bottom:6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2)';
-    const qst=q.status||'active';
-    const qcol=qst==='done'?'var(--text-dim)':qst==='failed'?'var(--red)':'var(--green)';
-    const hiddenBadge=q.hidden?`<span style="font-size:9px;background:rgba(139,58,42,.2);color:var(--gold);border:1px solid var(--gold-dim);border-radius:3px;padding:1px 5px;margin-left:6px;flex-shrink:0">DM Only</span>`:'';
-    const statusIcon=qst==='done'?'✓ Done':qst==='failed'?'✗ Failed':'🟢 Active';
-    det.innerHTML=`<summary style="list-style:none;cursor:pointer;padding:8px 10px;display:flex;align-items:center;gap:6px">
-      <span style="font-size:10px;color:${qcol};font-weight:700;flex-shrink:0">${statusIcon}</span>
-      <span style="flex:1;font-size:12px;${qst==='done'?'text-decoration:line-through;color:var(--text-dim)':qst==='failed'?'color:var(--text-dim)':''};${q.hidden?'opacity:.7':''}">${esc(q.text||'(unnamed quest)')}</span>
-      ${hiddenBadge}
-    </summary>
-    <div style="padding:8px 10px;border-top:1px solid var(--border)">
-      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
-        <select style="width:76px;font-size:10px;padding:3px 4px;border-color:${qcol};color:${qcol}" onchange="updQ(${idx},'status',this.value)"><option value="active" ${qst==='active'?'selected':''}>Active</option><option value="done" ${qst==='done'?'selected':''}>Done</option><option value="failed" ${qst==='failed'?'selected':''}>Failed</option></select>
-        <button title="${q.hidden?'Reveal quest to players':'Hide quest from players'}" onclick="updQ(${idx},'hidden',${!q.hidden})" style="font-size:13px;padding:1px 5px;background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:${q.hidden?'var(--gold)':'var(--text-dim)'}">👁</button>
-        <button class="btn sm red icon-btn" onclick="remQ(${idx})" style="margin-left:auto">&times;</button>
-      </div>
-      <input type="text" value="${esc(q.text||'')}" style="font-size:12px;width:100%;box-sizing:border-box;margin-bottom:8px" placeholder="Quest objective..." onchange="updQ(${idx},'text',this.value)">
-      ${q.location?`<div style="font-size:10px;color:var(--text-dim);margin-bottom:6px;display:flex;align-items:center;gap:4px"><span>📍</span><span style="cursor:pointer;color:var(--gold);text-decoration:underline" onclick="openLocationDetail((state.locations||[]).find(l=>l.name.toLowerCase()==='${esc(q.location).toLowerCase()}')?.id)">${esc(q.location)}</span></div>`:''}
-      ${q.discovery?`<div style="margin-bottom:8px;padding:8px 10px;background:var(--bg);border-radius:4px;border-left:3px solid var(--gold-dim)"><div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>📖 Discovery · ${esc(q.discovery.ts||'')}</span>${q.chatMsgId?`<button onclick="viewQuestInChat(${JSON.stringify(q.chatMsgId)})" style="font-size:9px;background:none;border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);padding:1px 5px;cursor:pointer" title="Jump to discovery moment in chat">↗ Chat</button>`:''}</div><div style="font-size:11px;color:var(--text);line-height:1.5;font-style:italic">${esc(q.discovery.text||'')}</div></div>`:''}
-      ${q.notes!==undefined?`<div class="form-group" style="margin-bottom:0"><label class="field-label">Notes</label><textarea style="min-height:50px;font-size:11px" onchange="updQ(${idx},'notes',this.value)">${esc(q.notes||'')}</textarea></div>`:''}
+  const locGroups={};const noLoc=[];
+  all.forEach((q,i)=>{
+    const loc=(q.location||'').trim();
+    if(!loc){noLoc.push({q,i});return;}
+    if(!locGroups[loc])locGroups[loc]=[];
+    locGroups[loc].push({q,i});
+  });
+  const locOrder=Object.keys(locGroups);
+  const allGroups=[...locOrder.map(loc=>({loc,quests:locGroups[loc]}))];
+  if(noLoc.length)allGroups.push({loc:'',quests:noLoc});
+  allGroups.forEach((group,gi)=>{
+    const isLast=gi===allGroups.length-1;
+    const locName=group.loc||'Unknown Location';
+    const locObj=group.loc?(state.locations||[]).find(l=>l.name.toLowerCase()===group.loc.toLowerCase()):null;
+    const rep=(state.worldData.townReputation||[]).find(t=>t.town&&t.town.toLowerCase()===locName.toLowerCase());
+    const npcsHere=(state.npcs||[]).filter(n=>n.status==='active'&&n.lastSeen&&n.lastSeen.toLowerCase()===locName.toLowerCase());
+    const activeInGroup=group.quests.filter(({q})=>q.status==='active').length;
+    const groupEl=document.createElement('div');
+    groupEl.style.cssText='display:flex;gap:0;min-height:40px;margin-bottom:'+(isLast?'0':'2')+'px';
+    const timeline=document.createElement('div');
+    timeline.style.cssText='display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:18px;padding-top:4px';
+    timeline.innerHTML=`<div style="width:12px;height:12px;border-radius:50%;flex-shrink:0;background:${activeInGroup?'var(--gold)':'var(--surface3)'};border:2px solid ${activeInGroup?'var(--gold-bright)':'var(--border-bright)'}"></div>${!isLast?'<div style="width:1px;flex:1;background:var(--border);margin:3px 0"></div>':''}`;
+    const content=document.createElement('div');
+    content.style.cssText='flex:1;min-width:0;padding-bottom:'+(isLast?'0':'12')+'px;margin-left:6px';
+    let locHdr=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+      <span style="font-size:12px;font-weight:700;color:${activeInGroup?'var(--gold-bright)':'var(--text)'};cursor:${locObj?'pointer':'default'}" ${locObj?'onclick="openLocationDetail(\''+locObj.id+'\')"':''}>${esc(locName)}</span>
+      <span style="font-size:9px;padding:1px 6px;border-radius:8px;background:${activeInGroup?'var(--gold-dim)':'var(--surface3)'};color:${activeInGroup?'var(--gold-bright)':'var(--text-dim)'};font-weight:700">${group.quests.length}</span>
+      ${rep?`<span style="font-size:9px;padding:1px 5px;border-radius:4px;border:1px solid ${rep.status==='good'?'var(--green)':rep.status==='burned'||rep.status==='fled'?'var(--red)':'var(--border)'};color:${rep.status==='good'?'var(--green)':rep.status==='burned'||rep.status==='fled'?'var(--red)':'var(--text-dim)'}">${esc(rep.status)}</span>`:''}
     </div>`;
-    c.appendChild(det);
+    if(npcsHere.length){
+      locHdr+=`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px">${npcsHere.map(n=>`<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:var(--surface3);border:1px solid var(--green);color:var(--green);cursor:pointer" onclick="var d=document.getElementById('journal-sec-npcs');if(d){d.open=true;d.scrollIntoView({behavior:'smooth'})}">👤 ${esc(n.name)}</span>`).join('')}</div>`;
+    }
+    content.innerHTML=locHdr;
+    group.quests.sort((a,b)=>{const rank=s=>s==='active'?0:s==='failed'?1:2;return rank(a.q.status)-rank(b.q.status);}).forEach(({q,i:idx})=>{
+      const qst=q.status||'active';
+      const qcol=qst==='done'?'var(--text-dim)':qst==='failed'?'var(--red)':'var(--green)';
+      const borderCol=qst==='active'?'var(--gold)':qst==='failed'?'var(--red)':'var(--border)';
+      const det=document.createElement('details');det.id='quest-det-'+idx;
+      det.style.cssText='margin-bottom:5px;border:1px solid var(--border);border-left:3px solid '+borderCol+';border-radius:6px;background:var(--surface2)';
+      const statusBadge=qst==='done'?'<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:var(--surface3);color:var(--text-dim);font-weight:700;flex-shrink:0">COMPLETED</span>'
+        :qst==='failed'?'<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(139,58,42,.3);color:var(--red);font-weight:700;flex-shrink:0">FAILED</span>'
+        :'<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(120,138,115,.2);color:var(--green);font-weight:700;flex-shrink:0">ACTIVE</span>';
+      const hiddenBadge=q.hidden?'<span style="font-size:8px;padding:1px 4px;border-radius:3px;background:rgba(139,58,42,.2);color:var(--gold);border:1px solid var(--gold-dim);flex-shrink:0">DM</span>':'';
+      det.innerHTML=`<summary style="list-style:none;cursor:pointer;padding:7px 10px;display:flex;align-items:center;gap:6px">
+        ${statusBadge}
+        <span style="flex:1;font-size:11px;font-weight:500;${qst==='done'?'text-decoration:line-through;color:var(--text-dim)':qst==='failed'?'color:var(--text-dim)':''};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(q.text||'(unnamed quest)')}</span>
+        ${hiddenBadge}
+      </summary>
+      <div style="padding:8px 10px;border-top:1px solid var(--border)">
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
+          <select style="width:76px;font-size:10px;padding:3px 4px;border-color:${qcol};color:${qcol}" onchange="updQ(${idx},'status',this.value)"><option value="active" ${qst==='active'?'selected':''}>Active</option><option value="done" ${qst==='done'?'selected':''}>Done</option><option value="failed" ${qst==='failed'?'selected':''}>Failed</option></select>
+          <button title="${q.hidden?'Reveal':'Hide'}" onclick="updQ(${idx},'hidden',${!q.hidden})" style="font-size:13px;padding:1px 5px;background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:${q.hidden?'var(--gold)':'var(--text-dim)'}">👁</button>
+          <input type="text" value="${esc(q.location||'')}" placeholder="Location" style="width:90px;font-size:10px" onchange="updQ(${idx},'location',this.value)">
+          <button class="btn sm red icon-btn" onclick="remQ(${idx})" style="margin-left:auto">&times;</button>
+        </div>
+        <input type="text" value="${esc(q.text||'')}" style="font-size:11px;width:100%;box-sizing:border-box;margin-bottom:6px" placeholder="Quest objective..." onchange="updQ(${idx},'text',this.value)">
+        ${q.discovery?`<div style="margin-bottom:6px;padding:6px 8px;background:var(--bg);border-radius:4px;border-left:3px solid var(--gold-dim)"><div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center"><span>📖 ${esc(q.discovery.ts||'')}</span>${q.chatMsgId?`<button onclick="viewQuestInChat(${JSON.stringify(q.chatMsgId)})" style="font-size:9px;background:none;border:1px solid var(--gold-dim);border-radius:3px;color:var(--gold);padding:1px 5px;cursor:pointer">↗ Chat</button>`:''}</div><div style="font-size:10px;color:var(--text);line-height:1.4;font-style:italic">${esc(q.discovery.text||'')}</div></div>`:''}
+        <div class="form-group" style="margin-bottom:0"><label class="field-label">Notes</label><textarea style="min-height:40px;font-size:11px" onchange="updQ(${idx},'notes',this.value)">${esc(q.notes||'')}</textarea></div>
+      </div>`;
+      content.appendChild(det);
+    });
+    groupEl.appendChild(timeline);
+    groupEl.appendChild(content);
+    c.appendChild(groupEl);
   });
 }
 function addQuest(){state.quests.push({text:'',status:'active',hidden:false});saveRefresh();}
