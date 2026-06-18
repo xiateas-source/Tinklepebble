@@ -3843,8 +3843,13 @@ function resetState(mode, startingGold){
   cleanWagon.conditions='';
   cleanWagon.cells=[];
   if(mode==='full'){
-    cleanWagon.cargo=JSON.parse(JSON.stringify(getCanonicalPCs()[0]?[]:(state.wagon.cargo||[])));
+    cleanWagon.cargo=[];
     cleanWagon.hoard=[];
+    cleanWagon.ox={name:'(No draft animal)',hp:0,hp_max:0,ac:10,conditions:'None',feed:'N/A',
+      backstory:'No mount or draft animal yet. Acquire one through play.',
+      personality:'',bonds:{},quirks:[],experimentLog:''};
+    cleanWagon.wagonName='No wagon yet';
+    cleanWagon.wagonDesc='The party is traveling on foot. A cart or wagon may be acquired through play.';
   }
   // Apply clean state
   state.pcs=cleanPCs;
@@ -9821,7 +9826,8 @@ function openSystemsDrawer(sub){
   const sn=document.getElementById('drawer-subnav');
   if(sn){
     sn.style.display='flex';
-    sn.innerHTML=[['session','📅 Session'],['ait','🤖 AI Tools'],['ait-chk','⏪ Tools'],['dev','🔧 Dev'],['setup','⚙ Setup']]
+    const setupLabel=state.campaignLaunched?'⚙ Setup':'▶ Start Here';
+    sn.innerHTML=[['session','📅 Session'],['ait','🤖 AI Tools'],['ait-chk','⏪ Tools'],['dev','🔧 Dev'],['setup',setupLabel]]
       .map(([k,lbl])=>`<button class="drawer-subnav-btn${k===sub?' active':''}" onclick="switchSystemsTab('${k}')">${lbl}</button>`).join('');
   }
   const t=document.getElementById('drawer-title');if(t)t.textContent='Systems';
@@ -9849,6 +9855,7 @@ function switchSystemsTab(sub){
     b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+sub+"'"));
   });
   if(sub==='session'){showSessionMode('play');}
+  if(sub==='ait-chk'){renderQAEditor();}
   clearTabBadge('tab-'+sub);
   currentTab='tab-'+sub;
   renderQAMenu();setTimeout(injectPanelFlags,150);

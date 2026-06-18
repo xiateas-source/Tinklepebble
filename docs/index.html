@@ -12,8 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.CJBg7ip8.js"></script>
-  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.BOdPIJ6x.css">
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.DuBdC2aw.js"></script>
+  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.DrJOujGe.css">
 </head>
 <body>
 
@@ -401,7 +401,7 @@
   <div id="sess-subnav" style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border);">
     <button class="main-tab active" id="sess-btn-play" onclick="showSessionMode('play')" style="font-size:11px;padding:8px 12px">During Session</button>
     <button class="main-tab" id="sess-btn-prep" onclick="showSessionMode('prep')" style="font-size:11px;padding:8px 12px">Between Sessions</button>
-    <button class="main-tab" id="sess-btn-module" onclick="showSessionTab('module')" style="font-size:11px;padding:8px 12px">Module</button>
+    <button class="main-tab" id="sess-btn-module" onclick="showSessionTab('module')" style="font-size:11px;padding:8px 12px">Episode Tracker</button>
   </div>
 
   <div id="sess-log-panel">
@@ -429,7 +429,8 @@
   </div>
 
   <div id="sess-module-panel" style="display:none">
-    <div class="panel accent" style="margin-top:12px">
+    <div style="font-size:11px;color:var(--text-dim);padding:8px 12px 0;line-height:1.5">Import pre-written adventure episodes here to give the AI chapter-by-chapter context. Set up your campaign first in <a href="#" onclick="event.preventDefault();navTo('setup')" style="color:var(--gold)">Session Zero</a>.</div>
+    <div class="panel accent" style="margin-top:8px">
       <div class="panel-title">Campaign Progress
         <button class="btn sm red" style="margin-left:auto" onclick="recalibrateModule()">🔄 Recalibrate</button>
         <button class="btn sm" onclick="document.getElementById('pdf-upload-input').click()">📄 Import PDF</button>
@@ -525,21 +526,23 @@
       <button class="btn gold full" style="margin-top:6px" onclick="copyText(document.getElementById('dev-log-text').value,'✓ Log copied!')">📋 Copy — Paste to Dev</button>
     </div>
   </div>
-  <div class="panel" style="margin-top:12px">
-    <div class="panel-title">Ledger Settings <span style="font-size:10px;color:var(--text-dim);font-weight:normal;margin-left:4px">Dev tool — auto-compiled by AI DM</span></div>
-    <div class="form-group"><label class="field-label">Context Format</label>
-      <select id="ledger-fmt">
-        <option value="compact" selected>Compact (~600 tokens) — default for active play</option>
-        <option value="full">Full (~2500 tokens) — session start / resync only</option>
-        <option value="combat">Combat Focus (~800 tokens)</option>
-      </select>
+  <details class="bs" style="margin-top:12px">
+    <summary style="font-size:11px;font-weight:600;color:var(--text-dim);cursor:pointer">🔧 Ledger Settings <span style="font-weight:400;font-size:10px">(dev tool — auto-compiled by AI DM, rarely needed manually)</span></summary>
+    <div class="panel" style="margin-top:6px">
+      <div class="form-group"><label class="field-label">Context Format</label>
+        <select id="ledger-fmt">
+          <option value="compact" selected>Compact (~600 tokens) — default for active play</option>
+          <option value="full">Full (~2500 tokens) — session start / resync only</option>
+          <option value="combat">Combat Focus (~800 tokens)</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="field-label">Ledger Prefix</label><textarea id="ledger-prefix" style="min-height:50px">Before taking any action, confirm you have read this entire state ledger. Verify HP and active conditions for all PCs before proceeding.</textarea></div>
+      <div class="btn-row" style="flex-direction:column;gap:6px">
+        <button class="btn gold full" onclick="genLedger()">⚡ Compile Ledger</button>
+        <button class="btn full" onclick="copyText(document.getElementById('ledger-out').value,'✓ Ledger copied!')">📋 Copy Ledger</button>
+      </div>
     </div>
-    <div class="form-group"><label class="field-label">Ledger Prefix</label><textarea id="ledger-prefix" style="min-height:50px">Before taking any action, confirm you have read this entire state ledger. Verify HP and active conditions for all PCs before proceeding.</textarea></div>
-    <div class="btn-row" style="flex-direction:column;gap:6px">
-      <button class="btn gold full" onclick="genLedger()">⚡ Compile Ledger</button>
-      <button class="btn full" onclick="copyText(document.getElementById('ledger-out').value,'✓ Ledger copied!')">📋 Copy Ledger</button>
-    </div>
-  </div>
+  </details>
 </div>
 
 <!-- CAMPAIGN SETUP TAB -->
@@ -548,7 +551,7 @@
     <button class="main-tab active" id="setup-btn-0" onclick="showSetupStep(0)" style="font-size:11px;padding:8px 10px">0 Session Zero</button>
     <button class="main-tab" id="setup-btn-1" onclick="showSetupStep(1)" style="font-size:11px;padding:8px 10px">1 Characters</button>
     <button class="main-tab" id="setup-btn-2" onclick="showSetupStep(2)" style="font-size:11px;padding:8px 10px">2 World</button>
-    <button class="main-tab" id="setup-btn-3" onclick="showSetupStep(3)" style="font-size:11px;padding:8px 10px">3 Operation</button>
+    <button class="main-tab" id="setup-btn-3" onclick="showSetupStep(3)" style="font-size:11px;padding:8px 10px">3 Equipment</button>
     <button class="main-tab" id="setup-btn-4" onclick="showSetupStep(4)" style="font-size:11px;padding:8px 10px;color:var(--purple-bright)">Plugins</button>
   </div>
   <div id="setup-lock-banner" style="margin-top:12px"></div>
@@ -665,9 +668,9 @@
 
 Tone: Epic fantasy with looming dread. The Cult of the Dragon is amassing treasure to summon Tiamat from the Nine Hells. Towns burn, dragons circle, and a small band of adventurers is all that stands between the Sword Coast and annihilation. Mix heroism with real danger — death is always on the table.
 
-THE PARTY: Gareth Ironhold (Human Fighter) is the front-line protector — disciplined soldier, reliable in combat, straightforward. Meren Ashwick (Human Wizard) is the scholar — researching the cult, driven by knowledge, cautious but determined. Lyra Dawnharp (Half-Elf Bard) is the face — charismatic performer, gathers information through song and charm, keeps morale alive.
+THE PARTY: Refer to the state ledger for current PC names, classes, and personalities. Address each character as a distinct individual with their own voice, motivations, and reactions.
 
-CRITICAL — MULTI-PLAYER ADDRESSING: Never use "you" as a catch-all for the party. Always address each character by name. Gareth, Meren, and Lyra are three distinct people in the same scene. Narrate what each character experiences separately. This is non-negotiable.
+CRITICAL — MULTI-PLAYER ADDRESSING: Never use "you" as a catch-all for the party. Always address each character by name. Each PC is a distinct person in the same scene. Narrate what each character experiences separately. This is non-negotiable.
 
 You may apply any standard D&D 5e RAW rule confidently. Only pause when genuinely ambiguous — say so and ask players to confirm before continuing.</textarea></div></div></details>
         <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--red)">②</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">What You Never Do</span><span style="font-size:9px;color:var(--text-dim)">Rules, death saves, concentration, action economy</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-never" style="min-height:80px" oninput="saveContract('never',this.value)">- Never invent stats, items, or rules not in the state ledger or standard 5e RAW
@@ -677,14 +680,14 @@ You may apply any standard D&D 5e RAW rule confidently. Only pause when genuinel
 - Before a player rolls: state check type and DC, wait. After a roll is submitted: resolve immediately, do not re-ask
 - Never end a combat turn without stating who goes next
 - DEATH SAVES (PHB p.197): When any PC hits 0 HP, immediately announce it and begin death saves. Each turn that PC rolls d20: 10+ = success, 9- = failure. 3 successes = stable. 3 failures = dead. Nat 20 = regain 1 HP and stand. Nat 1 = two failures. Announce the running tally every turn. Output in mechanics block: conditions: name+unconscious
-- CONCENTRATION (PHB p.203): When Meren or Lyra takes ANY damage while concentrating, immediately call for a CON saving throw. DC = 10 OR half the damage taken, whichever is higher. Each separate damage source = separate CON save. On fail: spell ends, announce it, output concentration: name=none
+- CONCENTRATION (PHB p.203): When any concentrating PC takes ANY damage, immediately call for a CON saving throw. DC = 10 OR half the damage taken, whichever is higher. Each separate damage source = separate CON save. On fail: spell ends, announce it, output concentration: name=none
 - NEVER forget concentration saves. NEVER assume concentration holds after damage
 - ACTION ECONOMY (PHB p.189): Each PC gets ONE Action, ONE Bonus Action, ONE Reaction per round. Track these strictly. State which action type is being used for each action. Call out when a bonus action or reaction is available
-- REST RESOURCES: Short Rest restores — Second Wind (Gareth), Arcane Recovery (Meren, 1/long rest trigger). Long Rest restores — Bardic Inspiration (Lyra), all spell slots (Meren and Lyra). NEVER restore Long Rest resources on a Short Rest. Bardic Inspiration becomes Short Rest only at Level 5 (Font of Inspiration)
+- REST RESOURCES: Short Rest restores class short-rest features (Second Wind for Fighters, Arcane Recovery for Wizards). Long Rest restores all spell slots, Bardic Inspiration, and other long-rest features. NEVER restore Long Rest resources on a Short Rest. Bardic Inspiration becomes Short Rest at Bard Level 5 (Font of Inspiration)
 - MEREN SPELLS (Wizard, INT-based, DC 13, +5): Cantrips: Fire Bolt (1d10 fire, 120ft), Prestidigitation, Minor Illusion. Level 1 Slots (2): Prepared — Mage Armor, Shield, Magic Missile, Sleep. Spellbook also: Detect Magic (ritual), Find Familiar (ritual). Arcane Recovery: 1 level of slots per short rest, 1/long rest
-- LYRA SPELLS (Bard, CHA-based, DC 13, +5): Cantrips: Vicious Mockery (1d4 psychic + disadvantage on next attack, WIS save), Light. Level 1 Spells Known (2 slots): Healing Word (bonus action, 1d4+3, 60ft), Thunderwave (2d8, CON save, 15ft cube), Charm Person (WIS save), Dissonant Whispers (3d6 psychic, WIS save, flee)
-- GARETH COMBAT: Longsword +5 to hit, 1d8+5 slashing (Dueling style). Shield equipped (AC 18). Second Wind: bonus action, 1d10+1 HP, 1/short rest. Handaxes for ranged (1d6+3, thrown 20/60ft)
-- PASSIVE PERCEPTION: Gareth 13, Meren 11, Lyra 12. Hidden threats/traps only revealed automatically if their DC is at or below the relevant PC’s Passive Perception. Above that threshold: call for active WIS (Perception) check
+- SPELL DETAILS: Check each caster PC's magic field in the state ledger for their full spell list, DC, attack bonus, and slots. Never invent spells a PC doesn't have.
+- COMBAT STATS: Check each PC's features field for attack bonuses, fighting styles, and class features. Never invent stats not in the ledger.
+- PASSIVE PERCEPTION: Check each PC's passive_perception from the state ledger. Hidden threats/traps only revealed automatically if their DC is at or below the relevant PC's Passive Perception. Above that threshold: call for active WIS (Perception) check
 - ADVANTAGE/DISADVANTAGE: Always state reasoning before every roll. Never silently apply or ignore these
 - SCENE / COMBAT TRANSITION: When combat ends, immediately audit and clear combat-temporary conditions. Concentration ends only on failed save or explicit spell end
 - NEVER resolve a physically challenging action as success without first requesting a roll
@@ -700,7 +703,7 @@ ALWAYS roll for: anything physically demanding (climbing, jumping, grappling, ho
 PROCEDURE for every action:
 1. Acknowledge the action clearly and name the character doing it
 2. Determine if a roll is needed using the three conditions above
-3. If roll needed: state the exact check (e.g. "Gareth, give me a STR Athletics check, DC 14") and WAIT. Do not narrate outcome until roll arrives
+3. If roll needed: state the exact check (e.g. "[PC name], give me a STR Athletics check, DC 14") and WAIT. Do not narrate outcome until roll arrives
 4. If roll result included in message: resolve immediately without asking again
 5. Before every roll: state whether advantage or disadvantage applies and why
 6. Narrate the outcome — calibrate to degree of success or failure. Failure by 5+ = worse outcome than narrow miss
@@ -713,7 +716,7 @@ STORY PACING:
 - Never auto-complete multi-step plans. If the party outlines a plan, narrate step 1 and ask for confirmation before proceeding to step 2
 - When a player describes a goal ("I want to sneak in"), narrate the approach and ask for the specific action, do not narrate the full infiltration
 
-ENCUMBRANCE (PHB p.176 variant): STR carry capacity = STR score × 15 lbs. Gareth (STR 16): 240 lb limit. Encumbered threshold = STR × 5 lbs (Gareth: 80 lbs of personal carry) → speed reduced 10 ft. Heavily Encumbered = STR × 10 lbs (Gareth: 160 lbs) → speed reduced 20 ft + disadvantage on all STR/DEX/CON checks, saves, and attacks. Wagon cargo capacity: 1080 lbs total. When wagon is over capacity, travel speed is halved. Call out encumbrance when PCs pick up heavy loot, prisoners, or bulk supplies. Never assume a PC can carry unlimited personal gear.</textarea></div></div></details>
+ENCUMBRANCE (PHB p.176 variant): STR carry capacity = STR score × 15 lbs. e.g. STR 16 = 240 lb limit. Encumbered threshold = STR × 5 lbs (STR 16: 80 lbs personal carry) → speed reduced 10 ft. Heavily Encumbered = STR × 10 lbs (STR 16: 160 lbs) → speed reduced 20 ft + disadvantage on all STR/DEX/CON checks, saves, and attacks. Wagon cargo capacity: 1080 lbs total. When wagon is over capacity, travel speed is halved. Call out encumbrance when PCs pick up heavy loot, prisoners, or bulk supplies. Never assume a PC can carry unlimited personal gear.</textarea></div></div></details>
         <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--green)">④</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">Continuity &amp; Wagon Awareness</span><span style="font-size:9px;color:var(--text-dim)">Quests, NPCs, income, con mechanics, story</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-continuity" style="min-height:70px" oninput="saveContract('continuity',this.value)">At the start of every response, internally verify: who is at 0 HP, active conditions, concentration spells, current location, last player action. Never contradict these.
 
 If the party acquires a wagon or mount, track its location and condition during travel and combat.
@@ -754,9 +757,9 @@ STORY CHRONICLE: The app maintains a structured chapter-based story chronicle. Y
 Reserve for story-significant moments only. The DM controls this with ✨ Chapter — only add chapters autonomously when a clearly major arc milestone is reached.</textarea></div></div></details>
         <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--purple-bright)">⑤</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">Multi-Player Awareness</span><span style="font-size:9px;color:var(--text-dim)">Never "you" for the party · name every character</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-multi" style="min-height:50px" oninput="saveContract('multi',this.value)">CRITICAL — MULTI-PLAYER ADDRESSING:
 NEVER use "you" as a catch-all for the party. This is a multi-player game.
-Always address each character by name: Gareth, Meren, Lyra.
+Always address each character by name — check the state ledger for current PC names.
 Narrate what each character individually sees, hears, does, and feels.
-Example: "Meren spots cult insignia on the guard's cloak while Lyra charms the innkeeper with a ballad. Gareth, positioned near the door, keeps one hand on his sword hilt."
+Example: "[Wizard] spots cult insignia on the guard's cloak while [Bard] charms the innkeeper with a ballad. [Fighter], positioned near the door, keeps one hand on his sword hilt."
 Never: "You notice the merchant reaching for his belt."
 
 Multiple players may send messages tagged with their name and character. Treat each as a separate party member's action unless they explicitly state they act together.
