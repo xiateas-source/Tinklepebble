@@ -4040,13 +4040,67 @@ function importConfig(el){
   };
   reader.readAsText(file);el.value='';
 }
+function _convertGeminiPCs(chars){
+  const colors=['#c04a3a','#4a7090','#7060a0','#60a070','#a07060'];
+  return chars.map((c,i)=>{
+    const abs=c.ability_scores||{};
+    const fmt=k=>{const a=abs[k];return a?(a.score+' ('+(a.modifier>=0?'+':'')+a.modifier+')'):'10 (+0)';};
+    const profs=c.proficiencies||{};
+    const saves=(profs.saving_throws||[]).map(s=>s.slice(0,3).toUpperCase()+' Save');
+    const skillList=(profs.skills||[]).map(sk=>{
+      const ability={'Arcana':'int','History':'int','Investigation':'int','Nature':'int','Religion':'int','Perception':'wis','Insight':'wis','Survival':'wis','Medicine':'wis','Animal Handling':'wis','Athletics':'str','Acrobatics':'dex','Sleight of Hand':'dex','Stealth':'dex','Deception':'cha','Intimidation':'cha','Performance':'cha','Persuasion':'cha'};
+      const ab=ability[sk]||'cha';const mod=(abs[ab]?.modifier||0)+2;
+      return sk+' '+(mod>=0?'+':'')+mod;
+    }).join(', ');
+    const feats=(c.features||[]).map(f=>f.name.toUpperCase()+': '+f.description).join('\n');
+    let magic='';
+    if(c.spells){
+      const sp=c.spells;const ab=c.class==='Wizard'?'Intelligence':c.class==='Bard'?'Charisma':c.class==='Cleric'||c.class==='Druid'?'Wisdom':'Charisma';
+      const mod=c.class==='Wizard'?(abs.int?.modifier||0):c.class==='Bard'?(abs.cha?.modifier||0):(abs.wis?.modifier||0);
+      const dc=8+2+mod;const atk=2+mod;
+      magic='Spellcasting: '+ab+' | Save DC: '+dc+' | Attack Bonus: +'+(atk>=0?atk:0);
+      if(sp.cantrips?.length)magic+='\nCantrips: '+sp.cantrips.join(', ');
+      const l1=sp.prepared_level_1||sp.known_level_1||sp.level_1||[];
+      if(l1.length)magic+='\nLevel 1 Spells: '+l1.join(', ');
+    }
+    const resources=(c.resources||[]).filter(r=>r.name!=='Level 1 Spell Slots'&&r.name!=='Level 2 Spell Slots').map(r=>({
+      name:r.name,max:r.max||1,used:(r.max||1)-(r.current||0),
+      restore:['Second Wind','Breath Weapon','Action Surge'].includes(r.name)?'short':'long',
+      desc:((c.features||[]).find(f=>f.name===r.name)||{}).description||''
+    }));
+    const slotRes=(c.resources||[]).filter(r=>r.name&&r.name.includes('Spell Slot'));
+    const slots=slotRes.map(r=>({max:r.max||0,used:(r.max||0)-(r.current||0)}));
+    const inv=(c.equipment||[]).map(e=>({name:e.item||e.name,qty:e.quantity||1,weight:e.weight_lbs||e.weight||0,type:'supply',notes:''}));
+    return {
+      id:c.id||'pc'+(i+1),name:c.name||'',race:c.species||c.race||'',class:c.class||'',level:c.level||1,
+      background:c.background||'',alignment:c.alignment||'',
+      hp:c.hp?.current??c.hp??10,hp_max:c.hp?.max??c.hp_max??10,ac:c.ac||10,
+      initiative:c.initiative||0,speed:c.speed||30,
+      passive_perception:10+(abs.wis?.modifier||0)+((profs.skills||[]).includes('Perception')?2:0),
+      passive_insight:10+(abs.wis?.modifier||0)+((profs.skills||[]).includes('Insight')?2:0),
+      str:fmt('str'),dex:fmt('dex'),con:fmt('con'),int:fmt('int'),wis:fmt('wis'),cha:fmt('cha'),
+      skills:skillList,features:feats,magic,resources,conditions:[],slots,inventory:inv,
+      backstory_origin:'',backstory_motivation:'',backstory_secret:'',
+      pending:[],concentrating:'',spellbook:[],familiar:null,
+      skillProfs:saves,death_saves:{successes:0,failures:0},
+      inspiration:false,hp_temp:0,exhaustion:0,hd_used:0,
+      personality:'',ideals:'',bonds:'',flaws:'',
+      languages:profs.languages||[],color:colors[i]||'#c04a3a',xp:c.xp||0,sheetLocked:true
+    };
+  });
+}
 function importFromPaste(){
   const raw=document.getElementById('paste-json')?.value?.trim()||'';
   const errEl=document.getElementById('paste-err');
   if(!raw){if(errEl){errEl.textContent='Nothing pasted.';errEl.style.display='block';}return;}
   try{
-    const p=JSON.parse(raw);
+    let p=JSON.parse(raw);
     const errShow=(msg)=>{if(errEl){errEl.textContent=msg;errEl.style.display='block';}};
+    // Auto-detect Gemini format and convert
+    if(p?.characters&&Array.isArray(p.characters)&&!p.pcs){
+      p={pcs:_convertGeminiPCs(p.characters)};
+      toast('🔄 Converted from Gemini format');
+    }
     // Detect partial vs full save
     const hasCore=p?.pcs?.length>=1&&p?.worldData&&p?.wagon;
     const hasPcsOnly=p?.pcs?.length>=1&&!p?.worldData;
