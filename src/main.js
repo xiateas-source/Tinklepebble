@@ -2376,7 +2376,7 @@ function doLongRest(){
 }
 
 // ═══ LEVEL UP WIZARD ═══
-let _luWiz=null;
+let _luWiz=null,_luTestSnapshot=null;
 
 function checkLevelUp(pc){
   const lvl=pc.level||1;if(lvl>=20||pc.levelReady)return;
@@ -2434,6 +2434,12 @@ function openLevelUpWizard(idx){
 function closeLevelUpModal(){
   document.getElementById('levelup-modal').classList.remove('open');
   _luWiz=null;
+  if(_luTestSnapshot){
+    state.pcs[_luTestSnapshot.idx]=JSON.parse(JSON.stringify(_luTestSnapshot.data));
+    _luTestSnapshot=null;
+    save();renderAll();
+    toast('⚗ Test mode — all changes reverted.');
+  }
 }
 
 function _luNext(){
@@ -2829,11 +2835,14 @@ function applyLevelUp(){
     parts.push(featPart);
   } else if(choices.asi){parts.push('Ability improvement: '+choices.asi+'.');}
   if(choices.swapOld&&choices.swapNew)parts.push('Spell swap: replaced '+choices.swapOld+' with '+choices.swapNew+'.');
-  _ctxInject='[LEVEL UP COMPLETE] '+parts.join(' ')+' Update your full understanding of this character and narrate the advancement when prompted.';
-  triggerChk('Level Up: '+pc.name+' → Level '+newLvl);
+  const isTest=!!_luTestSnapshot;
+  if(!isTest){
+    _ctxInject='[LEVEL UP COMPLETE] '+parts.join(' ')+' Update your full understanding of this character and narrate the advancement when prompted.';
+    triggerChk('Level Up: '+pc.name+' → Level '+newLvl);
+  }
   saveRefresh();
   closeLevelUpModal();
-  toast('🎉 '+pc.name+' is now Level '+newLvl+'!');
+  if(!isTest)toast('🎉 '+pc.name+' is now Level '+newLvl+'!');
   // Queue next ready PC
   const nextIdx=state.pcs.findIndex((p2,i)=>i!==idx&&p2.levelReady);
   if(nextIdx>=0)setTimeout(()=>openLevelUpWizard(nextIdx),800);
@@ -9471,19 +9480,21 @@ function _handleSlashCmd(raw){
   }
 
   if(lower.startsWith('testlevelup')||lower.startsWith('test levelup')||lower.startsWith('testlu')){
-    const pc=state.pcs?.[0];
-    if(!pc){_cmdResult('No PCs found.');return;}
     const parts=raw.trim().split(/\s+/);
     const targetLvl=parseInt(parts[parts.length-1]);
-    const origLvl=pc.level||1;
-    if(targetLvl>=2&&targetLvl<=20){
-      pc.level=targetLvl-1;
-    }
+    const pcName=parts.length>2&&isNaN(parseInt(parts[parts.length-1]))?parts[parts.length-1]:
+                 parts.length>2&&!isNaN(parseInt(parts[parts.length-1]))&&parts.length>3?parts[parts.length-2]:null;
+    let pcIdx=0;
+    if(pcName){const found=(state.pcs||[]).findIndex(p=>(p.name||'').toLowerCase().startsWith(pcName.toLowerCase()));if(found>=0)pcIdx=found;}
+    const pc=state.pcs?.[pcIdx];
+    if(!pc){_cmdResult('No PCs found.');return;}
+    _luTestSnapshot={idx:pcIdx,data:JSON.parse(JSON.stringify(pc))};
+    if(targetLvl>=2&&targetLvl<=20) pc.level=targetLvl-1;
     pc.levelReady=true;
     save();
-    openLevelUpWizard(0);
-    const lvlMsg=targetLvl>=2&&targetLvl<=20?' (temp L'+(targetLvl-1)+'→'+targetLvl+', was L'+origLvl+')':'';
-    _cmdResult('⚗ Test mode: '+pc.name+' level-up wizard'+lvlMsg+'. Changes apply to real state — reset level after testing.');
+    openLevelUpWizard(pcIdx);
+    const lvlMsg=targetLvl>=2&&targetLvl<=20?' (L'+(targetLvl-1)+'→'+targetLvl+')':'';
+    _cmdResult('⚗ Test mode: '+pc.name+lvlMsg+'. All changes auto-revert when wizard closes.');
     return;
   }
 
