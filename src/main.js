@@ -501,24 +501,8 @@ function fbStartListening(){
       delete remote._ts;delete remote._device;
       migrate(remote);
       remote.chatHistory=chatMerged;
-      // Only merge static identity fields — migrate() owns all level-dependent fields.
-      // getCanonicalPCs() reads from current state.pcs which may be demo/Level-1 data on a
-      // fresh device, so including hp_max/slots/features/etc here causes them to be clobbered.
-      // Skip merge entirely if local PCs are unnamed defaults (fresh device joining via Firebase).
-      var localPCsReal=state.pcs&&state.pcs.some(function(p){return p.name&&p.name!=='CHARACTER NAME';});
-      if(localPCsReal){
-      var SHEET_FIELDS=['name','race','background','alignment','ac','speed',
-        'passive_perception','passive_insight','str','dex','con','int','wis','cha',
-        'backstory_origin','backstory_motivation','backstory_secret','color','initiative'];
-      getCanonicalPCs().forEach(function(canonical){
-        var saved=remote.pcs?remote.pcs.find(function(pc){return pc.id===canonical.id;}):null;
-        if(saved){SHEET_FIELDS.forEach(function(f){if(canonical[f]!==undefined)saved[f]=canonical[f];});
-            if(canonical.inventory&&canonical.inventory.length>0&&(!saved.inventory||saved.inventory.length===0)){
-              saved.inventory=JSON.parse(JSON.stringify(canonical.inventory));
-            }
-        }
-      });
-      }
+      // PC data is managed via import/migrate — remote Firebase data is authoritative.
+      // No canonical merge needed here; migrate(remote) already handles version gates.
       remote.saveVersion=SAVE_VERSION;
       state=remote;state._ts=remoteTs;
       renderAll();genLedger();autosaveDot();
