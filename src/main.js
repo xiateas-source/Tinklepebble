@@ -513,6 +513,7 @@ function fbStartListening(){
         remote.campaignSetup=state.campaignSetup;
       }
       state=remote;state._ts=remoteTs;
+      try{localStorage.setItem('tt_v1',JSON.stringify(state));}catch(e){}
       renderAll();genLedger();autosaveDot();
       // Notify on new party messages from others
       const newLen=(state.partyChat||[]).length;
@@ -886,7 +887,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     },{passive:true});
     try{const s=JSON.parse(localStorage.getItem('tt_fab')||'null');if(s&&s.left){wrap.style.left=s.left;wrap.style.top=s.top;wrap.style.right='auto';wrap.style.bottom='auto';}}catch(e){}
   })();
-  renderAll();genLedger();
+  renderAll();genLedger();loadSetupFields();
   renderQAMenu();
   renderSuggestChips('narrative');
   showSessionMode('play'); // set initial session mode
