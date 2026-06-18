@@ -2130,11 +2130,9 @@ function checkLevelUp(pc){
       });
     }
     _ctxInject='[LEVEL UP PENDING] '+pc.name+' has earned enough XP to reach Level '+newLvl+'!'
-      +' IMPORTANT: You MUST announce this milestone prominently in your next response.'
-      +' Tell the player: "'+pc.name+' has earned enough experience to reach Level '+newLvl+'! Take a Long Rest to level up."'
-      +choiceHints
-      +' List out every choice the player will need to make — spell options by name, subclass options, ASI vs feat, etc.'
-      +' Do NOT apply the changes yourself — the Level Up wizard handles mechanics. But DO lay out all their options so they can decide.';
+      +' Announce: "'+pc.name+' has earned enough experience to reach Level '+newLvl+'! Type //levelup in the chat or open the character sheet to advance."'
+      +' Do NOT narrate stat changes, choose feats, choose spells, or apply HP increases — the Level Up wizard handles everything.'
+      +' You may mention what awaits them in general terms (e.g. "exciting choices ahead at this level") but do NOT list specific options or fabricate a stat block.';
   }
 }
 
@@ -4386,7 +4384,15 @@ Starting positions when combat begins:
 - Air Space: only when flying creatures exist
 Override these defaults when the narrative demands it (ambush from behind, surrounded, etc).
 
-ALWAYS use zone_move to reposition characters during combat based on the narrative. When a PC says "I charge in" move them to the appropriate zone. When enemies flank, move them to flanks. Keep zone positions consistent with the story.`;
+ALWAYS use zone_move to reposition characters during combat based on the narrative. When a PC says "I charge in" move them to the appropriate zone. When enemies flank, move them to flanks. Keep zone positions consistent with the story.
+
+LEVEL-UP RULES (STRICT — NEVER VIOLATE):
+- You CANNOT level up characters. NEVER narrate or apply stat changes from leveling up (HP increases, new feats, new spells, ability score changes, new features).
+- When a player says "we level up" or "run the level up wizard" or similar: tell them to type //levelup in the chat input, or go to Sheet > their character card > Level Up button. You cannot run the wizard for them.
+- When XP is awarded and a character reaches the threshold, you may announce "You have enough XP to reach Level N! Type //levelup or go to your character sheet to advance." Then STOP. Do not list what they get.
+- The Level Up wizard in the app handles ALL stat changes: HP rolls, feat selection, spell picks, ASI, subclass choices. These are PLAYER CHOICES that you must never make for them.
+- If you see a [LEVEL UP COMPLETE] context message, THEN you may narrate the advancement — but only echo what the wizard already applied. Never add extra stats.
+- NEVER fabricate stat blocks showing post-level-up HP, features, or spells unless you received a [LEVEL UP COMPLETE] confirmation.`;
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
   const secretsSection=state.dmSecrets?'\nCONTRACT 7 — SECRET DM NOTES (NEVER reveal to players):\n'+state.dmSecrets+'\n':'';
   const snipsSection=activeSnips?'\nCONTRACT 8 — REFERENCE MATERIAL:\n'+activeSnips+'\n':'';
@@ -5188,7 +5194,8 @@ const SUGGEST_CHIPS={
 };
 function renderSuggestChips(tab){
   const c=document.getElementById('chat-suggest');if(!c)return;
-  const chips=SUGGEST_CHIPS[tab||'narrative']||SUGGEST_CHIPS.narrative;
+  let chips=[...(SUGGEST_CHIPS[tab||'narrative']||SUGGEST_CHIPS.narrative)];
+  if((state.pcs||[]).some(p=>p.levelReady))chips.unshift({label:'⬆ Level Up',fill:'//levelup'});
   c.innerHTML=chips.map(ch=>`<span class="chat-suggest-chip" onclick="fillSuggest(this,'${ch.fill.replace(/'/g,"\\'")}')">${ch.label}</span>`).join('');
 }
 function fillSuggest(el,text){
@@ -8772,12 +8779,21 @@ function _handleSlashCmd(raw){
     return;
   }
 
+  // //levelup — open the level-up wizard for the first ready PC
+  if(lower==='levelup'||lower==='level up'||lower==='lu'){
+    const readyIdx=(state.pcs||[]).findIndex(p=>p.levelReady);
+    if(readyIdx>=0){openLevelUpWizard(readyIdx);_cmdResult('⬆ Opening Level Up wizard for '+state.pcs[readyIdx].name);}
+    else{_cmdResult('No characters are ready to level up. Award XP first.');}
+    return;
+  }
+
   // //help — show available commands
   if(lower==='help'||lower==='?'||lower==='commands'){
     _cmdResult('📖 Command Index (tap to expand)\n─────────────────────────────\n'
       +'QUICK ACTIONS\n'
       +'  //hp +5       — heal 5 HP          //hp -3       — take 3 damage\n'
       +'  //gold +10    — add 10 gp          //gold -5     — spend 5 gp\n'
+      +'  //levelup     — open Level Up wizard for ready PCs\n'
       +'  //add item "rope"          — add to party inventory\n'
       +'  //add item "gem" to cargo  — add to wagon cargo\n'
       +'  //add item "ring" to hoard — add to Pebble\'s hoard\n\n'
@@ -8810,8 +8826,8 @@ function _handleSlashCmd(raw){
       'actions':       'Quick Actions (⚡) are one-tap shortcuts on the floating button. Tap ⚡ → pick an action → it runs instantly. Customize them in Systems > AI Tools > QA Editor.',
       'quick actions':  'Quick Actions (⚡) are one-tap shortcuts on the floating button. Tap ⚡ → pick an action → it runs instantly. Customize them in Systems > AI Tools > QA Editor.',
       'flags':         'Flags (⚑) mark moments where the AI got something wrong. Tap ⋮ on any DM message → ⚑ → pick a category → add a note. Flags appear in the Ops Debrief and exports.',
-      'commands':      'Type // before a message for dev commands:\n// note — log a dev note\n//flag 20 reason — export last 20 messages\n//add item name — add to inventory\n//hp +5 — adjust your HP\n//gold -10 — adjust treasury\n//explain topic — explain a feature\n//help — show this list',
-      '//':            'Type // before a message for dev commands:\n// note — log a dev note\n//flag 20 reason — export last 20 messages\n//add item name — add to inventory\n//hp +5 — adjust your HP\n//gold -10 — adjust treasury\n//explain topic — explain a feature\n//help — show this list',
+      'commands':      'Type // before a message for dev commands:\n// note — log a dev note\n//flag 20 reason — export last 20 messages\n//add item name — add to inventory\n//hp +5 — adjust your HP\n//gold -10 — adjust treasury\n//levelup — open Level Up wizard\n//explain topic — explain a feature\n//help — show this list',
+      '//':            'Type // before a message for dev commands:\n// note — log a dev note\n//flag 20 reason — export last 20 messages\n//add item name — add to inventory\n//hp +5 — adjust your HP\n//gold -10 — adjust treasury\n//levelup — open Level Up wizard\n//explain topic — explain a feature\n//help — show this list',
       'combat':        'Zone Combat uses 6 zones (Frontline/Backline/Flanks/Air/Rear). Add combatants, roll initiative, then the AI moves tokens. Tap a token for HP/conditions. Toggle Manual mode to move tokens yourself by tapping token → zone.',
       'zones':         'Zone Combat uses 6 zones (Frontline/Backline/Flanks/Air/Rear). Add combatants, roll initiative, then the AI moves tokens. Tap a token for HP/conditions. Toggle Manual mode to move tokens yourself by tapping token → zone.',
       'map':           'Area Map: Upload a map image in Logistics > World > Locations (map icon). Tap a location chip → tap the map to place a pin. Tap a pin for Move/Unpin/Details.',
