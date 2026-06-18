@@ -80,6 +80,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 20** (2026-06-18): Campaign swap — Tinkle's Tinctures → Hoard of the Dragon Queen. Complete rewrite: PCs, world data, NPCs, quests, AI contracts, mechanic examples, setup placeholders, export headers. Inventory search bar (`_invSearch`, 9th param on `_renderInvChips`). Blank template PCs on reset (Fighter/Wizard/Bard level 1, empty stats). 12-flag triage: OOC/consequences/snippets clear on reset, ox/wagon clear on reset, QA Editor renders on tab switch, ⚠️ button opacity fix (.45→.7), Ledger Settings collapsed behind `<details>`, Module renamed "Episode Tracker" with helper text + Session Zero link, "Start Here" badge on Setup when campaign not launched, Setup "3 Operation" → "3 Equipment". Slasher security check removed (empty `_SLASHER_FRAGMENT`, contract verification now checks MULTI-PLAYER ADDRESSING). All relationship IDs updated to pc1/pc2/pc3. All contract defaults genericized.
 
+**Session 21** (2026-06-18): Markdown/text module import (`.md`/`.txt` alongside PDF, `#` heading parser, auto-merges `##` subsections). PDF extraction fix (Y-coordinate line breaks, per-line pattern matching, 40-page fallback threshold). Auto-assign on import (chapters→episodes, overview/appendices→reference). Import default fix (sections default to "Create New Episode"). PC import blank-template fix (fully replaces unnamed PCs). Firebase sync fix (removed canonical PC merge — remote DM data now authoritative for player devices). migrate() cleanup (stale contracts, empty ox defaults, skip unnamed PCs in ledger). Character template file for Gemini-assisted creation (`character-template.json`).
+
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
@@ -111,6 +113,11 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ ~~**Quest→Location linking** (Flag 5/9) — quest_add anchors to location, ⚔ chat chips, 📍 location links~~ — Session 16
 - **Familiar/animal home** (Flag 10) — needs design
 - **Quest log UX refresh** (Flag 12) — needs design
+
+### Module Import
+- ✅ ~~**Markdown import** — `.md`/`.txt` file support alongside PDF~~ — Session 21
+- ✅ ~~**Auto-assign sections** — chapters→episodes, overview/appendices→reference~~ — Session 21
+- **PDF import revision** — garbled titles, false chapter breaks. Deprioritized; markdown is primary path
 
 ### Character Creation Wizard
 - **Character Creation Wizard** — Level 1 setup flow (like Level Up wizard but for new characters). Race picker, stat roller/point-buy, class features, starting equipment, spell selection, proficiency picks. Fills blank template PCs into playable Level 1 characters. Would replace manual sheet entry for fresh campaigns.
