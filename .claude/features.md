@@ -1,4 +1,4 @@
-# Tinkle's Tinctures — Feature Map
+# Hoard of the Dragon Queen — Feature Map
 
 ## CSS Architecture
 
@@ -83,7 +83,7 @@ Single scrollable Journal with collapsible `<details>` sections (replaced 3-pane
 Three sub-tabs via `showSessionMode()` / `showSessionTab()`:
 - **During Session** (`#sess-play-panel`) — Story thread + read-only display
 - **Between Sessions** (`#sess-prep-panel`) — Session Archive (`renderSessionArchive()`, newest-first collapsible entries), session summary
-- **Module** (`#sess-module-panel`) — Module tracker, scenes, DM secrets, reference snippets
+- **Episode Tracker** (`#sess-module-panel`) — Module episode tracker, campaign progress, reference snippets. Helper text links to Session Zero setup
 
 ### 6. AI Tools Tab (`tab-ait`)
 - Contracts: `#ai-persona`, `#ai-never`, `#ai-actions`, `#ai-continuity`, `#ai-multi`
@@ -105,7 +105,7 @@ Three sub-tabs via `showSessionMode()` / `showSessionTab()`:
 - `#session-notes`, `#error-log-list`, `#error-log-count`, `#dev-recap-out`
 
 ### 9. Setup Tab (`tab-setup`)
-Five steps via `showSetupStep()`: Session Zero, Characters, World, Operation, Plugins
+Five steps via `showSetupStep()`: Session Zero, Characters, World, Equipment, Plugins
 
 ---
 
@@ -157,7 +157,7 @@ state = {
 
   wagon: {
     ox: { name, hp, hp_max, ac, conditions, feed, backstory, personality,
-          bonds: {tinkle, pebble, slasher}, quirks: [], experimentLog },
+          bonds: {}, quirks: [], experimentLog },
     cells: [{name, size, temperament, escDC, weight, notes}],
     cargo: [{name, qty, weight, type, notes, ts, location}],
     hoard: [{name, qty, weight, type, notes, ts, location}],
@@ -276,15 +276,16 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 
 ### AI/Chat
 - `sendMsg()` — Send player action to AI
-- `buildPrompt(ledger)` — System prompt with all contracts; validates Slasher security fragment
+- `buildPrompt(ledger)` — System prompt with all contracts; validates MULTI-PLAYER ADDRESSING clause
 - `genLedger()` — Compile current state ledger
 - `parseMechanics(responseText, msgId)` — 60 handlers / 65 keys; `_MECH_KEYS` controls display stripping
 - `previewMechanics(text)` — Extracts mechanic preview from AI response text for ⚡ pill display; supports `---MECHANICS---`, `**MECHANICS**`, `MECHANICS:` formats; strips bullet prefixes
 - `callAI(messages, sysProm, maxTok)` — Retry wrapper (2x, 1.2s/2.4s, 5xx); free-model fallback
 - `summarizeAndPrune()` — Background summary at 75 msgs → pushes to `sessionArchive[]` (50-cap)
 - `sendContextRefresh()` — Full context refresh via `_ctxInject`: location, PC HP/conditions/concentration, combat zone grid (if active)
-- `_renderInvChips(items, editIdx, setEditFn, updFn, remFn, prefix)` — Shared chip renderer for party inv, wagon cargo, hoard, and PC inventory
-- `setCargoPCFilter(name)` — Toggle per-PC inventory view in Cargo tab (Wagon/Slasher/Tinkle/Pebble buttons)
+- `_renderInvChips(containerId,items,listType,editIdx,setEditIdx,filterState,setFilterFn,emptyMsg,searchTerm)` — Shared chip renderer for party inv, wagon cargo, hoard, and PC inventory. 9th param `searchTerm` filters items by name/notes while preserving original array indices for edit/delete callbacks
+- `_invSearch` / `_setInvSearch(v)` — Inventory search state; renders search bar in Cargo/Hoard panels with clear button, auto-focuses after input
+- `setCargoPCFilter(name)` — Toggle per-PC inventory view in Cargo tab (Wagon + per-PC buttons)
 - `_getWList(list)` — Resolves list type string ('cargo'/'hoard'/'pc_N') to the correct item array
 - `resyncAI()` — Full ledger re-sync
 - `verifyContracts()` — Validates all 10 contract checks + injects contracts into next AI send
@@ -383,7 +384,7 @@ Parsed from AI response blocks in format: `key: value`
 
 ## AI Contracts (5 system textareas)
 
-1. **`#ai-persona`** — DM Persona & Tone. Character personalities, gritty/darkly comic tone. **CRITICAL:** Slasher con-protection clause
+1. **`#ai-persona`** — DM Persona & Tone. Character personalities, campaign tone. **CRITICAL:** MULTI-PLAYER ADDRESSING clause (verified by `buildPrompt`)
 2. **`#ai-never`** — What You Never Do. Strict mechanics enforcement (HP, death saves, concentration, shell defense, lucky)
 3. **`#ai-actions`** — How You Handle Actions. Roll triggers, DC, degrees of failure
 4. **`#ai-continuity`** — Continuity & Wagon. Verify state before every response

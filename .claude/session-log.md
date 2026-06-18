@@ -1,51 +1,47 @@
 # Session Log — Handoff Note
 
-## Session 19 · 2026-06-18
+## Session 20 · 2026-06-18
 
 ### Shipped
-- **Spell descriptions in level-up wizard** — Spell picker now shows school, cast time, range, and truncated description from SPELL_DB
-- **Tappable mechanic pills** — ⚡ Changes pills clickable via `_mechPillNav(el)` pattern-matching navigation
-- **Journal consolidation** — World tab replaced with single scrollable Journal view (quests, locations, NPCs, travel log, town rep, consequences, secrets in collapsible `<details>`)
-- **Journal header** — `renderJournalHeader()` with location/time/weather, HP bars, tracker counts, "Previously On" + "Catch Up" chips
-- **Enhanced "Previously On"** — sparse tracker detection, 20-msg context, auto-seeds quest_add/location_add/npc_add/town_rep
-- **"Catch Up" audit** — `catchUpAudit()` tracker snapshot + recent 20 messages, QA chip `qa_25`, `//catchup`
-- **Deep Seed** — `deepSeed()` multi-pass auto-audit: up to 4 passes over progressively older context, re-snapshots between passes, stops when no new entries. `//deepseed` command
-- **Travel timeline cross-linking** — labeled tappable chips for quests/NPCs/rep at each location
-- **Journey log reversed** — most recent entries first
-- **OOC message actions** — ⚠️ export, copy, delete now directly visible on each OOC message (no longer hidden behind ⋮ menu)
-- **Consequence dedup** — fuzzy 60% word overlap at insertion time + `dedupConsequences()` cleanup utility
-- **Logistics 2-tab subnav** — Journal + Cargo (Combat accessible via `navTo('combat')` but not in subnav)
-- **Familiar system** — `state.pcs[idx].familiar` object, `familiar_hp` mechanic, auto-combat-add to Rear Guard, HP sync after combat, HUD tile, ledger lines
-- **Quest Timeline** — `renderQuests()` location-grouped with NPC chips, status badges, editable location/notes
-- **Dedup buttons on all trackers** — 🧹 buttons on NPCs, quests, locations, town rep, consequences (>3 entries)
-- **Consequences rewrite** — expandable `<details>` cards with inline edit (type/location/text), add/delete/resolve. `addConsequence()`, `updConsequence()`, `remConsequence()`
-- **Broadened npc_add contract** — fires on any named NPC reference (not just formal introductions)
-- **6-flag pass**: DM persona closed by default, PC overview sheet display:none fix (duplicate display property), OOC ⚠️ directly visible, QA customize scrolls to editor, header menu reorganized (Save & Load / Player / Danger Zone sections)
+- **Campaign swap to Hoard of the Dragon Queen** — complete rewrite of PCs, world data, NPCs, quests, AI contracts, mechanic examples, setup placeholders, export headers, and welcome message
+- **Inventory search bar** — `_invSearch` state + `_setInvSearch()`, search input in Cargo/Hoard with clear button, filters `_renderInvChips()` via 9th `searchTerm` param while preserving original array indices
+- **Blank template PCs on reset** — pre-filled characters replaced with empty templates (Fighter/Wizard/Bard, level 1, all stats 10, no names/skills/features/inventory)
+- **OOC/consequences/snippets clear on Full Reset** — `state.oocHistory=[]`, `state.partyChat=[]`, `state.snippets=[]`, `state.consequences=[]` in `resetState()`
+- **Ox/wagon clear on Full Reset** — ox name/hp/backstory/personality reset, wagon cargo/hoard cleared, wagon name/desc reset
+- **QA Editor renders on tab switch** — added `renderQAEditor()` call in `switchSystemsTab('ait-chk')`
+- **⚠️ button visibility** — `.flag-btn` opacity bumped from .45 to .7
+- **Ledger Settings decluttered** — wrapped in collapsed `<details>`, labeled as dev tool
+- **Module renamed "Episode Tracker"** — helper text added with link to Session Zero, "3 Operation" → "3 Equipment" in setup sub-tabs
+- **"Start Here" badge** — Setup button shows "▶ Start Here" instead of "⚙ Setup" when `!state.campaignLaunched`
+- **Contract defaults genericized** — all HTML textarea defaults scrubbed of Gareth/Meren/Lyra, now reference state ledger
+- **Relationship IDs** — updated from gareth/meren/lyra to pc1/pc2/pc3 in both default state and resetState()
+- **Mechanic examples genericized** — zone defaults, short_rest, roll_request, zone_move use class names instead of character names
+- **Slasher security check removed** — `_SLASHER_FRAGMENT` emptied, `throw new Error` removed, contract verification now checks for MULTI-PLAYER ADDRESSING instead
 
 ### Decisions Made
-- Journal is one scrollable page with collapsible sections, not sub-tabs
-- Deep Seed replaces manual Catch Up spam — automated multi-pass with dedup
-- OOC actions shown directly (not behind ⋮ submenu) since OOC has fewer buttons
-- Header menu grouped into labeled sections: Save & Load, Player, Danger Zone
-- NPC inline name linking logged as planned feature (not built yet)
+- Campaign is now HotDQ — all Tinkle/Pebble/Slasher/con-operation content replaced
+- PCs are blank templates after reset — user fills in names/stats via character sheets
+- `migrate()` references to old Tinkle characters LEFT ALONE for backward compatibility with old saves
+- Ledger Settings kept functional but hidden behind `<details>` (not removed)
+- Module stays in Session tab but renamed + linked to Setup for clarity
 
 ### Known Issues
-- `executeStep()` is dead code — not exported, calls no-op functions. Safe to delete
-- `state.worldData.plot/timers` fields orphaned
-- **Flag 2 unclear** — user said "Remind me why this feature is here? Have we replaced it? This feels like a relic" — needs screenshot/clarification to identify which feature
-- **Flag 3 hashtags** — user reports "hashtags by the names" in character sheet. No `#` found in name rendering code. May be device-specific rendering artifact — needs screenshot
+- **Flag 1** — DM persona contract: user says "should be closed by default" but HTML `<details>` already has no `open` attr. May be a stale report from before Session 19 fix
+- **Flag 3** — "hashtags by names" in character sheet: no `#` found in code. Needs screenshot to reproduce
+- **Flag 6** — "QA Editor broken buttons": all handlers (`updQA`, `remQA`, `toggleQAContext`, `addQA`) exist and are exposed to window. May be device-specific. Needs testing
+- **Flag 10** — no note provided, skipped
 
 ### In Progress
 - Nothing actively in progress — all committed and deployed
 
 ### Next Up
-1. **Clarify Flag 2** — need user to identify which feature "feels like a relic"
-2. **Clarify Flag 3 hashtags** — need screenshot to identify source
+1. **Clarify Flag 3 hashtags** — need screenshot to identify source
+2. **Test QA Editor buttons** (Flag 6) — may need device-specific debugging
 3. **Clean up dead code** — remove `executeStep()`, `_stepTarget`, step-related refs
 4. **Inline NPC name linking** — scan DM messages for tracked NPC names, make tappable
-5. **Combat quick-panel** — context strip as tappable combat action bar
-6. **Con Scorecard** — `state.slasherOI`, income parsing, town survival stats (needs design)
+5. **Combat quick-panel** — context strip as tappable combat action bar during combat
 
 ### Branch State
 - Branch: `claude/new-session-rvx6tn`
 - All changes committed and merged to main
+- Last commit: d8e810d (Fix 12-flag triage)
