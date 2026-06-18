@@ -4923,7 +4923,8 @@ function parseMechanics(responseText, pendingMsgId=null){
       const val=line.slice(colonIdx+1).trim();
       if(key==='hp'){
         val.split(',').forEach(part=>{
-          const[nm,hpStr]=part.trim().split('=');
+          const[nm,hpRaw]=part.trim().split('=');
+          const hpStr=hpRaw?.split('/')[0];
           const pc=findPC(nm?.trim());
           if(pc&&hpStr!==undefined){const old=pc.hp;pc.hp=Math.max(0,Math.min(pc.hp_max,parseInt(hpStr)));changes.push({text:pc.name+' HP '+old+'→'+pc.hp});if(pc.hp===0&&document.getElementById('auto-down')?.checked)setTimeout(()=>triggerChk('PC Down: '+pc.name),300);}
         });
@@ -4932,14 +4933,15 @@ function parseMechanics(responseText, pendingMsgId=null){
       }else if(key==='conditions'){
         val.split(',').forEach(part=>{
           const p=part.trim();
-          const addIdx=p.indexOf('+');const remIdx=p.indexOf('-');
-          const delimIdx=addIdx>-1?addIdx:remIdx;
+          const eqIdx=p.indexOf('=');const addIdx=p.indexOf('+');const remIdx=p.indexOf('-');
+          let delimIdx=addIdx>-1?addIdx:remIdx;
+          if(delimIdx<1&&eqIdx>0)delimIdx=eqIdx;
           if(delimIdx<1){return;}
           const nm=p.slice(0,delimIdx).trim();
           const cond=p.slice(delimIdx+1).trim();
           const pc=findPC(nm);
-          if(!pc||!cond)return;
-          const add=addIdx>-1&&addIdx===delimIdx;
+          if(!pc||!cond||cond==='none')return;
+          const add=(addIdx>-1&&addIdx===delimIdx)||(eqIdx>0&&eqIdx===delimIdx);
           const rem=remIdx>-1&&remIdx===delimIdx;
           if(!Array.isArray(pc.conditions))pc.conditions=[];if(!Array.isArray(pc.slots))pc.slots=[];
           if(add&&!pc.conditions.includes(cond)){pc.conditions.push(cond);changes.push({text:pc.name+' +'+cond});}
