@@ -6065,13 +6065,16 @@ let _compSearch='';
 
 function toggleCompendium(idx){
   _compOpen=!_compOpen;
-  renderSpellbook(idx);
+  renderSheets();
 }
 function openCompendiumFromOverview(idx){
   _compOpen=true;
   state.activeEditTab=idx;
   _pcSheetTab=3;
-  renderSheets();
+  closePCOverview();
+  const d=document.getElementById('char-editor-details');
+  if(d)d.open=true;
+  openDrawer('tab-party');
 }
 
 function setCompFilter(idx,k,v){
