@@ -167,6 +167,68 @@ const MANEUVER_DB=[
 {name:'Trip Attack',desc:'When you hit with a weapon attack, add superiority die to the damage. If the target is Large or smaller, it must make a STR save or be knocked prone.'},
 ];
 
+// ═══ 5e FEATS DATABASE ═══
+const FEATS_DB=[
+// PHB Feats
+{name:'Alert',desc:'+5 to initiative. Can\'t be surprised while conscious. Hidden creatures don\'t gain advantage on attack rolls against you.',half:false,source:'PHB'},
+{name:'Athlete',desc:'Increase STR or DEX by 1. Standing from prone costs only 5 ft. Climbing doesn\'t cost extra movement. Running long/high jump with only 5 ft running start.',half:['STR','DEX'],source:'PHB'},
+{name:'Actor',desc:'Increase CHA by 1. Advantage on Deception and Performance checks when passing yourself off as another person. Mimic speech or sounds of other creatures.',half:['CHA'],source:'PHB'},
+{name:'Charger',desc:'When you Dash, you can use a bonus action to make one melee attack or shove. If you moved 10+ ft in a straight line, +5 damage (melee) or push 10 ft (shove).',half:false,source:'PHB'},
+{name:'Crossbow Expert',desc:'Ignore loading quality of crossbows you\'re proficient with. No disadvantage on ranged attacks within 5 ft. When you Attack with a one-handed weapon, bonus action crossbow attack.',half:false,source:'PHB'},
+{name:'Defensive Duelist',desc:'When wielding a finesse weapon and a creature hits you with a melee attack, use reaction to add your proficiency bonus to AC for that attack. Requires DEX 13+.',half:false,prereq:'DEX 13',source:'PHB'},
+{name:'Dual Wielder',desc:'+1 AC while dual wielding. Two-weapon fighting with non-light melee weapons. Draw or stow two weapons at once.',half:false,source:'PHB'},
+{name:'Dungeon Delver',desc:'Advantage on Perception and Investigation to detect secret doors. Advantage on saves vs. traps. Resistance to trap damage. Search for traps at normal pace.',half:false,source:'PHB'},
+{name:'Durable',desc:'Increase CON by 1. When you roll Hit Dice to regain HP, the minimum you regain equals 2 × your CON modifier (minimum of 2).',half:['CON'],source:'PHB'},
+{name:'Elemental Adept',desc:'Choose acid, cold, fire, lightning, or thunder. Spells you cast ignore resistance to that damage type. When you roll damage, treat any 1 on a damage die as a 2. Requires spellcasting.',half:false,prereq:'Spellcasting',source:'PHB'},
+{name:'Grappler',desc:'Advantage on attacks against creatures you are grappling. You can pin a creature grappled by you (both restrained until grapple ends). Requires STR 13+.',half:false,prereq:'STR 13',source:'PHB'},
+{name:'Great Weapon Master',desc:'On a crit or reducing a creature to 0 HP with a melee weapon, make one melee attack as a bonus action. Before attacking with a heavy weapon, choose -5 to hit for +10 damage.',half:false,source:'PHB'},
+{name:'Healer',desc:'When you stabilize with a healer\'s kit, the creature also regains 1 HP. As an action, spend one use of a healer\'s kit to restore 1d6 + 4 + creature\'s max Hit Dice in HP (once per rest per creature).',half:false,source:'PHB'},
+{name:'Heavily Armored',desc:'Increase STR by 1. Gain proficiency with heavy armor. Requires medium armor proficiency.',half:['STR'],prereq:'Medium armor proficiency',source:'PHB'},
+{name:'Heavy Armor Master',desc:'Increase STR by 1. While wearing heavy armor, bludgeoning, piercing, and slashing damage from nonmagical weapons is reduced by 3. Requires heavy armor proficiency.',half:['STR'],prereq:'Heavy armor proficiency',source:'PHB'},
+{name:'Inspiring Leader',desc:'Spend 10 minutes inspiring companions. Up to 6 creatures within 30 ft gain temporary HP equal to your level + CHA modifier. Once per rest. Requires CHA 13+.',half:false,prereq:'CHA 13',source:'PHB'},
+{name:'Keen Mind',desc:'Increase INT by 1. Always know which way is north. Always know the number of hours before the next sunrise or sunset. Accurately recall anything you\'ve seen or heard within the past month.',half:['INT'],source:'PHB'},
+{name:'Lightly Armored',desc:'Increase STR or DEX by 1. Gain proficiency with light armor.',half:['STR','DEX'],source:'PHB'},
+{name:'Linguist',desc:'Increase INT by 1. Learn three languages of your choice. Create written ciphers (INT check to decipher without your help).',half:['INT'],source:'PHB'},
+{name:'Lucky',desc:'You have 3 luck points. Spend one to roll an additional d20 on an attack, ability check, or saving throw (choose which d20 to use). Also works when a creature attacks you. Regain all points on a long rest.',half:false,source:'PHB'},
+{name:'Mage Slayer',desc:'When a creature within 5 ft casts a spell, you can use your reaction to make a melee attack. When you damage a concentrating creature, it has disadvantage on the save. Advantage on saves vs. spells cast within 5 ft.',half:false,source:'PHB'},
+{name:'Magic Initiate',desc:'Choose a class: bard, cleric, druid, sorcerer, warlock, or wizard. Learn two cantrips and one 1st-level spell from that class\'s spell list. Cast the 1st-level spell once per long rest without a slot.',half:false,source:'PHB'},
+{name:'Martial Adept',desc:'Learn two Battle Master maneuvers. Gain one superiority die (d6) which is expended when used and regained on a short or long rest.',half:false,source:'PHB'},
+{name:'Medium Armor Master',desc:'Wearing medium armor doesn\'t impose disadvantage on Stealth checks. When wearing medium armor, you can add 3 (instead of 2) from your DEX modifier to AC. Requires medium armor proficiency.',half:false,prereq:'Medium armor proficiency',source:'PHB'},
+{name:'Mobile',desc:'Speed increases by 10 ft. When you Dash, difficult terrain doesn\'t cost extra movement. When you make a melee attack against a creature, you don\'t provoke opportunity attacks from that creature for the rest of the turn.',half:false,source:'PHB'},
+{name:'Moderately Armored',desc:'Increase STR or DEX by 1. Gain proficiency with medium armor and shields. Requires light armor proficiency.',half:['STR','DEX'],prereq:'Light armor proficiency',source:'PHB'},
+{name:'Mounted Combatant',desc:'Advantage on melee attacks against unmounted creatures smaller than your mount. Force attacks targeting your mount to target you instead. Mount takes no damage on DEX save success, half on fail.',half:false,source:'PHB'},
+{name:'Observant',desc:'Increase INT or WIS by 1. +5 to passive Perception and passive Investigation. Read lips if you can see a creature\'s mouth and it speaks a language you understand.',half:['INT','WIS'],source:'PHB'},
+{name:'Polearm Master',desc:'When you take the Attack action with a glaive, halberd, quarterstaff, or spear, make a bonus action attack with the other end (1d4 bludgeoning). Creatures provoke opportunity attacks when they enter your reach.',half:false,source:'PHB'},
+{name:'Resilient',desc:'Increase one ability score of your choice by 1. Gain proficiency in saving throws using that ability.',half:['STR','DEX','CON','INT','WIS','CHA'],source:'PHB'},
+{name:'Ritual Caster',desc:'Learn two 1st-level ritual spells from a chosen class. You can cast spells in your ritual book as rituals. Find and copy other ritual spells. Requires INT or WIS 13+.',half:false,prereq:'INT or WIS 13',source:'PHB'},
+{name:'Savage Attacker',desc:'Once per turn when you roll damage for a melee weapon attack, you can reroll the weapon\'s damage dice and use either total.',half:false,source:'PHB'},
+{name:'Sentinel',desc:'Creatures you hit with opportunity attacks have their speed reduced to 0. Creatures provoke opportunity attacks even if they Disengage. When a creature within 5 ft attacks someone other than you, use reaction to melee attack it.',half:false,source:'PHB'},
+{name:'Sharpshooter',desc:'No disadvantage on ranged attacks at long range. Ranged attacks ignore half and three-quarters cover. Before attacking with a ranged weapon, choose -5 to hit for +10 damage.',half:false,source:'PHB'},
+{name:'Shield Master',desc:'When you take the Attack action, bonus action to shove with your shield. Add shield\'s AC bonus to DEX saves against effects targeting only you. On a DEX save for half damage, use reaction to take no damage on success.',half:false,source:'PHB'},
+{name:'Skilled',desc:'Gain proficiency in any combination of three skills or tools of your choice.',half:false,source:'PHB'},
+{name:'Skulker',desc:'You can try to hide when lightly obscured. When you miss with a ranged attack while hidden, your position isn\'t revealed. Dim light doesn\'t impose disadvantage on Perception checks. Requires DEX 13+.',half:false,prereq:'DEX 13',source:'PHB'},
+{name:'Spell Sniper',desc:'Double the range of attack roll spells. Ranged spell attacks ignore half and three-quarters cover. Learn one attack-roll cantrip from any class. Requires spellcasting.',half:false,prereq:'Spellcasting',source:'PHB'},
+{name:'Tavern Brawler',desc:'Increase STR or CON by 1. Proficient with improvised weapons. Unarmed strike deals 1d4. When you hit with an unarmed strike or improvised weapon, bonus action to grapple.',half:['STR','CON'],source:'PHB'},
+{name:'Tough',desc:'Your hit point maximum increases by an amount equal to twice your level. Each time you gain a level thereafter, your HP max increases by 2 additional HP.',half:false,source:'PHB'},
+{name:'War Caster',desc:'Advantage on CON saves to maintain concentration. Perform somatic components with hands full. When a creature provokes an opportunity attack, cast a spell (1 action, single target) instead. Requires spellcasting.',half:false,prereq:'Spellcasting',source:'PHB'},
+{name:'Weapon Master',desc:'Increase STR or DEX by 1. Gain proficiency with four weapons of your choice.',half:['STR','DEX'],source:'PHB'},
+// Tasha\'s Cauldron / Xanathar\'s Guide
+{name:'Fey Touched',desc:'Increase INT, WIS, or CHA by 1. Learn Misty Step and one 1st-level divination or enchantment spell. Cast each once per long rest without a slot, or with slots.',half:['INT','WIS','CHA'],source:'TCoE'},
+{name:'Shadow Touched',desc:'Increase INT, WIS, or CHA by 1. Learn Invisibility and one 1st-level illusion or necromancy spell. Cast each once per long rest without a slot, or with slots.',half:['INT','WIS','CHA'],source:'TCoE'},
+{name:'Telekinetic',desc:'Increase INT, WIS, or CHA by 1. Learn Mage Hand (invisible, no components). As a bonus action, shove a creature within 30 ft (STR save or pushed 5 ft toward or away from you).',half:['INT','WIS','CHA'],source:'TCoE'},
+{name:'Telepathic',desc:'Increase INT, WIS, or CHA by 1. You can speak telepathically to any creature within 60 ft. It can understand you if it knows at least one language. Cast Detect Thoughts once per long rest without a slot.',half:['INT','WIS','CHA'],source:'TCoE'},
+{name:'Crusher',desc:'Increase STR or CON by 1. Once per turn, when you hit with bludgeoning damage, move the target 5 ft. On a critical hit with bludgeoning damage, attacks against that creature have advantage until your next turn.',half:['STR','CON'],source:'TCoE'},
+{name:'Piercer',desc:'Increase STR or DEX by 1. Once per turn, reroll one piercing damage die (must use new roll). On a critical hit with piercing damage, roll one additional damage die.',half:['STR','DEX'],source:'TCoE'},
+{name:'Slasher (Feat)',desc:'Increase STR or DEX by 1. Once per turn, when you hit with slashing damage, reduce target\'s speed by 10 ft until your next turn. On a critical hit, target has disadvantage on attack rolls until your next turn.',half:['STR','DEX'],source:'TCoE'},
+{name:'Skill Expert',desc:'Increase one ability score of your choice by 1. Gain proficiency in one skill. Choose one skill you\'re proficient in — your proficiency bonus is doubled for that skill.',half:['STR','DEX','CON','INT','WIS','CHA'],source:'TCoE'},
+{name:'Chef',desc:'Increase CON or WIS by 1. Gain proficiency with cook\'s utensils. During a short rest, prepare special food — up to 4 + proficiency bonus creatures regain 1d8 extra HP. On long rest, produce treats equal to proficiency bonus (eating one grants temporary HP equal to proficiency bonus).',half:['CON','WIS'],source:'TCoE'},
+{name:'Fighting Initiate',desc:'Learn one Fighting Style option from the Fighter class. You can replace this style when you gain an ASI. Requires martial weapon proficiency.',half:false,prereq:'Martial weapon proficiency',source:'TCoE'},
+{name:'Eldritch Adept',desc:'Learn one Eldritch Invocation option from the Warlock class (must meet any prerequisites, including level). You can replace the invocation when you gain a level. Requires spellcasting or Pact Magic.',half:false,prereq:'Spellcasting',source:'TCoE'},
+{name:'Metamagic Adept',desc:'Learn two Metamagic options from the Sorcerer class. Gain 2 sorcery points (usable only for Metamagic, regain on long rest). Requires spellcasting.',half:false,prereq:'Spellcasting',source:'TCoE'},
+{name:'Gunner',desc:'Increase DEX by 1. Proficiency with firearms. Ignore loading property of firearms. No disadvantage on ranged attack rolls within 5 ft of a hostile creature.',half:['DEX'],source:'TCoE'},
+{name:'Poisoner',desc:'You can apply poison to a weapon or piece of ammunition as a bonus action. Proficiency with the poisoner\'s kit. Spend 50 gp to create a number of doses of potent poison equal to your proficiency bonus (1d4+CON mod save, 2d8 poison damage + poisoned).',half:false,source:'TCoE'},
+];
+
 // ═══ D&D TERM GLOSSARY ═══
 const TERM_TIPS={
   'Prone':'Attacks against: advantage if adj (5 ft), disadvantage if ranged. Costs half movement to stand.',
@@ -2155,10 +2217,13 @@ function openLevelUpWizard(idx){
   const hitDie=data?data.hit_die:8;
   const steps=[{type:'hp',hitDie}];
   if((lvlData.auto||[]).length)steps.push({type:'auto',features:lvlData.auto});
+  const cls=(pc.class||'').toLowerCase();
+  const isSpellcaster=cls.includes('bard')||cls.includes('arcane trickster')||cls.includes('eldritch knight');
+  if(isSpellcaster&&(pc.magic||'').trim().length>10)steps.push({type:'spell_swap'});
   (lvlData.choose||[]).forEach(c=>steps.push({type:'choice',choice:c}));
   steps.push({type:'confirm'});
   _luWiz={idx,pc,newLvl,clsKey,data,lvlData,steps,stepIdx:0,
-    choices:{hp:0,autoFeatures:lvlData.auto||[],subclass:'',spells:[],asi:''}};
+    choices:{hp:0,autoFeatures:lvlData.auto||[],subclass:'',spells:[],asi:'',feat:'',featAbility:'',asiMode:'asi',swapOld:'',swapNew:''}};
   document.getElementById('levelup-modal').classList.add('open');
   _renderLevelUpStep();
 }
@@ -2230,6 +2295,99 @@ function _luUpdateASI(){
   const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=!s1;
 }
 
+function _luSetASIMode(mode){
+  if(!_luWiz)return;
+  _luWiz.choices.asiMode=mode;
+  if(mode==='asi'){_luWiz.choices.feat='';_luWiz.choices.featAbility='';}
+  else{_luWiz.choices.asi='';}
+  _renderLevelUpStep();
+}
+
+function _luSelectFeat(name){
+  if(!_luWiz)return;
+  _luWiz.choices.feat=name;
+  _luWiz.choices.featAbility='';
+  const feat=FEATS_DB.find(f=>f.name===name);
+  document.querySelectorAll('.lu-feat-opt').forEach(el=>{el.style.borderColor='var(--border)';el.classList.remove('selected');});
+  const sid='lufeat_'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  const el=document.getElementById(sid);
+  if(el){el.style.borderColor='var(--gold)';el.classList.add('selected');}
+  const abDiv=document.getElementById('lu-feat-ability');
+  if(abDiv&&feat&&feat.half){
+    const opts=feat.half.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+    abDiv.innerHTML='<label class="field-label" style="margin-top:8px">Ability Score +1</label><select id="lu-feat-ab-sel" onchange="_luUpdateFeatAbility()"><option value="">— Choose —</option>'+opts+'</select>';
+    abDiv.style.display='block';
+  } else if(abDiv){abDiv.innerHTML='';abDiv.style.display='none';}
+  const nb=document.getElementById('lu-next-btn');
+  if(nb)nb.disabled=!!(feat&&feat.half&&!_luWiz.choices.featAbility);
+}
+
+function _luUpdateFeatAbility(){
+  if(!_luWiz)return;
+  _luWiz.choices.featAbility=(document.getElementById('lu-feat-ab-sel')||{}).value||'';
+  const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=!_luWiz.choices.featAbility;
+}
+
+function _luFilterFeats(){
+  if(!_luWiz)return;
+  const q=(document.getElementById('lu-feat-search')||{}).value||'';
+  const lower=q.toLowerCase();
+  document.querySelectorAll('.lu-feat-opt').forEach(el=>{
+    const name=(el.dataset.name||'').toLowerCase();
+    const desc=(el.dataset.desc||'').toLowerCase();
+    el.style.display=(name.includes(lower)||desc.includes(lower))?'':'none';
+  });
+}
+
+function _luSelectSwapOld(name){
+  if(!_luWiz)return;
+  if(_luWiz.choices.swapOld===name){_luWiz.choices.swapOld='';_luWiz.choices.swapNew='';}
+  else{_luWiz.choices.swapOld=name;_luWiz.choices.swapNew='';}
+  _renderLevelUpStep();
+}
+
+function _luSelectSwapNew(name){
+  if(!_luWiz)return;
+  _luWiz.choices.swapNew=name;
+  document.querySelectorAll('.lu-swap-new').forEach(el=>{el.style.borderColor='var(--border)';el.classList.remove('selected');});
+  const sid='luswap_'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  const el=document.getElementById(sid);
+  if(el){el.style.borderColor='var(--gold)';el.classList.add('selected');}
+  const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=false;
+}
+
+function _luParseKnownSpells(pc){
+  const magic=(pc.magic||'');if(!magic.trim())return[];
+  const spells=[];
+  magic.split('\n').forEach(line=>{
+    const cleaned=line.replace(/^\[[^\]]*\]\s*/,'').trim();
+    if(!cleaned)return;
+    cleaned.split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>{
+      const name=s.replace(/^\[[^\]]*\]\s*/,'').trim();
+      if(name&&!spells.includes(name))spells.push(name);
+    });
+  });
+  return spells;
+}
+
+function _luGetSwapPool(pc){
+  const cls=(pc.class||'').toLowerCase();
+  const isBard=cls.includes('bard');
+  const newLvl=_luWiz?_luWiz.newLvl:((pc.level||1)+1);
+  let pool=[];
+  if(isBard){
+    const maxTier=newLvl>=5?3:newLvl>=3?2:1;
+    for(let t=0;t<=maxTier;t++){(BARD_SPELLS[t]||[]).forEach(s=>pool.push(s));}
+  } else {
+    const maxSpellLvl=newLvl>=19?5:newLvl>=13?4:newLvl>=7?2:1;
+    SPELL_DB.forEach(sp=>{
+      if(sp.classes.includes('wizard')&&sp.level<=maxSpellLvl)pool.push(sp.name);
+    });
+  }
+  const known=_luParseKnownSpells(pc);
+  return pool.filter(s=>!known.includes(s));
+}
+
 function _getBardSpells(ch){
   const tier=ch.tier||1;
   let pool=[];
@@ -2293,13 +2451,85 @@ function _renderLevelUpStep(){
     }
     else if(ch.type==='asi'){
       const stats=['STR','DEX','CON','INT','WIS','CHA'];
-      const opts=stats.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
-      bodyEl.innerHTML='<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">+2 to one ability, or +1 to two different abilities. Max 20.</div>'+
-        '<div class="form-group"><label class="field-label">First Ability</label><select id="lu-asi-1" onchange="_luUpdateASI()"><option value="">— Choose —</option>'+opts+'</select></div>'+
-        '<div class="form-group"><label class="field-label">Second Ability (optional — split into +1/+1)</label><select id="lu-asi-2" onchange="_luUpdateASI()"><option value="">— None (first ability gets +2) —</option>'+opts+'</select></div>'+
-        '<div id="lu-asi-preview" style="font-size:13px;color:var(--gold);font-weight:600;margin-top:6px;min-height:18px"></div>';
-      actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
+      const mode=choices.asiMode||'asi';
+      const scoreRow='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">'+
+        stats.map(s=>{
+          const raw=(pc[s.toLowerCase()]||'10 (+0)');
+          const score=raw.toString().split(' ')[0];
+          const mod=raw.toString().match(/\(([^)]+)\)/);
+          return '<div style="text-align:center;background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;min-width:42px">'+
+            '<div style="font-size:9px;color:var(--gold);font-weight:600;letter-spacing:1px">'+s+'</div>'+
+            '<div style="font-size:16px;font-weight:700;color:var(--text-bright)">'+score+'</div>'+
+            (mod?'<div style="font-size:9px;color:var(--text-dim)">'+mod[1]+'</div>':'')+
+          '</div>';
+        }).join('')+'</div>';
+      const modeToggle='<div style="display:flex;gap:0;margin-bottom:12px;border:1px solid var(--gold-dim);border-radius:var(--radius-sm);overflow:hidden">'+
+        '<button onclick="_luSetASIMode(\'asi\')" style="flex:1;padding:8px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:'+(mode==='asi'?'var(--gold)':'var(--surface2)')+';color:'+(mode==='asi'?'var(--bg)':'var(--text)')+'">Ability Score +</button>'+
+        '<button onclick="_luSetASIMode(\'feat\')" style="flex:1;padding:8px;border:none;border-left:1px solid var(--gold-dim);font-size:11px;font-weight:600;cursor:pointer;background:'+(mode==='feat'?'var(--gold)':'var(--surface2)')+';color:'+(mode==='feat'?'var(--bg)':'var(--text)')+'">Take a Feat</button>'+
+      '</div>';
+      titleEl.innerHTML='⬆ Ability Score Improvement'+prog+X;
+      if(mode==='asi'){
+        const opts=stats.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+        bodyEl.innerHTML=scoreRow+modeToggle+
+          '<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">+2 to one ability, or +1 to two different abilities. Max 20.</div>'+
+          '<div class="form-group"><label class="field-label">First Ability</label><select id="lu-asi-1" onchange="_luUpdateASI()"><option value="">— Choose —</option>'+opts+'</select></div>'+
+          '<div class="form-group"><label class="field-label">Second Ability (optional — split into +1/+1)</label><select id="lu-asi-2" onchange="_luUpdateASI()"><option value="">— None (first ability gets +2) —</option>'+opts+'</select></div>'+
+          '<div id="lu-asi-preview" style="font-size:13px;color:var(--gold);font-weight:600;margin-top:6px;min-height:18px"></div>';
+        actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
+      } else {
+        const featHtml=FEATS_DB.map(f=>{
+          const isHalf=f.half&&f.half.length;
+          const tag=isHalf?'<span style="font-size:9px;color:var(--green);margin-left:4px">Half-feat (+1 '+f.half.join('/')+')</span>':'';
+          const prereq=f.prereq?'<div style="font-size:9px;color:var(--red);margin-top:2px">Requires: '+esc(f.prereq)+'</div>':'';
+          const src=f.source!=='PHB'?'<span style="font-size:8px;color:var(--text-dim);margin-left:4px">'+esc(f.source)+'</span>':'';
+          const sel=choices.feat===f.name;
+          return '<div id="lufeat_'+f.name.replace(/[^a-zA-Z0-9]/g,'_')+'" class="lu-feat-opt" data-name="'+esc(f.name)+'" data-desc="'+esc(f.desc)+'" '+
+            'onclick="_luSelectFeat(\''+f.name.replace(/'/g,"\\'")+'\')" '+
+            'style="padding:8px 12px;border:1px solid '+(sel?'var(--gold)':'var(--border)')+';border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;background:var(--surface2)">'+
+            '<div style="font-size:12px;font-weight:600;color:var(--text-bright)">'+esc(f.name)+tag+src+'</div>'+
+            '<div style="font-size:10px;color:var(--text);line-height:1.5;margin-top:3px">'+esc(f.desc)+'</div>'+
+            prereq+'</div>';
+        }).join('');
+        bodyEl.innerHTML=scoreRow+modeToggle+
+          '<input type="text" id="lu-feat-search" oninput="_luFilterFeats()" placeholder="Search feats..." style="width:100%;padding:6px 10px;font-size:12px;margin-bottom:8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text)">'+
+          '<div style="max-height:220px;overflow-y:auto">'+featHtml+'</div>'+
+          '<div id="lu-feat-ability" style="display:none"></div>';
+        actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" '+(choices.feat?'':'disabled')+' onclick="_luNext()">→ Next</button>';
+        if(choices.feat){const feat=FEATS_DB.find(f=>f.name===choices.feat);if(feat&&feat.half){const nb=document.getElementById('lu-next-btn');if(nb)nb.disabled=!choices.featAbility;_luSelectFeat(choices.feat);}}
+      }
     }
+  }
+  else if(step.type==='spell_swap'){
+    titleEl.innerHTML='⬆ Spell Swap (Optional)'+prog+X;
+    const known=_luParseKnownSpells(pc);
+    const pool=_luGetSwapPool(pc);
+    let html='<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">You may replace one known spell with another from your class spell list.</div>';
+    html+='<div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:6px">Current Spells (tap to remove)</div>';
+    html+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">';
+    known.forEach(s=>{
+      const sel=choices.swapOld===s;
+      html+='<button onclick="_luSelectSwapOld(\''+s.replace(/'/g,"\\'")+'\')" style="padding:4px 10px;font-size:11px;border:1px solid '+(sel?'var(--red)':'var(--border)')+';border-radius:12px;background:'+(sel?'var(--red)':'var(--surface2)')+';color:'+(sel?'var(--text-bright)':'var(--text)')+';cursor:pointer">'+(sel?'✕ ':'')+esc(s)+'</button>';
+    });
+    html+='</div>';
+    if(choices.swapOld){
+      html+='<div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:6px">Replace with</div>';
+      html+='<div style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">';
+      pool.forEach(s=>{
+        const sel=choices.swapNew===s;
+        const sp=SPELL_DB.find(x=>x.name===s);
+        const lvlTag=sp?'['+(!sp.level?'Cantrip':'L'+sp.level)+'] ':'';
+        html+='<div id="luswap_'+s.replace(/[^a-zA-Z0-9]/g,'_')+'" class="lu-swap-new" onclick="_luSelectSwapNew(\''+s.replace(/'/g,"\\'")+'\')" style="padding:6px 12px;cursor:pointer;border-bottom:1px solid var(--border);border-color:'+(sel?'var(--gold)':'var(--border)')+'">'+
+          '<span style="font-size:11px;color:'+(sel?'var(--gold)':'var(--text)')+'">'+lvlTag+esc(s)+'</span>'+
+          (sp?'<div style="font-size:9px;color:var(--text-dim);margin-top:2px">'+esc(sp.desc.substring(0,80))+'...</div>':'')+
+        '</div>';
+      });
+      html+='</div>';
+    }
+    bodyEl.innerHTML=html;
+    const hasSwap=choices.swapOld&&choices.swapNew;
+    actEl.innerHTML=
+      '<button class="btn" onclick="if(_luWiz){_luWiz.choices.swapOld=\'\';_luWiz.choices.swapNew=\'\';}_luNext()">Skip →</button>'+
+      '<button class="btn gold" id="lu-next-btn" '+(hasSwap?'':'disabled')+' onclick="_luNext()" style="margin-left:auto">Swap & Next →</button>';
   }
   else if(step.type==='confirm'){
     titleEl.innerHTML='⬆ Confirm Level Up'+X;
@@ -2311,6 +2541,12 @@ function _renderLevelUpStep(){
     if(choices.subclass)rows.push('Archetype: <strong style="color:var(--text)">'+esc(choices.subclass)+'</strong><br>');
     if(choices.spells&&choices.spells.length)rows.push('Spells Learned: <strong style="color:var(--text)">'+esc(choices.spells.join(', '))+'</strong><br>');
     if(choices.asi)rows.push('Ability Improvement: <strong style="color:var(--text)">'+esc(choices.asi.replace(/,/g,' & ').replace(/([a-z]+)/g,s=>s.toUpperCase()).replace(/\+/g,' +'))+'</strong><br>');
+    if(choices.feat){
+      let featStr=choices.feat;
+      if(choices.featAbility)featStr+=' (+1 '+choices.featAbility+')';
+      rows.push('Feat: <strong style="color:var(--text)">'+esc(featStr)+'</strong><br>');
+    }
+    if(choices.swapOld&&choices.swapNew)rows.push('Spell Swap: <strong style="color:var(--text)">'+esc(choices.swapOld)+' → '+esc(choices.swapNew)+'</strong><br>');
     if(clsKey==='bard'&&data&&data.slots&&data.slots[newLvl])rows.push('Spell Slots: <strong style="color:var(--text)">'+data.slots[newLvl].map((m,i)=>SPELL_LVLS[i]+': '+m).join(', ')+'</strong><br>');
     rows.push('</div>');
     bodyEl.innerHTML='<div style="padding:12px;background:var(--surface3);border-radius:var(--radius-sm)">'+rows.join('')+'</div>';
@@ -2335,8 +2571,18 @@ function applyLevelUp(){
     p.subclass=choices.subclass;
     p.features=(p.features?p.features+'\n':'')+choices.subclass+' (Level '+newLvl+')';
   }
-  // ASI
-  if(choices.asi){
+  // ASI or Feat
+  if(choices.asiMode==='feat'&&choices.feat){
+    p.features=(p.features?p.features+'\n':'')+'[Feat] '+choices.feat;
+    const feat=FEATS_DB.find(f=>f.name===choices.feat);
+    if(feat&&feat.half&&choices.featAbility){
+      const ab=choices.featAbility.toLowerCase();
+      const cur=parseInt((p[ab]||'10').split(' ')[0]);
+      const nv=Math.min(20,cur+1);
+      const mod=Math.floor((nv-10)/2);
+      p[ab]=nv+' ('+(mod>=0?'+':'')+mod+')';
+    }
+  } else if(choices.asi){
     choices.asi.split(',').forEach(part=>{
       const m=part.match(/^([a-z]+)\+(\d)$/);
       if(!m)return;
@@ -2345,6 +2591,17 @@ function applyLevelUp(){
       const mod=Math.floor((nv-10)/2);
       p[m[1]]=nv+' ('+(mod>=0?'+':'')+mod+')';
     });
+  }
+  // Spell swap
+  if(choices.swapOld&&choices.swapNew&&p.magic){
+    const lines=p.magic.split('\n');
+    for(let i=0;i<lines.length;i++){
+      if(lines[i].includes(choices.swapOld)){
+        lines[i]=lines[i].replace(choices.swapOld,choices.swapNew);
+        break;
+      }
+    }
+    p.magic=lines.join('\n');
   }
   // Spells
   if(choices.spells&&choices.spells.length)
@@ -2361,7 +2618,14 @@ function applyLevelUp(){
   if(choices.autoFeatures&&choices.autoFeatures.length)parts.push('New features: '+choices.autoFeatures.map(f=>f.split(':')[0]).join(', ')+'.');
   if(choices.subclass)parts.push('Chosen archetype: '+choices.subclass+'.');
   if(choices.spells&&choices.spells.length)parts.push('New spells: '+choices.spells.join(', ')+'.');
-  if(choices.asi)parts.push('Ability improvement: '+choices.asi+'.');
+  if(choices.asiMode==='feat'&&choices.feat){
+    let featPart='Feat chosen: '+choices.feat+'.';
+    if(choices.featAbility)featPart+=' (+1 '+choices.featAbility+')';
+    const feat=FEATS_DB.find(f=>f.name===choices.feat);
+    if(feat)featPart+=' Effect: '+feat.desc;
+    parts.push(featPart);
+  } else if(choices.asi){parts.push('Ability improvement: '+choices.asi+'.');}
+  if(choices.swapOld&&choices.swapNew)parts.push('Spell swap: replaced '+choices.swapOld+' with '+choices.swapNew+'.');
   _ctxInject='[LEVEL UP COMPLETE] '+parts.join(' ')+' Update your full understanding of this character and narrate the advancement when prompted.';
   triggerChk('Level Up: '+pc.name+' → Level '+newLvl);
   saveRefresh();
@@ -9480,7 +9744,7 @@ function csRemLang(idx,li){
 // ═══ EXPOSE ALL FUNCTIONS NEEDED BY HTML EVENT HANDLERS ═══
 // These are global because HTML onclick/oninput/etc. attributes need them
 Object.assign(window, {
-  _luNext, _luRollHP, _luSelectSubclass, _luSetHP, _luToggleSpell, _luUpdateASI,
+  _luNext, _luRollHP, _luSelectSubclass, _luSetHP, _luToggleSpell, _luUpdateASI, _luSetASIMode, _luSelectFeat, _luUpdateFeatAbility, _luFilterFeats, _luSelectSwapOld, _luSelectSwapNew, FEATS_DB,
   addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, addCondFromPicker,
   addFamiliar, addIncome, addLogEntry, addModuleEpisode, addNPC, addNewChar,
   addPartyItem, addPartyToCombat, addPcItem, addPreset, addQA, addQuest,
