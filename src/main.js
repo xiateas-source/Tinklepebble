@@ -6163,13 +6163,14 @@ function renderCompendium(idx){
       html+='<div style="font-size:9px;font-weight:700;color:var(--gold-dim);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px;border-bottom:1px solid var(--border);padding-bottom:2px">'+lvLabel+' ('+grouped[lv].length+')</div>';
       grouped[lv].forEach(sp=>{
         const has=known.includes(sp.name.toLowerCase());
-        html+='<details style="margin-bottom:3px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);'+(has?'opacity:.5':'')+'"><summary style="padding:5px 8px;font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer">';
+        html+='<details style="margin-bottom:3px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);'+(has?'opacity:.5':'')+'"><summary style="padding:5px 8px;font-size:11px;cursor:pointer">';
+        html+='<div style="display:flex;align-items:center;gap:4px">';
         html+='<span style="flex:1;min-width:0"><span style="color:var(--text-bright);font-weight:600">'+esc(sp.name)+'</span>';
         html+=' <span style="font-size:9px;color:var(--text-dim)">'+esc(sp.school)+'</span></span>';
-        html+='<span style="font-size:9px;color:var(--text-dim);white-space:nowrap">'+esc(sp.castTime)+'</span>';
         html+=has?'<span style="font-size:9px;color:var(--green);flex-shrink:0">In Book</span>':'<button class="btn sm gold" style="font-size:9px;flex-shrink:0" onclick="event.stopPropagation();addFromCompendium('+idx+',SPELL_DB['+SPELL_DB.indexOf(sp)+'].name)">+</button>';
+        html+='</div>';
+        html+='<div style="font-size:9px;color:var(--text-dim);margin-top:2px">'+esc(sp.castTime)+' · '+esc(sp.range)+' · '+esc(sp.duration)+' · '+esc(sp.components)+'</div>';
         html+='</summary><div style="padding:6px 8px;border-top:1px solid var(--border);font-size:11px;line-height:1.5">';
-        html+='<div style="color:var(--text-dim);margin-bottom:4px">'+esc(sp.castTime)+' · '+esc(sp.range)+' · '+esc(sp.duration)+' · '+esc(sp.components)+'</div>';
         html+='<div style="color:var(--text)">'+esc(sp.desc)+'</div>';
         html+='</div></details>';
       });
