@@ -105,7 +105,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - **Per-PC inventory in Cargo** (Flag 13) — character buttons in Cargo view
 - ✅ ~~**Treasure audit inline** (Flag 4) — income log dedup in validator~~ — Session 15
 - **Context strip carousel** (Flag 11) — tap to cycle location→char→quest→module
-- **Quest→Chapter linking** (Flag 5/9) — needs design
+- ✅ ~~**Quest→Location linking** (Flag 5/9) — quest_add anchors to location, ⚔ chat chips, 📍 location links~~ — Session 16
 - **Familiar/animal home** (Flag 10) — needs design
 - **Quest log UX refresh** (Flag 12) — needs design
 

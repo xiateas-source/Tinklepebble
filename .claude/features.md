@@ -356,7 +356,7 @@ Parsed from AI response blocks in format: `key: value`
 
 **Wagon:** `wagon_cell_add`/`update`/`remove`, `wagon_hp`, `ox_hp`, `ox_condition`
 
-**Story:** `quest_add`, `quest_done`, `quest_fail`, `quest_update` (name|status text), `primary_mission`, `npc_add`, `npc_mood`, `consequence_add`, `consequence_resolve`, `chapter_add`, `module_episode`
+**Story:** `quest_add` (auto-anchors to current location, writes location history, shows ⚔ chat chip linked to quest detail), `quest_done`, `quest_fail`, `quest_update` (name|status text), `primary_mission`, `npc_add`, `npc_mood`, `consequence_add`, `consequence_resolve`, `chapter_add`, `module_episode`
 
 **Location Journal:** `location_add`, `location_visit`, `location_history`, `location_investment`
 
