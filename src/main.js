@@ -5041,7 +5041,146 @@ function detectUnloggedItem(prose,changes){
     });
 }
 
-// ═══ OFFLINE CACHE ═══
+// ═══ AI COMPLIANCE — EXPANDED DETECTION ═══
+
+function detectUnloggedDamage(prose,changes){
+  if(!prose)return;
+  if((changes||[]).some(c=>/HP\s*\d+→/i.test(c.text||'')))return;
+  const pcNames=(state.pcs||[]).map(p=>p.name);
+  const patterns=[
+    /(\b(?:NAMES)\b)\s+(?:takes?|took|suffers?|suffered|receives?|received)\s+(\d{1,3})\s*(?:points?\s+(?:of\s+)?)?damage/gi,
+    /(\d{1,3})\s*(?:points?\s+(?:of\s+)?)?damage\s+(?:to|against|on)\s+(\b(?:NAMES)\b)/gi,
+    /(\b(?:NAMES)\b)\s+(?:loses?|lost)\s+(\d{1,3})\s*(?:HP|hit\s*points?)/gi,
+  ];
+  const nameAlt=pcNames.map(n=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
+  for(const pat of patterns){
+    const re=new RegExp(pat.source.replace(/NAMES/g,nameAlt),pat.flags);
+    let m;
+    while((m=re.exec(prose))!==null){
+      let pcName,amt;
+      if(/^\d+$/.test(m[1])){amt=parseInt(m[1]);pcName=m[2];}
+      else{pcName=m[1];amt=parseInt(m[2]);}
+      const pc=(state.pcs||[]).find(p=>p.name.toLowerCase()===pcName.toLowerCase());
+      if(!pc||!amt||amt<=0)continue;
+      const newHp=Math.max(0,pc.hp-amt);
+      _showChip('❤️',pc.name+' took '+amt+' dmg → '+newHp+' HP?','var(--red)',
+        (txt)=>{pc.hp=Math.max(0,Math.min(pc.hp_max,newHp));saveRefresh();txt.textContent='✓ '+pc.name+' → '+pc.hp+' HP';});
+      return;
+    }
+  }
+}
+
+function detectUnloggedHealing(prose,changes){
+  if(!prose)return;
+  if((changes||[]).some(c=>/HP\s*\d+→/i.test(c.text||'')))return;
+  const pcNames=(state.pcs||[]).map(p=>p.name);
+  const nameAlt=pcNames.map(n=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
+  const re=new RegExp('('+nameAlt+')\\s+(?:heals?|regains?|recovers?|restored?)\\s+(\\d{1,3})\\s*(?:HP|hit\\s*points?)','gi');
+  let m;
+  while((m=re.exec(prose))!==null){
+    const pc=(state.pcs||[]).find(p=>p.name.toLowerCase()===m[1].toLowerCase());
+    const amt=parseInt(m[2]);
+    if(!pc||!amt||amt<=0)continue;
+    const newHp=Math.min(pc.hp_max,pc.hp+amt);
+    if(newHp===pc.hp)continue;
+    _showChip('💚',pc.name+' heals '+amt+' → '+newHp+' HP?','var(--green)',
+      (txt)=>{pc.hp=newHp;saveRefresh();txt.textContent='✓ '+pc.name+' → '+pc.hp+' HP';});
+    return;
+  }
+}
+
+function detectUnloggedCondition(prose,changes){
+  if(!prose)return;
+  if((changes||[]).some(c=>/[+−](?:Prone|Poisoned|Frightened|Charmed|Stunned|Blinded|Deafened|Paralyzed|Petrified|Restrained|Grappled|Incapacitated|Unconscious|Invisible|Exhaustion)/i.test(c.text||'')))return;
+  const CONDS=['Prone','Poisoned','Frightened','Charmed','Stunned','Blinded','Deafened','Paralyzed','Petrified','Restrained','Grappled','Incapacitated','Unconscious','Invisible'];
+  const pcNames=(state.pcs||[]).map(p=>p.name);
+  const nameAlt=pcNames.map(n=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
+  const condAlt=CONDS.join('|');
+  const re=new RegExp('('+nameAlt+')\\s+(?:is|becomes?|falls?|gets?|was|has been)\\s+(?:knocked\\s+)?('+condAlt+')','gi');
+  let m;
+  while((m=re.exec(prose))!==null){
+    const pc=(state.pcs||[]).find(p=>p.name.toLowerCase()===m[1].toLowerCase());
+    const cond=CONDS.find(c=>c.toLowerCase()===m[2].toLowerCase());
+    if(!pc||!cond)continue;
+    if((pc.conditions||[]).includes(cond))continue;
+    _showChip('⚡',pc.name+' → '+cond+'?','var(--gold)',
+      (txt)=>{if(!Array.isArray(pc.conditions))pc.conditions=[];if(!pc.conditions.includes(cond)){pc.conditions.push(cond);}saveRefresh();txt.textContent='✓ '+pc.name+' +'+cond;});
+    return;
+  }
+}
+
+function detectUnloggedLocation(prose,changes){
+  if(!prose||prose.length<40)return;
+  if((changes||[]).some(c=>/Loc→|Location/i.test(c.text||'')))return;
+  const re=/\b(?:arrive[sd]?\s+(?:at|in)|reach(?:es|ed)?\s|enter(?:s|ed)?\s|step(?:s|ped)?\s+into|come[s]?\s+to|pull[s]?\s+(?:up\s+)?(?:to|into))\s+(?:the\s+)?([A-Z][a-zA-Z'\-]+(?:\s+[A-Z][a-zA-Z'\-]+){0,3})/g;
+  const curLoc=(state.worldData?.location||'').toLowerCase();
+  let m;
+  while((m=re.exec(prose))!==null){
+    const loc=m[1].trim();
+    if(loc.length<3||loc.toLowerCase()===curLoc)continue;
+    const skip=new Set(['The','This','That','His','Her','Their','Your','Our','Its']);
+    if(skip.has(loc.split(' ')[0]))continue;
+    _showChip('📍','Update location → '+loc+'?','var(--blue)',
+      (txt)=>{state.worldData.location=loc;saveRefresh();txt.textContent='✓ Location: '+loc;});
+    return;
+  }
+}
+
+// ═══ MECHANIC VALIDATOR — POST-PARSE AUDIT ═══
+
+function _validateMechanics(changes){
+  if(!changes||!changes.length)return;
+  const warnings=[];
+
+  // HP above max or below 0
+  (state.pcs||[]).forEach(pc=>{
+    if(pc.hp>pc.hp_max){warnings.push(pc.name+' HP '+pc.hp+' clamped to max '+pc.hp_max);pc.hp=pc.hp_max;}
+    if(pc.hp<0){pc.hp=0;}
+  });
+
+  // Ox HP above max
+  const ox=state.wagon?.ox;
+  if(ox&&ox.hp>ox.hp_max){warnings.push('Grit HP '+ox.hp+' clamped to max '+ox.hp_max);ox.hp=ox.hp_max;}
+
+  // Wagon HP above max
+  const wg=state.wagon;
+  if(wg&&wg.hp>wg.hp_max&&wg.hp_max>0){warnings.push('Wagon HP '+wg.hp+' clamped to max '+wg.hp_max);wg.hp=wg.hp_max;}
+
+  // Duplicate conditions
+  (state.pcs||[]).forEach(pc=>{
+    if(!Array.isArray(pc.conditions))return;
+    const unique=[...new Set(pc.conditions)];
+    if(unique.length<pc.conditions.length){warnings.push(pc.name+' duplicate conditions removed');pc.conditions=unique;}
+  });
+
+  // Slot usage over max
+  (state.pcs||[]).forEach(pc=>{
+    (pc.slots||[]).forEach((s,i)=>{
+      if(s.used>s.max){warnings.push(pc.name+' L'+(i+1)+' slots clamped ('+s.used+'→'+s.max+')');s.used=s.max;}
+    });
+  });
+
+  // Resource usage over max
+  (state.pcs||[]).forEach(pc=>{
+    (pc.resources||[]).forEach(r=>{
+      if(r.used>r.max){warnings.push(pc.name+' '+r.name+' uses clamped ('+r.used+'→'+r.max+')');r.used=r.max;}
+    });
+  });
+
+  // Treasury negative check
+  if(state.treasuryData){
+    ['gp','sp','cp','ep','pp'].forEach(k=>{
+      if((state.treasuryData[k]||0)<0){warnings.push(k.toUpperCase()+' was negative, clamped to 0');state.treasuryData[k]=0;}
+    });
+  }
+
+  if(warnings.length){
+    save();
+    console.warn('[Mechanic Validator]',warnings);
+    const warningChanges=warnings.map(w=>({text:'⚠ '+w,error:true}));
+    mechToast(warningChanges);
+  }
+}
 const CKEY='tt_cache';
 function cacheResp(user,resp){const c=JSON.parse(localStorage.getItem(CKEY)||'[]');c.unshift({ts:new Date().toLocaleString(),user:user.slice(0,60),response:resp});if(c.length>5)c.pop();localStorage.setItem(CKEY,JSON.stringify(c));}
 function getCached(){return JSON.parse(localStorage.getItem(CKEY)||'[]')[0]||null;}
@@ -5579,6 +5718,11 @@ async function sendMsg(){
     detectUnloggedGold(displayText,mechanics);
     detectUnloggedNPC(displayText,mechanics);
     detectUnloggedItem(displayText,mechanics);
+    detectUnloggedDamage(displayText,mechanics);
+    detectUnloggedHealing(displayText,mechanics);
+    detectUnloggedCondition(displayText,mechanics);
+    detectUnloggedLocation(displayText,mechanics);
+    _validateMechanics(mechanics);
     cacheResp(text,displayText);
     if(localStorage.getItem('tt_tts_auto')==='1'&&typeof speechSynthesis!=='undefined')speak(displayText);
     state.chatHistory.push({role:'assistant',content:displayText,mechanics,ts,realTs:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),msgId:pendingMsgId});
