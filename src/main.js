@@ -7811,17 +7811,27 @@ function renderQAEditor(){
   const fabInp=document.getElementById('qa-fab-icon-input');
   if(fabInp)fabInp.value=state.qaFabIcon||'⚡';
   if(!(state.quickActions||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No quick actions defined.</div>';return;}
-  const tabLabels={'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dm':'AI DM'};
+  const tabLabels={'tab-party':'Party','tab-world':'Journal','tab-wagon':'Cargo','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dm':'AI DM'};
+  const typeLabels={hp:'Adjust HP',condition_add:'Add Condition',condition_clear:'Clear Conditions',resource_use:'Use Resource',item_add_foraged:'Add Foraged Item',ox_feed:'Feed Grit',time_advance:'Advance Time',save_game:'Save Game',combat_next:'Next Turn',log_entry:'Add Log Entry',context_refresh:'Context Refresh',context_refresh_btn:'Context Refresh',town_rep:'Town Reputation',roll_submit:'Open Roller',surroundings:'Describe Surroundings',short_rest:'Short Rest',random_event:'Random Event',roleplay_npc:'Roleplay NPC',char_moment:'Character Moment',send_scene:'Send Scene',module_checkin:'Module Check-in',previously_on:'Previously On',catch_up:'Catch Up Audit',deep_seed:'Deep Seed',shell_defense_toggle:'Shell Defense',state_fix:'State Fix',resync_ai:'Re-sync AI',custom:'Custom Command'};
+  const typeGroups=[
+    {label:'Combat',types:['hp','condition_add','condition_clear','combat_next','shell_defense_toggle','roll_submit']},
+    {label:'AI',types:['context_refresh','resync_ai','surroundings','random_event','roleplay_npc','char_moment','send_scene','previously_on','catch_up','deep_seed','module_checkin']},
+    {label:'Utility',types:['save_game','time_advance','log_entry','resource_use','item_add_foraged','ox_feed','town_rep','short_rest','state_fix','custom']}
+  ];
+  const allTypes=typeGroups.flatMap(g=>g.types);
   state.quickActions.forEach((action,i)=>{
     const d=document.createElement('div');
-    d.style.cssText='display:flex;gap:5px;margin-bottom:5px;align-items:center;flex-wrap:wrap;padding:6px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px';
+    d.style.cssText='margin-bottom:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px';
+    const typeOptions=typeGroups.map(g=>`<optgroup label="${g.label}">${g.types.map(t=>`<option value="${t}" ${action.type===t?'selected':''}>${typeLabels[t]||t}</option>`).join('')}</optgroup>`).join('');
     const contexts=Object.keys(tabLabels);
-    d.innerHTML=`<input type="text" value="${esc(action.label)}" style="flex:2;min-width:80px;font-size:11px" placeholder="Button label" onchange="updQA(${i},'label',this.value)">
-      <select style="width:120px;font-size:11px;padding:3px" onchange="updQA(${i},'type',this.value)">
-        ${['hp','condition_add','condition_clear','resource_use','item_add_foraged','ox_feed','time_advance','save_game','combat_next','log_entry','context_refresh','town_rep','custom'].map(t=>`<option value="${t}" ${action.type===t?'selected':''}>${t}</option>`).join('')}
-      </select>
-      <div style="display:flex;flex-wrap:wrap;gap:3px">${contexts.map(ctx=>`<label style="display:flex;align-items:center;gap:2px;font-size:9px;cursor:pointer"><input type="checkbox" ${(action.context||[]).includes(ctx)?'checked':''} onchange="toggleQAContext(${i},'${ctx}',this.checked)" style="width:auto">${tabLabels[ctx]}</label>`).join('')}</div>
-      <button class="btn sm red icon-btn" onclick="remQA(${i})">&times;</button>`;
+    d.innerHTML=`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+        <input type="text" value="${esc(action.label)}" style="flex:1;font-size:12px;font-weight:600" placeholder="Button label" onchange="updQA(${i},'label',this.value)">
+        <button class="btn sm red icon-btn" onclick="remQA(${i})" style="flex-shrink:0">&times;</button>
+      </div>
+      <div style="margin-bottom:6px">
+        <select style="width:100%;font-size:11px;padding:4px" onchange="updQA(${i},'type',this.value)">${typeOptions}</select>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${contexts.map(ctx=>`<label style="display:inline-flex;align-items:center;gap:3px;font-size:10px;cursor:pointer;background:${(action.context||[]).includes(ctx)?'var(--gold-dim)':'var(--surface3)'};border:1px solid var(--border);border-radius:3px;padding:2px 6px"><input type="checkbox" ${(action.context||[]).includes(ctx)?'checked':''} onchange="toggleQAContext(${i},'${ctx}',this.checked);renderQAEditor()" style="width:auto;margin:0">${tabLabels[ctx]}</label>`).join('')}</div>`;
     c.appendChild(d);
   });
 }
