@@ -4929,14 +4929,18 @@ function parseMechanics(responseText, pendingMsgId=null){
       }else if(key==='conditions'){
         val.split(',').forEach(part=>{
           const p=part.trim();
-          const add=p.includes('+');const rem=p.includes('-');
-          const nm=p.replace(/[+\-].*/,'').trim();
-          const cond=p.replace(/^[^+\-]+[+\-]/,'').trim();
+          const addIdx=p.indexOf('+');const remIdx=p.indexOf('-');
+          const delimIdx=addIdx>-1?addIdx:remIdx;
+          if(delimIdx<1){return;}
+          const nm=p.slice(0,delimIdx).trim();
+          const cond=p.slice(delimIdx+1).trim();
           const pc=findPC(nm);
-          if(pc&&cond){
-            if(!Array.isArray(pc.conditions))pc.conditions=[];if(!Array.isArray(pc.slots))pc.slots=[];if(add&&!pc.conditions.includes(cond)){pc.conditions.push(cond);changes.push({text:pc.name+' +'+cond});}
-            if(rem){const i=pc.conditions.indexOf(cond);if(i>-1){pc.conditions.splice(i,1);changes.push({text:pc.name+' −'+cond});}}
-          }
+          if(!pc||!cond)return;
+          const add=addIdx>-1&&addIdx===delimIdx;
+          const rem=remIdx>-1&&remIdx===delimIdx;
+          if(!Array.isArray(pc.conditions))pc.conditions=[];if(!Array.isArray(pc.slots))pc.slots=[];
+          if(add&&!pc.conditions.includes(cond)){pc.conditions.push(cond);changes.push({text:pc.name+' +'+cond});}
+          if(rem){const i=pc.conditions.indexOf(cond);if(i>-1){pc.conditions.splice(i,1);changes.push({text:pc.name+' −'+cond});}}
         });
       }else if(key==='slot_use'){
         val.split(',').forEach(part=>{const[nm,lv]=part.trim().split('=');const pc=findPC(nm?.trim());if(pc){if(!Array.isArray(pc.slots))pc.slots=[];const l=parseInt(lv)-1;if(pc.slots[l]&&pc.slots[l].used<pc.slots[l].max){pc.slots[l].used++;changes.push({text:pc.name+' L'+(l+1)+' slot used'});}}});
@@ -5943,7 +5947,8 @@ function renderTestChat(){
 function previewMechanics(responseText){
   const clean=responseText.replace(/\*\*/g,'').replace(/\*/g,'');
   let block='';
-  const m=clean.match(/---MECHANICS---([\s\S]*?)(?:---END---|$)/i);
+  let m=clean.match(/---MECHANICS---([\s\S]*?)(?:---END---|$)/i);
+  if(!m)m=clean.match(/MECHANICS:?([\s\S]*?)(?:---END---|$)/i);
   if(m)block=m[1];
   if(!block)return[];
   const validKeys=new Set(_MECH_KEYS.split('|'));
@@ -5972,7 +5977,10 @@ async function sendTestMsg(text){
     const displayText=responseText
       .replace(/---MECHANICS---[\s\S]*?---END---/g,'')
       .replace(/---MECHANICS---[\s\S]*$/,'')
+      .replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*?---END---/gi,'')
+      .replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*$/gi,'')
       .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
+      .replace(/^---END---\s*$/gm,'')
       .replace(new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+$','gm'),'')
       .replace(/\n{3,}/g,'\n\n').trim();
     _testHistory.push({role:'assistant',content:displayText,preview,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
@@ -6212,7 +6220,10 @@ async function sendMsg(){
   let displayText=responseText
     .replace(/---MECHANICS---[\s\S]*?---END---/g,'')
     .replace(/---MECHANICS---[\s\S]*$/,'')
+    .replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*?---END---/gi,'')
+    .replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*$/gi,'')
     .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
+    .replace(/^---END---\s*$/gm,'')
     // Strip any naked mechanic lines the AI put directly in the response body
     .replace(new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+$','gm'),'')
     .replace(/\n{3,}/g,'\n\n')
