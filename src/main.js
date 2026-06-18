@@ -5044,7 +5044,7 @@ Rules:
 - income: [amount], [category], [description] — USE THIS for all gold earned (logs to income ledger). Category: real_stock/snake_oil/reagents/misc
 - expense: [amount], [description] — USE THIS for all gold spent (logs to expense ledger and deducts from GP)
 - gp: use a plain number to SET an absolute GP value (corrections only — does not create a log entry)
-- npc_add: EVERY TIME a named NPC is formally introduced, output npc_add. Every time.
+- npc_add: EVERY TIME a named NPC is mentioned by name — whether formally introduced, referenced in dialogue, or recalled from lore — output npc_add if that NPC is not already in the tracker. Every time.
 - npc_mood: EVERY TIME an NPC's relationship to the party changes, output npc_mood.
 - resource_use: [pc], [resource name] — decrements a resource pip (Bardic Inspiration, Stone's Endurance, Lucky Points)
 - resource_restore: [pc], [resource name or all] — restores resource uses (short or long rest)
