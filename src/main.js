@@ -6066,6 +6066,7 @@ let _compSearch='';
 function toggleCompendium(idx){
   _compOpen=!_compOpen;
   renderSheets();
+  if(_compOpen) setTimeout(()=>{const p=document.getElementById('compendium-panel-'+idx);if(p)p.scrollIntoView({behavior:'smooth',block:'start'});},50);
 }
 function openCompendiumFromOverview(idx){
   _compOpen=true;
@@ -6075,6 +6076,7 @@ function openCompendiumFromOverview(idx){
   const d=document.getElementById('char-editor-details');
   if(d)d.open=true;
   openDrawer('tab-party');
+  setTimeout(()=>{const p=document.getElementById('compendium-panel-'+idx);if(p)p.scrollIntoView({behavior:'smooth',block:'start'});},150);
 }
 
 function setCompFilter(idx,k,v){
