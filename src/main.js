@@ -3829,7 +3829,7 @@ function resetState(mode, startingGold){
     premiseLocked:false,
     primaryMission:'PENDING — To be established through play.',
     travelLog:[],townReputation:[],
-    businessProfile:state.worldData.businessProfile||{},
+    businessProfile:mode==='full'?{}:(state.worldData.businessProfile||{}),
     campaignSecrets:mode==='full'?[
       {text:"PC 1 secret: PENDING",playerKnown:false,pending:true},
       {text:"PC 2 secret: PENDING",playerKnown:false,pending:true},
@@ -3904,6 +3904,7 @@ function resetState(mode, startingGold){
     state.sessionNotes='';
     state.errorLog=[];
     state.aiContracts={};
+    state.quickActions=[];
   }
   save();
   if(window.fbSave)fbSave();
@@ -4461,7 +4462,13 @@ function migrate(s){
     {id:'qa_26',label:'Deep Seed',type:'deep_seed',params:{},context:['tab-dm','tab-world']}
   ];
   if(!s.quickActions.length){s.quickActions=canonicalQA;}
-  else{canonicalQA.forEach(cqa=>{if(!s.quickActions.find(a=>a.id===cqa.id))s.quickActions.push(cqa);});}
+  else{
+    canonicalQA.forEach(cqa=>{
+      const existing=s.quickActions.find(a=>a.id===cqa.id);
+      if(!existing)s.quickActions.push(cqa);
+      else if(existing.label!==cqa.label)existing.label=cqa.label;
+    });
+  }
 
   // ══ CORE STRUCTURAL DEFAULTS — sub-objects, scalars, PC fields ══
   if(!Array.isArray(s.pcs)||s.pcs.length===0)return;
@@ -4486,7 +4493,7 @@ function migrate(s){
   if(!Array.isArray(s.worldData.travelLog))s.worldData.travelLog=[];
   if(!Array.isArray(s.worldData.townReputation))s.worldData.townReputation=[];
   if(!Array.isArray(s.worldData.campaignSecrets))s.worldData.campaignSecrets=[];
-  if(!s.worldData.businessProfile||typeof s.worldData.businessProfile!=='object')s.worldData.businessProfile={name:"Tinkle's Tinctures",realStock:'',snakeOil:'',reagents:'',reputation:'Unknown',notes:''};
+  if(!s.worldData.businessProfile||typeof s.worldData.businessProfile!=='object')s.worldData.businessProfile={name:'',realStock:'',snakeOil:'',reagents:'',reputation:'',notes:''};
   if(s.worldData.premiseLocked===undefined)s.worldData.premiseLocked=false;
   if(!s.worldData.primaryMission)s.worldData.primaryMission='';
   if(!s.worldData.time)s.worldData.time='Day 1';
