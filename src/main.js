@@ -7117,7 +7117,7 @@ function rewindTo(idx){
 
 // ═══ TTS ═══
 function populateVoices(){
-  setTimeout(loadElSettings,100);
+  loadElSettings();
   if(typeof speechSynthesis==='undefined')return;
   const sel=document.getElementById('tts-voice');if(!sel)return;
   // Force fresh voice list — Android Chrome loads voices asynchronously
@@ -7167,7 +7167,8 @@ function saveElKey(){
   localStorage.setItem('tt_el_key',k);
 }
 async function verifyElKey(){
-  const key=localStorage.getItem('tt_el_key')||document.getElementById('el-key')?.value||'';
+  saveElKey();
+  const key=localStorage.getItem('tt_el_key')||'';
   if(!key){toast('Enter your API key first.');return;}
   toast('Checking key…');
   try{
