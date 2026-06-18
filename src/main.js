@@ -5734,6 +5734,7 @@ function parseMechanics(responseText, pendingMsgId=null){
         if(banner){banner.style.display='block';}
         if(lbl)lbl.textContent='🎲 '+label;
         if(subEl)subEl.textContent=sub||'Roll and send your result.';
+        window._pendingRollRequest={skill,dc,pcname};
         changes.push({text:'Roll requested: '+label});
       }
       else if(key==='spell_add'){
@@ -6942,7 +6943,22 @@ function openRollSheet(){
       closeQAModal();
       const inp=document.getElementById('chat-input');if(inp){inp.value=t;sendMsg();}
     });
-  setTimeout(()=>{updateRollMod();_buildRsPills();},60);
+  setTimeout(()=>{
+    const rr=window._pendingRollRequest;
+    if(rr){
+      if(rr.pcname){
+        const pc=findPC(rr.pcname);
+        if(pc){const sel=document.getElementById('rs-pc');if(sel)sel.value=pc.id;}
+      }
+      const typeEl=document.getElementById('rs-type');
+      if(typeEl&&rr.skill){
+        const skillLower=rr.skill.toLowerCase();
+        const match=[...typeEl.options].find(o=>o.value.toLowerCase()===skillLower);
+        if(match)typeEl.value=match.value;
+      }
+    }
+    updateRollMod();_buildRsPills();
+  },60);
 }
 function rsAdjMod(delta){
   const el=document.getElementById('rs-mod');if(!el)return;
