@@ -321,12 +321,14 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `zoneBoxTap(zoneId)` — Move selected token to target zone (manual mode)
 - `zoneHPAdj(idx, delta)` — Inline HP preset buttons (+1/+5/-1/-5) on active card; triggers concentration check on damage
 - `zoneHPCustom(idx)` — Custom HP adjust from `#zac-custom-hp` input field
-- `quickAddCond(idx)` — Add condition from `#zac-cond-pick` dropdown on active card
-- `_injectTurnCtx()` — Sets `_ctxInject` with current turn context (who's up, HP, conditions, zone) for AI awareness
+- `quickAddCond(idx)` — Add condition from `#zac-cond-pick` dropdown + optional duration from `#zac-cond-dur` input (rounds)
+- `_tickCondDurations(entIdx)` — Decrement condition durations at end of combatant's turn; auto-expire and toast when 0
+- `_injectTurnCtx()` — Sets `_ctxInject` with current turn context (who's up, HP, conditions with durations, zone) for AI awareness
 - `_combatLedgerBlock()` — Shared helper generating compact combat zone grid text for genLedger + sendContextRefresh
 - `COMBAT_ONLY_CONDS` — `Set(['Prone','Grappled','Restrained'])` — auto-cleared on endCombat; persistent conditions synced back to PC sheets
 - `toggleMoveMode()` — Switch between AI-driven and manual movement
 - `addCombatant()` — Add combatant with zone dropdown
+- `cloneCombatant(idx)` — Duplicate non-PC combatant at full HP with auto-numbered suffix (Goblin → Goblin 2), randomized initiative, same zone
 - `addPartyToCombat()` — Auto-add all PCs + Grit/Wagon to zones
 - `endCombat()` — End combat, sync persistent conditions + concentration back to `state.pcs[]`, write summary to location history, reset zones
 - Active card shows death save tracker when PC at 0 HP
