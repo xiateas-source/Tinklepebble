@@ -1,36 +1,29 @@
 # Session Log — Handoff Note
 
-## Session 18 · 2026-06-18
+## Session 19 · 2026-06-18
 
 ### Shipped
-- **Context strip carousel (Flag 11 closed)** — `_ctxSlides()` builds up to 7 slides (location, time, weather, quest, combat round, party HP summary, module episode). `renderContextStrip()` shows current slide with dot indicators. `_tapCtxStrip()` cycles manually. Auto-rotation via `_ctxTimer` setInterval at 5s
-- **Combat turn tracker** — `renderTurnTracker()` horizontal initiative strip in lower-dock, replaces old HP step bar. Gold for active turn, green for PCs, red for enemies, dimmed for dead. Hidden when combat inactive
-- **HP step bar removed** — `renderStepBar()` and `renderSceneLabel()` no-op'd (empty functions). `executeStep()` is dead code (not exported to window). Step target/config UI removed from index.html
-- **Spellbook sorting** — `_sortSpellbook(book)` sorts by `parseInt(level)` then `name.localeCompare()`. Applied in: `parseMechanics` spell_add, spell picker `addSpellToBook`, manual `addSpell`, `updSpell` on name/level change, `migrate()` on load
-- **//testlevelup command** — Forces `pc.levelReady=true` and opens level-up wizard. Accepts `testlevelup`, `test levelup`, `testlu`
-- **Test chat scenario chips** — 13 AI-facing prompts replacing old `//` command chips: Award XP, Add condition, Drop loot, Start combat, NPC intro, Damage + cond, Glossary, Rest & recover, Quest hook, Level announce, Test level up
-- **Quick Actions panel z-index fix** — qa-menu z-index 202→800 (above lower-dock 700), max-height 60vh→75vh. qa-backdrop 201→799
-- **Quick Actions renamed** — "DM Actions" → "Quick Actions" throughout
-
-### Bug Fixes
-- **Suggestion chip quote escaping** — `.replace(/"/g,'&quot;')` in `renderSuggestChips` to prevent broken onclick when chip text contains double quotes
-- **Export moment stale indices** — Added bounds check `if(msgIdx>=msgs.length)` in `exportMoment()`. Added `renderChat()` call after `summarizeAndPrune()` splice to refresh DOM indices
-- **Mechanics prefix stripping** — `.replace(/^[-*•]\s+/,'')` on mechanic lines before parsing. AI using `- location: X` markdown lists was being parsed as key `- location`
-- **`**MECHANICS**` header stripping** — Added `\*{1,3}MECHANICS\*{1,3}` patterns to display stripping. Also strips `MECHANICS:`, `## MECHANICS`, standalone `---END---`
-- **Conditions hyphen parsing** — Changed from naive `includes('+')` / `includes('-')` to explicit `indexOf` with `findPC()` validation. Prevents "Infiltration-Success" from being parsed as "remove Success from PC Infiltration"
-- **previewMechanics fallback** — Added `MECHANICS:?` regex fallback for `**MECHANICS**` format (in addition to `---MECHANICS---`)
-- **Turn-tracker duplicate display** — Removed duplicate `display:flex` from inline style that overrode `display:none`
+- **Spell descriptions in level-up wizard** — Spell picker now shows school, cast time, range, and truncated description from SPELL_DB for each spell. Max-height increased 240→360px
+- **Tappable mechanic pills** — ⚡ Changes pills are now clickable; `_mechPillNav(el)` pattern-matches pill textContent to navigate to relevant app section (party/wagon/world/combat/session). CSS: `cursor:pointer` + `:active` press feedback
+- **Journal consolidation** — World tab (`tab-world`) replaced 3-panel toggle layout with single scrollable Journal view combining quests, locations, NPCs, travel log, town reputation, consequences, and secrets into collapsible `<details>` sections. Ghost containers kept as empty hidden divs for backward compat
+- **Journal header** — `renderJournalHeader()` shows location, time/weather, HP bars, quest/NPC/location counts, "Previously On" and "Catch Up" chip buttons
+- **Journal town rep** — `renderJournalRep()` duplicate renderer targeting `#journal-rep-list` in Journal (Wagon tab keeps `#town-rep-list`)
+- **Enhanced "Previously On"** — `previouslyOn()` detects sparse trackers (questCount<3 || locCount<3 || npcCount<3), sends 20 msgs (vs 8), adds MECHANICS instructions for quest_add/location_add/npc_add/town_rep, runs parseMechanics on response, strips mechanics from display
+- **"Catch Up" audit** — `catchUpAudit()` sends tracker snapshot + recent 20 messages, asks AI to audit and fill gaps, runs parseMechanics on response. QA chip `qa_25`, slash commands `//catchup` / `//catch-up`
+- **Travel timeline cross-linking** — `renderTravelLog()` enriched with labeled tappable chips showing linked quests, NPCs, and town reputation at each location. Chips navigate to relevant Journal sections
+- **Environment AI contract fix** — Added explicit instructions for `location:`, `weather:`, and `location_add:` mechanics when party moves or conditions change
+- **Journey log reversed** — Travel log now shows most recent entries first (`[...log].reverse()`), scroll position resets to top
 
 ### Decisions Made
-- Context strip carousel slides: location, time, weather, active quest, combat round, party HP, module episode
-- Turn tracker replaces HP step bar (step bar was unused in practice)
-- z-index hierarchy: lower-dock=700, qa-backdrop=799, qa-menu=800
-- Condition durations stored as `condDurations` map (Session 17) — parallel to conditions array for backward compat
-- Test chat chips are AI-facing scenario prompts, not `//` commands
+- World tab renamed to "Journal" in logistics subnav (📔 Journal)
+- Journal is one scrollable page with collapsible sections, not sub-tabs
+- "Previously On" auto-seeds sparse trackers (fewer than 3 quests, locations, or NPCs)
+- "Catch Up" is a separate lighter audit tool for ongoing maintenance
+- Travel timeline uses labeled chips instead of 8px dots (mobile-friendly, tappable)
+- Journey log ordered most-recent-first for easier orientation
 
 ### Known Issues
 - `executeStep()` is dead code — not exported, calls no-op functions. Safe to delete
-- `index_monolith.html` has stale qa-backdrop z-index (200 vs 799) — appears to be old build artifact
 - `state.worldData.plot/timers` fields orphaned
 - Remaining open flags: 10 (Familiar home), 12 (Quest log refresh) — both need user design input
 
@@ -42,9 +35,9 @@
 2. **Familiar/animal home** (Flag 10) — needs design
 3. **Quest log UX refresh** (Flag 12) — needs design
 4. **Combat quick-panel** — context strip as tappable combat action bar
-5. Update `parseMechanics` handler count in docs (currently says 43+, actually 60 handlers for 65 keys)
+5. Update `parseMechanics` handler count in docs (currently says 60+, may have grown)
 
 ### Branch State
 - Branch: `claude/new-session-rvx6tn`
-- Last commit: `1716760` (Fix Quick Actions panel cutoff + turn-tracker display bug)
+- Last commit: `ce11d07` (Reverse journey log to show most recent entries first)
 - Merged to main and live

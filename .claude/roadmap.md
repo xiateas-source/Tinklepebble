@@ -83,6 +83,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 18** (2026-06-18): Context strip carousel (Flag 11 closed) — 7-slide rotation (location, time, weather, quest, combat round, party HP, module episode) with 5s auto-rotate and manual tap cycling. Combat turn tracker replacing HP step bar — horizontal initiative strip in lower-dock. Spellbook auto-sort (level then alphabetical). `//testlevelup` command. Test chat scenario chips (13 AI-facing prompts). Quick Actions panel z-index fix (202→800) and rename ("DM Actions"→"Quick Actions"). 7 bug fixes: suggestion chip quote escaping, export moment stale indices after prune, mechanics markdown prefix stripping, `**MECHANICS**` header format support, conditions hyphen parsing (findPC validation), previewMechanics fallback, turn-tracker duplicate display property.
 
+**Session 19** (2026-06-18): Journal consolidation — replaced World tab 3-panel toggle with single scrollable Journal view (quests, locations, NPCs, travel log, town rep, consequences, secrets in collapsible `<details>` sections). Journal header with location/time/weather, HP bars, tracker counts, "Previously On" + "Catch Up" chips. Enhanced "Previously On" — auto-detects sparse trackers, expands context to 20 msgs, injects quest_add/location_add/npc_add/town_rep mechanics. New "Catch Up" audit (QA chip + `//catchup` command). Travel timeline cross-linking — labeled tappable chips for quests/NPCs/rep at each location (replaced 8px dots). Tappable mechanic pills (`_mechPillNav` pattern-matching navigation). Spell descriptions in level-up wizard spell picker. Environment AI contract fix (location/weather/location_add instructions). Journey log reversed (most recent first).
+
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
@@ -137,7 +139,7 @@ Panels to remove once their replacement matures:
 AI DM        — narrative chat, always-visible
 📔 Sheet     — character sheet (Core/Skills/Combat/Spells/Gear/Features)
 📦 Logistics
-  ├── Chronicle  — Location Journal (node map → image map), quests, consequences
+  ├── Journal    — Unified scrollable view: quests, locations, NPCs, travel log, town rep, consequences, secrets
   └── Cargo      — wagon cargo & inventory, holding cells, Pebble's Hoard
 ⚙ Systems
   ├── Session    — Story Chronicle + Module tracker
