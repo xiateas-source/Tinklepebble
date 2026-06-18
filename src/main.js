@@ -5791,6 +5791,7 @@ const SUGGEST_CHIPS={
     {label:'Rest & recover',fill:'We take a long rest at the inn. Restore HP and spell slots.'},
     {label:'Quest hook',fill:'The mayor asks us to clear the mine of undead. She offers 200 gold.'},
     {label:'Level announce',fill:'After turning in the quest, the party levels up. Announce it.'},
+    {label:'Test level up',fill:'//testlevelup'},
   ]
 };
 function renderSuggestChips(tab){
@@ -9395,6 +9396,16 @@ function _handleSlashCmd(raw){
     return;
   }
 
+  if(lower==='testlevelup'||lower==='test levelup'||lower==='testlu'){
+    const pc=state.pcs?.[0];
+    if(!pc){_cmdResult('No PCs found.');return;}
+    pc.levelReady=true;
+    save();
+    openLevelUpWizard(0);
+    _cmdResult('⚗ Test mode: forced '+pc.name+' to levelReady — opening wizard. Changes will apply to real state.');
+    return;
+  }
+
   // //help — show available commands
   if(lower==='help'||lower==='?'||lower==='commands'){
     _cmdResult('📖 Command Index (tap to expand)\n─────────────────────────────\n'
@@ -9402,6 +9413,7 @@ function _handleSlashCmd(raw){
       +'  //hp +5       — heal 5 HP          //hp -3       — take 3 damage\n'
       +'  //gold +10    — add 10 gp          //gold -5     — spend 5 gp\n'
       +'  //levelup     — open Level Up wizard for ready PCs\n'
+      +'  //testlevelup — force open Level Up wizard (testing)\n'
       +'  //add item "rope"          — add to party inventory\n'
       +'  //add item "gem" to cargo  — add to wagon cargo\n'
       +'  //add item "ring" to hoard — add to Pebble\'s hoard\n\n'
