@@ -1920,7 +1920,8 @@ function _tokenHTML(ent,idx){
   const hpCol=pct<20?'var(--red)':pct<55?'#cc8b3c':'var(--green)';
   const pc=ent.isPC?state.pcs.find(p=>p.name===ent.name):null;
   const color=pc?.color||'var(--text-dim)';
-  const conds=(ent.conditions||[]).map(c=>'<span class="zt-cond">'+esc(c)+'</span>').join('');
+  const durs=ent.condDurations||{};
+  const conds=(ent.conditions||[]).map(c=>{const d=durs[c];return '<span class="zt-cond">'+esc(c)+(d?' <small style="opacity:.7">'+d+'r</small>':'')+'</span>';}).join('');
   const conc=ent.concentrating?'<span class="zt-cond" style="border-color:var(--purple-bright);color:var(--purple-bright)">'+esc(ent.concentrating)+'</span>':'';
   const sel=_zoneMoveSel===idx?' zt-selected':'';
   return '<div class="zone-token'+(isCur?' zt-active':'')+sel+'" onclick="zoneTokenTap('+idx+')" style="border-left-color:'+color+'">'
@@ -2003,7 +2004,8 @@ function renderCombat(){
     card.style.display='';
     const idx=state.combat.currentIdx;
     const hp=parseInt(cur.hp)||0;const max=parseInt(cur.hp_max)||cur.hp||1;
-    const conds=(cur.conditions||[]).map((c,ci)=>'<span class="zt-cond" style="cursor:pointer" onclick="toggleCombCond('+idx+',\''+esc(c)+'\')">'+esc(c)+' ×</span>').join(' ');
+    const curDurs=cur.condDurations||{};
+    const conds=(cur.conditions||[]).map((c,ci)=>{const d=curDurs[c];return '<span class="zt-cond" style="cursor:pointer" onclick="toggleCombCond('+idx+',\''+esc(c)+'\')">'+esc(c)+(d?' <small style="opacity:.7">'+d+'r</small>':'')+' ×</span>';}).join(' ');
     const conc=cur.concentrating?'<span class="zt-cond" style="border-color:var(--purple-bright);color:var(--purple-bright)">'+esc(cur.concentrating)+'</span>':'';
     const zoneLbl=(state.combat.zones||{})[cur.zone||'front']?.label||(cur.zone||'front');
     const deathSaves=cur.isPC&&hp<=0?(()=>{const pc=state.pcs.find(p=>p.name===cur.name);const ds=pc?.death_saves||{success:0,fail:0};return '<div class="zac-ds"><span style="color:var(--green)">'+('●'.repeat(ds.success)+'○'.repeat(3-ds.success))+'</span> <span style="font-size:9px;color:var(--text-dim)">DS</span> <span style="color:var(--red)">'+('●'.repeat(ds.fail)+'○'.repeat(3-ds.fail))+'</span> <button class="btn sm" onclick="toggleDeathSave(state.pcs.indexOf(state.pcs.find(p=>p.name===\''+esc(cur.name)+'\')),\'success\')" style="font-size:9px;padding:1px 5px">+S</button><button class="btn sm red" onclick="toggleDeathSave(state.pcs.indexOf(state.pcs.find(p=>p.name===\''+esc(cur.name)+'\')),\'fail\')" style="font-size:9px;padding:1px 5px">+F</button></div>';})():'';
@@ -2020,7 +2022,9 @@ function renderCombat(){
       +'<button class="btn sm red" onclick="zoneHPCustom('+idx+',-1)" style="font-size:10px;padding:2px 5px">Hit</button>'
       +'<button class="btn sm green" onclick="zoneHPCustom('+idx+',1)" style="font-size:10px;padding:2px 5px">Heal</button>'
       +'</div>'
-      +'<div style="display:flex;gap:4px;align-items:center;margin-top:4px"><button class="btn sm" onclick="addCombCond('+idx+')" style="font-size:10px;padding:2px 6px">+Cond</button><select id="zac-cond-pick" style="font-size:10px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:var(--surface3);color:var(--text-dim)"><option value="">Quick…</option>'+ALL_CONDS.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select><button class="btn sm" onclick="quickAddCond('+idx+')" style="font-size:10px;padding:2px 5px">Add</button></div>'
+      +'<div style="display:flex;gap:4px;align-items:center;margin-top:4px;flex-wrap:wrap"><button class="btn sm" onclick="addCombCond('+idx+')" style="font-size:10px;padding:2px 6px">+Cond</button><select id="zac-cond-pick" style="font-size:10px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:var(--surface3);color:var(--text-dim)"><option value="">Quick…</option>'+ALL_CONDS.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select><input type="number" id="zac-cond-dur" placeholder="rds" style="width:36px;font-size:10px;padding:2px;text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--surface3);color:var(--text-dim)" title="Duration in rounds (blank = permanent)"><button class="btn sm" onclick="quickAddCond('+idx+')" style="font-size:10px;padding:2px 5px">Add</button>'
+      +(!cur.isPC?'<button class="btn sm" onclick="cloneCombatant('+idx+')" style="font-size:10px;padding:2px 6px;margin-left:auto" title="Clone this combatant">Clone</button>':'')
+      +'</div>'
       +(conds||conc?'<div class="zac-conds">'+conds+conc+'</div>':'')
       +deathSaves;
   }else if(card){card.style.display='none';}
@@ -2137,9 +2141,13 @@ function zoneHPCustom(idx,dir){
 }
 function quickAddCond(idx){
   const sel=document.getElementById('zac-cond-pick');if(!sel||!sel.value)return;
+  const dur=parseInt((document.getElementById('zac-cond-dur')||{}).value)||0;
   const ent=state.combat.list[idx];if(!ent)return;
   if(!ent.conditions)ent.conditions=[];
-  ent.conditions.push(sel.value);sel.value='';saveRefresh();
+  ent.conditions.push(sel.value);
+  if(dur>0){if(!ent.condDurations)ent.condDurations={};ent.condDurations[sel.value]=dur;}
+  sel.value='';const durIn=document.getElementById('zac-cond-dur');if(durIn)durIn.value='';
+  saveRefresh();
 }
 function toggleMoveMode(){
   state.combat.moveMode=state.combat.moveMode==='ai'?'manual':'ai';
@@ -2151,14 +2159,19 @@ function toggleCombCond(idx,cond){
   const ent=state.combat.list[idx];if(!ent)return;
   if(!ent.conditions)ent.conditions=[];
   const i=ent.conditions.indexOf(cond);
-  if(i>-1)ent.conditions.splice(i,1);else ent.conditions.push(cond);
+  if(i>-1){ent.conditions.splice(i,1);if(ent.condDurations)delete ent.condDurations[cond];}
+  else ent.conditions.push(cond);
   saveRefresh();
 }
 function addCombCond(idx){
   const cond=window.prompt('Add condition:');if(!cond)return;
+  const durStr=window.prompt('Duration in rounds (0 or blank = permanent):','');
+  const dur=parseInt(durStr)||0;
   const ent=state.combat.list[idx];if(!ent)return;
   if(!ent.conditions)ent.conditions=[];
-  ent.conditions.push(cond);saveRefresh();
+  ent.conditions.push(cond);
+  if(dur>0){if(!ent.condDurations)ent.condDurations={};ent.condDurations[cond]=dur;}
+  saveRefresh();
 }
 function addCombatant(){
   const n=document.getElementById('new-init-name');if(!n.value)return;
@@ -2170,6 +2183,18 @@ function addCombatant(){
   state.combat.list.push({name:n.value,val,hp:parseInt(document.getElementById('new-init-hp').value)||10,ac:parseInt(document.getElementById('new-init-ac').value)||12,isPC:false,zone,conditions:[],concentrating:''});
   state.logs.push({ts:state.worldData.time,type:'combat',body:n.value+' added to '+ZONE_LABELS[zone]+' (init: '+val+')'});
   sortComb();n.value='';saveRefresh();
+}
+function cloneCombatant(idx){
+  const src=state.combat.list[idx];if(!src||src.isPC)return;
+  const baseName=src.name.replace(/\s*\d+$/,'');
+  const existing=state.combat.list.filter(c=>c.name===baseName||c.name.match(new RegExp('^'+baseName.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*\\d+$')));
+  const num=existing.length+1;
+  const name=baseName+' '+num;
+  const roll=Math.floor(Math.random()*20)+1;
+  state.combat.list.push({name,val:roll,hp:src.hp_max||src.hp,hp_max:src.hp_max||src.hp,ac:src.ac,isPC:false,zone:src.zone||'front',conditions:[],concentrating:''});
+  state.logs.push({ts:state.worldData.time,type:'combat',body:name+' cloned from '+src.name+' (init: '+roll+')'});
+  sortComb();saveRefresh();
+  toast(name+' added');
 }
 function addPartyToCombat(){
   state.combat.active=true;
@@ -2205,11 +2230,24 @@ function updCombHP(i,val){
 function _injectTurnCtx(){
   const cur=state.combat.list[state.combat.currentIdx];if(!cur)return;
   const zone=(state.combat.zones||{})[cur.zone||'front']?.label||(cur.zone||'front');
-  const conds=(cur.conditions||[]).length?cur.conditions.join(', '):'none';
+  const durs=cur.condDurations||{};
+  const conds=(cur.conditions||[]).length?cur.conditions.map(c=>{const d=durs[c];return c+(d?' ('+d+' rounds)':'');}).join(', '):'none';
   const conc=cur.concentrating?' Concentrating: '+cur.concentrating+'.':'';
   _ctxInject='[TURN ADVANCE] Round '+state.combat.round+', '+cur.name+"'s turn. Zone: "+zone+'. HP: '+cur.hp+'/'+cur.hp_max+'. AC: '+cur.ac+'. Conditions: '+conds+'.'+conc+' Awaiting action.';
 }
-function nextTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;state.combat.currentIdx++;if(state.combat.currentIdx>=state.combat.list.length){state.combat.currentIdx=0;state.combat.round++;}_injectTurnCtx();saveRefresh();}
+function _tickCondDurations(entIdx){
+  const ent=state.combat.list[entIdx];if(!ent||!ent.condDurations)return;
+  const expired=[];
+  Object.keys(ent.condDurations).forEach(c=>{
+    ent.condDurations[c]--;
+    if(ent.condDurations[c]<=0){expired.push(c);delete ent.condDurations[c];}
+  });
+  if(expired.length){
+    ent.conditions=(ent.conditions||[]).filter(c=>!expired.includes(c));
+    toast(ent.name+': '+expired.join(', ')+' expired');
+  }
+}
+function nextTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;_tickCondDurations(state.combat.currentIdx);state.combat.currentIdx++;if(state.combat.currentIdx>=state.combat.list.length){state.combat.currentIdx=0;state.combat.round++;}_injectTurnCtx();saveRefresh();}
 function prevTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;state.combat.currentIdx--;if(state.combat.currentIdx<0){state.combat.currentIdx=state.combat.list.length-1;state.combat.round=Math.max(1,state.combat.round-1);}_injectTurnCtx();saveRefresh();}
 const COMBAT_ONLY_CONDS=new Set(['Prone','Grappled','Restrained']);
 function endCombat(){
@@ -9848,7 +9886,7 @@ function csRemLang(idx,li){
 // These are global because HTML onclick/oninput/etc. attributes need them
 Object.assign(window, {
   _luNext, _luRollHP, _luSelectSubclass, _luSetHP, _luToggleSpell, _luUpdateASI, _luSetASIMode, _luSelectFeat, _luUpdateFeatAbility, _luFilterFeats, _luSelectSwapOld, _luSelectSwapNew, FEATS_DB,
-  addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, addCondFromPicker,
+  addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, cloneCombatant, addCondFromPicker,
   addFamiliar, addIncome, addLogEntry, addModuleEpisode, addNPC, addNewChar,
   addPartyItem, addPartyToCombat, addPcItem, addPreset, addQA, addQuest,
   addFromCompendium, addManeuverToPC, MANEUVER_DB, SPELL_DB, addResource, addScene, addSlotLvl, addSnip, addSpell, addTownRep, addWagonItem,
