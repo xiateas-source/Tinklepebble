@@ -4849,7 +4849,7 @@ LEVEL-UP RULES (STRICT — NEVER VIOLATE):
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
 const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|income|expense|xp|quest_add|quest_done|quest_fail|quest_update|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
-const _NAKED_MECH_RE=new RegExp('^('+_MECH_KEYS+'): .+','m');
+const _NAKED_MECH_RE=new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
   let match=null;
@@ -4867,15 +4867,15 @@ function parseMechanics(responseText, pendingMsgId=null){
   }
   // Final fallback: naked mechanic lines in body with no MECHANICS header at all
   if(!match&&_NAKED_MECH_RE.test(cleanText)){
-    const nakedRe=new RegExp('^('+_MECH_KEYS+'): .+','mg');
-    const lines=[];let m;while((m=nakedRe.exec(cleanText))!==null)lines.push(m[0]);
+    const nakedRe=new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+','mg');
+    const lines=[];let m;while((m=nakedRe.exec(cleanText))!==null)lines.push(m[0].replace(/^[-*•]\s+/,''));
     if(lines.length) match={1:lines.join('\n')};
   }
   if(!match)return null;
   const block=match[1].trim();
   if(block==='none'||block==='')return null;
   const changes=[];
-  const lines=block.split('\n').map(l=>l.trim()).filter(Boolean);
+  const lines=block.split('\n').map(l=>l.trim().replace(/^[-*•]\s+/,'')).filter(Boolean);
   lines.forEach(line=>{
     try{
       const colonIdx=line.indexOf(':');if(colonIdx===-1)return;
@@ -5908,7 +5908,7 @@ function previewMechanics(responseText){
   if(m)block=m[1];
   if(!block)return[];
   const validKeys=new Set(_MECH_KEYS.split('|'));
-  return block.split('\n').map(l=>l.trim()).filter(l=>l&&l.includes(':')).map(l=>{
+  return block.split('\n').map(l=>l.trim().replace(/^[-*•]\s+/,'')).filter(l=>l&&l.includes(':')).map(l=>{
     const ci=l.indexOf(':');const key=l.slice(0,ci).trim().toLowerCase();const val=l.slice(ci+1).trim();
     return validKeys.has(key)?{key,val}:null;
   }).filter(Boolean);
@@ -5934,7 +5934,7 @@ async function sendTestMsg(text){
       .replace(/---MECHANICS---[\s\S]*?---END---/g,'')
       .replace(/---MECHANICS---[\s\S]*$/,'')
       .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
-      .replace(new RegExp('^('+_MECH_KEYS+'): .+$','gm'),'')
+      .replace(new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+$','gm'),'')
       .replace(/\n{3,}/g,'\n\n').trim();
     _testHistory.push({role:'assistant',content:displayText,preview,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
   }catch(err){
@@ -6175,7 +6175,7 @@ async function sendMsg(){
     .replace(/---MECHANICS---[\s\S]*$/,'')
     .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
     // Strip any naked mechanic lines the AI put directly in the response body
-    .replace(new RegExp('^('+_MECH_KEYS+'): .+$','gm'),'')
+    .replace(new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+$','gm'),'')
     .replace(/\n{3,}/g,'\n\n')
     .trim();
     detectUnloggedGold(displayText,mechanics);
