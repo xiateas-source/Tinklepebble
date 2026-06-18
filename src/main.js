@@ -3887,6 +3887,15 @@ function resetState(mode, startingGold){
   state.partyChat=[];
   state.snippets=[];
   state.consequences=[];
+  if(mode==='full'){
+    state.moduleProgress=[];
+    state.moduleReference='';
+    state.campaignSetup={};
+    state.sessionArchive=[];
+    state.locations=[];
+    state.sessionNotes='';
+    state.errorLog=[];
+  }
   save();
   if(window.fbSave)fbSave();
   renderAll();genLedger();
@@ -4011,7 +4020,6 @@ function showSetupStep(n){
 }
 function loadSetupFields(){
   const wd=state.worldData||{};
-  const bp=wd.businessProfile||{};
   const setup=state.campaignSetup||{};
   const f=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined)el.value=val;};
   f('setup-tone',setup.tone||'');
@@ -4025,8 +4033,6 @@ function loadSetupFields(){
   f('setup-secrets',wd.secrets||'');
   f('setup-wagon-name',state.wagon?.wagonName||'');
   f('setup-cover',state.wagon?.wagonDesc||'');
-  f('setup-real',bp.realStock||'');
-  f('setup-snake',bp.snakeOil||'');
   f('setup-gold',state.treasuryData?.gp||15);
 }
 function saveSetup(){
@@ -4203,9 +4209,6 @@ function launchCampaign(){
   saveSetup();
   // Sync all setup fields to state
   const g=(id)=>document.getElementById(id)?.value||'';
-  if(!state.worldData.businessProfile)state.worldData.businessProfile={};
-  state.worldData.businessProfile.realStock=g('setup-real');
-  state.worldData.businessProfile.snakeOil=g('setup-snake');
   state.wagon.wagonName=g('setup-wagon-name');
   state.wagon.wagonDesc=g('setup-cover');
   state.worldData.primaryMission=g('setup-mission');
