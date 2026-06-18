@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.CSGcsJOi.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.ClYQvtYh.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.DrJOujGe.css">
 </head>
 <body>
@@ -560,16 +560,16 @@
       <div class="panel-title">Step 0 — Session Zero</div>
       <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Before the first session: establish tone, expectations, and how the party met. This is sent to the AI DM as a permanent contract.</p>
       <div class="form-group"><label class="field-label">Campaign Tone</label>
-        <input type="text" id="setup-tone" placeholder="Epic dragon-cult fantasy. Heroism with real danger. Towns burn." oninput="saveSetup()">
+        <input type="text" id="setup-tone" placeholder="Epic dragon-cult fantasy. Heroism with real danger. Towns burn." oninput="if(!state.campaignSetup)state.campaignSetup={};state.campaignSetup.tone=this.value;save()">
       </div>
       <div class="form-group"><label class="field-label">How Did the Party Meet?</label>
-        <textarea id="setup-origin" style="min-height:80px" placeholder="Three strangers converging on the town of Greenest — a sellsword, a scholar, and a bard — as the Cult of the Dragon attacks." oninput="saveSetup()"></textarea>
+        <textarea id="setup-origin" style="min-height:80px" placeholder="Three strangers converging on the town of Greenest — a sellsword, a scholar, and a bard — as the Cult of the Dragon attacks." oninput="if(!state.campaignSetup)state.campaignSetup={};state.campaignSetup.origin=this.value;save()"></textarea>
       </div>
       <div class="form-group"><label class="field-label">What Are They Trying to Accomplish?</label>
-        <textarea id="setup-goal" style="min-height:60px" placeholder="Defend Greenest. Investigate the Cult of the Dragon. Stop the summoning of Tiamat." oninput="saveSetup()"></textarea>
+        <textarea id="setup-goal" style="min-height:60px" placeholder="Defend Greenest. Investigate the Cult of the Dragon. Stop the summoning of Tiamat." oninput="if(!state.campaignSetup)state.campaignSetup={};state.campaignSetup.goal=this.value;save()"></textarea>
       </div>
       <div class="form-group"><label class="field-label">Lines and Veils (topics to avoid or handle carefully)</label>
-        <textarea id="setup-lines" style="min-height:60px" placeholder="No graphic torture. Death is real but not gratuitous." oninput="saveSetup()"></textarea>
+        <textarea id="setup-lines" style="min-height:60px" placeholder="No graphic torture. Death is real but not gratuitous." oninput="if(!state.campaignSetup)state.campaignSetup={};state.campaignSetup.lines=this.value;save()"></textarea>
       </div>
     </div>
     <div class="panel">
