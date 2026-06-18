@@ -5780,6 +5780,16 @@ const SUGGEST_CHIPS={
   test:[
     {label:'Test mechanic',fill:'[Test] Apply: '},
     {label:'Test prompt',fill:'Describe the current scene in detail.'},
+    {label:'Level up',fill:'//levelup'},
+    {label:'Add condition',fill:'[Test] Apply condition Stunned for 3 rounds to the current combatant.'},
+    {label:'Clone enemy',fill:'[Test] Clone the first enemy in combat and verify initiative and naming.'},
+    {label:'XP award',fill:'[Test] Award 300 XP to the party and check for level-up threshold.'},
+    {label:'Feat check',fill:'[Test] Verify feat selection during level-up: pick Alert and confirm it appears in features.'},
+    {label:'Spell swap',fill:'[Test] Swap a known spell during level-up and verify the old spell is removed.'},
+    {label:'PC inventory',fill:'[Test] Add a Healing Potion to Tinkle\'s personal inventory via Cargo tab.'},
+    {label:'Glossary',fill:'//explain grappled'},
+    {label:'Cond expire',fill:'[Test] Advance combat turns and verify condition durations tick down and expire with a toast.'},
+    {label:'Combat setup',fill:'[Test] Add 3 Goblins to combat, clone one, then start initiative. Verify zone assignments.'},
   ]
 };
 function renderSuggestChips(tab){
