@@ -5714,6 +5714,7 @@ async function summarizeAndPrune(){
     state.prevSessionSummary=state.sessionArchive.slice(-3).map(e=>e.summary).join('\n\n');
     state.chatHistory.splice(0,30);
     save();
+    renderChat();
     toast('✓ Chat archived — oldest 30 messages summarized.');
   }catch(e){
     // Silent failure is correct — never prune without a confirmed summary
@@ -8217,6 +8218,7 @@ function exportGameplayLog(mode){
 
 function exportMoment(msgIdx){
   const msgs=state.chatHistory||[];
+  if(msgIdx>=msgs.length){toast('That message was archived in a summary — can\'t export it.');return;}
   const radius=10;
   const start=Math.max(0,msgIdx-radius);
   const end=Math.min(msgs.length,msgIdx+radius+1);
