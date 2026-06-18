@@ -3991,7 +3991,16 @@ function importFromPaste(){
       // Merge PCs
       p.pcs.forEach(newPc=>{
         const idx=state.pcs.findIndex(pc=>pc.id===newPc.id||pc.name===newPc.name);
-        if(idx>-1){const preserved={hp:state.pcs[idx].hp,xp:state.pcs[idx].xp,conditions:state.pcs[idx].conditions,inventory:state.pcs[idx].inventory,slots:state.pcs[idx].slots,resources:state.pcs[idx].resources};state.pcs[idx]={...newPc,...preserved};}
+        if(idx>-1){
+          const existing=state.pcs[idx];
+          const isBlank=!existing.name;
+          if(isBlank){
+            state.pcs[idx]=newPc;
+          } else {
+            const preserved={hp:existing.hp,xp:existing.xp,conditions:existing.conditions,inventory:existing.inventory,slots:existing.slots,resources:existing.resources};
+            state.pcs[idx]={...newPc,...preserved};
+          }
+        }
         else state.pcs.push(newPc);
       });
     }else if(p?.worldData&&!p?.pcs){
@@ -4470,6 +4479,12 @@ function migrate(s){
       if(!existing)s.quickActions.push(cqa);
       else if(existing.label!==cqa.label)existing.label=cqa.label;
     });
+  }
+
+  // ══ STALE CONTRACT CLEANUP — clear old campaign refs so HTML defaults re-seed ══
+  if(s.aiContracts){
+    if(s.aiContracts.never&&s.aiContracts.never.includes('MEREN SPELLS'))s.aiContracts.never='';
+    if(s.aiContracts.continuity&&s.aiContracts.continuity.includes('CON OPERATION MECHANICS'))s.aiContracts.continuity='';
   }
 
   // ══ CORE STRUCTURAL DEFAULTS — sub-objects, scalars, PC fields ══
