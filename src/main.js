@@ -2046,11 +2046,17 @@ function remCell(i){state.wagon.cells.splice(i,1);save();renderCells();renderCap
 
 let _cargoFilter='all';let _cargoEditIdx=null;
 let _hoardEditIdx=null;let _cargoPCFilter=null;
-function _renderInvChips(containerId,items,listType,editIdx,setEditIdx,filterState,setFilterFn,emptyMsg){
+let _invSearch='';
+function _setInvSearch(v){_invSearch=v;renderCargo();renderHoard();requestAnimationFrame(()=>{const si=document.getElementById('inv-search');if(si){si.focus();si.setSelectionRange(v.length,v.length);}});}
+function _renderInvChips(containerId,items,listType,editIdx,setEditIdx,filterState,setFilterFn,emptyMsg,searchTerm){
   const c=document.getElementById(containerId);if(!c)return;c.innerHTML='';
   const TYPE_ICON={supply:'📦',foraged:'🌿',ingredient:'⚗',trade:'💰',loot:'✨',hoard:'💎',misc:'📋',key:'🗝'};
   const groups={};
-  items.forEach((item,idx)=>{const tags=(item.type||'misc').split(',').map(t=>t.trim());tags.forEach(t=>{if(!groups[t])groups[t]=[];groups[t].push({item,idx});});});
+  const sq=searchTerm?searchTerm.toLowerCase():'';
+  items.forEach((item,idx)=>{
+    if(sq&&!(item.name||'').toLowerCase().includes(sq)&&!(item.notes||'').toLowerCase().includes(sq))return;
+    const tags=(item.type||'misc').split(',').map(t=>t.trim());tags.forEach(t=>{if(!groups[t])groups[t]=[];groups[t].push({item,idx});});
+  });
   const filters=['all',...ITYPES.filter(t=>groups[t])];
   if(filters.length>2){
     const bar=document.createElement('div');bar.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px';
@@ -2102,18 +2108,21 @@ function setCargoPCFilter(name){_cargoPCFilter=_cargoPCFilter===name?null:name;_
 function renderCargo(){
   const c=document.getElementById('wagon-cargo');if(!c)return;
   const pcs=state.pcs||[];
+  let html='<div style="position:relative;margin-bottom:8px"><input type="text" id="inv-search" value="'+esc(_invSearch)+'" placeholder="🔍 Search items…" oninput="_setInvSearch(this.value)" style="width:100%;font-size:11px;padding:6px 10px;padding-right:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text-bright);font-family:var(--sans);box-sizing:border-box">';
+  if(_invSearch)html+='<button onclick="_setInvSearch(\'\')" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;padding:2px 4px" title="Clear search">✕</button>';
+  html+='</div>';
   if(pcs.length){
-    let bar='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
+    html+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
     const wSel=!_cargoPCFilter;
-    bar+='<button onclick="setCargoPCFilter(null)" style="font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid '+(wSel?'var(--gold)':'var(--border)')+';background:'+(wSel?'var(--gold-dim)':'none')+';color:'+(wSel?'var(--gold-bright)':'var(--text-dim)')+';cursor:pointer;font-family:var(--sans)">Wagon</button>';
+    html+='<button onclick="setCargoPCFilter(null)" style="font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid '+(wSel?'var(--gold)':'var(--border)')+';background:'+(wSel?'var(--gold-dim)':'none')+';color:'+(wSel?'var(--gold-bright)':'var(--text-dim)')+';cursor:pointer;font-family:var(--sans)">Wagon</button>';
     pcs.forEach(pc=>{
       const sel=_cargoPCFilter===pc.name;
       const cnt=(pc.inventory||[]).length;
-      bar+='<button onclick="setCargoPCFilter(\''+esc(pc.name).replace(/'/g,"\\'")+'\')" style="font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid '+(sel?'var(--gold)':'var(--border)')+';background:'+(sel?'var(--gold-dim)':'none')+';color:'+(sel?'var(--gold-bright)':'var(--text-dim)')+';cursor:pointer;font-family:var(--sans)">'+esc(pc.name)+' '+cnt+'</button>';
+      html+='<button onclick="setCargoPCFilter(\''+esc(pc.name).replace(/'/g,"\\'")+'\')" style="font-size:10px;padding:3px 9px;border-radius:10px;border:1px solid '+(sel?'var(--gold)':'var(--border)')+';background:'+(sel?'var(--gold-dim)':'none')+';color:'+(sel?'var(--gold-bright)':'var(--text-dim)')+';cursor:pointer;font-family:var(--sans)">'+esc(pc.name)+' '+cnt+'</button>';
     });
-    bar+='</div>';
-    c.innerHTML=bar;
-  } else {c.innerHTML='';}
+    html+='</div>';
+  }
+  c.innerHTML=html;
   if(_cargoPCFilter){
     const pc=pcs.find(p=>p.name===_cargoPCFilter);
     if(!pc){_cargoPCFilter=null;renderCargo();return;}
@@ -2123,19 +2132,19 @@ function renderCargo(){
     c.appendChild(wrap);
     _renderInvChips('wagon-cargo-pc',items,'pc_'+pcIdx,_cargoEditIdx,
       idx=>{_cargoEditIdx=idx;renderCargo();},
-      _cargoFilter,f=>{_cargoFilter=f;renderCargo();},pc.name+' has no items.');
+      _cargoFilter,f=>{_cargoFilter=f;renderCargo();},pc.name+' has no items.',_invSearch);
   } else {
     const wrap=document.createElement('div');wrap.id='wagon-cargo-items';
     c.appendChild(wrap);
     _renderInvChips('wagon-cargo-items',state.wagon.cargo||[],'cargo',_cargoEditIdx,
       idx=>{_cargoEditIdx=idx;renderCargo();},
-      _cargoFilter,f=>{_cargoFilter=f;renderCargo();},'No cargo.');
+      _cargoFilter,f=>{_cargoFilter=f;renderCargo();},'No cargo.',_invSearch);
   }
 }
 function renderHoard(){
   _renderInvChips('wagon-hoard',state.wagon.hoard||[],'hoard',_hoardEditIdx,
     idx=>{_hoardEditIdx=idx;renderHoard();},
-    'all',()=>{},'"Mine." — Pebble');
+    'all',()=>{},'"Mine." — Pebble',_invSearch);
 }
 function closeWEdit(list){if(list==='hoard'){_hoardEditIdx=null;renderHoard();}else{_cargoEditIdx=null;renderCargo();if(list.startsWith('pc_'))renderCards();}}
 function addWagonItem(list,type){
@@ -10556,7 +10565,7 @@ Object.assign(window, {
   zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
   renderSetupLock, setSetupUnlocked, remAtk, rewindTo,
   renderPCOverview, renderHUD, renderCharTabs,
-  remPcItem, remResource, renderCapacity, renderErrorLog, closeWEdit, setCargoPCFilter,
+  remPcItem, remResource, renderCapacity, renderErrorLog, closeWEdit, setCargoPCFilter, _setInvSearch,
 });
 // Live getter so inline onclick/oninput can access `state` even after Firebase reassigns it
 Object.defineProperty(window,'state',{get(){return state;},configurable:true});
