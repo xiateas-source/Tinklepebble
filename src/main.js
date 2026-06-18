@@ -8385,8 +8385,23 @@ function exportFlagReport(mode){
     const cat=f.category||'other';
     const v=f.verdict==='pass'?'resolved':f.verdict||'pending';
     const note=(f.note||'').trim()||'(no note)';
-    report+=(i+1)+'. ['+cat+'|'+v+'] '+note+'\n';
+    const where=f.uiCtx||(f.tab?({'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dm':'AI DM','tab-dev':'Dev','tab-setup':'Setup'}[f.tab]||f.tab):'');
+    const section=f.sectionCtx?' → '+f.sectionCtx:'';
+    const loc=f.location?' @ '+f.location:'';
+    const ctx=where||section||loc?'['+where+section+loc+']':'';
+    report+=(i+1)+'. ['+cat+'|'+v+'] '+ctx+(ctx?' ':'')+ note+'\n';
+    if(f.msgContent){
+      const snip=f.msgContent.slice(0,200)+(f.msgContent.length>200?'…':'');
+      report+=' '+snip+'\n';
+    }
   });
+  report+='\n--- PROMPT FOR DEV ---\n';
+  report+='These flags were placed during gameplay. Each includes the UI location where it was flagged and the player\'s note.\n';
+  report+='Cross-reference against .claude/roadmap.md and .claude/features.md.\n\n';
+  report+='For each flag:\n';
+  report+='1. Is this a bug, a missing feature, a UX gap, or a design question?\n';
+  report+='2. Can it be fixed now, or does it need player clarification?\n';
+  report+='3. What specific change (code, contract, or UI) would resolve it?\n';
   copyText(report,'✓ '+(mode==='pending'?'Pending':'All')+' flags copied!');
 }
 
