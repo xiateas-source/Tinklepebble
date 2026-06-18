@@ -21,16 +21,28 @@ const LEVEL_UP_DATA={
     2:{auto:['Action Surge (1/Short Rest): Take one additional action on your turn.'],choose:[]},
     3:{auto:[],choose:[{type:'subclass',prompt:'Choose Martial Archetype',options:['Champion','Battle Master','Eldritch Knight']}]},
     4:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]},
-    5:{auto:['Extra Attack: Attack twice when you take the Attack action.'],choose:[]}
+    5:{auto:['Extra Attack: Attack twice when you take the Attack action.'],choose:[]},
+    6:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]},
+    7:{auto:['Battle Master: Know 5 maneuvers, 5 superiority dice (d8).','Champion: Remarkable Athlete — add half proficiency to STR/DEX/CON checks you aren\'t proficient in.'],choose:[]},
+    8:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]},
+    9:{auto:['Indomitable (1/Long Rest): Reroll a failed saving throw. Must use the new roll.'],choose:[]},
+    10:{auto:['Battle Master: Know 7 maneuvers, gain 1 additional superiority die.','Champion: Additional Fighting Style.'],choose:[]}
   }},
   rogue:{hit_die:8,levels:{
     2:{auto:['Cunning Action: Dash, Disengage, or Hide as a Bonus Action each turn.'],choose:[]},
     3:{auto:['Sneak Attack increases to 2d6.'],choose:[{type:'subclass',prompt:'Choose Roguish Archetype',options:['Arcane Trickster','Assassin','Thief','Mastermind','Swashbuckler']}]},
     4:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]},
-    5:{auto:['Uncanny Dodge: Use Reaction to halve damage from an attacker you can see.','Sneak Attack increases to 3d6.'],choose:[]}
+    5:{auto:['Uncanny Dodge: Use Reaction to halve damage from an attacker you can see.','Sneak Attack increases to 3d6.'],choose:[]},
+    6:{auto:['Expertise: Choose 2 more skill proficiencies to double.'],choose:[]},
+    7:{auto:['Evasion: DEX save for half damage → take no damage on success, half on fail.','Sneak Attack increases to 4d6.'],choose:[]},
+    8:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]},
+    9:{auto:['Arcane Trickster: Magical Ambush — if hidden, target has disadvantage on saves vs your spells.','Sneak Attack increases to 5d6.'],choose:[
+      {type:'spell',prompt:'Choose 1 new spell (up to 2nd level)',count:1,tier:2}
+    ]},
+    10:{auto:[],choose:[{type:'asi',prompt:'Ability Score Improvement'}]}
   }},
   bard:{hit_die:8,
-    slots:{1:[2],2:[3],3:[4,2],4:[4,3],5:[4,3,2]},
+    slots:{1:[2],2:[3],3:[4,2],4:[4,3],5:[4,3,2],6:[4,3,3],7:[4,3,3,1],8:[4,3,3,2],9:[4,3,3,3,1],10:[4,3,3,3,2]},
     levels:{
       2:{auto:["Jack of All Trades: Add half your proficiency bonus (rounded down) to ability checks you aren't proficient in.",'Song of Rest (d6): Allies regain extra 1d6 HP when spending Hit Dice during a Short Rest.'],
         choose:[{type:'spell',prompt:'Choose 1 new Bard spell (1st level)',count:1,tier:1}]},
@@ -44,7 +56,18 @@ const LEVEL_UP_DATA={
         {type:'spell',prompt:'Choose 1 new Bard spell or cantrip',count:1,tier:1,cantrip:true}
       ]},
       5:{auto:['Bardic Inspiration die upgrades to d8 (was d6).','Font of Inspiration: Regain all Bardic Inspiration uses on a Short Rest.'],
-        choose:[{type:'spell',prompt:'Choose 1 new Bard spell (up to 3rd level)',count:1,tier:3}]}
+        choose:[{type:'spell',prompt:'Choose 1 new Bard spell (up to 3rd level)',count:1,tier:3}]},
+      6:{auto:['College of Lore: Additional Magical Secrets — learn 2 spells from any class list (up to 3rd level).','Countercharm: As an action, start a performance that gives you and allies within 30 ft advantage on saves vs being frightened or charmed.'],
+        choose:[{type:'spell',prompt:'Choose 2 Magical Secrets spells (any class, up to 3rd level)',count:2,tier:3}]},
+      7:{auto:[],choose:[{type:'spell',prompt:'Choose 1 new Bard spell (up to 4th level)',count:1,tier:4}]},
+      8:{auto:[],choose:[
+        {type:'asi',prompt:'Ability Score Improvement'},
+        {type:'spell',prompt:'Choose 1 new Bard spell (up to 4th level)',count:1,tier:4}
+      ]},
+      9:{auto:['Song of Rest upgrades to d8 (was d6).'],
+        choose:[{type:'spell',prompt:'Choose 1 new Bard spell (up to 5th level)',count:1,tier:5}]},
+      10:{auto:['Bardic Inspiration die upgrades to d10 (was d8).','Expertise: Choose 2 more skills to double proficiency.','Magical Secrets: Learn 2 spells from any class list (up to 5th level).'],
+        choose:[{type:'spell',prompt:'Choose 2 Magical Secrets spells (any class, up to 5th level)',count:2,tier:5}]}
     }
   }
 };
@@ -52,7 +75,9 @@ const BARD_SPELLS={
   0:['Dancing Lights','Friends','Light','Mage Hand','Mending','Message','Minor Illusion','Prestidigitation','True Strike','Vicious Mockery'],
   1:['Animal Friendship','Bane','Charm Person','Comprehend Languages','Cure Wounds','Detect Magic','Disguise Self','Faerie Fire','Feather Fall','Healing Word','Heroism','Identify','Illusory Script','Longstrider','Silent Image','Sleep','Speak with Animals','Thunderwave','Unseen Servant'],
   2:['Animal Messenger','Blindness/Deafness','Calm Emotions','Cloud of Daggers','Crown of Madness','Detect Thoughts','Enhance Ability','Enthrall','Heat Metal','Hold Person','Invisibility','Knock','Lesser Restoration','Locate Object','Magic Mouth','Phantasmal Force','See Invisibility','Shatter','Silence','Suggestion','Zone of Truth'],
-  3:['Bestow Curse','Clairvoyance','Dispel Magic','Fear','Hypnotic Pattern','Major Image','Nondetection','Plant Growth','Sending','Slow','Speak with Dead','Stinking Cloud','Tongues']
+  3:['Bestow Curse','Clairvoyance','Dispel Magic','Fear','Hypnotic Pattern','Major Image','Nondetection','Plant Growth','Sending','Slow','Speak with Dead','Stinking Cloud','Tongues'],
+  4:['Compulsion','Confusion','Dimension Door','Freedom of Movement','Greater Invisibility','Hallucinatory Terrain','Locate Creature','Polymorph'],
+  5:['Animate Objects','Awaken','Dominate Person','Dream','Geas','Greater Restoration','Hold Monster','Legend Lore','Mass Cure Wounds','Mislead','Modify Memory','Planar Binding','Raise Dead','Scrying','Seeming','Teleportation Circle']
 };
 
 // ═══ SPELL COMPENDIUM ═══
@@ -9445,13 +9470,20 @@ function _handleSlashCmd(raw){
     return;
   }
 
-  if(lower==='testlevelup'||lower==='test levelup'||lower==='testlu'){
+  if(lower.startsWith('testlevelup')||lower.startsWith('test levelup')||lower.startsWith('testlu')){
     const pc=state.pcs?.[0];
     if(!pc){_cmdResult('No PCs found.');return;}
+    const parts=raw.trim().split(/\s+/);
+    const targetLvl=parseInt(parts[parts.length-1]);
+    const origLvl=pc.level||1;
+    if(targetLvl>=2&&targetLvl<=20){
+      pc.level=targetLvl-1;
+    }
     pc.levelReady=true;
     save();
     openLevelUpWizard(0);
-    _cmdResult('⚗ Test mode: forced '+pc.name+' to levelReady — opening wizard. Changes will apply to real state.');
+    const lvlMsg=targetLvl>=2&&targetLvl<=20?' (temp L'+(targetLvl-1)+'→'+targetLvl+', was L'+origLvl+')':'';
+    _cmdResult('⚗ Test mode: '+pc.name+' level-up wizard'+lvlMsg+'. Changes apply to real state — reset level after testing.');
     return;
   }
 
@@ -9462,7 +9494,7 @@ function _handleSlashCmd(raw){
       +'  //hp +5       — heal 5 HP          //hp -3       — take 3 damage\n'
       +'  //gold +10    — add 10 gp          //gold -5     — spend 5 gp\n'
       +'  //levelup     — open Level Up wizard for ready PCs\n'
-      +'  //testlevelup — force open Level Up wizard (testing)\n'
+      +'  //testlevelup [N] — force open Level Up wizard (optional: level N, e.g. //testlu 8)\n'
       +'  //add item "rope"          — add to party inventory\n'
       +'  //add item "gem" to cargo  — add to wagon cargo\n'
       +'  //add item "ring" to hoard — add to Pebble\'s hoard\n\n'
