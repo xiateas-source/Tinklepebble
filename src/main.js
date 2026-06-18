@@ -4424,6 +4424,9 @@ function migrate(s){
   if(s.aiContracts.never&&!s.aiContracts.never.includes('DUNGEON SECRETS')){
     s.aiContracts.never+='\n\n• DUNGEON SECRETS: Never reveal the contents of unexplored rooms, loot locations, enemy positions, or dungeon secrets before the players discover them through play or successful checks.\n• PLAYER AGENCY: Before resolving any scene transition, room entry, escape sequence, or significant NPC action, ask the players what they want to do first. Do not assume and narrate.\n• SKILL CHECKS: Never skip skill checks. Every uncertain action with meaningful consequences requires a declared DC, a player roll, and narration of the result. No automatic successes or assumed outcomes.';
   }
+  if(s.aiContracts.multi&&!s.aiContracts.multi.includes('PLAYER AGENCY (STRICT')){
+    s.aiContracts.multi+='\n\nPLAYER AGENCY (STRICT — NEVER VIOLATE):\n- One player CANNOT act for another player\'s character. If Player A says "we all charge in," resolve ONLY Player A\'s character. Then ASK the other players what their characters do.\n- When multiple objectives are offered (e.g. "save the temple, secure the mill, or reinforce the gate"), each player chooses independently. NEVER assume the party stays together — ask each player where they go.\n- NEVER narrate a PC\'s action, decision, movement, or position unless that PC\'s player explicitly stated it.\n- Even if a player says "leaving [PC] to follow or not" — that is NOT permission to narrate [PC]\'s choice.\n- After resolving any action, ALWAYS check: has every PC been given a chance to act? If not, ask them by name.';
+  }
   // Normalize NPCs, quests
   s.npcs.forEach(n=>{if(n.hp===undefined)n.hp=0;});
   s.quests.forEach(q=>{if(!q.status){q.status=q.done?'done':'active';}if(q.hidden===undefined)q.hidden=false;if(q.discovery===undefined)q.discovery=null;if(!q.chatMsgId)q.chatMsgId=null;});
@@ -5282,6 +5285,13 @@ Starting positions when combat begins:
 Override these defaults when the narrative demands it (ambush from behind, surrounded, etc).
 
 ALWAYS use zone_move to reposition characters during combat based on the narrative. When a PC says "I charge in" move them to the appropriate zone. When enemies flank, move them to flanks. Keep zone positions consistent with the story.
+
+COMBAT START CHECKLIST (mandatory — never skip):
+1. Emit combat_start: before anything else
+2. Emit zone_add_enemy: for EVERY enemy (name|hp|ac|zone|initiative)
+3. Emit roll_request: Initiative | 1d20+[mod] | [PC name] for EACH PC — do NOT assume initiative values
+4. Wait for initiative rolls before resolving any combat actions
+Never narrate combat in prose without emitting these mechanics. The app cannot track combat without them.
 
 LEVEL-UP RULES (STRICT — NEVER VIOLATE):
 - You CANNOT level up characters. NEVER narrate or apply stat changes from leveling up (HP increases, new feats, new spells, ability score changes, new features).
