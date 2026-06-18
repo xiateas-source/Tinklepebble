@@ -625,78 +625,57 @@ function connectFirebase(){
 let state={
   pcs:[
     {
-      id:'gareth',name:'Gareth Ironhold',race:'Human',class:'Fighter',level:1,
-      background:'Soldier',alignment:'Lawful Good',
-      hp:12,hp_max:12,ac:18,initiative:1,speed:30,passive_perception:13,passive_insight:11,
+      id:'pc1',name:'',race:'',class:'Fighter',level:1,
+      background:'',alignment:'',
+      hp:10,hp_max:10,ac:10,initiative:0,speed:30,passive_perception:10,passive_insight:10,
       xp:0,color:'#c04a3a',
-      str:'16 (+3)',dex:'12 (+1)',con:'15 (+2)',int:'10 (+0)',wis:'13 (+1)',cha:'10 (+0)',
-      skills:'Athletics +5, Intimidation +2, Perception +3, Survival +3',
-      features:'DUELING (Fighting Style): +2 damage when attacking with a one-handed melee weapon and no other weapon in the other hand. Applies to longsword+shield.\nSECOND WIND (Bonus Action, 1/Short Rest): Regain 1d10+1 HP as a bonus action.\nHEAVY ARMOR PROFICIENCY: Wearing chain mail (AC 16) + shield (+2 AC) = AC 18. Disadvantage on Stealth checks.\nLONGSWORD: 1d8+5 slashing (with Dueling), versatile (1d10+3 two-handed, loses Dueling bonus). Primary weapon.\nSHIELD: +2 AC. Currently equipped.\nHANDAXES: 1d6+3 slashing, thrown (20/60ft). Backup ranged option.\nMILITARY RANK: Former sergeant in a local militia. Can invoke rank with soldiers and veterans for respect and minor favors.\nNote: Subclass (Champion, Battle Master, or Eldritch Knight) unlocks at Level 3.',
-      magic:'None. Fighter with no spellcasting at Level 1.',
-      resources:[
-        {name:"Second Wind",max:1,used:0,restore:'short',desc:'Bonus action, heal 1d10+1 HP'}
-      ],
+      str:'10 (+0)',dex:'10 (+0)',con:'10 (+0)',int:'10 (+0)',wis:'10 (+0)',cha:'10 (+0)',
+      skills:'',
+      features:'',
+      magic:'',
+      resources:[],
       conditions:[],
       slots:[],
-      inventory:[
-        {name:'Chain Mail',qty:1,weight:55,type:'supply',notes:'AC 16. Stealth disadvantage. Currently worn.'},
-        {name:'Shield',qty:1,weight:6,type:'supply',notes:'+2 AC. Currently equipped.'},
-        {name:'Longsword',qty:1,weight:3,type:'supply',notes:'1d8+5 slashing (Dueling), versatile 1d10+3. Primary weapon.'},
-        {name:'Handaxe',qty:2,weight:4,type:'supply',notes:'1d6+3 slashing, thrown (20/60ft).'},
-        {name:"Dungeoneer's Pack",qty:1,weight:12,type:'supply',notes:'Backpack, crowbar, hammer, 10 pitons, 10 torches, tinderbox, 10 days rations, waterskin, 50ft rope.'}
-      ],
-      backstory_origin:'Served as a sergeant in a Sword Coast militia. Trained with sword and shield from boyhood. Left the service after his unit was disbanded following a border dispute. Now sells his sword arm on the Trade Way.',
-      backstory_motivation:'Find a cause worth fighting for. The militia gave him discipline but no purpose. Adventure might.',
-      backstory_secret:'PENDING — to be established through play.',
+      inventory:[],
+      backstory_origin:'',
+      backstory_motivation:'',
+      backstory_secret:'',
       pending:[]
     },
     {
-      id:'meren',name:'Meren Ashwick',race:'Human',class:'Wizard',level:1,
-      background:'Sage',alignment:'Neutral Good',
-      hp:8,hp_max:8,ac:15,initiative:2,speed:30,passive_perception:11,passive_insight:13,
+      id:'pc2',name:'',race:'',class:'Wizard',level:1,
+      background:'',alignment:'',
+      hp:6,hp_max:6,ac:10,initiative:0,speed:30,passive_perception:10,passive_insight:10,
       xp:0,color:'#4a7090',
-      str:'9 (-1)',dex:'14 (+2)',con:'14 (+2)',int:'16 (+3)',wis:'13 (+1)',cha:'11 (+0)',
-      skills:'Arcana +5, History +5, Investigation +5, Insight +3',
-      features:'ARCANE RECOVERY (1/Long Rest, after Short Rest): Recover expended spell slot levels equal to half wizard level (rounded up) = 1 level of slots. Can recover one 1st-level slot per short rest.\nSPELLCASTING: Intelligence. Save DC 13. Attack Bonus +5.\nCantrips (3): Fire Bolt (1d10 fire, 120ft), Prestidigitation, Minor Illusion.\nSpellbook (6 spells): Mage Armor, Shield, Magic Missile, Sleep, Detect Magic, Find Familiar.\nPrepared Spells (INT mod + level = 4): Mage Armor, Shield, Magic Missile, Sleep.\nSpell Slots: 2 (1st level).\nAC 15: Mage Armor (13 + DEX 2). AC 12 without Mage Armor.\nQUARTERSTAFF: 1d6-1 bludgeoning (1d8-1 versatile). Emergency melee only.\nRITUAL CASTING: Can cast Detect Magic and Find Familiar as rituals without expending spell slots (adds 10 minutes to cast time).\nNote: Arcane Tradition (School) chosen at Level 2.',
-      magic:'Spellcasting: Intelligence | Save DC: 13 | Attack Bonus: +5\nCantrips: Fire Bolt (1d10 fire, 120ft), Prestidigitation, Minor Illusion\nPrepared: Mage Armor, Shield, Magic Missile, Sleep\nSpellbook also: Detect Magic (ritual), Find Familiar (ritual)',
-      resources:[
-        {name:'Arcane Recovery',max:1,used:0,restore:'long',desc:'After short rest, recover 1 level of spell slots. 1/long rest.'}
-      ],
-      conditions:[],slots:[{max:2,used:0}],
-      inventory:[
-        {name:'Quarterstaff',qty:1,weight:4,type:'supply',notes:'1d6 bludgeoning, versatile 1d8. Emergency melee.'},
-        {name:'Component Pouch',qty:1,weight:2,type:'supply',notes:'Arcane focus. Required for spellcasting material components without gold cost.'},
-        {name:'Spellbook',qty:1,weight:3,type:'key',notes:'Contains all known wizard spells. IRREPLACEABLE — 6 spells inscribed.'},
-        {name:"Scholar's Pack",qty:1,weight:10,type:'supply',notes:'Backpack, book of lore, ink, pen, 10 sheets parchment, small knife, lamp oil.'}
-      ],
-      backstory_origin:'Scholar from Candlekeep who studies ancient dragon cults and draconic prophecy. Left the library to follow leads about renewed Cult of the Dragon activity along the Sword Coast.',
-      backstory_motivation:'Understand the Cult of the Dragon — their rituals, their goals, and how to stop them. Knowledge is the weapon that defeats fanaticism.',
-      backstory_secret:'PENDING — to be established through play.',
+      str:'10 (+0)',dex:'10 (+0)',con:'10 (+0)',int:'10 (+0)',wis:'10 (+0)',cha:'10 (+0)',
+      skills:'',
+      features:'',
+      magic:'',
+      resources:[],
+      conditions:[],
+      slots:[],
+      inventory:[],
+      backstory_origin:'',
+      backstory_motivation:'',
+      backstory_secret:'',
       pending:[]
     },
     {
-      id:'lyra',name:'Lyra Dawnharp',race:'Half-Elf',class:'Bard',level:1,
-      background:'Entertainer',alignment:'Chaotic Good',
-      hp:9,hp_max:9,ac:13,initiative:2,speed:30,passive_perception:12,passive_insight:10,
+      id:'pc3',name:'',race:'',class:'Bard',level:1,
+      background:'',alignment:'',
+      hp:8,hp_max:8,ac:10,initiative:0,speed:30,passive_perception:10,passive_insight:10,
       xp:0,color:'#7060a0',
-      str:'10 (+0)',dex:'14 (+2)',con:'13 (+1)',int:'12 (+1)',wis:'10 (+0)',cha:'16 (+3)',
-      skills:'Performance +5, Persuasion +5, Deception +5, Acrobatics +4, Perception +2, History +3',
-      features:'DARKVISION: 60ft. Half-elf trait.\nFEY ANCESTRY: Advantage on saving throws against being charmed. Magic can\'t put you to sleep.\nBARDIC INSPIRATION (Bonus Action, 3/Long Rest): Target one creature within 60 feet. They receive a d6 Inspiration die. Within 10 minutes they may add it to one ability check, attack roll, or saving throw — AFTER seeing the roll, BEFORE the DM says if it succeeds.\nSPELLCASTING: Charisma. Save DC 13. Attack Bonus +5.\nCantrips (2): Vicious Mockery (1d4 psychic + target has Disadvantage on next attack, WIS save DC 13), Light.\nSpells Known (4): Healing Word (Bonus Action, 1d4+3 heal, 60ft), Thunderwave (2d8 thunder, CON save DC 13, 15ft cube), Charm Person (WIS save DC 13, 1 hour), Dissonant Whispers (3d6 psychic, WIS save DC 13, target must flee).\nSpell Slots: 2 (1st level).\nAC 13: Leather armor (11) + DEX +2.\nRAPIER: 1d8+2 piercing, finesse. Primary melee weapon.\nBY POPULAR DEMAND: Can find a place to perform in most settlements. Free lodging in exchange for performances.\nNote: Bard College chosen at Level 3.',
-      magic:'Spellcasting: Charisma | Save DC: 13 | Attack Bonus: +5\nCantrips: Vicious Mockery (1d4 psychic + disadvantage), Light\nSpells Known: Healing Word, Thunderwave, Charm Person, Dissonant Whispers',
-      resources:[
-        {name:'Bardic Inspiration',max:3,used:0,restore:'long',desc:'Bonus action, 60ft range, d6, target adds after seeing roll. Becomes Short Rest at Level 5.'}
-      ],
-      conditions:[],slots:[{max:2,used:0}],
-      inventory:[
-        {name:'Rapier',qty:1,weight:2,type:'supply',notes:'1d8+2 piercing, finesse. Primary weapon.'},
-        {name:'Leather Armor',qty:1,weight:10,type:'supply',notes:'AC 11 + DEX. Currently worn.'},
-        {name:'Lute',qty:1,weight:2,type:'key',notes:'Arcane focus for Bard spellcasting. Prized possession.'},
-        {name:'Dagger',qty:1,weight:1,type:'supply',notes:'1d4+2 piercing, finesse, thrown (20/60ft).'},
-        {name:"Entertainer's Pack",qty:1,weight:8,type:'supply',notes:'Backpack, bedroll, 2 costumes, 5 candles, 5 days rations, waterskin, disguise kit.'}
-      ],
-      backstory_origin:'Traveling performer who wanders the Sword Coast collecting stories, songs, and legends. Hired to play at a harvest festival in Greenest — arriving just in time for everything to go wrong.',
-      backstory_motivation:'Every great bard needs a great story to tell. Stopping a dragon cult would make one hell of a ballad.',
-      backstory_secret:'PENDING — to be established through play.',
+      str:'10 (+0)',dex:'10 (+0)',con:'10 (+0)',int:'10 (+0)',wis:'10 (+0)',cha:'10 (+0)',
+      skills:'',
+      features:'',
+      magic:'',
+      resources:[],
+      conditions:[],
+      slots:[],
+      inventory:[],
+      backstory_origin:'',
+      backstory_motivation:'',
+      backstory_secret:'',
       pending:[]
     }
   ],
@@ -709,7 +688,7 @@ let state={
     plot:"- Cult of the Dragon: fanatical organization raiding settlements to amass treasure for Tiamat’s return.\n- The raid on Greenest is their latest operation — the party arrives as it begins.\n- Governor Nighthill coordinates defense from the keep. Castellan Escobert knows a secret tunnel.\n- Frulam Mondath (Wearer of Purple) leads the cult forces. Langdedrosa Cyanwrath (half-blue-dragon) is their champion.\n- Lennithon, an adult blue dragon, circles overhead — reluctant but dangerous.",
     secrets:'The Cult of the Dragon is gathering treasure across the Sword Coast to fund the summoning of Tiamat. Greenest is just one of many targets. The cult’s hoard is being transported north to a place called Castle Naerytar. Leosin Erlanthar, a Harper agent, has been captured during the raid.',
     timers:'PENDING — Active timers to be established through play.',
-    premise:"Hoard of the Dragon Queen. Three adventurers arrive at the town of Greenest along the Trade Way to find it under siege by the Cult of the Dragon and an adult blue dragon. Gareth Ironhold (Human Fighter) is a sellsword traveling the coast. Meren Ashwick (Human Wizard) is a Candlekeep scholar investigating the cult. Lyra Dawnharp (Half-Elf Bard) was hired to perform at a harvest festival that will never happen. They must defend Greenest, investigate the cult’s plans, and ultimately stop the summoning of Tiamat.",
+    premise:"Hoard of the Dragon Queen. Three adventurers arrive at the town of Greenest along the Trade Way to find it under siege by the Cult of the Dragon and an adult blue dragon. They must defend Greenest, investigate the cult’s plans, and ultimately stop the summoning of Tiamat.",
     premiseLocked:false,
     primaryMission:'Defend Greenest from the Cult of the Dragon raid. Investigate the cult’s plans and stop the summoning of Tiamat.',
     scene_title:'',
@@ -767,12 +746,12 @@ let state={
     wagonDesc:"The party is traveling on foot along the Trade Way. A cart or wagon may be acquired through play."
   },
   relationships:[
-    {from:'gareth',to:'meren',disposition:'neutral',dynamic:'PENDING — just met on the road to Greenest. Gareth respects Meren’s knowledge but doesn’t fully understand magic.',aiOnly:false,pending:true},
-    {from:'gareth',to:'lyra',disposition:'neutral',dynamic:'PENDING — Lyra’s charm is lost on the soldier. Gareth appreciates competence over charisma.',aiOnly:false,pending:true},
-    {from:'meren',to:'gareth',disposition:'neutral',dynamic:'PENDING — a capable sword arm. Meren is glad to have protection while investigating the cult.',aiOnly:false,pending:true},
-    {from:'meren',to:'lyra',disposition:'neutral',dynamic:'PENDING — entertainer and scholar. Different approaches to gathering information.',aiOnly:false,pending:true},
-    {from:'lyra',to:'gareth',disposition:'neutral',dynamic:'PENDING — strong, silent, and serious. Good material for a ballad.',aiOnly:false,pending:true},
-    {from:'lyra',to:'meren',disposition:'neutral',dynamic:'PENDING — bookish but driven. Lyra admires purpose even when it’s unfashionable.',aiOnly:false,pending:true}
+    {from:'pc1',to:'pc2',disposition:'neutral',dynamic:'PENDING -- to be established through play.',aiOnly:false,pending:true},
+    {from:'pc1',to:'pc3',disposition:'neutral',dynamic:'PENDING -- to be established through play.',aiOnly:false,pending:true},
+    {from:'pc2',to:'pc1',disposition:'neutral',dynamic:'PENDING -- to be established through play.',aiOnly:false,pending:true},
+    {from:'pc2',to:'pc3',disposition:'neutral',dynamic:'PENDING -- to be established through play.',aiOnly:false,pending:true},
+    {from:'pc3',to:'pc1',disposition:'neutral',dynamic:'PENDING -- to be established through play.',aiOnly:false,pending:true},
+    {from:'pc3',to:'pc2',disposition:'neutral',dynamic:'PENDING -- to be established through play.',aiOnly:false,pending:true}
   ],
   combat:{active:false,round:1,currentIdx:0,list:[]},
   encounterPresets:[
@@ -3844,19 +3823,19 @@ function resetState(mode, startingGold){
     travelLog:[],townReputation:[],
     businessProfile:state.worldData.businessProfile||{},
     campaignSecrets:mode==='full'?[
-      {text:"Gareth's secret: PENDING",playerKnown:false,pending:true},
-      {text:"Meren's secret: PENDING",playerKnown:false,pending:true},
-      {text:"Lyra's secret: PENDING",playerKnown:false,pending:true}
+      {text:"PC 1 secret: PENDING",playerKnown:false,pending:true},
+      {text:"PC 2 secret: PENDING",playerKnown:false,pending:true},
+      {text:"PC 3 secret: PENDING",playerKnown:false,pending:true}
     ]:(state.worldData.campaignSecrets||[])
   };
   // Build clean relationships
   const cleanRels=mode==='full'?[
-    {from:'gareth',to:'meren',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'gareth',to:'lyra',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'meren',to:'gareth',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'meren',to:'lyra',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'lyra',to:'gareth',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'lyra',to:'meren',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true}
+    {from:'pc1',to:'pc2',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'pc1',to:'pc3',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'pc2',to:'pc1',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'pc2',to:'pc3',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'pc3',to:'pc1',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'pc3',to:'pc2',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true}
   ]:(state.relationships||[]);
   // Preserve wagon canonical data
   const cleanWagon=JSON.parse(JSON.stringify(state.wagon));
@@ -3864,8 +3843,13 @@ function resetState(mode, startingGold){
   cleanWagon.conditions='';
   cleanWagon.cells=[];
   if(mode==='full'){
-    cleanWagon.cargo=JSON.parse(JSON.stringify(getCanonicalPCs()[0]?[]:(state.wagon.cargo||[])));
+    cleanWagon.cargo=[];
     cleanWagon.hoard=[];
+    cleanWagon.ox={name:'(No draft animal)',hp:0,hp_max:0,ac:10,conditions:'None',feed:'N/A',
+      backstory:'No mount or draft animal yet. Acquire one through play.',
+      personality:'',bonds:{},quirks:[],experimentLog:''};
+    cleanWagon.wagonName='No wagon yet';
+    cleanWagon.wagonDesc='The party is traveling on foot. A cart or wagon may be acquired through play.';
   }
   // Apply clean state
   state.pcs=cleanPCs;
@@ -3899,6 +3883,10 @@ function resetState(mode, startingGold){
   state.turnCount=0;state.turnsSince=0;state.chkCount=0;state.msgsSinceChk=0;
   state.scenes=[];state.activeSceneIdx=-1;
   state.dmSecrets='';
+  state.oocHistory=[];
+  state.partyChat=[];
+  state.snippets=[];
+  state.consequences=[];
   save();
   if(window.fbSave)fbSave();
   renderAll();genLedger();
@@ -5075,14 +5063,14 @@ Rules:
 - Always update weather: when weather conditions change or when entering a new outdoor area
 - Always emit location_add: for ANY new named location the party visits (town, dungeon, camp, waypoint, building)
 - ENCUMBRANCE: The ledger shows carry weight for each PC and the wagon. If any PC is over STR×15 lbs or the wagon is over 1080 lbs, you MUST enforce travel speed penalties, disadvantage on physical checks, and narrate the strain. When adding items, always emit item_add with a weight estimate. Do not ignore encumbrance — it is a core survival mechanic
-- short_rest: [name] restores Second Wind (Gareth), Arcane Recovery (Meren), and other short-rest features
+- short_rest: [name] restores class short-rest features (Second Wind for Fighters, Arcane Recovery for Wizards, etc.)
 - consequence_add: [text] | [type] — log a world consequence. Types: background (ambient, slow-burn), faction (NPC group action), personal (affects a PC directly), escalation (urgent, building threat). Use for burned-town fallout, faction retaliation, PC reputation shifts, and ticking threats. Example: consequence_add: Cult of the Dragon sends scouts to track the party after Greenest | faction
 - consequence_resolve: [partial text] — mark a consequence resolved when the party has addressed it. Example: consequence_resolve: guards searching
 - location_add: Name | Type | Description — create a new location entry. Types: town/city/camp/ruin/dungeon/waypoint. Use when the party first arrives at a new named place. Example: location_add: Greenest | town | Small farming town under dragon attack
 - location_visit: Name — mark a known location as visited and update its last-visited timestamp. Use on return trips. Example: location_visit: Greenest
 - location_history: Name | Text | dmOnly — add an event entry to a location's history. Set dmOnly to true for secret events. Example: location_history: Greenest | Governor Nighthill paid 250gp for the party's help | false
 - location_investment: Name | Description | Amount — record a party investment at a location. Example: location_investment: Greenest | Mill stake | 50
-- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). Use whenever a player action triggers a check BEFORE narrating the outcome. Example: roll_request: Persuasion | 14 | Lyra
+- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). Use whenever a player action triggers a check BEFORE narrating the outcome. Example: roll_request: Persuasion | 14 | [PC name]
 
 ZONE COMBAT SYSTEM:
 Combat uses 6 abstract zones instead of a grid: Frontline, Backline, Left Flank, Right Flank, Air Space, Rear Guard.
@@ -5093,7 +5081,7 @@ Air Space only appears when flying creatures exist. Rear Guard is safest — ene
 Zone mechanics commands:
 - combat_start: [optional description] — begin combat, initialize zone grid. Output this BEFORE any zone_add_enemy lines
 - combat_end: [summary text] — end combat, reset zones, log summary to location history
-- zone_move: [name] | [zone_id] — move a combatant to a zone. zone_id: front/back/left/right/air/rear. Example: zone_move: Gareth | left
+- zone_move: [name] | [zone_id] — move a combatant to a zone. zone_id: front/back/left/right/air/rear. Example: zone_move: [PC name] | left
 - zone_add_enemy: [name] | [hp] | [ac] | [zone_id] | [initiative] — add enemy to combat in a specific zone. Example: zone_add_enemy: Cultist | 9 | 12 | front | 14
 - zone_remove: [name] — remove a combatant (dead, fled, etc). Example: zone_remove: Cultist
 - zone_effect: [zone_id] | [effect text] | [type] — apply an effect to a zone. type: terrain or effect (default). Example: zone_effect: front | Fog Cloud — obscured | effect. Example: zone_effect: back | Difficult terrain (rubble) | terrain
@@ -5103,8 +5091,8 @@ Zone mechanics commands:
 Use fog of war to hide unexplored areas, secret rooms, or zones the party hasn't reached yet. Reveal zones as the party explores or discovers them.
 
 Starting positions when combat begins:
-- Melee fighters (Gareth): Frontline
-- Ranged/casters (Meren, Lyra): Backline
+- Melee fighters (Fighter): Frontline
+- Ranged/casters (Wizard, Bard): Backline
 - Wagon/mounts: Rear Guard (auto-added by the app if present)
 - Flanks: for ambushes, flanking maneuvers, or when enemies surround
 - Air Space: only when flying creatures exist
@@ -6175,7 +6163,7 @@ const SUGGEST_CHIPS={
     {label:'Test mechanic',fill:'[Test] Apply: '},
     {label:'Test prompt',fill:'Describe the current scene in detail.'},
     {label:'Award XP',fill:'Award 300 XP to the party for defeating the bandits.'},
-    {label:'Add condition',fill:'A cultist casts Hold Person on Gareth. Apply the Paralyzed condition.'},
+    {label:'Add condition',fill:'A cultist casts Hold Person on the Fighter. Apply the Paralyzed condition.'},
     {label:'Drop loot',fill:'The chest contains a Potion of Greater Healing, 45 gold, and a mysterious letter. Distribute it.'},
     {label:'Start combat',fill:'Three goblins and an ogre ambush the party on the road. Roll initiative.'},
     {label:'NPC intro',fill:'We enter the tavern and meet the bartender. Who are they?'},
@@ -9838,7 +9826,8 @@ function openSystemsDrawer(sub){
   const sn=document.getElementById('drawer-subnav');
   if(sn){
     sn.style.display='flex';
-    sn.innerHTML=[['session','📅 Session'],['ait','🤖 AI Tools'],['ait-chk','⏪ Tools'],['dev','🔧 Dev'],['setup','⚙ Setup']]
+    const setupLabel=state.campaignLaunched?'⚙ Setup':'▶ Start Here';
+    sn.innerHTML=[['session','📅 Session'],['ait','🤖 AI Tools'],['ait-chk','⏪ Tools'],['dev','🔧 Dev'],['setup',setupLabel]]
       .map(([k,lbl])=>`<button class="drawer-subnav-btn${k===sub?' active':''}" onclick="switchSystemsTab('${k}')">${lbl}</button>`).join('');
   }
   const t=document.getElementById('drawer-title');if(t)t.textContent='Systems';
@@ -9866,6 +9855,7 @@ function switchSystemsTab(sub){
     b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+sub+"'"));
   });
   if(sub==='session'){showSessionMode('play');}
+  if(sub==='ait-chk'){renderQAEditor();}
   clearTabBadge('tab-'+sub);
   currentTab='tab-'+sub;
   renderQAMenu();setTimeout(injectPanelFlags,150);

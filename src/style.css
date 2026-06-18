@@ -932,7 +932,7 @@ body{background-image:none;}
 .qa-fab:active{transform:scale(.92);box-shadow:0 2px 18px rgba(0,0,0,.65),0 0 20px rgba(200,120,64,.5);}
 
 /* ── ERROR FLAGS ── */
-.flag-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:3px 5px;border-radius:3px;opacity:.45;transition:opacity .2s;min-height:28px;min-width:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--gold);}
+.flag-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:3px 5px;border-radius:3px;opacity:.7;transition:opacity .2s;min-height:28px;min-width:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--gold);}
 .flag-btn:hover{opacity:1;}
 .flag-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
 .flag-cat-btn{background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);padding:10px 4px;text-align:center;cursor:pointer;transition:all .15s;font-size:10px;color:var(--text-dim);display:flex;flex-direction:column;align-items:center;gap:4px;min-height:64px;justify-content:center;}
