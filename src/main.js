@@ -3622,6 +3622,7 @@ function genLedger(){
     let l="=== CAMPAIGN COMPACT STATE ===\n";
     l+="Location: "+state.worldData.location+" | Time: "+state.worldData.time+" | Weather: "+state.worldData.weather+"\n\n";
     state.pcs.forEach(p=>{
+      if(!p.name)return;
       l+=p.name+' ('+p.race+' '+p.class+' Lv'+p.level+'): HP '+p.hp+'/'+p.hp_max+' | AC '+p.ac;
       if((p.conditions||[]).length)l+=' | Conditions: '+p.conditions.join(', ');
       const conc=p.concentrating||'';
@@ -3643,6 +3644,7 @@ function genLedger(){
   let l="=== HOARD OF THE DRAGON QUEEN — CAMPAIGN STATE LEDGER ===\n"+pfx+"\n\n";
   l+="━━━ PARTY STATUS ━━━\n";
   state.pcs.forEach(p=>{
+    if(!p.name)return;
     l+=p.name+' | Lv '+p.level+' '+p.race+' '+p.class+' | XP '+(p.xp||0)+'/'+XP_T[Math.min(p.level||1,19)]+'\n';
     l+='  HP: '+p.hp+'/'+p.hp_max+' | AC: '+p.ac+' | Speed: '+p.speed+'ft | Init: +'+p.initiative+'\n';
     l+='  STR '+p.str+' DEX '+p.dex+' CON '+p.con+' INT '+p.int+' WIS '+p.wis+' CHA '+p.cha+'\n';
