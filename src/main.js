@@ -350,7 +350,7 @@ function showTermTip(event,term){
 const SAVE_VERSION=12;
 
 // ═══ FIREBASE DROP 2 ═══
-let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false,_chatMutatedAt=0;
+let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false,_chatMutatedAt=0,_lastMechReceipt=null;
 const FB_PATH='campaigns/tinklepebble/state';
 const FB_KEYS='campaigns/tinklepebble/keys';
 
@@ -4915,7 +4915,32 @@ function parseMechanics(responseText, pendingMsgId=null){
   const block=match[1].trim();
   if(block==='none'||block==='')return null;
   const changes=[];
-  const lines=block.split('\n').map(l=>l.trim().replace(/^[-*•]\s+/,'')).filter(Boolean);
+  const _rejected=[];
+  const rawLines=block.split('\n').map(l=>l.trim().replace(/^[-*•]\s+/,'')).filter(Boolean);
+  const lines=rawLines.filter(line=>{
+    const ci=line.indexOf(':');if(ci===-1)return true;
+    const k=line.slice(0,ci).trim().toLowerCase();
+    const v=line.slice(ci+1).trim().toLowerCase();
+    if(v==='none'||v==='0'||/^0\s*,/.test(v)){_rejected.push(k+': junk value');return false;}
+    if(k==='combat_start'&&state.combat?.active){_rejected.push('combat_start: combat already active');return false;}
+    if(k==='zone_add_enemy'){
+      const nm=(line.slice(ci+1).split('|')[0]||'').trim();
+      if(nm&&(state.combat?.list||[]).some(e=>e.name===nm)){_rejected.push('zone_add_enemy: '+nm+' already in combat');return false;}
+    }
+    if(k==='xp'){
+      const recent=(state.chatHistory||[]).slice(-3);
+      const lastXPLine=recent.reverse().find(m=>m.mechanics?.some(c=>c.text?.includes('XP')));
+      if(lastXPLine){
+        const lastXPText=lastXPLine.mechanics.filter(c=>c.text?.includes('XP')).map(c=>c.text).join();
+        const thisNorm=v.replace(/\s+/g,'');
+        const lastNorm=lastXPText.replace(/[^0-9+]/g,'');
+        const thisAmts=(thisNorm.match(/\+(\d+)/g)||[]).sort().join();
+        const lastAmts=(lastNorm.match(/\+(\d+)/g)||[]).sort().join();
+        if(thisAmts&&thisAmts===lastAmts){_rejected.push('xp: duplicate of recent award');return false;}
+      }
+    }
+    return true;
+  });
   lines.forEach(line=>{
     try{
       const colonIdx=line.indexOf(':');if(colonIdx===-1)return;
@@ -5322,6 +5347,11 @@ function parseMechanics(responseText, pendingMsgId=null){
     renderNPCs();renderQuests();renderConsequences();renderCombat();renderWagon();syncWorld();renderModuleTracker();
     mechToast(changes);
   }
+  if(changes.length||_rejected.length){
+    const applied=changes.map(c=>c.text).join(', ');
+    const rejected=_rejected.join(', ');
+    _lastMechReceipt='[MECHANICS RECEIPT] Applied: '+(applied||'none')+'.'+(_rejected.length?' Rejected: '+rejected+'.':'');
+  }
   return changes.length>0?changes:null;
 }
 // State changelog — surfaces parsed mechanics as a stacking "ledger ink" feed
@@ -5675,6 +5705,7 @@ function _validateMechanics(changes){
     console.warn('[Mechanic Validator]',warnings);
     const warningChanges=warnings.map(w=>({text:'⚠ '+w,error:true}));
     mechToast(warningChanges);
+    _lastMechReceipt=(_lastMechReceipt||'[MECHANICS RECEIPT]')+' Corrected: '+warnings.join(', ')+'.';
   }
 }
 const CKEY='tt_cache';
@@ -6219,7 +6250,8 @@ async function sendMsg(){
     const wW=calcWeight();if(wW>MAX_LB)encWarns.push('Wagon OVER capacity: '+wW.toFixed(0)+'/'+MAX_LB+'lb. Travel speed halved, risk of axle failure.');
     (state.pcs||[]).forEach(p=>{const w=_pcCarryWeight(p),c=_pcCarryCap(p);if(w>c)encWarns.push(p.name+' ENCUMBERED: '+w.toFixed(0)+'/'+c+'lb.');});
     const encCtx=encWarns.length?'\n\n[ENCUMBRANCE WARNING] '+encWarns.join(' ')+' Enforce movement and travel penalties. Emit item_add/item_remove mechanics for any inventory changes.':'';
-    const sysProm=buildPrompt(ledger)+(_inject?'\n\n'+_inject:'')+encCtx;
+    const receipt=_lastMechReceipt||'';_lastMechReceipt=null;
+    const sysProm=buildPrompt(ledger)+(_inject?'\n\n'+_inject:'')+encCtx+(receipt?'\n\n'+receipt:'');
     const histForApi=state.chatHistory.filter(m=>m.role!=='system').map(m=>({
       role:m.role==='assistant'?'assistant':'user',
       content:(m.playerName&&m.role!=='assistant'?'['+m.playerName+' playing '+m.playerChar+']: ':'')+m.content
