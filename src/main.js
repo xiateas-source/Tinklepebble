@@ -5305,8 +5305,20 @@ function parseMechanics(responseText, pendingMsgId=null){
         const text=sep>-1?val.slice(0,sep).trim():val.trim();
         const type=(sep>-1?val.slice(sep+1).trim():'background').toLowerCase();
         if(text){
-          state.consequences.push({id:'csq_'+Date.now(),text,type,resolved:false,ts:state.worldData.time,location:state.worldData.location});
-          changes.push({text:'Consequence ['+type+']: '+text.slice(0,40)});
+          const textLow=text.toLowerCase();
+          const isDupe=state.consequences.some(c=>{
+            const cLow=(c.text||'').toLowerCase();
+            if(cLow===textLow)return true;
+            const words=textLow.split(/\s+/).filter(w=>w.length>3);
+            if(words.length<2)return false;
+            const hits=words.filter(w=>cLow.includes(w)).length;
+            return hits/words.length>=0.6;
+          });
+          if(isDupe){changes.push({text:'Consequence skipped (duplicate): '+text.slice(0,40)});}
+          else{
+            state.consequences.push({id:'csq_'+Date.now(),text,type,resolved:false,ts:state.worldData.time,location:state.worldData.location});
+            changes.push({text:'Consequence ['+type+']: '+text.slice(0,40)});
+          }
         }
       }else if(key==='consequence_resolve'){
         const cs=state.consequences.find(c=>!c.resolved&&c.text.toLowerCase().includes(val.toLowerCase()));
@@ -6055,7 +6067,7 @@ function renderOOC(){
     c.innerHTML='<div class="chat-msg sys"><div class="chat-msg-text" style="font-size:11px">❓ Rules — ask rules questions, check lore, or request a context resync. Brief answers only.</div></div>';
     return;
   }
-  state.oocHistory.forEach(msg=>{
+  state.oocHistory.forEach((msg,idx)=>{
     const d=document.createElement('div');
     const isDM=msg.role==='assistant';
     const isSys=msg.role==='sys'||msg.role==='system';
@@ -6067,11 +6079,44 @@ function renderOOC(){
     const sender=isSys?'System':isDM?'DM (OOC)':(msg.playerName||playerName||'Party');
     let tsHtml='';
     if(msg.gameTs||msg.ts){tsHtml='<span style="font-size:9px;opacity:.5">';if(msg.gameTs)tsHtml+=esc(msg.gameTs);if(msg.gameTs&&msg.ts)tsHtml+=' · ';if(msg.ts)tsHtml+=esc(msg.ts);tsHtml+='</span>';}
-    d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div>${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
+    const omId=`ooc-over-${idx}`;
+    const copyBtn=`<button class="copy-btn" onclick="navigator.clipboard.writeText(state.oocHistory[${idx}].content||'');toast('Copied')" title="Copy">📋</button>`;
+    const exportBtn=`<button class="flag-btn" onclick="exportOOCMoment(${idx})" title="Export this moment">⚠️</button>`;
+    const delBtn=`<button class="flag-btn" onclick="deleteOOCMsg(${idx})" title="Delete" style="color:#c05050">✕</button>`;
+    const overMenu=`<div id="${omId}" style="display:none;position:absolute;right:0;top:100%;background:var(--surface3);border:1px solid var(--border);border-radius:6px;z-index:200;padding:4px;gap:2px;flex-direction:row">${exportBtn}${delBtn}</div>`;
+    const moreBtn=`<div style="position:relative;display:inline-flex"><button class="copy-btn" onclick="(function(el){var m=document.getElementById('${omId}');m.style.display=m.style.display==='flex'?'none':'flex';document.addEventListener('click',function h(e){if(!el.contains(e.target)){m.style.display='none';document.removeEventListener('click',h);}},{once:true,capture:true});event.stopPropagation()})(this.parentElement)" title="More" style="font-size:11px;padding:0 5px;min-width:22px">⋮</button>${overMenu}</div>`;
+    d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
     if(msg.id)d.id='oocmsg_'+msg.id;
     c.appendChild(d);
   });
   c.scrollTop=c.scrollHeight;
+}
+function deleteOOCMsg(idx){
+  if(!confirm('Delete this OOC message?'))return;
+  state.oocHistory.splice(idx,1);save();renderOOC();
+}
+function exportOOCMoment(idx){
+  const msgs=state.oocHistory||[];
+  if(idx<0||idx>=msgs.length){toast('Message not found');return;}
+  const start=Math.max(0,idx-5);const end=Math.min(msgs.length,idx+6);
+  const window=msgs.slice(start,end);
+  const loc=state.worldData.location||'Unknown';
+  const pcs=(state.pcs||[]).map(p=>p.name+' ('+p.class+' '+p.level+', '+(p.hp||0)+'/'+(p.hp_max||0)+' HP)').join(', ');
+  let out='=== TINKLE\'S TINCTURES — OOC MOMENT EXPORT ===\n';
+  out+='Exported: '+new Date().toISOString().slice(0,16)+'\n';
+  out+='Target message: #'+(idx+1)+' of '+msgs.length+'\n';
+  out+='Context window: messages '+(start+1)+'–'+end+' ('+window.length+' total)\n';
+  out+='Location: '+loc+'\nPCs: '+pcs+'\n\n--- CONTEXT ---\n\n';
+  window.forEach((m,i)=>{
+    const role=m.role==='assistant'?'DM (OOC)':m.role==='sys'||m.role==='system'?'SYSTEM':'PLAYER';
+    const ts=m.gameTs||m.ts||'';
+    const marker=(start+i)===idx?'\n>>> TARGET MESSAGE <<<':'';
+    out+=(ts?'['+ts+'] ':'')+role+':\n'+m.content+'\n'+marker+'\n***\n\n';
+  });
+  out+='--- PROMPT FOR DEV ---\nThe player flagged this OOC moment for review. The TARGET MESSAGE is marked above.\n';
+  out+='Cross-reference against .claude/roadmap.md and .claude/features.md.\n\n';
+  out+='Analyze:\n1. What went wrong or felt off at this moment?\n2. Was it an AI rules error, a missing mechanic, a UX gap, or a context gap?\n3. Does a fix or feature already exist that should have caught this? If so, why didn\'t it?\n4. What specific change (code, contract clause, or prompt) would prevent this from recurring?\n';
+  navigator.clipboard.writeText(out).then(()=>toast('OOC moment exported to clipboard')).catch(()=>toast('Export failed'));
 }
 function oocKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendOOCMsg();}}
 function scrollToOOCMsg(id){
@@ -7273,7 +7318,8 @@ function catchUpAudit(){
   snap.push('CONSEQUENCES: '+((state.consequences||[]).filter(c=>!c.resolved).map(c=>(c.text||'').slice(0,50)).join('; ')||'none'));
   const sys='You are an auditor for a D&D campaign tracker app. Compare the recent chat against the current tracker state. '
     +'Identify any GAPS — NPCs mentioned but not tracked, quests implied but not logged, locations visited but not recorded, reputation changes not noted. '
-    +'For each gap, emit the appropriate mechanic. Do NOT duplicate existing entries. '
+    +'For each gap, emit the appropriate mechanic. Do NOT duplicate existing entries — if something similar already exists, skip it. '
+    +'ONE consequence per distinct event — do not log the same event as multiple types. '
     +'Before the mechanics block, write 1-2 sentences summarizing what you found.\n\n'
     +'TRACKER STATE:\n'+snap.join('\n')+'\n\n'
     +'Format:\n---MECHANICS---\nquest_add: <text>\nnpc_add: <name>,<disposition>,<details>\nlocation_add: <name>|<type>\ntown_rep: <town>,<status>,<notes>\nconsequence_add: <text>|<type>\n---END---';
@@ -7336,7 +7382,9 @@ function deepSeed(){
     const snap=trackerSnap();
     const sys='You are an auditor for a D&D campaign tracker app. Compare the provided chat history against the current tracker state. '
       +'Identify any GAPS — NPCs mentioned but not tracked, quests implied but not logged, locations visited but not recorded, reputation changes not noted, consequences not tracked. '
-      +'Do NOT duplicate existing entries. This is pass '+(pass+1)+' of a deep scan — earlier passes already added entries shown in TRACKER STATE. '
+      +'Do NOT duplicate existing entries — if a consequence, quest, NPC, or location already exists with similar meaning (even different wording), skip it. '
+      +'ONE consequence per distinct event — do not log the same event as multiple types (e.g., "ritual sabotaged" is one consequence, not separate SABOTAGE + SUCCESS + EVENT). '
+      +'This is pass '+(pass+1)+' of a deep scan — earlier passes already added entries shown in TRACKER STATE. '
       +'Only add genuinely NEW entries from this chat window. '
       +'Write 1 sentence summarizing what you found (or "No new entries found." if nothing is missing).\n\n'
       +'TRACKER STATE:\n'+snap+'\n\n'
@@ -10301,7 +10349,7 @@ Object.assign(window, {
   toggleTestMode, clearTestChat, exportTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,
-  exportGameplayLog, exportMoment, populateVoices, openResetModal, requestNotifPermission,
+  exportGameplayLog, exportMoment, exportOOCMoment, deleteOOCMsg, populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
   zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
   renderSetupLock, setSetupUnlocked, remAtk, rewindTo,
