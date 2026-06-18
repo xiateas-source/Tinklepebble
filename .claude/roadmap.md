@@ -1,15 +1,8 @@
-# Tinkle's Tinctures — Dev Roadmap
+# Hoard of the Dragon Queen — Dev Roadmap
 
 ## Standing Permissions
 - Routine UI, CSS, copy, patch notes, roadmap updates, dead code removal: proceed without asking
 - Ask before: Firebase config changes, STATE_KEYS/SAVE_VERSION bumps, save() structure changes, breaking data model changes, refactors >50 lines
-
----
-
-## ⚠ SECURITY CONSTRAINT (non-negotiable, permanent)
-**Slasher (Black Dragonborn Fighter) must NEVER learn the operation is a con.**
-Contract 1 (`#ai-persona`) must always contain: *"He does not know the operation is a con. Never tell him."*
-This fragment must survive every refactor. `buildPrompt()` validates this fragment before every send and throws a hard error if missing.
 
 ---
 
@@ -22,7 +15,7 @@ This fragment must survive every refactor. `buildPrompt()` validates this fragme
 - `callAI()` = retry wrapper (2x, 1.2s/2.4s, 5xx only) + OpenRouter free-model fallback
 - `summarizeAndPrune()` = rolling AI summary at 75 msgs → appends to `sessionArchive[]` (50-cap), `prevSessionSummary` = last 3 batches joined
 - `parseMechanics()` = 60 handlers / 65 keys; `_MECH_KEYS` controls display stripping
-- `buildPrompt()` / `genLedger()` = AI system prompt assembly
+- `buildPrompt()` / `genLedger()` = AI system prompt assembly; contract verification checks MULTI-PLAYER ADDRESSING clause
 - Navigation: 4-tab bottom nav (AI DM / Sheet / Logistics / Systems) with composite drawers; `navTo()` routes all tab access
 - Body layout: `display:flex; flex-direction:column; height:100dvh` — `#tab-dm{flex:1}` fills viewport
 - Firebase sync guard: chatHistory merge prevents vanishing messages from concurrent device writes (Session 10)
@@ -85,6 +78,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 19** (2026-06-18): Journal consolidation — replaced World tab 3-panel toggle with single scrollable Journal view (quests, locations, NPCs, travel log, town rep, consequences, secrets in collapsible `<details>` sections). Journal header with location/time/weather, HP bars, tracker counts, "Previously On" + "Catch Up" chips. Enhanced "Previously On" — auto-detects sparse trackers, expands context to 20 msgs, injects quest_add/location_add/npc_add/town_rep mechanics. New "Catch Up" audit (QA chip + `//catchup` command). Travel timeline cross-linking — labeled tappable chips for quests/NPCs/rep at each location (replaced 8px dots). Tappable mechanic pills (`_mechPillNav` pattern-matching navigation). Spell descriptions in level-up wizard spell picker. Environment AI contract fix (location/weather/location_add instructions). Journey log reversed (most recent first). Deep Seed multi-pass audit (`deepSeed()`, `//deepseed`). OOC message actions (⚠️ export, copy, delete — now directly visible). Consequence dedup (insertion-time fuzzy 60% + cleanup utility). Logistics 2-tab subnav (Journal + Cargo). Familiar system (ledger, combat auto-add, `familiar_hp` mechanic). Quest Timeline (location-grouped, NPC chips, status badges). Dedup buttons on all trackers. Consequences rewrite (editable cards with add/update/delete). Broadened `npc_add` contract (fires on any named NPC reference, not just formal introductions). 6-flag pass: DM persona closed by default, PC overview sheet display fix, OOC ⚠️ visible, QA customize scrolls to editor, header menu reorganized into sections.
 
+**Session 20** (2026-06-18): Campaign swap — Tinkle's Tinctures → Hoard of the Dragon Queen. Complete rewrite: PCs, world data, NPCs, quests, AI contracts, mechanic examples, setup placeholders, export headers. Inventory search bar (`_invSearch`, 9th param on `_renderInvChips`). Blank template PCs on reset (Fighter/Wizard/Bard level 1, empty stats). 12-flag triage: OOC/consequences/snippets clear on reset, ox/wagon clear on reset, QA Editor renders on tab switch, ⚠️ button opacity fix (.45→.7), Ledger Settings collapsed behind `<details>`, Module renamed "Episode Tracker" with helper text + Session Zero link, "Start Here" badge on Setup when campaign not launched, Setup "3 Operation" → "3 Equipment". Slasher security check removed (empty `_SLASHER_FRAGMENT`, contract verification now checks MULTI-PLAYER ADDRESSING). All relationship IDs updated to pc1/pc2/pc3. All contract defaults genericized.
+
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
@@ -100,7 +95,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ ~~**// command system** — note, flag, add, hp, gold, explain, help + suggestion chips~~
 - ✅ ~~**Gameplay log export** — full chat export, per-message moment export (⚠️), ops debrief upgrade~~
 - ✅ ~~**Expand term glossary** — add 50+ more D&D terms to tooltip system~~ — Session 17
-- ⏸ **Con Scorecard** — `state.slasherOI`, income parsing, town survival stats (needs design)
+- ⏸ ~~**Con Scorecard**~~ — REMOVED: campaign swapped to HotDQ, no longer applicable
 
 ### From Ops Debrief (14 gameplay flags — prioritized for next session)
 - ✅ ~~**Encumbrance tracking** (Flag 14) — _pcCarryWeight/_pcCarryCap, ledger + validator~~ — Session 15

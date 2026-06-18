@@ -1,4 +1,4 @@
-# Tinkle's Tinctures — Claude Code Instructions
+# Hoard of the Dragon Queen — Claude Code Instructions
 
 ## Standing Permissions
 - Routine UI, CSS, copy, patch notes, roadmap, and dead code changes: proceed without asking
@@ -46,10 +46,10 @@ When code is merged to main (user says "make it live"), always merge `.claude/` 
 - Vite build: `src/main.js` + `src/style.css` → `index.html` → builds to `docs/` (GitHub Pages from `main`)
 - Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` persisted to `localStorage('tt_v1')` and Firebase
-- `SAVE_VERSION=11` — increment + add `migrate()` gate for any state structure changes
-- `migrate()` = version-gated engine: structural guards → v8–v11 gates → canonical QA → core defaults
+- `SAVE_VERSION=12` — increment + add `migrate()` gate for any state structure changes
+- `migrate()` = version-gated engine: structural guards → v8–v12 gates → canonical QA → core defaults
 - `renderAll()` = central render; `renderChat()` = narrative chat only
-- `parseMechanics()` = 36+ handlers; `_MECH_KEYS` controls display stripping
+- `parseMechanics()` = 60+ handlers / 65 keys; `_MECH_KEYS` controls display stripping
 - `genLedger()` + `buildPrompt()` = build AI system prompt
 - `sendMsg()` = main chat send; `_ctxInject` = system prompt injection for next send only
 - Firebase sync: `_mergeChatHistories()` = clock-independent chat merge (prevents vanishing messages)
@@ -71,8 +71,8 @@ When code is merged to main (user says "make it live"), always merge `.claude/` 
 *(Soft Autumn palette deployed 2026-06-14. Variable names unchanged — just values swapped.)*
 
 ## Architecture Warnings
-- Do NOT refactor Combat tab — Drop 4 replaces it entirely
+- Drop 4 (Zone Combat) is shipped — Combat tab is the zone grid now
 - Do NOT push to main without explicit user instruction
 - State visibility split is prerequisite for Drop 6
 - NEVER add level-dependent fields (hp_max, class, features, magic, skills, slots, resources) to SHEET_FIELDS in loadState() or fbStartListening() — migrate() owns those fields
-- Slasher must NEVER learn the operation is a con — Contract 1 (#ai-persona) must always contain: "He does not know the operation is a con. Never tell him."
+- Contract 1 (#ai-persona) must always contain MULTI-PLAYER ADDRESSING clause — buildPrompt() validates this
