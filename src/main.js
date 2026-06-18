@@ -2652,9 +2652,17 @@ function _renderLevelUpStep(){
     else if(ch.type==='spell'){
       const spells=_getBardSpells(ch);
       bodyEl.innerHTML='<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Select '+ch.count+':</div>'+
-        '<div id="lu-spell-list" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">'+
-        spells.map(s=>'<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border)">'+
-          '<input type="checkbox" value="'+esc(s.replace(/^\[[^\]]+\]\s*/,''))+'" onchange="_luToggleSpell(\''+s.replace(/^\[[^\]]+\]\s*/,'').replace(/'/g,"\\'")+'\')"> <span style="font-size:12px">'+esc(s)+'</span></label>').join('')+
+        '<div id="lu-spell-list" style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">'+
+        spells.map(s=>{
+          const raw=s.replace(/^\[[^\]]+\]\s*/,'');
+          const sp=SPELL_DB.find(x=>x.name===raw);
+          return '<label style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border)">'+
+            '<input type="checkbox" style="margin-top:2px" value="'+esc(raw)+'" onchange="_luToggleSpell(\''+raw.replace(/'/g,"\\'")+'\')">'+
+            '<div><span style="font-size:12px">'+esc(s)+'</span>'+
+            (sp?'<div style="font-size:9px;color:var(--text-dim);margin-top:2px;line-height:1.4">'+esc(sp.school)+' · '+esc(sp.castTime)+' · '+esc(sp.range)+'</div>'+
+              '<div style="font-size:9px;color:var(--text-dim);line-height:1.4">'+esc(sp.desc.length>120?sp.desc.substring(0,120)+'…':sp.desc)+'</div>':'')+
+            '</div></label>';
+        }).join('')+
         '</div>';
       actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
     }
