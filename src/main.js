@@ -8534,7 +8534,6 @@ function renderSuperpowers(){
 
 // ═══ NEW INTERFACE — HUD + DRAWER + DOCK ═══
 
-var _stepTarget=null; // {type:'pc',idx:N} or {type:'gp'}
 const _DRAWER_TABS=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-ait-chk','tab-dev','tab-setup'];
 const _DRAWER_TITLES={'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-ait-chk':'Tools','tab-dev':'Dev','tab-setup':'Setup'};
 
@@ -8548,9 +8547,8 @@ function renderHUD(){
     const max=parseInt(pc.hp_max)||1;
     const pct=Math.max(0,Math.min(100,(hp/max)*100));
     const sparkCls=pct<20?'danger':pct<55?'warn':'ok';
-    const isTarget=_stepTarget&&_stepTarget.type==='pc'&&_stepTarget.idx===i;
     const tile=document.createElement('div');
-    tile.className='hud-tile'+(isTarget?' active-target':'');
+    tile.className='hud-tile';
     tile.id='hud-tile-'+i;
     tile.onclick=(function(idx){return function(){openPCOverview(idx);};})(i);
     const hasCond=(pc.conditions||[]).length>0;
@@ -8598,11 +8596,8 @@ function renderHUD(){
   // Sync dot
   const syncDot=document.getElementById('as-dot');
   // (already managed by existing save() / justSave() code via class toggles)
-  renderSceneLabel();
 }
 
-function renderSceneLabel(){}
-function renderStepBar(){}
 function renderTurnTracker(){
   const el=document.getElementById('turn-tracker');if(!el)return;
   const c=state.combat;
@@ -8620,22 +8615,6 @@ function renderTurnTracker(){
     const border=isCur?'1px solid var(--gold-dim)':'1px solid transparent';
     return `<span style="padding:2px 6px;border-radius:4px;color:${color};background:${bg};border:${border};font-weight:${isCur?'700':'400'};opacity:${dead?.4:1};font-size:10px;flex-shrink:0${isCur?';text-decoration:underline':''}">${esc(ent.name.slice(0,8))}${isPC?'':' '+hp}</span>`;
   }).join('');
-}
-function openStepConfig(){
-  const [sm,lg]=(state.hpSteps&&state.hpSteps.length===2)?state.hpSteps:[1,5];
-  openQASheet('⚙ Configure HP Steps',`
-    <div class="form-row">
-      <div class="fg"><label class="field-label">Small step (inner buttons)</label><input type="number" id="sc-sm" value="${sm}" min="1" max="99" style="font-size:20px;text-align:center;padding:8px"></div>
-      <div class="fg"><label class="field-label">Large step (outer buttons)</label><input type="number" id="sc-lg" value="${lg}" min="1" max="999" style="font-size:20px;text-align:center;padding:8px"></div>
-    </div>
-    <p style="font-size:11px;color:var(--text-dim);margin-top:8px">Common: 1&amp;5 for fine control · 5&amp;10 for boss fights · 1&amp;10 for ranged skirmishes</p>`,
-    ()=>{
-      const s=parseInt(document.getElementById('sc-sm').value)||1;
-      const l=parseInt(document.getElementById('sc-lg').value)||5;
-      state.hpSteps=[Math.min(s,l),Math.max(s,l)];
-      save();renderStepBar();renderSceneLabel();closeQAModal();
-      toast('✓ HP steps set to ±'+state.hpSteps[0]+' / ±'+state.hpSteps[1]);
-    });
 }
 function openFamiliarOverview(pcIdx){
   const pc=state.pcs[pcIdx];if(!pc||!pc.familiar)return;
@@ -9180,27 +9159,6 @@ function closeGritOverview(){
   document.getElementById('grit-ov')?.classList.remove('is-open');
   document.getElementById('grit-ov-bd')?.classList.remove('is-open');
 }
-function setStepTarget(type,idx){
-  _stepTarget={type:type,idx:idx};
-  document.querySelectorAll('.hud-tile').forEach(t=>t.classList.remove('active-target'));
-  if(type==='pc'){const tile=document.getElementById('hud-tile-'+idx);if(tile)tile.classList.add('active-target');}
-  renderSceneLabel();
-}
-
-function executeStep(delta){
-  if(!_stepTarget){toast('Tap a party tile to set HP target');return;}
-  const t=_stepTarget;
-  if(t.type==='pc'){
-    const pc=state.pcs[t.idx];
-    if(!pc)return;
-    let hp=(parseInt(pc.hp)||0)+delta;
-    const max=parseInt(pc.hp_max)||1;
-    hp=Math.max(0,Math.min(max,hp));
-    pc.hp=hp;
-    renderHUD();renderCards();renderSceneLabel();save();
-    toast((pc.name||'PC')+': '+hp+'/'+max+' HP');
-  }
-}
 
 function openDrawer(tabId){
   closeQAMenu();_closeAllOverlays();
@@ -9565,7 +9523,6 @@ var _charSheetTab=0; // 0=Core 1=Skills 2=Combat 3=Spells 4=Gear 5=Features
 function openPCOverview(idx){
   _overviewIdx=idx;
   _charSheetTab=0;
-  setStepTarget('pc',idx);
   renderPCOverview();
   const bd=document.getElementById('pc-overview-backdrop');
   const sh=document.getElementById('pc-overview-sheet');
@@ -9987,7 +9944,7 @@ Object.assign(window, {
   loadPreset, lockPremise, logTurn, markChkDone,
   navTo, nextTurn, oocKey, openDashboard, openDrawer, openFlagModal,
   openLogisticsDrawer, openSystemsDrawer, switchLogisticsTab, switchSystemsTab,
-  openLevelUpWizard, openPCOverview, openQASheet, openRollSheet, openStepConfig, openTreasury, partyKey, renderTurnTracker,
+  openLevelUpWizard, openPCOverview, openQASheet, openRollSheet, openTreasury, partyKey, renderTurnTracker,
   pcLongRest, pcShortRest, prevTurn, quickD20, quickRoll,
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
@@ -9997,7 +9954,7 @@ Object.assign(window, {
   scrollStoryBottom, scrollStoryTop, selectFlagCat,
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
   sendRollToChat, sendSceneToDM, sessionRecap, setProvider, setScene,
-  setSheetTab, setStepTarget, setTtsProvider,
+  setSheetTab, setTtsProvider,
   showChatTab, renderSuggestChips, fillSuggest, showSessionMode, showSessionTab, showSetupStep, showTab, showWorldTab,
   speakActiveScene, speakIdx, speakScene, st, submitFlag, sw, switchUser,
   testTts, toggleCombCond, toggleCond, toggleDeathSave, toggleDockDice, toggleEpContent, toggleFlagVerdict, toggleInspiration,
