@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.BjrMhRF9.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.LklsKYQe.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.DrJOujGe.css">
 </head>
 <body>
@@ -431,10 +431,10 @@
     <div class="panel accent" style="margin-top:8px">
       <div class="panel-title">Campaign Progress
         <button class="btn sm red" style="margin-left:auto" onclick="recalibrateModule()">🔄 Recalibrate</button>
-        <button class="btn sm" onclick="document.getElementById('pdf-upload-input').click()">📄 Import PDF</button>
+        <button class="btn sm" onclick="document.getElementById('pdf-upload-input').click()">📄 Import Module</button>
         <button class="btn sm green" onclick="addModuleEpisode()">+ Episode</button>
       </div>
-      <input type="file" id="pdf-upload-input" accept=".pdf" style="display:none" onchange="handleModulePDF(this.files[0])">
+      <input type="file" id="pdf-upload-input" accept=".pdf,.md,.txt" style="display:none" onchange="handleModuleFile(this.files[0])">
       <div id="pdf-import-status" style="display:none"></div>
       <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px" id="module-campaign-name"></div>
       <div style="background:var(--surface2);border-radius:var(--radius-sm);overflow:hidden;height:8px;margin-bottom:10px">

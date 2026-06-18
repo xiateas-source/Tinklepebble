@@ -3232,6 +3232,65 @@ function _ensurePdfJs(){
     document.head.appendChild(s);
   });
 }
+function handleModuleFile(file){
+  if(!file){toast('No file selected');return;}
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='md'||ext==='txt')handleModuleMD(file);
+  else if(ext==='pdf')handleModulePDF(file);
+  else toast('Unsupported file type — use .pdf, .md, or .txt');
+}
+async function handleModuleMD(file){
+  const inp=document.getElementById('pdf-upload-input');
+  if(inp)inp.value='';
+  const status=document.getElementById('pdf-import-status');
+  if(!status){toast('❌ UI element missing');return;}
+  status.style.display='block';
+  status.innerHTML='<div style="padding:8px;font-size:11px;color:var(--gold)">📄 Reading '+esc(file.name)+'…</div>';
+  try{
+    const text=await file.text();
+    const sections=_splitMarkdownSections(text);
+    if(!sections.length){toast('No sections found in file');status.style.display='none';return;}
+    _pdfSections=sections;
+    _renderPDFImport(sections,file.name,sections.reduce((a,s)=>a+s.pageCount,0));
+  }catch(err){
+    status.innerHTML='<div style="padding:8px;font-size:11px;color:var(--red)">❌ Failed to read file: '+esc(err.message)+'</div>';
+  }
+}
+function _splitMarkdownSections(text){
+  const lines=text.split('\n');
+  const sections=[];
+  let cur=null;let lineNum=0;
+  lines.forEach(line=>{
+    lineNum++;
+    const h1=line.match(/^#\s+(.+)/);
+    const h2=line.match(/^##\s+(.+)/);
+    const heading=h1||h2;
+    if(heading){
+      if(cur&&cur.lines.length)sections.push(cur);
+      cur={title:heading[1].replace(/\*+/g,'').trim().slice(0,80),startPage:lineNum,lines:[],text:'',depth:h1?1:2};
+    }
+    if(cur)cur.lines.push(line);
+    else{
+      cur={title:'Introduction',startPage:1,lines:[line],text:'',depth:0};
+    }
+  });
+  if(cur&&cur.lines.length)sections.push(cur);
+  const merged=[];
+  sections.forEach(s=>{
+    if(s.depth<=1||!merged.length){
+      merged.push({title:s.title,startPage:s.startPage,lines:[...s.lines],text:''});
+    }else{
+      merged[merged.length-1].lines.push(...s.lines);
+    }
+  });
+  return merged.map(s=>{
+    s.text=s.lines.join('\n').trim();
+    s.endPage=s.startPage+s.lines.length-1;
+    s.pageCount=s.lines.length;
+    delete s.lines;delete s.depth;
+    return s;
+  }).filter(s=>s.text.length>0);
+}
 async function handleModulePDF(file){
   const inp=document.getElementById('pdf-upload-input');
   if(inp)inp.value='';
@@ -10617,7 +10676,7 @@ Object.assign(window, {
   setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
   uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView, pinAction, closePinMenu, movePin, unpinFromMap,
   openSheetPicker, dismissRollRequest,
-  renderSessionArchive, handleModulePDF, previewPDFSection, autoAssignPDF, applyPDFImport, cancelPDFImport, _pdfModeToggle, recalibrateModule,
+  renderSessionArchive, handleModuleFile, handleModulePDF, handleModuleMD, previewPDFSection, autoAssignPDF, applyPDFImport, cancelPDFImport, _pdfModeToggle, recalibrateModule,
   verifyContracts, clearFlagNote,
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
