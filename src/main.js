@@ -5786,7 +5786,7 @@ function renderSuggestChips(tab){
   const c=document.getElementById('chat-suggest');if(!c)return;
   let chips=[...(SUGGEST_CHIPS[tab||'narrative']||SUGGEST_CHIPS.narrative)];
   if((state.pcs||[]).some(p=>p.levelReady))chips.unshift({label:'⬆ Level Up',fill:'//levelup'});
-  c.innerHTML=chips.map(ch=>`<span class="chat-suggest-chip" onclick="fillSuggest(this,'${ch.fill.replace(/'/g,"\\'")}')">${ch.label}</span>`).join('');
+  c.innerHTML=chips.map(ch=>`<span class="chat-suggest-chip" onclick="fillSuggest(this,'${ch.fill.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">${ch.label}</span>`).join('');
 }
 function fillSuggest(el,text){
   const qi=document.getElementById('chat-quick-input');
