@@ -6067,6 +6067,12 @@ function toggleCompendium(idx){
   _compOpen=!_compOpen;
   renderSpellbook(idx);
 }
+function openCompendiumFromOverview(idx){
+  _compOpen=true;
+  state.activeEditTab=idx;
+  _pcSheetTab=3;
+  renderSheets();
+}
 
 function setCompFilter(idx,k,v){
   if(k==='class')_compClass=v;
@@ -6116,7 +6122,7 @@ function renderCompendium(idx){
       const has=knownFeats.includes(m.name.toLowerCase());
       html+='<details style="margin-bottom:4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);'+(has?'opacity:.5':'')+'"><summary style="padding:6px 8px;font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer">';
       html+='<span style="flex:1;color:var(--text-bright);font-weight:600">'+esc(m.name)+'</span>';
-      html+=has?'<span style="font-size:9px;color:var(--green)">Known</span>':'<button class="btn sm gold" onclick="event.stopPropagation();addManeuverToPC('+idx+',\''+esc(m.name.replace(/'/g,"\\'"))+'\')">+ Add</button>';
+      html+=has?'<span style="font-size:9px;color:var(--green)">Known</span>':'<button class="btn sm gold" onclick="event.stopPropagation();addManeuverToPC('+idx+',MANEUVER_DB['+MANEUVER_DB.indexOf(m)+'].name)">+ Add</button>';
       html+='</summary><div style="padding:6px 8px;font-size:11px;color:var(--text);line-height:1.5;border-top:1px solid var(--border)">'+esc(m.desc)+'</div></details>';
     });
     if(!isWizard&&!isBard){html+='</div>';c.innerHTML=html;return;}
@@ -6156,7 +6162,7 @@ function renderCompendium(idx){
         html+='<span style="flex:1;min-width:0"><span style="color:var(--text-bright);font-weight:600">'+esc(sp.name)+'</span>';
         html+=' <span style="font-size:9px;color:var(--text-dim)">'+esc(sp.school)+'</span></span>';
         html+='<span style="font-size:9px;color:var(--text-dim);white-space:nowrap">'+esc(sp.castTime)+'</span>';
-        html+=has?'<span style="font-size:9px;color:var(--green);flex-shrink:0">In Book</span>':'<button class="btn sm gold" style="font-size:9px;flex-shrink:0" onclick="event.stopPropagation();addFromCompendium('+idx+',\''+esc(sp.name.replace(/'/g,"\\'"))+'\')">+</button>';
+        html+=has?'<span style="font-size:9px;color:var(--green);flex-shrink:0">In Book</span>':'<button class="btn sm gold" style="font-size:9px;flex-shrink:0" onclick="event.stopPropagation();addFromCompendium('+idx+',SPELL_DB['+SPELL_DB.indexOf(sp)+'].name)">+</button>';
         html+='</summary><div style="padding:6px 8px;border-top:1px solid var(--border);font-size:11px;line-height:1.5">';
         html+='<div style="color:var(--text-dim);margin-bottom:4px">'+esc(sp.castTime)+' · '+esc(sp.range)+' · '+esc(sp.duration)+' · '+esc(sp.components)+'</div>';
         html+='<div style="color:var(--text)">'+esc(sp.desc)+'</div>';
@@ -6242,7 +6248,7 @@ function addFamiliar(idx){
   const pc=state.pcs[idx];if(!pc)return;
   pc.familiar={name:'',type:'',hp:1,hp_max:1,ac:10,speed:'20 ft.',
     str:3,dex:15,con:10,int:2,wis:12,cha:7,passive_perception:11,notes:''};
-  save();_pcSheetTab=5;renderSheets();
+  save();_pcSheetTab=4;renderSheets();
 }
 function renderFamiliarPanel(idx){
   const c=document.getElementById('familiar-panel-'+idx);if(!c)return;
@@ -9106,7 +9112,7 @@ function renderCharSheet(idx,locked){
     if(pc.magic&&pc.magic!=='None'&&pc.magic.trim()){
       bookHtml=`<details style="margin-bottom:8px"><summary style="list-style:none;cursor:pointer;font-size:10px;font-weight:600;color:var(--purple-bright)">✨ Spellcasting Notes</summary><div style="font-size:10px;color:var(--text-dim);margin-top:5px;white-space:pre-line;line-height:1.7">${esc(pc.magic)}</div></details>`+bookHtml;
     }
-    const compBtn=`<div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sm" onclick="_compOpen=true;state.activeEditTab=${idx};_pcSheetTab=3;renderSheets()" style="font-size:10px">📚 Browse Compendium</button></div>`;
+    const compBtn=`<div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sm" onclick="openCompendiumFromOverview(${idx})" style="font-size:10px">📚 Browse Compendium</button></div>`;
     return`<div class="sheet-section">${slotHtml}${compBtn}${bookHtml}</div>`;
   }
 
@@ -9252,7 +9258,7 @@ Object.assign(window, {
   addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, addCondFromPicker,
   addFamiliar, addIncome, addLogEntry, addModuleEpisode, addNPC, addNewChar,
   addPartyItem, addPartyToCombat, addPcItem, addPreset, addQA, addQuest,
-  addFromCompendium, addManeuverToPC, addResource, addScene, addSlotLvl, addSnip, addSpell, addTownRep, addWagonItem,
+  addFromCompendium, addManeuverToPC, MANEUVER_DB, SPELL_DB, addResource, addScene, addSlotLvl, addSnip, addSpell, addTownRep, addWagonItem,
   adjHP, applyLevelUp, askDMFromParty, auditWithAI, awardXP,
   buildAISummary, buildRawSummary,
   chatKey, chatKeyQuick, checkResetConfirm, clearChat, clearChkHist,
@@ -9294,7 +9300,7 @@ Object.assign(window, {
   useResource, verifyElKey, renderSceneLabel, renderPartyPCList, toggleSkillProf,
   sendRollToChat, addPartyItem, remPI, updPI, closeInvEdit,
   showTermTip, rollStatCheck, rollInitiative,
-  _expandedMsgs, setCompFilter, setSpellFilter, toggleCompendium,
+  _expandedMsgs, openCompendiumFromOverview, setCompFilter, setSpellFilter, toggleCompendium,
   renderStepBar, setHpStep,
   openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview,
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
