@@ -1047,19 +1047,55 @@ function renderAll(){
   renderContextStrip();
 }
 
-// ═══ CONTEXT STRIP ═══
-function renderContextStrip(){
-  const el=document.getElementById('context-strip');if(!el)return;
+// ═══ CONTEXT STRIP (carousel) ═══
+let _ctxSlide=0;
+let _ctxTimer=null;
+function _ctxSlides(){
+  const slides=[];
+  const w=state.worldData||{};
+  const loc=w.location||'—';
+  const scene=w.scene_title||'';
+  slides.push({icon:'📍',text:loc+(scene?' · '+scene:''),action:'showTab(\'tab-world\')'});
+  if(w.time)slides.push({icon:'🕐',text:w.time+(w.weather?' · '+w.weather:''),action:null});
+  if(w.primaryMission)slides.push({icon:'⚔',text:w.primaryMission,action:'showTab(\'tab-world\')'});
+  const pcs=state.pcs||[];
+  if(pcs.length){
+    const hpLine=pcs.map(p=>p.name.slice(0,3)+' '+p.hp+'/'+p.hp_max).join('  ');
+    slides.push({icon:'❤',text:hpLine,action:null});
+  }
   if(state.combat&&state.combat.active&&(state.combat.list||[]).length){
     const round=state.combat.round||1;
     const cur=state.combat.list[state.combat.currentIdx||0];
-    const curName=cur?cur.name:'—';
-    el.innerHTML=`<span style="color:var(--red);font-weight:600">⚔ Round ${round}</span><span style="color:var(--border)">·</span><span style="color:var(--text-dim)">${esc(curName)}'s turn</span>`;
-  }else{
-    const loc=state.worldData&&state.worldData.location?state.worldData.location:'—';
-    const scene=state.worldData&&state.worldData.scene_title?state.worldData.scene_title:'';
-    el.innerHTML=`<span style="cursor:pointer;color:var(--gold)" onclick="showTab('tab-world')">${esc(loc)}</span>`+(scene?`<span style="color:var(--border)">·</span><span style="color:var(--text-dim)">${esc(scene)}</span>`:'');
+    slides.unshift({icon:'⚔',text:'Round '+round+' · '+(cur?cur.name+'\'s turn':'—'),action:'showTab(\'tab-combat\')',combat:true});
   }
+  const activeQuests=(state.quests||[]).filter(q=>q.status==='active');
+  if(activeQuests.length){
+    const qText=activeQuests[0].text.split('|')[0].slice(0,50);
+    slides.push({icon:'📜',text:qText+(activeQuests.length>1?' (+' +(activeQuests.length-1)+')':''),action:'showTab(\'tab-world\')'});
+  }
+  if(state.treasuryData){
+    const gp=parseFloat(state.treasuryData.gp)||0;
+    if(gp>0)slides.push({icon:'💰',text:gp+' gp',action:null});
+  }
+  return slides;
+}
+function renderContextStrip(){
+  const el=document.getElementById('context-strip');if(!el)return;
+  const slides=_ctxSlides();
+  if(!slides.length){el.innerHTML='';return;}
+  if(_ctxSlide>=slides.length)_ctxSlide=0;
+  const s=slides[_ctxSlide];
+  const dots=slides.length>1?'<span style="margin-left:auto;font-size:8px;color:var(--text-dim);letter-spacing:2px">'+slides.map((_,i)=>i===_ctxSlide?'●':'○').join('')+'</span>':'';
+  el.innerHTML=`<span style="cursor:${s.action?'pointer':'default'};color:${s.combat?'var(--red)':'var(--gold)'};font-weight:${s.combat?'600':'normal'}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>${dots}`;
+  if(!_ctxTimer){
+    const n=_ctxSlides().length;
+    if(n>1)_ctxTimer=setInterval(()=>{_ctxSlide=(_ctxSlide+1)%_ctxSlides().length;renderContextStrip();},5000);
+  }
+}
+function _tapCtxStrip(){
+  if(_ctxTimer){clearInterval(_ctxTimer);_ctxTimer=null;}
+  _ctxSlide=(_ctxSlide+1)%_ctxSlides().length;
+  renderContextStrip();
 }
 
 // ═══ CONTRACTS → STATE (DR-6) ═══
@@ -9968,7 +10004,7 @@ Object.assign(window, {
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
-  renderContextStrip, copyContracts,
+  renderContextStrip, _tapCtxStrip, copyContracts,
   navToast, scrollActiveChatBottom, scrollActiveChatTop,
   toggleTestMode, clearTestChat, exportTestChat, sendTestMsg,
   save, saveEditedNote,
