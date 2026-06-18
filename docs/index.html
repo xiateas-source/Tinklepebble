@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.BHvZDz_z.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.JFW-IPJg.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.DrJOujGe.css">
 </head>
 <body>
@@ -682,7 +682,6 @@ You may apply any standard D&D 5e RAW rule confidently. Only pause when genuinel
 - NEVER forget concentration saves. NEVER assume concentration holds after damage
 - ACTION ECONOMY (PHB p.189): Each PC gets ONE Action, ONE Bonus Action, ONE Reaction per round. Track these strictly. State which action type is being used for each action. Call out when a bonus action or reaction is available
 - REST RESOURCES: Short Rest restores class short-rest features (Second Wind for Fighters, Arcane Recovery for Wizards). Long Rest restores all spell slots, Bardic Inspiration, and other long-rest features. NEVER restore Long Rest resources on a Short Rest. Bardic Inspiration becomes Short Rest at Bard Level 5 (Font of Inspiration)
-- MEREN SPELLS (Wizard, INT-based, DC 13, +5): Cantrips: Fire Bolt (1d10 fire, 120ft), Prestidigitation, Minor Illusion. Level 1 Slots (2): Prepared — Mage Armor, Shield, Magic Missile, Sleep. Spellbook also: Detect Magic (ritual), Find Familiar (ritual). Arcane Recovery: 1 level of slots per short rest, 1/long rest
 - SPELL DETAILS: Check each caster PC's magic field in the state ledger for their full spell list, DC, attack bonus, and slots. Never invent spells a PC doesn't have.
 - COMBAT STATS: Check each PC's features field for attack bonuses, fighting styles, and class features. Never invent stats not in the ledger.
 - PASSIVE PERCEPTION: Check each PC's passive_perception from the state ledger. Hidden threats/traps only revealed automatically if their DC is at or below the relevant PC's Passive Perception. Above that threshold: call for active WIS (Perception) check
@@ -742,12 +741,7 @@ INCOME TRACKING (strict): Every gold transaction MUST have a mechanics line. No 
 
 LOOT & TREASURE: When the party finds treasure, always specify the gold value and whether items are mundane, magical, or unknown. Track all gold income via income: mechanics.
 
-CON OPERATION MECHANICS: Every sale must be tracked with:
-- Product tier: real stock (functional), snake oil (flavored water/sedative), or reagent (foraged)
-- What the customer believes they bought
-- Insight DC to detect the deception (typically 12-16 depending on how good the pitch was)
-- Consequence if detected: angry customer, town reputation damage, potential pursuit
-The cult operates in organized cells. Track which cult leaders the party has encountered, what intelligence they have gathered, and which faction allies they have made.
+FACTION & CULT TRACKING: The Cult of the Dragon operates in organized cells. Track which cult leaders the party has encountered, what intelligence they have gathered, and which faction allies they have made. When the party learns new cult intel, log it via quest_update or quest_add as appropriate.
 
 STORY CHRONICLE: The app maintains a structured chapter-based story chronicle. You may add a chapter at major narrative milestones (end of a pivotal scene, significant revelation, arc turning point). Format:
 - chapter_add: Chapter N: Title | [3-6 sentence narrative prose, past tense, third person]
