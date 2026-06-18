@@ -1849,23 +1849,23 @@ function renderTravelLog(){
     const note=pipeIdx>-1?afterArrow.slice(pipeIdx+3).trim():'';
     const label=isLast?(from?dest:dest)+' ← now':dest||from;
     const locName=dest||from;
-    let dots='';
+    let chips='';
     if(locName){
       const quests=(state.quests||[]).filter(q=>_locMatch(q.location,locName));
       const npcs=(state.npcs||[]).filter(n=>_locMatch(n.lastSeen,locName)&&n.status==='active');
       const rep=(state.worldData.townReputation||[]).find(t=>_locMatch(t.town,locName));
-      const locObj=(state.locations||[]).find(l=>_locMatch(l.name,locName));
-      quests.forEach((q,qi)=>{
+      quests.forEach(q=>{
         const qIdx=(state.quests||[]).indexOf(q);
         const col=q.status==='done'?'var(--text-dim)':q.status==='failed'?'var(--red)':'var(--gold)';
-        dots+=`<span onclick="event.stopPropagation();var d=document.getElementById('journal-sec-quests');if(d)d.open=true;var e=document.getElementById('quest-det-${qIdx}');if(e){e.open=true;e.scrollIntoView({behavior:'smooth',block:'center'});e.style.outline='2px solid var(--gold)';setTimeout(function(){e.style.outline=''},2200)}" style="cursor:pointer;display:inline-block;width:8px;height:8px;border-radius:50%;background:${col};border:1px solid ${col};margin-right:2px" title="${esc((q.text||'').split('|')[0].slice(0,40))}"></span>`;
+        const icon=q.status==='done'?'✓':q.status==='failed'?'✗':'📜';
+        chips+=`<span onclick="event.stopPropagation();var d=document.getElementById('journal-sec-quests');if(d)d.open=true;var e=document.getElementById('quest-det-${qIdx}');if(e){e.open=true;e.scrollIntoView({behavior:'smooth',block:'center'});e.style.outline='2px solid var(--gold)';setTimeout(function(){e.style.outline=''},2200)}" style="cursor:pointer;font-size:9px;padding:2px 6px;border-radius:8px;background:var(--surface3);border:1px solid ${col};color:${col};white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis">${icon} ${esc((q.text||'').split('|')[0].slice(0,30))}</span>`;
       });
       npcs.forEach(n=>{
-        dots+=`<span onclick="event.stopPropagation();var d=document.getElementById('journal-sec-npcs');if(d)d.open=true" style="cursor:pointer;display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);border:1px solid var(--green);margin-right:2px" title="${esc(n.name)}"></span>`;
+        chips+=`<span onclick="event.stopPropagation();var d=document.getElementById('journal-sec-npcs');if(d){d.open=true;d.scrollIntoView({behavior:'smooth'})}" style="cursor:pointer;font-size:9px;padding:2px 6px;border-radius:8px;background:var(--surface3);border:1px solid var(--green);color:var(--green);white-space:nowrap">👤 ${esc(n.name.slice(0,20))}</span>`;
       });
       if(rep){
         const rc=rep.status==='good'?'var(--green)':rep.status==='burned'||rep.status==='fled'?'var(--red)':'var(--text-dim)';
-        dots+=`<span onclick="event.stopPropagation();var d=document.getElementById('journal-sec-rep');if(d){d.open=true;d.scrollIntoView({behavior:'smooth'})}" style="cursor:pointer;display:inline-block;width:8px;height:8px;border-radius:50%;background:transparent;border:2px solid ${rc};margin-right:2px" title="${esc(rep.town)}: ${rep.status}"></span>`;
+        chips+=`<span onclick="event.stopPropagation();var d=document.getElementById('journal-sec-rep');if(d){d.open=true;d.scrollIntoView({behavior:'smooth'})}" style="cursor:pointer;font-size:9px;padding:2px 6px;border-radius:8px;background:var(--surface3);border:1px solid ${rc};color:${rc};white-space:nowrap">🏘 ${esc(rep.status)}</span>`;
       }
     }
     return `<div style="display:flex;gap:8px;min-height:${isLast?'32':'42'}px">
@@ -1876,7 +1876,7 @@ function renderTravelLog(){
       <div style="padding-bottom:${isLast?'0':'10'}px;min-width:0;flex:1">
         ${ts?`<div style="font-size:9px;color:var(--text-dim);letter-spacing:.3px;margin-bottom:1px">${esc(ts)}</div>`:''}
         <div style="font-size:12px;font-weight:${isLast?'600':'400'};color:${isLast?'var(--gold-bright)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(label)}</div>
-        ${dots?`<div style="display:flex;align-items:center;gap:1px;margin-top:3px">${dots}</div>`:''}
+        ${chips?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px">${chips}</div>`:''}
         ${note?`<div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-top:2px">${esc(note)}</div>`:''}
       </div>
     </div>`;
