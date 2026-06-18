@@ -180,7 +180,7 @@ state = {
 
   combat: {
     active: bool, round: num, currentIdx: num, moveMode: 'ai'|'manual',
-    list: [{name, hp, hp_max, ac, val (initiative), isPC, zone, conditions, concentrating}],
+    list: [{name, hp, hp_max, ac, val (initiative), isPC, zone, conditions, concentrating, condDurations: {condName: rounds}}],
     zones: { front:{label,effect,terrain}, back:{...}, left:{...}, right:{...}, air:{...}, rear:{...} }
   },
 
@@ -252,13 +252,15 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `renderCards()` / `renderCharTabs()` / `renderSheets()` — Character cards and edit forms
 - `renderCharSheet(idx)` — 6-tab digital sheet (Core/Skills/Combat/Spells/Gear/Features)
 - `renderCompendium(idx)` — Browsable spell/maneuver compendium with class/level filters, search, grouped by level, + Add button
+- `_sortSpellbook(book)` — Sorts spellbook by level (cantrips first) then alphabetically. Called from: spell_add mechanic, spell picker addSpellToBook, manual addSpell, updSpell on name/level change, migrate() on load
 - `renderPartyPCList()` — Compact PC list with HP bars and XP progress
 - `renderSessionArchive()` — Collapsible session archive entries, newest-first
 - `renderLocations()` — Node Map SVG + location list
 - `renderHeaderShortcuts()` — Customizable ☰ shortcut grid
 - `renderContracts()` — AI contract textareas from `state.aiContracts{}`
 - `renderHUD()` — PC tiles, Grit tile, Familiar tile
-- `renderContextStrip()` — Location/combat info bar
+- `renderContextStrip()` — Carousel with dot indicators; cycles through slides from `_ctxSlides()` (location, time, weather, quest, combat round, party HP, module episode). `_tapCtxStrip()` advances manually; `_ctxTimer` auto-rotates at 5s interval
+- `renderTurnTracker()` — Horizontal initiative strip in lower-dock during combat. Gold=active, green=PC, red=enemy, dimmed=dead. Hidden when `!state.combat.active`
 - `syncWorld()` — Refresh all world tab displays
 
 ### Navigation
@@ -282,7 +284,8 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `sendMsg()` — Send player action to AI
 - `buildPrompt(ledger)` — System prompt with all contracts; validates Slasher security fragment
 - `genLedger()` — Compile current state ledger
-- `parseMechanics(responseText, msgId)` — 43+ handlers; `_MECH_KEYS` controls display stripping
+- `parseMechanics(responseText, msgId)` — 60 handlers / 65 keys; `_MECH_KEYS` controls display stripping
+- `previewMechanics(text)` — Extracts mechanic preview from AI response text for ⚡ pill display; supports `---MECHANICS---`, `**MECHANICS**`, `MECHANICS:` formats; strips bullet prefixes
 - `callAI(messages, sysProm, maxTok)` — Retry wrapper (2x, 1.2s/2.4s, 5xx); free-model fallback
 - `summarizeAndPrune()` — Background summary at 75 msgs → pushes to `sessionArchive[]` (50-cap)
 - `sendContextRefresh()` — Full context refresh via `_ctxInject`: location, PC HP/conditions/concentration, combat zone grid (if active)
@@ -344,6 +347,10 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - **Current ability scores** — compact score display at top of ASI step for reference
 - **Spell swap** — optional step for spellcasters to replace one known spell with another from class list
 - Helper functions: `_luSetASIMode()`, `_luSelectFeat()`, `_luUpdateFeatAbility()`, `_luFilterFeats()`, `_luSelectSwapOld()`, `_luSelectSwapNew()`, `_luParseKnownSpells()`, `_luGetSwapPool()`
+
+### Removed / No-Op
+- `renderStepBar()` / `renderSceneLabel()` — empty no-op functions (step bar replaced by turn tracker in Session 18)
+- `executeStep()` — dead code; not exported to window. Safe to delete along with `_stepTarget`
 
 ### Flags & Dev
 - `flagIt()` / `openFlagModal()` / `submitFlag()` — Error flag capture with `uiCtx` auto-build
@@ -409,6 +416,7 @@ Type `//` before a message in any chat input to run a dev command instead of sen
 | `//hp +/-N` | Adjust active PC's HP |
 | `//gold +/-N` | Adjust treasury gold |
 | `//levelup` | Open Level Up wizard for the first ready PC |
+| `//testlevelup` | Force `levelReady=true` on first PC and open Level Up wizard (also: `test levelup`, `testlu`) |
 | `//explain topic` | Show in-chat help toast (16 topics: actions, combat, map, pins, inventory, ooc, contracts, dice, rest, spells, notes, flags, commands, export, shortcuts, context strip) |
 | `//help` | List all available commands |
 
@@ -443,3 +451,6 @@ Functions: `_handleSlashCmd(raw)` — command dispatcher; `SUGGEST_CHIPS{}` — 
 - **Contract 9 — Module Fidelity** — Auto-injected into `buildPrompt()` when `moduleProgress` has entries. Anti-fabrication rules: fabricated content is NON-CANONICAL, never call campaign homebrew.
 - **D&D Term Glossary** — `TERM_TIPS` (84 terms): 14 conditions, combat actions, saving throws, combat mechanics (initiative, AC, HP, death saves, crits, weapon properties), spellcasting, resting, terrain, vision, damage types, economy, class features. `_highlightTerms()` auto-links terms in AI messages; `showTermTip()` renders tap popup.
 - **Feats Database** — `FEATS_DB` (56 feats: 42 PHB + 14 TCoE). Each entry: name, description, half-feat ability options, prerequisites, source book. Used by level-up wizard ASI/Feat toggle.
+- **Condition Duration Tracking** — `condDurations` map on combat.list entries. Optional rounds on conditions. Duration input on quick-add row (`#zac-cond-dur`). Badges show remaining rounds (e.g., "Stunned 2r"). `_tickCondDurations(entIdx)` auto-expires at end of combatant's turn. Turn context injection includes durations for AI.
+- **Spellbook Auto-Sort** — `_sortSpellbook(book)` sorts by level (cantrips first) then alphabetically. Applied on: spell_add mechanic, spell picker, manual add, name/level edit, migrate().
+- **Test Chat Scenario Chips** — 13 AI-facing prompts in test channel: Award XP, Add condition, Drop loot, Start combat, NPC intro, Damage + cond, Glossary, Rest & recover, Quest hook, Level announce, Test level up. Quote escaping via `&quot;` in onclick attributes.
