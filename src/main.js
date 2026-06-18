@@ -5253,7 +5253,7 @@ Rules:
 - location_visit: Name — mark a known location as visited and update its last-visited timestamp. Use on return trips. Example: location_visit: Greenest
 - location_history: Name | Text | dmOnly — add an event entry to a location's history. Set dmOnly to true for secret events. Example: location_history: Greenest | Governor Nighthill paid 250gp for the party's help | false
 - location_investment: Name | Description | Amount — record a party investment at a location. Example: location_investment: Greenest | Mill stake | 50
-- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). Use whenever a player action triggers a check BEFORE narrating the outcome. Example: roll_request: Persuasion | 14 | [PC name]
+- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). ALWAYS use this instead of asking for a roll in prose text. The app shows a tappable banner with a Roll button — the player cannot roll from prose alone. Use for ALL rolls: skill checks, saving throws, attack rolls, damage rolls, spell rolls. Examples: roll_request: Persuasion | 14 | [PC name]. roll_request: Sleep damage | 5d8 | [PC name]. roll_request: Attack | 1d20+5 | [PC name]. If no roll_request is emitted, the player has no way to submit a roll
 
 ZONE COMBAT SYSTEM:
 Combat uses 6 abstract zones instead of a grid: Frontline, Backline, Left Flank, Right Flank, Air Space, Rear Guard.
