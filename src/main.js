@@ -1522,7 +1522,7 @@ function renderJournalHeader(){
     '</div>'+
     '<div style="display:flex;gap:6px;margin-top:8px">'+
       '<span class="journal-chip" onclick="previouslyOn()">📺 Previously On</span>'+
-      '<span class="journal-chip" onclick="catchUpAudit()">🔍 Catch Up</span>'+
+      '<span class="journal-chip" onclick="deepSeed()">🌱 Deep Seed</span>'+
     '</div>';
 }
 function renderJournalRep(){
@@ -4312,7 +4312,8 @@ function migrate(s){
     {id:'qa_21',label:'Send Active Scene',type:'send_scene',params:{},context:['tab-dm','tab-session']},
     {id:'qa_22',label:'Module Check-in',type:'module_checkin',params:{},context:['tab-dm','tab-session']},
     {id:'qa_24',label:'Previously On…',type:'previously_on',params:{},context:['tab-dm']},
-    {id:'qa_25',label:'Catch Up',type:'catch_up',params:{},context:['tab-dm','tab-world']}
+    {id:'qa_25',label:'Catch Up',type:'catch_up',params:{},context:['tab-dm','tab-world']},
+    {id:'qa_26',label:'Deep Seed',type:'deep_seed',params:{},context:['tab-dm','tab-world']}
   ];
   if(!s.quickActions.length){s.quickActions=canonicalQA;}
   else{canonicalQA.forEach(cqa=>{if(!s.quickActions.find(a=>a.id===cqa.id))s.quickActions.push(cqa);});}
@@ -7289,6 +7290,84 @@ function catchUpAudit(){
     save();renderChat();renderAll();scrollActiveChatBottom();
   }).catch(err=>{if(typEl)typEl.classList.remove('on');toast('Catch-up failed: '+err.message);});
 }
+function deepSeed(){
+  const key=getKey();if(!key){toast('Set an API key first.');return;}
+  const allMsgs=(state.chatHistory||[]).filter(m=>m.role==='assistant'||m.role==='user');
+  if(allMsgs.length<3){toast('Not enough chat history.');return;}
+  const archive=(state.sessionArchive||[]).map(e=>e.summary||'').filter(Boolean);
+  const typEl=document.getElementById('typing-ind');
+  if(typEl)typEl.classList.add('on');
+  toast('Deep Seed: scanning campaign history…');
+  const MAX_PASSES=4;
+  const findings=[];
+  let totalAdded=0;
+  function trackerSnap(){
+    const s=[];
+    s.push('QUESTS: '+(state.quests||[]).map(q=>'['+q.status+'] '+(q.text||'').slice(0,50)).join('; '));
+    s.push('NPCs: '+(state.npcs||[]).filter(n=>n.status!=='deceased').map(n=>n.name+' ('+n.disposition+')').join(', '));
+    s.push('LOCATIONS: '+((state.locations||[]).map(l=>l.name).join(', ')||'none'));
+    s.push('TOWN REP: '+((state.worldData.townReputation||[]).map(t=>t.town+':'+t.status).join(', ')||'none'));
+    s.push('CONSEQUENCES: '+((state.consequences||[]).filter(c=>!c.resolved).map(c=>(c.text||'').slice(0,50)).join('; ')||'none'));
+    return s.join('\n');
+  }
+  function countTrackers(){
+    return (state.quests||[]).length+(state.npcs||[]).length+(state.locations||[]).length
+      +(state.worldData.townReputation||[]).length+(state.consequences||[]).filter(c=>!c.resolved).length;
+  }
+  function buildContext(pass){
+    const chunks=[];
+    if(pass===0) chunks.push(...allMsgs.slice(-20));
+    else if(pass===1) chunks.push(...allMsgs.slice(-50,-15));
+    else if(pass===2){
+      chunks.push(...allMsgs.slice(-80,-40));
+      if(archive.length) chunks.push({role:'assistant',content:'[SESSION ARCHIVE]\n'+archive.slice(-2).join('\n\n')});
+    }else{
+      if(archive.length>2) chunks.push({role:'assistant',content:'[SESSION ARCHIVE]\n'+archive.slice(0,-2).join('\n\n')});
+      else chunks.push(...allMsgs.slice(0,20));
+    }
+    if(!chunks.length) return null;
+    return chunks.map(m=>({role:m.role==='assistant'?'assistant':'user',content:String(m.content||'').slice(0,600)}));
+  }
+  function runPass(pass){
+    if(pass>=MAX_PASSES){finish();return;}
+    const ctx=buildContext(pass);
+    if(!ctx||!ctx.length){finish();return;}
+    const snap=trackerSnap();
+    const sys='You are an auditor for a D&D campaign tracker app. Compare the provided chat history against the current tracker state. '
+      +'Identify any GAPS — NPCs mentioned but not tracked, quests implied but not logged, locations visited but not recorded, reputation changes not noted, consequences not tracked. '
+      +'Do NOT duplicate existing entries. This is pass '+(pass+1)+' of a deep scan — earlier passes already added entries shown in TRACKER STATE. '
+      +'Only add genuinely NEW entries from this chat window. '
+      +'Write 1 sentence summarizing what you found (or "No new entries found." if nothing is missing).\n\n'
+      +'TRACKER STATE:\n'+snap+'\n\n'
+      +'Format:\n---MECHANICS---\nquest_add: <text>\nnpc_add: <name>,<disposition>,<details>\nlocation_add: <name>|<type>\ntown_rep: <town>,<status>,<notes>\nconsequence_add: <text>|<type>\ntravel_note: <text>\n---END---';
+    const msgs=[...ctx,{role:'user',content:'Audit this section of campaign history. Emit mechanics for anything missing from our trackers.'}];
+    toast('Deep Seed: pass '+(pass+1)+'/'+MAX_PASSES+'…');
+    const beforeCount=countTrackers();
+    callAI(msgs,sys,500).then(resp=>{
+      parseMechanics(resp);
+      const afterCount=countTrackers();
+      const added=afterCount-beforeCount;
+      totalAdded+=added;
+      const displayText=resp.replace(/---MECHANICS---[\s\S]*?(?:---END---|$)/gi,'').replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*/gi,'').trim();
+      if(displayText&&!displayText.toLowerCase().includes('no new entries'))findings.push(displayText);
+      if(added===0){finish();return;}
+      runPass(pass+1);
+    }).catch(err=>{
+      toast('Deep Seed pass '+(pass+1)+' failed: '+err.message);
+      finish();
+    });
+  }
+  function finish(){
+    if(typEl)typEl.classList.remove('on');
+    const summary=totalAdded===0
+      ?'Trackers are up to date — no gaps found.'
+      :'Added '+totalAdded+' entries across '+findings.length+' passes.\n\n'+findings.join('\n');
+    state.chatHistory.push({role:'sys',content:'🌱 Deep Seed Complete\n\n'+summary,ts:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+    save();renderChat();renderAll();scrollActiveChatBottom();
+    toast(totalAdded===0?'Trackers up to date':'Deep Seed: +'+totalAdded+' entries');
+  }
+  runPass(0);
+}
 // ═══ CONTEXT-AWARE QUICK ACTIONS FAB ═══
 let currentTab='tab-dm';
 function toggleQAMenu(){
@@ -7335,7 +7414,7 @@ function renderQAMenu(){
   if(!actions.length){const noActions=document.createElement('div');noActions.style.cssText='padding:20px;font-size:12px;color:var(--text-dim);text-align:center';noActions.innerHTML='No actions for this tab.<br><em style="font-size:11px">Add some in AI Tools → Quick Actions.</em>';body.appendChild(noActions);return;}
   const icons={hp:'❤️',condition_add:'⚡',condition_clear:'✨',resource_use:'🔮',item_add_foraged:'🌿',ox_feed:'🐂',time_advance:'⏰',save_game:'💾',combat_next:'▶️',log_entry:'📝',context_refresh:'🔄',town_rep:'🏘️',roll_submit:'🎲',state_fix:'🔧',resync_ai:'↺',surroundings:'🧭',short_rest:'⛺',random_event:'🎲',roleplay_npc:'🗣️',char_moment:'🎭',send_scene:'📖',context_refresh_btn:'🔄',shell_defense_toggle:'🐢',module_checkin:'📋',previously_on:'📺',custom:'⚙️'};
   const PINNED=['qa_8','qa_13','qa_11'];
-  const CAT_MAP={'Party & Combat':['hp','condition_add','condition_clear','resource_use','shell_defense_toggle','combat_next','short_rest','roll_submit'],'World & Story':['time_advance','surroundings','town_rep','random_event','roleplay_npc','char_moment','send_scene','item_add_foraged','ox_feed','log_entry'],'AI & System':['context_refresh','context_refresh_btn','resync_ai','module_checkin','previously_on','state_fix','save_game','custom']};
+  const CAT_MAP={'Party & Combat':['hp','condition_add','condition_clear','resource_use','shell_defense_toggle','combat_next','short_rest','roll_submit'],'World & Story':['time_advance','surroundings','town_rep','random_event','roleplay_npc','char_moment','send_scene','item_add_foraged','ox_feed','log_entry'],'AI & System':['context_refresh','context_refresh_btn','resync_ai','module_checkin','previously_on','deep_seed','state_fix','save_game','custom']};
   const mkCard=a=>{const d=document.createElement('div');d.className='qa-card';d.innerHTML=`<span class="qa-card-icon">${icons[a.type]||'⚙️'}</span><span class="qa-card-label">${esc(a.label)}</span>`;d.onclick=()=>{closeQAMenu();executeQA(a);};return d;};
   const mkCatLabel=lbl=>{const d=document.createElement('div');d.className='qa-cat-label';d.textContent=lbl;return d;};
   const mkGrid=items=>{const g=document.createElement('div');g.className='qa-grid';items.forEach(a=>g.appendChild(mkCard(a)));return g;};
@@ -7467,6 +7546,7 @@ function executeQA(action){
     case 'module_checkin': qa('Check the Campaign Progress tracker. Confirm which episode we\'re currently on, what\'s been completed, and what the next key objective is. Update any episode statuses that need changing via module_episode: mechanic.'); break;
     case 'previously_on': previouslyOn(); break;
     case 'catch_up': catchUpAudit(); break;
+    case 'deep_seed': deepSeed(); break;
     case 'shell_defense_toggle':{
       const tinklePC=state.pcs.find(p=>p.name==='Tinkle');
       if(!tinklePC){toast('Tinkle not found.');break;}
@@ -7780,6 +7860,7 @@ function execHeaderSC(id){
     case 'verify':verifyContracts();break;
     case 'prev-on':previouslyOn();break;
     case 'catchup':case 'catch-up':catchUpAudit();break;
+    case 'deepseed':case 'deep-seed':case 'seed':deepSeed();break;
     case 'refresh':sendContextRefresh();break;
     case 'checkpoint':triggerChk('Manual');break;
     case 'switch':switchUser();break;
@@ -10214,7 +10295,7 @@ Object.assign(window, {
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, _tapCtxStrip, copyContracts,
-  navToast, _mechPillNav, catchUpAudit, renderJournalHeader, renderJournalRep, scrollActiveChatBottom, scrollActiveChatTop,
+  navToast, _mechPillNav, catchUpAudit, deepSeed, renderJournalHeader, renderJournalRep, scrollActiveChatBottom, scrollActiveChatTop,
   toggleTestMode, clearTestChat, exportTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,
