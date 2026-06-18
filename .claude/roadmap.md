@@ -79,6 +79,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 16** (2026-06-18): Quest announcement system — `quest_add` auto-anchors to current location, writes location history entry, shows persistent ⚔ quest chips on originating DM message (tap → quest detail with highlight), 📍 location link in quest detail (tap → Location Journal). Partially addresses Flag 5/9 (Quest→Chapter linking).
 
+**Session 17** (2026-06-18): Level-up wizard overhaul — feat selection (56 feats: 42 PHB + 14 TCoE, with descriptions, search, half-feat ability picker), current ability scores display on ASI step, ASI/Feat toggle, spell swap step for spellcasters (optional replace one known spell). Term glossary expansion (27→84 terms: conditions, saves, combat mechanics, spellcasting, resting, terrain, vision, damage types, class features). Per-PC inventory buttons in Cargo (Flag 13): Wagon/PC toggle, browse each character's personal inventory with full chip edit UI.
+
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
@@ -93,7 +95,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ ~~**Map pin UX** — action bar, unplace individual pins, movePin()~~
 - ✅ ~~**// command system** — note, flag, add, hp, gold, explain, help + suggestion chips~~
 - ✅ ~~**Gameplay log export** — full chat export, per-message moment export (⚠️), ops debrief upgrade~~
-- **Expand term glossary** — add 50+ more D&D terms to tooltip system
+- ✅ ~~**Expand term glossary** — add 50+ more D&D terms to tooltip system~~ — Session 17
 - ⏸ **Con Scorecard** — `state.slasherOI`, income parsing, town survival stats (needs design)
 
 ### From Ops Debrief (14 gameplay flags — prioritized for next session)
@@ -104,7 +106,7 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - ✅ ~~**OOC accuracy** (Flag 6) — 8 recent messages + scene context injected~~ — Session 15
 - ✅ ~~**Multi-category items** (Flag 2) — comma-separated tags, checkbox multi-select~~ — Session 15
 - ✅ ~~**Test chat export** (Flag 1) — exportTestChat() added~~ — Session 15
-- **Per-PC inventory in Cargo** (Flag 13) — character buttons in Cargo view
+- ✅ ~~**Per-PC inventory in Cargo** (Flag 13) — Wagon/PC toggle buttons in Cargo~~ — Session 17
 - ✅ ~~**Treasure audit inline** (Flag 4) — income log dedup in validator~~ — Session 15
 - **Context strip carousel** (Flag 11) — tap to cycle location→char→quest→module
 - ✅ ~~**Quest→Location linking** (Flag 5/9) — quest_add anchors to location, ⚔ chat chips, 📍 location links~~ — Session 16
