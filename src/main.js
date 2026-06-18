@@ -7810,6 +7810,7 @@ function renderQAEditor(){
   const c=document.getElementById('qa-editor-list');if(!c)return;
   const fabInp=document.getElementById('qa-fab-icon-input');
   if(fabInp)fabInp.value=state.qaFabIcon||'⚡';
+  c.innerHTML='';
   if(!(state.quickActions||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No quick actions defined.</div>';return;}
   const tabLabels={'tab-party':'Party','tab-world':'Journal','tab-wagon':'Cargo','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dm':'AI DM'};
   const typeLabels={hp:'Adjust HP',condition_add:'Add Condition',condition_clear:'Clear Conditions',resource_use:'Use Resource',item_add_foraged:'Add Foraged Item',ox_feed:'Feed Grit',time_advance:'Advance Time',save_game:'Save Game',combat_next:'Next Turn',log_entry:'Add Log Entry',context_refresh:'Context Refresh',context_refresh_btn:'Context Refresh',town_rep:'Town Reputation',roll_submit:'Open Roller',surroundings:'Describe Surroundings',short_rest:'Short Rest',random_event:'Random Event',roleplay_npc:'Roleplay NPC',char_moment:'Character Moment',send_scene:'Send Scene',module_checkin:'Module Check-in',previously_on:'Previously On',catch_up:'Catch Up Audit',deep_seed:'Deep Seed',shell_defense_toggle:'Shell Defense',state_fix:'State Fix',resync_ai:'Re-sync AI',custom:'Custom Command'};
