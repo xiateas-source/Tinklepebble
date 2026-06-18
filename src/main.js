@@ -2113,17 +2113,28 @@ function checkLevelUp(pc){
     const lvlData=clsKey&&LEVEL_UP_DATA[clsKey]&&LEVEL_UP_DATA[clsKey].levels[newLvl];
     let choiceHints='';
     if(lvlData){
-      if((lvlData.auto||[]).length)choiceHints+=' New features: '+lvlData.auto.map(f=>f.split(':')[0]).join(', ')+'.';
+      if((lvlData.auto||[]).length)choiceHints+=' New features they gain automatically: '+lvlData.auto.map(f=>f.split(':')[0]).join(', ')+'.';
       (lvlData.choose||[]).forEach(c=>{
-        if(c.type==='subclass')choiceHints+=' They must choose: '+c.prompt+' ('+c.options.join(', ')+').';
-        else if(c.type==='spell')choiceHints+=' They get to pick new spells: '+c.prompt+'.';
-        else if(c.type==='asi')choiceHints+=' They get an Ability Score Improvement (+2 to one stat or +1 to two).';
+        if(c.type==='subclass')choiceHints+=' They must choose a subclass: '+c.prompt+' — options are: '+c.options.join(', ')+'.';
+        else if(c.type==='spell'){
+          choiceHints+=' SPELL CHOICE: '+c.prompt+'.';
+          const cls=(pc.class||'').toLowerCase();
+          const tier=c.tier||1;
+          const known=(pc.spellbook||[]).map(s=>s.name.toLowerCase());
+          let avail=[];
+          if(cls.includes('bard')){for(let l=c.cantrip?0:1;l<=tier;l++){avail=avail.concat((BARD_SPELLS[l]||[]).filter(n=>!known.includes(n.toLowerCase())));}}
+          else{avail=SPELL_DB.filter(s=>s.level<=(c.cantrip?0:tier)&&s.level>=(c.cantrip?0:1)&&!known.includes(s.name.toLowerCase())).map(s=>s.name);}
+          if(avail.length)choiceHints+=' Available options: '+avail.join(', ')+'.';
+        }
+        else if(c.type==='asi')choiceHints+=' They get an Ability Score Improvement: +2 to one ability score, or +1 to two different scores.';
       });
     }
     _ctxInject='[LEVEL UP PENDING] '+pc.name+' has earned enough XP to reach Level '+newLvl+'!'
-      +' Narrate the milestone moment. Tell the player to take a Long Rest to level up — the Level Up wizard will guide them through their choices.'
+      +' IMPORTANT: You MUST announce this milestone prominently in your next response.'
+      +' Tell the player: "'+pc.name+' has earned enough experience to reach Level '+newLvl+'! Take a Long Rest to level up."'
       +choiceHints
-      +' Do NOT grant abilities yet — the wizard handles that. But DO tell the player what exciting options await them at Level '+newLvl+'.';
+      +' List out every choice the player will need to make — spell options by name, subclass options, ASI vs feat, etc.'
+      +' Do NOT apply the changes yourself — the Level Up wizard handles mechanics. But DO lay out all their options so they can decide.';
   }
 }
 
@@ -6163,10 +6174,12 @@ function renderCompendium(idx){
       html+='<div style="font-size:9px;font-weight:700;color:var(--gold-dim);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px;border-bottom:1px solid var(--border);padding-bottom:2px">'+lvLabel+' ('+grouped[lv].length+')</div>';
       grouped[lv].forEach(sp=>{
         const has=known.includes(sp.name.toLowerCase());
+        const lvTag=sp.level===0?'Cantrip':'Lvl '+sp.level;
         html+='<details style="margin-bottom:3px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);'+(has?'opacity:.5':'')+'"><summary style="padding:5px 8px;font-size:11px;cursor:pointer">';
         html+='<div style="display:flex;align-items:center;gap:4px">';
         html+='<span style="flex:1;min-width:0"><span style="color:var(--text-bright);font-weight:600">'+esc(sp.name)+'</span>';
-        html+=' <span style="font-size:9px;color:var(--text-dim)">'+esc(sp.school)+'</span></span>';
+        html+=' <span style="font-size:9px;color:var(--text-dim)">'+esc(sp.school)+'</span>';
+        html+=' <span style="font-size:8px;color:var(--gold);background:var(--surface3);padding:1px 4px;border-radius:3px">'+lvTag+'</span></span>';
         html+=has?'<span style="font-size:9px;color:var(--green);flex-shrink:0">In Book</span>':'<button class="btn sm gold" style="font-size:9px;flex-shrink:0" onclick="event.stopPropagation();addFromCompendium('+idx+',SPELL_DB['+SPELL_DB.indexOf(sp)+'].name)">+</button>';
         html+='</div>';
         html+='<div style="font-size:9px;color:var(--text-dim);margin-top:2px">'+esc(sp.castTime)+' · '+esc(sp.range)+' · '+esc(sp.duration)+' · '+esc(sp.components)+'</div>';
