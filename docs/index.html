@@ -12,8 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.MXjwnqDa.js"></script>
-  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.C0ZmHB3J.css">
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.CmPBzf2L.js"></script>
+  <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.BOdPIJ6x.css">
 </head>
 <body>
 
@@ -207,64 +207,78 @@
   </div>
 </div>
 
-<!-- WORLD TAB -->
+<!-- JOURNAL TAB (was World) -->
 <div id="tab-world" class="tab-section">
-  <div style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--border);">
-    <button class="main-tab active" id="world-btn-state" onclick="showWorldTab('state')" style="font-size:11px;padding:8px 12px">World State</button>
-    <button class="main-tab" id="world-btn-locs" onclick="showWorldTab('locations')" style="font-size:11px;padding:8px 12px">📍 Locations</button>
-    <button class="main-tab" id="world-btn-ops" onclick="showWorldTab('ops')" style="font-size:11px;padding:8px 12px">Operations</button>
-  </div>
+  <!-- Journal Header -->
+  <div id="journal-header"></div>
 
-  <!-- ── WORLD STATE ── -->
-  <div id="world-state-panel">
-    <div class="grid-2">
-      <div class="col">
-        <details class="panel">
-          <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Environment</summary>
-          <div style="margin-top:8px">
-            <div class="form-row"><div class="fg"><label class="field-label">Time</label><input type="text" id="w_time" oninput="sw('time',this.value)"></div><div class="fg"><label class="field-label">Season</label><input type="text" id="w_season" oninput="sw('season',this.value)"></div></div>
-            <div class="form-row"><div class="fg"><label class="field-label">Weather</label><input type="text" id="w_weather" oninput="sw('weather',this.value)"></div><div class="fg"><label class="field-label">Illumination</label><input type="text" id="w_illum" oninput="sw('illum',this.value)"></div></div>
-            <div class="form-group"><label class="field-label">Current Location</label><input type="text" id="w_location" oninput="sw('location',this.value)"></div>
-            <div class="form-group"><label class="field-label">Location Description</label><textarea id="w_loc_desc" oninput="sw('loc_desc',this.value)"></textarea></div>
-            <div class="form-group"><label class="field-label">Campaign Setting / World Notes</label><textarea id="w_setting" style="min-height:60px" oninput="sw('setting',this.value)" placeholder="Unknown — discovering as we play..."></textarea></div>
-          </div>
-        </details>
-      </div>
-      <div class="col">
-        <div class="panel"><div class="panel-title">NPCs <button class="btn sm" style="margin-left:auto" onclick="addNPC()">+ Add</button></div><div id="npc-list"></div></div>
-        <div class="panel">
-          <div class="panel-title">Quest Log</div>
-          <div class="form-group"><label class="field-label">Main Quest</label><input type="text" id="q_primary" placeholder="Main quest objective..." oninput="state.worldData.primaryMission=this.value;save()"></div>
-          <div id="quest-list"></div>
-          <button class="btn sm" onclick="addQuest()" style="margin-top:6px">+ Add Objective</button>
-        </div>
-      </div>
+  <!-- Journey / Travel Timeline -->
+  <details class="journal-sec" open id="journal-sec-journey">
+    <summary class="journal-sec-hdr">🗺 Journey</summary>
+    <div id="travel-log-visual" style="max-height:220px;overflow-y:auto;padding:8px 4px"></div>
+  </details>
+
+  <!-- Quests -->
+  <details class="journal-sec" open id="journal-sec-quests">
+    <summary class="journal-sec-hdr">📜 Quests <button class="slot-add-btn" onclick="event.stopPropagation();addQuest()">+</button></summary>
+    <div class="form-group" style="margin:6px 0 0"><label class="field-label">Main Quest</label><input type="text" id="q_primary" placeholder="Main quest objective..." oninput="state.worldData.primaryMission=this.value;save()"></div>
+    <div id="quest-list"></div>
+  </details>
+
+  <!-- Locations -->
+  <details class="journal-sec" open id="journal-sec-locations">
+    <summary class="journal-sec-hdr">📍 Locations
+      <button class="slot-add-btn" onclick="event.stopPropagation();openLocationSeed()" title="Seed from travel log &amp; town rep">🌱</button>
+      <button class="slot-add-btn" onclick="event.stopPropagation();addLocationManual()">+</button>
+    </summary>
+    <div id="locations-panel-content" style="padding:4px 0"></div>
+  </details>
+
+  <!-- NPCs -->
+  <details class="journal-sec" open id="journal-sec-npcs">
+    <summary class="journal-sec-hdr">👤 NPCs <button class="slot-add-btn" onclick="event.stopPropagation();addNPC()">+</button></summary>
+    <div id="npc-list"></div>
+  </details>
+
+  <!-- Town Reputation -->
+  <details class="journal-sec" id="journal-sec-rep">
+    <summary class="journal-sec-hdr">🏘 Reputation <button class="slot-add-btn" onclick="event.stopPropagation();addTownRep()">+</button></summary>
+    <div id="journal-rep-list" style="margin-top:6px"></div>
+  </details>
+
+  <!-- Consequences -->
+  <details class="journal-sec" id="journal-sec-consequences">
+    <summary class="journal-sec-hdr">⚠ Consequences</summary>
+    <div id="consequence-list" style="margin-top:6px"></div>
+  </details>
+
+  <!-- Campaign Secrets -->
+  <details class="journal-sec" id="journal-sec-secrets">
+    <summary class="journal-sec-hdr">🔒 Secrets <button class="slot-add-btn" onclick="event.stopPropagation();addCampaignSecret()">+</button></summary>
+    <div id="campaign-secrets-list" style="margin-top:6px"></div>
+  </details>
+
+  <!-- Environment Details (edit fields) -->
+  <details class="journal-sec" id="journal-sec-env">
+    <summary class="journal-sec-hdr">⚙ Environment</summary>
+    <div style="margin-top:8px">
+      <div class="form-row"><div class="fg"><label class="field-label">Time</label><input type="text" id="w_time" oninput="sw('time',this.value)"></div><div class="fg"><label class="field-label">Season</label><input type="text" id="w_season" oninput="sw('season',this.value)"></div></div>
+      <div class="form-row"><div class="fg"><label class="field-label">Weather</label><input type="text" id="w_weather" oninput="sw('weather',this.value)"></div><div class="fg"><label class="field-label">Illumination</label><input type="text" id="w_illum" oninput="sw('illum',this.value)"></div></div>
+      <div class="form-group"><label class="field-label">Current Location</label><input type="text" id="w_location" oninput="sw('location',this.value)"></div>
+      <div class="form-group"><label class="field-label">Location Description</label><textarea id="w_loc_desc" oninput="sw('loc_desc',this.value)"></textarea></div>
+      <div class="form-group"><label class="field-label">Campaign Setting / World Notes</label><textarea id="w_setting" style="min-height:60px" oninput="sw('setting',this.value)" placeholder="Unknown — discovering as we play..."></textarea></div>
     </div>
+  </details>
+
+  <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;padding-bottom:8px">
+    <button class="btn sm" onclick="navTo('setup')" style="font-size:11px" title="Edit campaign premise and setup">⚙ Setup →</button>
+    <button class="btn sm" onclick="openTreasury()" style="border-color:var(--purple);color:var(--purple-bright);font-size:11px" title="Business Profile is in Treasury">🏪 Business Profile →</button>
   </div>
 
-  <!-- ── OPERATIONS ── -->
-  <div id="world-ops-panel" style="display:none">
-    <details class="panel accent" open>
-      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Campaign Secrets
-        <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addCampaignSecret()">+ Add</button>
-      </summary>
-      <div id="campaign-secrets-list" style="margin-top:6px"></div>
-    </details>
-    <details class="panel" open>
-      <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">World Consequences</summary>
-      <div id="consequence-list" style="margin-top:8px"></div>
-    </details>
-    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px">
-      <button class="btn sm" onclick="showTab('tab-setup')" style="font-size:11px" title="Edit campaign premise and setup">⚙ Setup →</button>
-      <button class="btn sm" onclick="openTreasury()" style="border-color:var(--purple);color:var(--purple-bright);font-size:11px" title="Business Profile is in Treasury">🏪 Business Profile →</button>
-    </div>
-  </div>
-
-  <!-- ── LOCATIONS ── -->
-  <div id="world-locations-panel" style="display:none">
-    <div style="display:flex;justify-content:flex-end;padding:4px 0 2px"><button class="btn sm" onclick="openLocationSeed()" title="Seed from travel log &amp; town rep">🌱 Seed</button></div>
-    <div id="locations-panel-content" style="padding:8px 0"></div>
-  </div>
+  <!-- Ghost containers for backward compat -->
+  <div id="world-state-panel" style="display:none"></div>
+  <div id="world-ops-panel" style="display:none"></div>
+  <div id="world-locations-panel" style="display:none"></div>
 </div>
 
 <!-- WAGON TAB -->
