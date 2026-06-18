@@ -112,6 +112,9 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 - **Familiar/animal home** (Flag 10) — needs design
 - **Quest log UX refresh** (Flag 12) — needs design
 
+### Character Creation Wizard
+- **Character Creation Wizard** — Level 1 setup flow (like Level Up wizard but for new characters). Race picker, stat roller/point-buy, class features, starting equipment, spell selection, proficiency picks. Fills blank template PCs into playable Level 1 characters. Would replace manual sheet entry for fresh campaigns.
+
 ### From Gameplay UX Audit (medium-effort, not yet built)
 - ✅ ~~**Condition duration tracking** — track rounds remaining on conditions, auto-expire~~ — Session 17
 - ✅ ~~**Quick enemy clone** — duplicate an existing combatant for fast encounter setup~~ — Session 17
