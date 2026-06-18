@@ -5142,7 +5142,13 @@ LEVEL-UP RULES (STRICT — NEVER VIOLATE):
       +(globalRef?'\nMODULE REFERENCE (always active):\n'+globalRef+'\n':'')
       +(epContent?'\nACTIVE EPISODE CONTENT — '+activeEp.name+':\n'+epContent+'\n':'');
   }
-  return g('ai-persona')+'\n'+premiseSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
+  const inventoryGuard='\n\nINVENTORY INTEGRITY (non-negotiable):\n'
+    +'- When a player asks about a specific item, CHECK the CURRENT CAMPAIGN STATE inventory below.\n'
+    +'- If the item is NOT listed in the inventory, say "I don\'t see that item in the current inventory tracker" — do NOT invent stats, abilities, lore, or a backstory for it.\n'
+    +'- NEVER fabricate magic item properties. If you do not know an item\'s stats, say so. Do not guess.\n'
+    +'- If a player gives a specific item name you don\'t recognize, ask them to clarify rather than making something up.\n'
+    +'- When an item IS attuned or identified, output item_add: in your mechanics block so it enters the tracked inventory.\n';
+  return g('ai-persona')+'\n'+premiseSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+inventoryGuard+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
 }
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
