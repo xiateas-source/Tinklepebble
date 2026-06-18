@@ -625,14 +625,14 @@ function connectFirebase(){
 let state={
   pcs:[
     {
-      id:'slasher',name:'Slasher',race:'Black Dragonborn',class:'Fighter',level:1,
-      background:'Guild Artisan (Smith)',alignment:'Lawful Good',
-      hp:13,hp_max:13,ac:16,initiative:1,speed:30,passive_perception:11,passive_insight:11,
+      id:'gareth',name:'Gareth Ironhold',race:'Human',class:'Fighter',level:1,
+      background:'Soldier',alignment:'Lawful Good',
+      hp:12,hp_max:12,ac:18,initiative:1,speed:30,passive_perception:13,passive_insight:11,
       xp:0,color:'#c04a3a',
-      str:'17 (+3)',dex:'12 (+1)',con:'16 (+3)',int:'10 (+0)',wis:'12 (+1)',cha:'13 (+1)',
-      skills:'Athletics +5, Intimidation +3, Insight +3, Persuasion +3',
-      features:'GREAT WEAPON FIGHTING (Style): When rolling damage for an attack with a two-handed weapon, reroll any 1 or 2 — must use new roll.\nSECOND WIND (Bonus Action, 1/Short Rest): Regain 1d10+1 HP as a bonus action.\nACID BREATH (Action, Recharge 5-6): 5x30ft line, all creatures make DC 13 CON save or take 2d6 acid damage (half on success). Black Dragonborn trait.\nACID RESISTANCE: Resistance to acid damage.\nHEAVY ARMOR PROFICIENCY: Wearing chain mail (AC 16). Disadvantage on Stealth checks.\nGREATSWORD: 2d6 slashing, heavy, two-handed. Primary weapon.\nSMITH\u2019S TOOLS: Proficient. Handles all equipment maintenance and repairs for the party and wagon. This is his identity — he is the son of smiths.\nGUILD MEMBERSHIP: Can call on the Smith\u2019s Guild for support, lodging, and contacts in most towns.\nHONEST TO A FAULT: Cannot deceive. Genuinely baffled by Tinkle and Pebble\u2019s methods but follows their lead without question. If asked to lie, he will simply stand there looking confused.\nPROTECTOR: Has quietly sworn to keep Tinkle and Pebble safe. They handle the talking. He handles everything else.',
-      magic:'None. Fighter with no spellcasting.',
+      str:'16 (+3)',dex:'12 (+1)',con:'15 (+2)',int:'10 (+0)',wis:'13 (+1)',cha:'10 (+0)',
+      skills:'Athletics +5, Intimidation +2, Perception +3, Survival +3',
+      features:'DUELING (Fighting Style): +2 damage when attacking with a one-handed melee weapon and no other weapon in the other hand. Applies to longsword+shield.\nSECOND WIND (Bonus Action, 1/Short Rest): Regain 1d10+1 HP as a bonus action.\nHEAVY ARMOR PROFICIENCY: Wearing chain mail (AC 16) + shield (+2 AC) = AC 18. Disadvantage on Stealth checks.\nLONGSWORD: 1d8+5 slashing (with Dueling), versatile (1d10+3 two-handed, loses Dueling bonus). Primary weapon.\nSHIELD: +2 AC. Currently equipped.\nHANDAXES: 1d6+3 slashing, thrown (20/60ft). Backup ranged option.\nMILITARY RANK: Former sergeant in a local militia. Can invoke rank with soldiers and veterans for respect and minor favors.\nNote: Subclass (Champion, Battle Master, or Eldritch Knight) unlocks at Level 3.',
+      magic:'None. Fighter with no spellcasting at Level 1.',
       resources:[
         {name:"Second Wind",max:1,used:0,restore:'short',desc:'Bonus action, heal 1d10+1 HP'}
       ],
@@ -640,145 +640,149 @@ let state={
       slots:[],
       inventory:[
         {name:'Chain Mail',qty:1,weight:55,type:'supply',notes:'AC 16. Stealth disadvantage. Currently worn.'},
-        {name:'Greatsword',qty:1,weight:6,type:'supply',notes:'2d6 slashing, heavy, two-handed. Primary weapon.'},
-        {name:'Handaxe',qty:2,weight:4,type:'supply',notes:'1d6 slashing, thrown (20/60ft).'},
-        {name:"Smith's Tools",qty:1,weight:8,type:'supply',notes:'Proficient. Used for party equipment maintenance and repairs.'},
-        {name:"Dungeoneer's Pack",qty:1,weight:12,type:'supply',notes:'Rope, torches, rations, waterskin, tinderbox, backpack.'}
+        {name:'Shield',qty:1,weight:6,type:'supply',notes:'+2 AC. Currently equipped.'},
+        {name:'Longsword',qty:1,weight:3,type:'supply',notes:'1d8+5 slashing (Dueling), versatile 1d10+3. Primary weapon.'},
+        {name:'Handaxe',qty:2,weight:4,type:'supply',notes:'1d6+3 slashing, thrown (20/60ft).'},
+        {name:"Dungeoneer's Pack",qty:1,weight:12,type:'supply',notes:'Backpack, crowbar, hammer, 10 pitons, 10 torches, tinderbox, 10 days rations, waterskin, 50ft rope.'}
       ],
-      backstory_origin:'Born to a family of smiths with a proud name and a longer history. Grew up with metal and fire, not words. Left the forge to become an adventurer because he believes the best smiths must first understand what their weapons endure. Has never been in a situation that required talking his way out.',
-      backstory_motivation:'Forge himself into the perfect weapon. Become the best smith of his name. Every scar earned adventuring is research.',
-      backstory_secret:'Genuinely does not understand that Tinkle\u2019s Tinctures is a con operation. He thinks they are a legitimate traveling apothecary. He is very proud to be part of something that helps people.',
+      backstory_origin:'Served as a sergeant in a Sword Coast militia. Trained with sword and shield from boyhood. Left the service after his unit was disbanded following a border dispute. Now sells his sword arm on the Trade Way.',
+      backstory_motivation:'Find a cause worth fighting for. The militia gave him discipline but no purpose. Adventure might.',
+      backstory_secret:'PENDING — to be established through play.',
       pending:[]
     },
     {
-      id:'tinkle',name:'Tinkle',race:'Tortle',class:'Rogue',level:1,
-      background:'Scholar / Con-Artist',alignment:'Neutral (Self-Interested)',
-      hp:10,hp_max:10,ac:17,initiative:2,speed:30,passive_perception:10,passive_insight:13,
+      id:'meren',name:'Meren Ashwick',race:'Human',class:'Wizard',level:1,
+      background:'Sage',alignment:'Neutral Good',
+      hp:8,hp_max:8,ac:15,initiative:2,speed:30,passive_perception:11,passive_insight:13,
       xp:0,color:'#4a7090',
-      str:'10 (+0)',dex:'14 (+2)',con:'13 (+1)',int:'16 (+3)',wis:'12 (+1)',cha:'8 (-1)',
-      skills:'Deception +5 (Expertise), Investigation +5 (Expertise), Insight +3, Sleight of Hand +4, Stealth +4, Medicine +3',
-      features:'NATURAL ARMOR: AC 17 flat. Cannot wear armor. Shields allowed.\nSHELL DEFENSE (Reaction or Hide Action): Withdraw into shell. Gain +4 AC (AC 21), become prone and incapacitated. Emerge using Bonus Action. Use when crowd turns hostile.\nSNEAK ATTACK (1d6): Once per turn when attacking with advantage OR when an ally is adjacent to target. Flavor: "persuasive exits when a grift goes south."\nTHIEVES CANT: Secret language of the criminal underworld.\nEXPERTISE: Deception and Investigation at double proficiency.\nHOLD BREATH: Up to 1 hour.\nCLAWS: 1d4 slashing natural weapon (melee).\nBLOWGUN: 1d1 piercing, range 25/100ft, loading (one shot per action). Loaded with Torpor Poison (DMG p.258): DC 15 CON save or incapacitated for 4d6 hours. Non-lethal preferred.\nTHE MASTERMIND: Tinkle manufactures the tonics, runs the operation, writes the labels. Always looking for an angle. Justifies grifts as "experimental field data collection."\nNote: Subclass (Arcane Trickster) unlocks at Level 3.',
-      magic:'None at Level 1. Arcane Trickster spellcasting unlocks at Level 3.',
-      resources:[],
-      conditions:[],slots:[],inventory:[],
-      backstory_origin:'Leads a trio of traveling grifters. Rolls into towns with "The Shelled Alchemist" wagon, laden with shimmering useless vials. Has been doing this long enough to have a system.',
-      backstory_motivation:'Maximum profit, minimum effort. The placebo effect is a documented scientific phenomenon.',
-      backstory_secret:'Perpetually one bad batch away from a bounty. Keeps the party moving before locals realize the side effects. Secretly fears Slasher or Pebble will decide he is more trouble than he is worth.',
+      str:'9 (-1)',dex:'14 (+2)',con:'14 (+2)',int:'16 (+3)',wis:'13 (+1)',cha:'11 (+0)',
+      skills:'Arcana +5, History +5, Investigation +5, Insight +3',
+      features:'ARCANE RECOVERY (1/Long Rest, after Short Rest): Recover expended spell slot levels equal to half wizard level (rounded up) = 1 level of slots. Can recover one 1st-level slot per short rest.\nSPELLCASTING: Intelligence. Save DC 13. Attack Bonus +5.\nCantrips (3): Fire Bolt (1d10 fire, 120ft), Prestidigitation, Minor Illusion.\nSpellbook (6 spells): Mage Armor, Shield, Magic Missile, Sleep, Detect Magic, Find Familiar.\nPrepared Spells (INT mod + level = 4): Mage Armor, Shield, Magic Missile, Sleep.\nSpell Slots: 2 (1st level).\nAC 15: Mage Armor (13 + DEX 2). AC 12 without Mage Armor.\nQUARTERSTAFF: 1d6-1 bludgeoning (1d8-1 versatile). Emergency melee only.\nRITUAL CASTING: Can cast Detect Magic and Find Familiar as rituals without expending spell slots (adds 10 minutes to cast time).\nNote: Arcane Tradition (School) chosen at Level 2.',
+      magic:'Spellcasting: Intelligence | Save DC: 13 | Attack Bonus: +5\nCantrips: Fire Bolt (1d10 fire, 120ft), Prestidigitation, Minor Illusion\nPrepared: Mage Armor, Shield, Magic Missile, Sleep\nSpellbook also: Detect Magic (ritual), Find Familiar (ritual)',
+      resources:[
+        {name:'Arcane Recovery',max:1,used:0,restore:'long',desc:'After short rest, recover 1 level of spell slots. 1/long rest.'}
+      ],
+      conditions:[],slots:[{max:2,used:0}],
+      inventory:[
+        {name:'Quarterstaff',qty:1,weight:4,type:'supply',notes:'1d6 bludgeoning, versatile 1d8. Emergency melee.'},
+        {name:'Component Pouch',qty:1,weight:2,type:'supply',notes:'Arcane focus. Required for spellcasting material components without gold cost.'},
+        {name:'Spellbook',qty:1,weight:3,type:'key',notes:'Contains all known wizard spells. IRREPLACEABLE — 6 spells inscribed.'},
+        {name:"Scholar's Pack",qty:1,weight:10,type:'supply',notes:'Backpack, book of lore, ink, pen, 10 sheets parchment, small knife, lamp oil.'}
+      ],
+      backstory_origin:'Scholar from Candlekeep who studies ancient dragon cults and draconic prophecy. Left the library to follow leads about renewed Cult of the Dragon activity along the Sword Coast.',
+      backstory_motivation:'Understand the Cult of the Dragon — their rituals, their goals, and how to stop them. Knowledge is the weapon that defeats fanaticism.',
+      backstory_secret:'PENDING — to be established through play.',
       pending:[]
     },
     {
-      id:'pebble',name:'Pebble',race:'Goliath (Stone Giant Ancestry)',class:'Bard',level:1,
-      background:'Merchant',alignment:'Neutral Good',
-      hp:10,hp_max:10,ac:13,initiative:2,speed:35,passive_perception:10,passive_insight:12,
+      id:'lyra',name:'Lyra Dawnharp',race:'Half-Elf',class:'Bard',level:1,
+      background:'Entertainer',alignment:'Chaotic Good',
+      hp:9,hp_max:9,ac:13,initiative:2,speed:30,passive_perception:12,passive_insight:10,
       xp:0,color:'#7060a0',
-      str:'8 (-1)',dex:'14 (+2)',con:'14 (+2)',int:'13 (+1)',wis:'10 (+0)',cha:'17 (+3)',
-      skills:'Persuasion +7 (Expertise), Deception +7 (Expertise), Performance +5, Insight +2',
-      features:'LITTLE GIANT (Passive): Counts as Large size for carrying capacity and push/drag/lift. Personal carry: 240 lb. Push/drag/lift max: 480 lb. Also counts as one size larger for grapple and shove.\nSTONES ENDURANCE (Reaction, 2/Long Rest): When you take damage, roll 1d12+2 (CON mod). Reduce that damage by the result. If damage is reduced to 0, any active concentration spell is automatically protected — no CON save required.\nLUCKY FEAT (3 Luck Points/Long Rest — NOT the Halfling racial): Spend 1 point to gain Advantage on any d20 Test you make, OR impose Disadvantage on an attack roll made against you. Decision made before the roll. This is the FEAT version with luck points, distinct from Halfling Lucky.\nBARDIC INSPIRATION (Bonus Action, 3/Long Rest): Target one creature within 60 feet. They receive a d6 Inspiration die. Within the next 10 minutes they may add it to one d20 Test result — AFTER seeing the roll, BEFORE the DM says if it succeeds.\nSPELLCASTING: Charisma. Save DC 13. Attack Bonus +5.\nCantrips: Friends, Vicious Mockery (2d4 psychic + target has Disadvantage on next attack).\nLevel 1 Spells (2 slots): Sleep, Hideous Laughter (Concentration), Charm Person (Concentration), Healing Word (Bonus Action, 1d4+3 heal).\nAC 13: Leather armor (11) + DEX +2.\nTHE PITCHMAN: Public face of Tinkles Tinctures. Uses Performance and Persuasion to draw crowds and sell the efficacy of Tinkles dubious brews. Bardic Inspiration can be used mid-pitch to bolster a sale. High CHA is the product.',
-      magic:'Spellcasting: Charisma | Save DC: 13 | Attack Bonus: +5\nCantrips: Friends, Vicious Mockery\nLevel 1 Spells: Sleep, Hideous Laughter (Conc), Charm Person (Conc), Healing Word',
+      str:'10 (+0)',dex:'14 (+2)',con:'13 (+1)',int:'12 (+1)',wis:'10 (+0)',cha:'16 (+3)',
+      skills:'Performance +5, Persuasion +5, Deception +5, Acrobatics +4, Perception +2, History +3',
+      features:'DARKVISION: 60ft. Half-elf trait.\nFEY ANCESTRY: Advantage on saving throws against being charmed. Magic can\'t put you to sleep.\nBARDIC INSPIRATION (Bonus Action, 3/Long Rest): Target one creature within 60 feet. They receive a d6 Inspiration die. Within 10 minutes they may add it to one ability check, attack roll, or saving throw — AFTER seeing the roll, BEFORE the DM says if it succeeds.\nSPELLCASTING: Charisma. Save DC 13. Attack Bonus +5.\nCantrips (2): Vicious Mockery (1d4 psychic + target has Disadvantage on next attack, WIS save DC 13), Light.\nSpells Known (4): Healing Word (Bonus Action, 1d4+3 heal, 60ft), Thunderwave (2d8 thunder, CON save DC 13, 15ft cube), Charm Person (WIS save DC 13, 1 hour), Dissonant Whispers (3d6 psychic, WIS save DC 13, target must flee).\nSpell Slots: 2 (1st level).\nAC 13: Leather armor (11) + DEX +2.\nRAPIER: 1d8+2 piercing, finesse. Primary melee weapon.\nBY POPULAR DEMAND: Can find a place to perform in most settlements. Free lodging in exchange for performances.\nNote: Bard College chosen at Level 3.',
+      magic:'Spellcasting: Charisma | Save DC: 13 | Attack Bonus: +5\nCantrips: Vicious Mockery (1d4 psychic + disadvantage), Light\nSpells Known: Healing Word, Thunderwave, Charm Person, Dissonant Whispers',
       resources:[
-        {name:'Bardic Inspiration',max:3,used:0,restore:'short',desc:'Bonus action, 60ft range, d6, target adds after seeing roll'},
-        {name:"Stone's Endurance",max:2,used:0,restore:'short',desc:'Reaction, 1d12+2 damage reduction, 0 damage = concentration protected'},
-        {name:'Lucky Points',max:3,used:0,restore:'long',desc:'Spend for self-advantage on d20 test OR impose disadvantage on attack vs you'}
+        {name:'Bardic Inspiration',max:3,used:0,restore:'long',desc:'Bonus action, 60ft range, d6, target adds after seeing roll. Becomes Short Rest at Level 5.'}
       ],
-      conditions:[],slots:[{max:2,used:0}],inventory:[],
-      backstory_origin:'Born to a clan of stone giant-descended traders who measured worth in contracts honored and debts repaid. Pebble is the smallest of their kin — hence the name.',
-      backstory_motivation:'Prove that words and wit can move mountains that strength cannot. The Tinctures operation is the proof of concept.',
-      backstory_secret:'Once talked a rival merchant caravan into a ruinous deal that bankrupted three families. Still not entirely sure it was wrong.',
+      conditions:[],slots:[{max:2,used:0}],
+      inventory:[
+        {name:'Rapier',qty:1,weight:2,type:'supply',notes:'1d8+2 piercing, finesse. Primary weapon.'},
+        {name:'Leather Armor',qty:1,weight:10,type:'supply',notes:'AC 11 + DEX. Currently worn.'},
+        {name:'Lute',qty:1,weight:2,type:'key',notes:'Arcane focus for Bard spellcasting. Prized possession.'},
+        {name:'Dagger',qty:1,weight:1,type:'supply',notes:'1d4+2 piercing, finesse, thrown (20/60ft).'},
+        {name:"Entertainer's Pack",qty:1,weight:8,type:'supply',notes:'Backpack, bedroll, 2 costumes, 5 candles, 5 days rations, waterskin, disguise kit.'}
+      ],
+      backstory_origin:'Traveling performer who wanders the Sword Coast collecting stories, songs, and legends. Hired to play at a harvest festival in Greenest — arriving just in time for everything to go wrong.',
+      backstory_motivation:'Every great bard needs a great story to tell. Stopping a dragon cult would make one hell of a ballad.',
+      backstory_secret:'PENDING — to be established through play.',
       pending:[]
     }
   ],
   worldData:{
-    time:'Day 1, 9:00 AM',season:'Early Spring',weather:'Clear, cool (62°F)',
-    illum:'Bright Daylight',
-    location:'Goodbarrel Logistics HQ — Loading Dock',
-    loc_desc:'The last familiar place. Stone walls and ironbound doors. The wagon is loaded. Grit is hitched. Whatever Goodbarrel Logistics was, Tinkles Tinctures is what comes next.',
-    setting:'PENDING — Campaign setting to be established through play.',
-    plot:"- Goodbarrel Logistics: former employer. Left on terms that are complicated. Still connected in ways that may matter.\n- Tinkles Tinctures is newly independent. The grift operation is the business model.\n- The party dynamic: Tinkle (Mastermind), Pebble (Pitchman), Slasher (the reason exits are needed).",
-    secrets:'PENDING — Secrets to be established through play.',
+    time:'Day 1, Dusk',season:'Late Summer',weather:'Smoke and haze — Greenest burns',
+    illum:'Dim (firelight and smoke)',
+    location:'Outskirts of Greenest — Trade Way approach',
+    loc_desc:'The town of Greenest sprawls ahead in the valley below. Columns of smoke rise from burning buildings. A massive blue dragon circles overhead, lightning crackling between its jaws. Screaming civilians flee toward the central keep. The Cult of the Dragon has come to Greenest.',
+    setting:'Sword Coast, Forgotten Realms. High fantasy. The Cult of the Dragon is raiding towns along the coast, amassing a hoard of treasure for a dark ritual to summon Tiamat from the Nine Hells.',
+    plot:"- Cult of the Dragon: fanatical organization raiding settlements to amass treasure for Tiamat’s return.\n- The raid on Greenest is their latest operation — the party arrives as it begins.\n- Governor Nighthill coordinates defense from the keep. Castellan Escobert knows a secret tunnel.\n- Frulam Mondath (Wearer of Purple) leads the cult forces. Langdedrosa Cyanwrath (half-blue-dragon) is their champion.\n- Lennithon, an adult blue dragon, circles overhead — reluctant but dangerous.",
+    secrets:'The Cult of the Dragon is gathering treasure across the Sword Coast to fund the summoning of Tiamat. Greenest is just one of many targets. The cult’s hoard is being transported north to a place called Castle Naerytar. Leosin Erlanthar, a Harper agent, has been captured during the raid.',
     timers:'PENDING — Active timers to be established through play.',
-    premise:"Tinkles Tinctures is a traveling con operation run by three mismatched grifters. Tinkle the Tortle brews the product (mostly useless, occasionally real). Pebble the Goliath sells it to crowds who want to believe. Slasher the Black Dragonborn ensures things escalate in ways nobody planned. They travel in a brightly painted wagon called The Shelled Alchemist, moving town to town before the locals compare notes. Former associates of Goodbarrel Logistics — a connection they neither advertise nor fully disavow.",
+    premise:"Hoard of the Dragon Queen. Three adventurers arrive at the town of Greenest along the Trade Way to find it under siege by the Cult of the Dragon and an adult blue dragon. Gareth Ironhold (Human Fighter) is a sellsword traveling the coast. Meren Ashwick (Human Wizard) is a Candlekeep scholar investigating the cult. Lyra Dawnharp (Half-Elf Bard) was hired to perform at a harvest festival that will never happen. They must defend Greenest, investigate the cult’s plans, and ultimately stop the summoning of Tiamat.",
     premiseLocked:false,
-    primaryMission:'PENDING — To be established through play.',
+    primaryMission:'Defend Greenest from the Cult of the Dragon raid. Investigate the cult’s plans and stop the summoning of Tiamat.',
     scene_title:'',
     scene_threat:'',
     scene_cond:'',
     travelLog:[],
-    townReputation:[],
-    businessProfile:{
-      name:"Tinkle's Tinctures",
-      wagaonName:"The Shelled Alchemist (publicly) / The Grift-Wagon (internally)",
-      realStock:"Genuine healing potions and useful reagents — produced when Tinkle has quality ingredients and sufficient motivation. These actually work.",
-      snakeOil:"Miracle cures, vitality tonics, cure-alls — flavored water, mild sedatives, and the occasional unintended side effect. The main product line.",
-      reagents:"Foraged ingredients sold to apothecaries and herbalists. Legitimate revenue stream. Tinkle takes quality seriously here.",
-      reputation:'Unknown — new operation',
-      notes:"Tinkle justifies the grift as a public service: 'The placebo effect is a documented scientific phenomenon.'"
-    },
+    townReputation:[{town:'Greenest',status:'neutral',notes:'Just arriving. Town under attack by Cult of the Dragon.'}],
+    businessProfile:{},
     campaignSecrets:[
-      {text:"Tinkle's secret: perpetually one bad batch from a bounty. Fears the party will cut him loose.",playerKnown:false,pending:false},
-      {text:"Pebble's secret: once bankrupted three families with a deal. Not sure it was wrong.",playerKnown:false,pending:false},
-      {text:"Slasher genuinely does not know Tinkle's Tinctures is a con operation. He believes it is a legitimate traveling apothecary and is proud to protect it. If he ever finds out, the consequences are unpredictable.",playerKnown:false,pending:false,aiOnly:true}
+      {text:"The Cult of the Dragon is gathering a massive hoard to fund Tiamat’s return from the Nine Hells. Greenest is one of many raids.",playerKnown:false,pending:false},
+      {text:"Leosin Erlanthar (half-elf monk, Harper agent) has been captured during the raid. He holds vital intelligence about the cult’s plans.",playerKnown:false,pending:false},
+      {text:"The cult’s hoard is being transported north through the Mere of Dead Men to Castle Naerytar, then onward to a flying castle.",playerKnown:false,pending:false,aiOnly:true}
     ]
   },
   npcs:[
-    {name:'Durgrim Ironheart',disposition:'Unknown',details:'Dwarf Guildmaster from a previous operation. Connection to Goodbarrel Logistics.',status:'active',lastSeen:'Goodbarrel Logistics HQ',pending:true}
+    {name:'Governor Tarbaw Nighthill',disposition:'Desperate',details:'Human male, leader of Greenest. In the keep coordinating defense during the raid. Wounded but refusing to rest.',status:'active',lastSeen:'Greenest Keep'},
+    {name:'Castellan Escobert the Red',disposition:'Gruff ally',details:'Shield dwarf. Keep commander. Knows a secret tunnel from the keep to the stream that bypasses the cult forces.',status:'active',lastSeen:'Greenest Keep'},
+    {name:'Leosin Erlanthar',disposition:'Unknown',details:'Half-elf monk and Harper agent investigating the Cult of the Dragon. Was in Greenest when the raid began. Currently missing — likely captured.',status:'active',lastSeen:'Greenest (missing)'},
+    {name:'Frulam Mondath',disposition:'Hostile',details:'Human female. Wearer of Purple — cult leader commanding the Greenest raid. Ambitious and ruthless.',status:'active',lastSeen:'Greenest (cult camp)'},
+    {name:'Langdedrosa Cyanwrath',disposition:'Hostile',details:'Half-blue-dragon champion of the cult. Massive, proud, honorable in a brutal way. Will challenge the strongest-looking warrior to single combat.',status:'active',lastSeen:'Greenest (raid)'},
+    {name:'Lennithon',disposition:'Indifferent',details:'Adult blue dragon. Participating in the raid reluctantly — the cult promised payment. Will retreat if sufficiently challenged or injured.',status:'active',lastSeen:'Sky above Greenest'}
   ],
   quests:[
-    {text:'PENDING — Primary quest to be established through play.',done:false,pending:true},
-    {text:'PENDING — Secondary objectives to be established through play.',done:false,pending:true}
+    {text:'Defend Greenest from the Cult of the Dragon raid | Rescue civilians, protect key locations, survive the night',done:false,pending:false,status:'active',hidden:false,location:'Greenest'},
+    {text:'Find Leosin Erlanthar | Harper agent gone missing during the raid. May have vital intel on the cult',done:false,pending:false,status:'active',hidden:false,location:'Greenest'},
+    {text:'Investigate the Cult of the Dragon | Why are they raiding? Where is the hoard going? What is their endgame?',done:false,pending:false,status:'active',hidden:false}
   ],
   treasuryData:{
     pp:0,gp:15,ep:0,sp:0,cp:0,
-    lifestyle:'Modest (wagon life, 1 gp/day shared)',
+    lifestyle:'Modest (traveling adventurers, 1 gp/day shared)',
     incomeLog:[
-      {desc:'Starting funds — party pool',amt:15,type:'in',ts:'Day 1, 9:00 AM',category:'startup'}
+      {desc:'Starting funds — party pool',amt:15,type:'in',ts:'Day 1, Dusk',category:'startup'}
     ]
   },
   partyInventory:[
-    {name:"Brewer's Supplies",qty:1,weight:9,type:'supply',notes:"Tinkle's primary tool for tonic production"},
-    {name:'Empty Vials (assorted)',qty:24,weight:3,type:'supply',notes:'For the product line'},
-    {name:'Labels (blank)',qty:50,weight:0.5,type:'supply',notes:'Tinkle writes these. Very official looking.'},
-    {name:'Rations',qty:6,weight:12,type:'supply',notes:'3 days for the party'},
-    {name:'Rope (50ft)',qty:1,weight:10,type:'supply',notes:''},
-    {name:'Torpor Poison doses',qty:3,weight:0,type:'supply',notes:"For Tinkle's blowgun. DC 15 CON save or incapacitated 4d6 hours (DMG p.258)."}
+    {name:'Rations',qty:10,weight:20,type:'supply',notes:'Shared party supply. ~3 days for three people.'},
+    {name:'Rope (50ft, hempen)',qty:1,weight:10,type:'supply',notes:''},
+    {name:'Torches',qty:10,weight:10,type:'supply',notes:'Bright light 20ft, dim light 20ft. Burns 1 hour.'},
+    {name:'Waterskins',qty:3,weight:15,type:'supply',notes:'One per party member.'}
   ],
   wagon:{
     ox:{
-      name:'Grit',hp:15,hp_max:15,ac:11,conditions:'None',feed:'fed',
-      backstory:'Raised from a calf by Tinkle. The only member of the operation who has never been asked to lie about anything. Has been used as a test subject for new batches on at least three documented occasions.',
-      personality:'Stoic and dependable. Unusually calm around Tinkle specifically. Skittish around loud magic. Stubborn on roads he has decided are bad ideas.',
-      bonds:{tinkle:'Deeply bonded — raised from calf. Tolerates the experiments with resigned dignity.',pebble:'Comfortable. Responds well to Pebble\'s voice. Possibly the most normal relationship on the wagon.',slasher:'Wary. Has learned that when Slasher gets excited, something loud is about to happen.'},
-      quirks:['Refuses to cross bridges at a trot — walk only','Perks up noticeably around apples','Has a scar on his left flank from Experiment 7 — Tinkle does not discuss this','Occasionally regarded with suspicion by other animals, cause unknown'],
-      experimentLog:'Vol. 3 (current). Vols 1-2 were lost in a hasty departure from Millhaven.'
+      name:'(No draft animal)',hp:0,hp_max:0,ac:10,conditions:'None',feed:'N/A',
+      backstory:'The party has no mount or draft animal yet. Acquire one through play.',
+      personality:'',
+      bonds:{},
+      quirks:[],
+      experimentLog:''
     },
     cells:[],
-    cargo:[
-      {name:'Experiment Log Vol. 3',qty:1,weight:1,type:'supply',notes:"Tinkle's ongoing record of what has been tested on Grit and select willing/unwilling subjects. Moderately incriminating.",ts:'Day 1, 9:00 AM',location:'Goodbarrel Logistics HQ'},
-      {name:'Tincture of Vitality (snake oil)',qty:12,weight:2,type:'trade',notes:'Flavored water with a pinch of ginger. Tastes medicinal. Does nothing.',ts:'Day 1, 9:00 AM',location:'Goodbarrel Logistics HQ'},
-      {name:'Elixir of Restorative Clarity (snake oil)',qty:8,weight:1,type:'trade',notes:'Mild sedative. Technically solves some problems by making the patient not care about them.',ts:'Day 1, 9:00 AM',location:'Goodbarrel Logistics HQ'},
-      {name:'Bottling Kit',qty:1,weight:5,type:'supply',notes:'Corks, wax sealer, funnel, the good labels.',ts:'Day 1, 9:00 AM',location:'Goodbarrel Logistics HQ'}
-    ],
+    cargo:[],
     hoard:[],
-    hp:20,hp_max:20,ac:11,conditions:'',
-    wagonName:"The Shelled Alchemist",
-    wagonDesc:"Front: Brightly painted apothecary shop facade. Professional. Trustworthy-looking. Possibly too colorful. Back: Hidden secure compartment for today's coin, label prep, and planning the next town's pitch before the current town catches on."
+    hp:0,hp_max:0,ac:10,conditions:'',
+    wagonName:"No wagon yet",
+    wagonDesc:"The party is traveling on foot along the Trade Way. A cart or wagon may be acquired through play."
   },
   relationships:[
-    {from:'tinkle',to:'pebble',disposition:'relies_on',dynamic:'The pitch needs the product. Tinkle needs Pebble\'s CHA to make the operation work. Uneasy about the Grit experiments but has never said anything directly.',aiOnly:false},
-    {from:'tinkle',to:'slasher',disposition:'fond',dynamic:'Tinkle finds Slasher\'s obliviousness both useful and terrifying. Slasher genuinely believes the operation is legitimate. Tinkle has decided never to correct him.',aiOnly:false},
-    {from:'tinkle',to:'grit',disposition:'bonded',dynamic:'Raised from a calf. Genuine attachment. The experiments are scientific. These two things coexist.',aiOnly:false},
-    {from:'pebble',to:'tinkle',disposition:'trusts',dynamic:'Pebble believes in the operation even when the product is dubious. Sees Tinkle as the brains. Has questions about the experiment log but asks them gently.',aiOnly:false},
-    {from:'pebble',to:'slasher',disposition:'fond',dynamic:'Pebble finds Slasher\'s sincerity both endearing and occasionally heartbreaking. Slasher once complimented Pebble\'s pitch to a customer by saying \'I didn\'t understand any of it but everyone seemed happy\'.',aiOnly:false},
-    {from:'slasher',to:'pebble',disposition:'trusts',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'slasher',to:'tinkle',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true}
+    {from:'gareth',to:'meren',disposition:'neutral',dynamic:'PENDING — just met on the road to Greenest. Gareth respects Meren’s knowledge but doesn’t fully understand magic.',aiOnly:false,pending:true},
+    {from:'gareth',to:'lyra',disposition:'neutral',dynamic:'PENDING — Lyra’s charm is lost on the soldier. Gareth appreciates competence over charisma.',aiOnly:false,pending:true},
+    {from:'meren',to:'gareth',disposition:'neutral',dynamic:'PENDING — a capable sword arm. Meren is glad to have protection while investigating the cult.',aiOnly:false,pending:true},
+    {from:'meren',to:'lyra',disposition:'neutral',dynamic:'PENDING — entertainer and scholar. Different approaches to gathering information.',aiOnly:false,pending:true},
+    {from:'lyra',to:'gareth',disposition:'neutral',dynamic:'PENDING — strong, silent, and serious. Good material for a ballad.',aiOnly:false,pending:true},
+    {from:'lyra',to:'meren',disposition:'neutral',dynamic:'PENDING — bookish but driven. Lyra admires purpose even when it’s unfashionable.',aiOnly:false,pending:true}
   ],
   combat:{active:false,round:1,currentIdx:0,list:[]},
   encounterPresets:[
-    {name:'Angry Crowd (Grift Gone Wrong)',enemies:'Angry Merchant:8:11, Angry Farmer:7:10, Angry Farmer:7:10, Town Guard:11:16'}
+    {name:'Cult Raiders (Chapter 1)',enemies:'Cult Fanatic:22:13, Cultist:9:12, Cultist:9:12, Cultist:9:12, Guard Drake:33:14'},
+    {name:'Kobold Ambush',enemies:'Kobold:5:12, Kobold:5:12, Kobold:5:12, Kobold:5:12, Winged Kobold:7:13'}
   ],
   scenes:[],activeSceneIdx:-1,
   snippets:[],dmSecrets:'',
   chatHistory:[],logSummary:'',
-  logs:[{ts:'Day 1, 9:00 AM',type:'dm',body:"Tinkle's Tinctures campaign terminal v2 initialized. Party data updated. Grit is hitched. The wagon is ready."}],
+  logs:[{ts:'Day 1, Dusk',type:'dm',body:"Hoard of the Dragon Queen — campaign terminal initialized. Party approaches Greenest. The sky burns. Set starting location and run Session Zero to begin."}],
   activeEditTab:0,
   turnCount:0,turnsSince:0,chkCount:0,chkMode:'exploration',msgsSinceChk:0,autoChkInterval:8,
   chkHistory:[],rewindStack:[],
@@ -798,7 +802,7 @@ let state={
     {id:'qa_3',label:'Clear Conditions',type:'condition_clear',params:{pc:''},context:['tab-party','tab-combat','tab-dm']},
     {id:'qa_4',label:'Use Resource',type:'resource_use',params:{pc:'',resource:''},context:['tab-party','tab-combat','tab-dm']},
     {id:'qa_5',label:'Add Foraged Item',type:'item_add_foraged',params:{name:'',qty:1,weight:0},context:['tab-wagon','tab-world','tab-dm']},
-    {id:'qa_6',label:'Feed Grit',type:'ox_feed',params:{},context:['tab-wagon','tab-dm']},
+    {id:'qa_6',label:'Long Rest',type:'long_rest',params:{},context:['tab-dm','tab-party','tab-combat']},
     {id:'qa_7',label:'Advance Time',type:'time_advance',params:{amount:'1 hour'},context:['tab-world','tab-dm','tab-session']},
     {id:'qa_8',label:'Save Game',type:'save_game',params:{},context:['tab-party','tab-world','tab-wagon','tab-combat','tab-dm','tab-session','tab-ait']},
     {id:'qa_9',label:'Next Turn',type:'combat_next',params:{},context:['tab-combat','tab-dm']},
@@ -815,7 +819,7 @@ let state={
     {id:'qa_20',label:'Character Moment',type:'char_moment',params:{},context:['tab-dm','tab-party']},
     {id:'qa_21',label:'Send Active Scene',type:'send_scene',params:{},context:['tab-dm','tab-session']},
     {id:'qa_22',label:'Context Refresh',type:'context_refresh_btn',params:{},context:['tab-dm','tab-ait']},
-    {id:'qa_23',label:'Shell Defense',type:'shell_defense_toggle',params:{},context:['tab-party','tab-combat','tab-dm']}
+    {id:'qa_23',label:'Investigate',type:'investigate',params:{},context:['tab-dm','tab-world','tab-party']}
   ]
 };
 
@@ -1158,8 +1162,7 @@ function verifyContracts(){
   const persona=c.persona||'';const never=c.never||'';
   const checks=[
     [!!persona.trim(),'① DM Persona is non-empty'],
-    [persona.includes('He does not know the operation is a con'),'① Slasher con-protection clause present'],
-    [persona.includes('Never tell him'),'① "Never tell him" present in Persona'],
+    [persona.includes('MULTI-PLAYER ADDRESSING'),'① Multi-player addressing clause present'],
     [!!(c.never||'').trim(),'② What You Never Do is non-empty'],
     [never.includes('DUNGEON SECRETS'),'② DUNGEON SECRETS clause present'],
     [never.includes('PLAYER AGENCY'),'② PLAYER AGENCY clause present'],
@@ -2144,7 +2147,7 @@ function renderCargo(){
 function renderHoard(){
   _renderInvChips('wagon-hoard',state.wagon.hoard||[],'hoard',_hoardEditIdx,
     idx=>{_hoardEditIdx=idx;renderHoard();},
-    'all',()=>{},'"Mine." — Pebble',_invSearch);
+    'all',()=>{},'No hoard items.',_invSearch);
 }
 function closeWEdit(list){if(list==='hoard'){_hoardEditIdx=null;renderHoard();}else{_cargoEditIdx=null;renderCargo();if(list.startsWith('pc_'))renderCards();}}
 function addWagonItem(list,type){
@@ -3637,7 +3640,7 @@ function genLedger(){
   const out=document.getElementById('ledger-out');
   // COMPACT MODE — mechanical state only
   if(fmt==='compact'){
-    let l="=== TINKLES TINCTURES — COMPACT STATE ===\n";
+    let l="=== CAMPAIGN COMPACT STATE ===\n";
     l+="Location: "+state.worldData.location+" | Time: "+state.worldData.time+" | Weather: "+state.worldData.weather+"\n\n";
     state.pcs.forEach(p=>{
       l+=p.name+' ('+p.race+' '+p.class+' Lv'+p.level+'): HP '+p.hp+'/'+p.hp_max+' | AC '+p.ac;
@@ -3658,7 +3661,7 @@ function genLedger(){
     if(out){out.value=l;const chars=l.length;const toks=Math.round(chars/4);document.getElementById('ledger-chars').innerText=chars+' chars';document.getElementById('ledger-tokens').innerText='~'+toks+' tokens';}
     return l;
   }
-  let l="=== TINKLE'S TINCTURES — CAMPAIGN STATE LEDGER ===\n"+pfx+"\n\n";
+  let l="=== HOARD OF THE DRAGON QUEEN — CAMPAIGN STATE LEDGER ===\n"+pfx+"\n\n";
   l+="━━━ PARTY STATUS ━━━\n";
   state.pcs.forEach(p=>{
     l+=p.name+' | Lv '+p.level+' '+p.race+' '+p.class+' | XP '+(p.xp||0)+'/'+XP_T[Math.min(p.level||1,19)]+'\n';
@@ -3696,13 +3699,13 @@ function genLedger(){
     l+="\n━━━ TREASURY ━━━\n";
     l+='PP:'+state.treasuryData.pp+' GP:'+state.treasuryData.gp+' EP:'+state.treasuryData.ep+' SP:'+state.treasuryData.sp+' CP:'+state.treasuryData.cp+'\n';
     if((state.partyInventory||[]).length){l+="\n━━━ PARTY INVENTORY ━━━\n";state.partyInventory.forEach(i=>l+='  '+i.name+' x'+i.qty+' ('+i.weight+'lb) ['+i.type+']\n');}
-    l+="\n━━━ WAGON — TINKLE'S TINCTURES ━━━\n";
+    l+="\n━━━ WAGON & TRANSPORT ━━━\n";
     const ox=state.wagon.ox;
     l+='Ox ('+ox.name+'): HP '+ox.hp+'/'+ox.hp_max+' AC '+ox.ac+' | Feed: '+ox.feed+' | Conditions: '+ox.conditions+'\n';
     l+='Cargo Weight: '+calcWeight().toFixed(1)+'/'+MAX_LB+'lb\n';
     if(state.wagon.cells?.length){l+='Holding Cells:\n';state.wagon.cells.forEach(c=>l+='  ['+c.temperament?.toUpperCase()+'] '+c.name+' ('+c.size+') Escape: '+c.escDC+' Weight: '+c.weight+'lb\n');}
     if(state.wagon.cargo?.length){l+='Cargo:\n';state.wagon.cargo.forEach(i=>l+='  '+i.name+' x'+i.qty+' ['+i.type+'] '+i.weight+'lb\n');}
-    if(state.wagon.hoard?.length){l+="Pebble's Hoard:\n";state.wagon.hoard.forEach(i=>l+='  '+i.name+' x'+i.qty+' '+i.weight+'lb\n');}
+    if(state.wagon.hoard?.length){l+="Party Hoard:\n";state.wagon.hoard.forEach(i=>l+='  '+i.name+' x'+i.qty+' '+i.weight+'lb\n');}
     l+="\n━━━ QUESTS ━━━\n";
     l+='Main Quest: '+(state.worldData.primaryMission||'')+'\n';
     state.quests.forEach((q,i)=>l+='  ['+(q.status||'active').toUpperCase()+'] '+(i+1)+'. '+q.text+'\n');
@@ -3841,18 +3844,19 @@ function resetState(mode, startingGold){
     travelLog:[],townReputation:[],
     businessProfile:state.worldData.businessProfile||{},
     campaignSecrets:mode==='full'?[
-      {text:"Tinkle's secret: PENDING",playerKnown:false,pending:true},
-      {text:"Pebble's secret: PENDING",playerKnown:false,pending:true},
-      {text:"Slasher's secret: PENDING",playerKnown:false,pending:true}
+      {text:"Gareth's secret: PENDING",playerKnown:false,pending:true},
+      {text:"Meren's secret: PENDING",playerKnown:false,pending:true},
+      {text:"Lyra's secret: PENDING",playerKnown:false,pending:true}
     ]:(state.worldData.campaignSecrets||[])
   };
   // Build clean relationships
   const cleanRels=mode==='full'?[
-    {from:'tinkle',to:'pebble',disposition:'relies_on',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'tinkle',to:'slasher',disposition:'complicated',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'pebble',to:'slasher',disposition:'fond',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'slasher',to:'pebble',disposition:'trusts',dynamic:'PENDING',aiOnly:false,pending:true},
-    {from:'slasher',to:'tinkle',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true}
+    {from:'gareth',to:'meren',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'gareth',to:'lyra',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'meren',to:'gareth',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'meren',to:'lyra',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'lyra',to:'gareth',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true},
+    {from:'lyra',to:'meren',disposition:'neutral',dynamic:'PENDING',aiOnly:false,pending:true}
   ]:(state.relationships||[]);
   // Preserve wagon canonical data
   const cleanWagon=JSON.parse(JSON.stringify(state.wagon));
@@ -3874,19 +3878,17 @@ function resetState(mode, startingGold){
     {text:'PENDING — Secondary objectives to be established through play.',done:false,pending:true,status:'active',hidden:false}
   ];
   state.treasuryData={pp:0,gp:startingGold,ep:0,sp:0,cp:0,
-    lifestyle:'Modest (wagon life, 1 gp/day shared)',
-    incomeLog:[{desc:'Starting funds — party pool',amt:startingGold,type:'in',ts:'Day 1, 9:00 AM',category:'startup'}]
+    lifestyle:'Modest (traveling adventurers, 1 gp/day shared)',
+    incomeLog:[{desc:'Starting funds — party pool',amt:startingGold,type:'in',ts:'Day 1, Dusk',category:'startup'}]
   };
   state.partyInventory=mode==='full'?[
-    {name:"Brewer's Supplies",qty:1,weight:9,type:'supply',notes:"Tinkle's primary tool for tonic production"},
-    {name:'Empty Vials (assorted)',qty:24,weight:3,type:'supply',notes:'For the product line'},
-    {name:'Labels (blank)',qty:50,weight:0.5,type:'supply',notes:'Tinkle writes these. Very official looking.'},
-    {name:'Rations',qty:6,weight:12,type:'supply',notes:'3 days for the party'},
-    {name:'Rope (50ft)',qty:1,weight:10,type:'supply',notes:''},
-    {name:'Torpor Poison doses',qty:3,weight:0,type:'supply',notes:"For Tinkle's blowgun. DC 15 CON save or incapacitated 4d6 hours."}
+    {name:'Rations',qty:10,weight:20,type:'supply',notes:'Shared party supply. ~3 days for three people.'},
+    {name:'Rope (50ft, hempen)',qty:1,weight:10,type:'supply',notes:''},
+    {name:'Torches',qty:10,weight:10,type:'supply',notes:'Bright light 20ft, dim light 20ft. Burns 1 hour.'},
+    {name:'Waterskins',qty:3,weight:15,type:'supply',notes:'One per party member.'}
   ]:state.partyInventory;
   state.chatHistory=[];
-  state.logs=[{ts:'Day 1, 9:00 AM',type:'dm',body:"Tinkle's Tinctures — "+(mode==='full'?'Full Reset':'New Campaign')+". Party is ready. Set your starting location and run Session Zero to begin."}];
+  state.logs=[{ts:'Day 1, Dusk',type:'dm',body:"Hoard of the Dragon Queen — "+(mode==='full'?'Full Reset':'New Campaign')+". Party is ready. Set your starting location and run Session Zero to begin."}];
   state.logSummary='';
   state.storyChapters=[];
   state.campaignLaunched=false;
@@ -3908,7 +3910,7 @@ function exportConfig(){
     const blob=new Blob([json],{type:'application/json'});
     const url=URL.createObjectURL(blob);
     const loc=(state.worldData?.location||'unknown').replace(/[^a-z0-9]/gi,'_').toLowerCase().slice(0,24);
-    const a=document.createElement('a');a.href=url;a.download='tinkles_save_'+loc+'.json';
+    const a=document.createElement('a');a.href=url;a.download='hotdq_save_'+loc+'.json';
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),2000);
     toast('✓ Full save exported to Downloads.');
@@ -4945,7 +4947,7 @@ async function _fetchOR(messages,sysProm,maxTok,key,signal,modelOverride){
   const model=(!modelOverride&&mr==='custom')?(localStorage.getItem('tt_oc')||'google/gemini-2.0-flash-exp'):mr;
   const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,'HTTP-Referer':window.location.href,'X-Title':"Tinkle's Tinctures"},
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,'HTTP-Referer':window.location.href,'X-Title':"Hoard of the Dragon Queen"},
     body:JSON.stringify({model,messages:[{role:'system',content:sysProm},...messages],max_tokens:maxTok}),
     signal
   });
@@ -4996,7 +4998,7 @@ async function callAI(messages,sysProm,maxTok=1400){
 }
 
 // ═══ SYSTEM PROMPT BUILDER ═══
-const _SLASHER_FRAGMENT='He does not know the operation is a con. Never tell him.';
+const _SLASHER_FRAGMENT=''; // HotDQ: no con-protection needed
 function buildPrompt(ledger){
   // Read from state (DR-6) with DOM fallback for resilience
   const g=id=>{
@@ -5004,11 +5006,7 @@ function buildPrompt(ledger){
     if(key&&state.aiContracts?.[key])return state.aiContracts[key];
     return document.getElementById(id)?.value||'';
   };
-  // ⛔ SECURITY — Slasher must never learn the operation is a con (permanent constraint)
   const persona=g('ai-persona');
-  if(!persona.includes(_SLASHER_FRAGMENT)){
-    throw new Error('⛔ SECURITY: Contract 1 (DM Persona) is missing the required Slasher con-protection clause. Open AI Tools → Contracts and restore:\n"'+_SLASHER_FRAGMENT+'"');
-  }
   const activeSnips=(state.snippets||[]).filter(s=>s.active!==false&&s.text).map(s=>'['+s.name+']\n'+s.text).join('\n\n');
   const mechBlock=`
 CONTRACT 6 — MECHANICS BLOCK (REQUIRED)
@@ -5016,18 +5014,18 @@ After EVERY response, end with a mechanics block. Use exact format. If nothing c
 This block is machine-parsed by the app — format must be exact. It is stripped from displayed text.
 
 ---MECHANICS---
-hp: slasher=4
-hp_max: tinkle=10
-conditions: slasher+poisoned, tinkle-charmed
-slot_use: tinkle=1
-slot_restore: tinkle=all
-short_rest: pebble
+hp: gareth=4
+hp_max: meren=8
+conditions: gareth+poisoned, meren-charmed
+slot_use: meren=1
+slot_restore: meren=all
+short_rest: gareth
 location: The Sunken Vault
 time: Day 2, dusk
 weather: Heavy rain
 income: 8, real_stock, Sold Clarity Tonic to farmer
 expense: 3, Stable fee at the Broken Axle
-item_add: tinkle, Iron Key, 1, key, 0
+item_add: meren, Iron Key, 1, key, 0
 item_remove: party, Torch, 2
 item_add: wagon, Mushroom Cluster, 3, foraged, 0.1
 wagon_cell_add: Goblin Scout, Small, hostile, DC14, 40
@@ -5037,12 +5035,12 @@ wagon_hp: 14
 ox_hp: 12
 ox_condition: exhausted
 familiar_hp: Pip|0
-xp: slasher+50, tinkle+50, pebble+50
+xp: gareth+50, meren+50, lyra+50
 quest_done: Find the missing cart
 quest_add: Investigate the old mill
 npc_mood: Durgrim=hostile
 npc_add: Mira, Neutral, Halfling innkeeper
-pc_update: slasher, class, Rogue/Fighter
+pc_update: gareth, class, Fighter/Champion
 pc_add: Grimtooth, Half-Orc, Barbarian, 1, 14, 14, 15
 pc_delete: Grimtooth
 ---END---
@@ -5057,10 +5055,10 @@ Rules:
 - npc_mood: EVERY TIME an NPC's relationship to the party changes, output npc_mood.
 - resource_use: [pc], [resource name] — decrements a resource pip (Bardic Inspiration, Stone's Endurance, Lucky Points)
 - resource_restore: [pc], [resource name or all] — restores resource uses (short or long rest)
-- shell_defense: tinkle=on — Tinkle retreats into shell (prone, incapacitated, AC 21). shell_defense: tinkle=off — emerges
+- shell_defense: [name]=on/off — character retreats into shell defense (if applicable)
 - familiar_hp: [name]|[new HP] — set a familiar's HP (e.g. familiar_hp: Pip|0 when killed, familiar_hp: Pip|1 when resummoned). Familiars are tracked in the ledger under their owner's PC block
 - town_rep: [town name], [good/neutral/burned/fled], [brief notes] — updates town reputation log
-- income: [amount], [category], [description] — logs business income (category: real_stock/snake_oil/reagents/overhead/emergency)
+- income: [amount], [category], [description] — logs income (category: reward/found/loot/quest/trade)
 - If a numeric value is estimated, append (est) — e.g. wagon_cell_add: Cave Bear, Large, hostile, DC18, 400 (est)
 - primary_mission: [text] — set or update the party's main quest objective
 - quest_fail: [partial name] — mark a quest as failed/abandoned
@@ -5077,14 +5075,14 @@ Rules:
 - Always update weather: when weather conditions change or when entering a new outdoor area
 - Always emit location_add: for ANY new named location the party visits (town, dungeon, camp, waypoint, building)
 - ENCUMBRANCE: The ledger shows carry weight for each PC and the wagon. If any PC is over STR×15 lbs or the wagon is over 1080 lbs, you MUST enforce travel speed penalties, disadvantage on physical checks, and narrate the strain. When adding items, always emit item_add with a weight estimate. Do not ignore encumbrance — it is a core survival mechanic
-- short_rest: [name] restores Bardic Inspiration, Stone's Endurance uses, and other short-rest features
-- consequence_add: [text] | [type] — log a world consequence. Types: background (ambient, slow-burn), faction (NPC group action), personal (affects a PC directly), escalation (urgent, building threat). Use for burned-town fallout, faction retaliation, PC reputation shifts, and ticking threats. Example: consequence_add: Thornhaven guards are now searching for a "tortoiseshell alchemist" | faction
+- short_rest: [name] restores Second Wind (Gareth), Arcane Recovery (Meren), and other short-rest features
+- consequence_add: [text] | [type] — log a world consequence. Types: background (ambient, slow-burn), faction (NPC group action), personal (affects a PC directly), escalation (urgent, building threat). Use for burned-town fallout, faction retaliation, PC reputation shifts, and ticking threats. Example: consequence_add: Cult of the Dragon sends scouts to track the party after Greenest | faction
 - consequence_resolve: [partial text] — mark a consequence resolved when the party has addressed it. Example: consequence_resolve: guards searching
 - location_add: Name | Type | Description — create a new location entry. Types: town/city/camp/ruin/dungeon/waypoint. Use when the party first arrives at a new named place. Example: location_add: Greenest | town | Small farming town under dragon attack
 - location_visit: Name — mark a known location as visited and update its last-visited timestamp. Use on return trips. Example: location_visit: Greenest
 - location_history: Name | Text | dmOnly — add an event entry to a location's history. Set dmOnly to true for secret events. Example: location_history: Greenest | Governor Nighthill paid 250gp for the party's help | false
 - location_investment: Name | Description | Amount — record a party investment at a location. Example: location_investment: Greenest | Mill stake | 50
-- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). Use whenever a player action triggers a check BEFORE narrating the outcome. Example: roll_request: Persuasion | 14 | Tinkle
+- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). Use whenever a player action triggers a check BEFORE narrating the outcome. Example: roll_request: Persuasion | 14 | Lyra
 
 ZONE COMBAT SYSTEM:
 Combat uses 6 abstract zones instead of a grid: Frontline, Backline, Left Flank, Right Flank, Air Space, Rear Guard.
@@ -5095,7 +5093,7 @@ Air Space only appears when flying creatures exist. Rear Guard is safest — ene
 Zone mechanics commands:
 - combat_start: [optional description] — begin combat, initialize zone grid. Output this BEFORE any zone_add_enemy lines
 - combat_end: [summary text] — end combat, reset zones, log summary to location history
-- zone_move: [name] | [zone_id] — move a combatant to a zone. zone_id: front/back/left/right/air/rear. Example: zone_move: Slasher | left
+- zone_move: [name] | [zone_id] — move a combatant to a zone. zone_id: front/back/left/right/air/rear. Example: zone_move: Gareth | left
 - zone_add_enemy: [name] | [hp] | [ac] | [zone_id] | [initiative] — add enemy to combat in a specific zone. Example: zone_add_enemy: Cultist | 9 | 12 | front | 14
 - zone_remove: [name] — remove a combatant (dead, fled, etc). Example: zone_remove: Cultist
 - zone_effect: [zone_id] | [effect text] | [type] — apply an effect to a zone. type: terrain or effect (default). Example: zone_effect: front | Fog Cloud — obscured | effect. Example: zone_effect: back | Difficult terrain (rubble) | terrain
@@ -5105,9 +5103,9 @@ Zone mechanics commands:
 Use fog of war to hide unexplored areas, secret rooms, or zones the party hasn't reached yet. Reveal zones as the party explores or discovers them.
 
 Starting positions when combat begins:
-- Melee fighters (Slasher): Frontline
-- Ranged/casters (Pebble, Tinkle): Backline
-- Grit + Wagon: Rear Guard (auto-added by the app)
+- Melee fighters (Gareth): Frontline
+- Ranged/casters (Meren, Lyra): Backline
+- Wagon/mounts: Rear Guard (auto-added by the app if present)
 - Flanks: for ambushes, flanking maneuvers, or when enemies surround
 - Air Space: only when flying creatures exist
 Override these defaults when the narrative demands it (ambush from behind, surrounded, etc).
@@ -5344,8 +5342,8 @@ function parseMechanics(responseText, pendingMsgId=null){
       }
       else if(key==='shell_defense'){
         const pts=val.split('=');const onOff=pts[1]?.trim().toLowerCase();const pc=findPC(pts[0]);
-        if(pc){if(onOff==='on'){if(!pc.conditions.includes('Shell Defense'))pc.conditions.push('Shell Defense');if(!pc.conditions.includes('Prone'))pc.conditions.push('Prone');if(!pc.conditions.includes('Incapacitated'))pc.conditions.push('Incapacitated');changes.push({text:'Tinkle retreated into shell (AC 21)'});}
-        else{['Shell Defense','Prone','Incapacitated'].forEach(c=>{const i=pc.conditions.indexOf(c);if(i>-1)pc.conditions.splice(i,1);});changes.push({text:'Tinkle emerged from shell'});}}
+        if(pc){if(onOff==='on'){if(!pc.conditions.includes('Shell Defense'))pc.conditions.push('Shell Defense');if(!pc.conditions.includes('Prone'))pc.conditions.push('Prone');if(!pc.conditions.includes('Incapacitated'))pc.conditions.push('Incapacitated');changes.push({text:'Retreated into shell (AC 21)'});}
+        else{['Shell Defense','Prone','Incapacitated'].forEach(c=>{const i=pc.conditions.indexOf(c);if(i>-1)pc.conditions.splice(i,1);});changes.push({text:'Emerged from shell'});}}
       }
       else if(key==='town_rep'){
         const pts=val.split(',').map(p=>p.trim());
@@ -6033,7 +6031,7 @@ function renderChat(){
   const prevScroll=c.scrollTop;const prevHeight=c.scrollHeight;
   c.innerHTML='';
   if(!state.chatHistory||!state.chatHistory.length){
-    c.innerHTML=`<div class="chat-msg sys"><div class="msg-hdr"><span>System</span></div><div class="chat-msg-text">Welcome to Tinkle's Tinctures! Set your API key in the AI DM tab. The DM updates character sheets, inventory, wagon, and more automatically via the mechanics block.</div></div>`;
+    c.innerHTML=`<div class="chat-msg sys"><div class="msg-hdr"><span>System</span></div><div class="chat-msg-text">Welcome to Hoard of the Dragon Queen! Set your API key in the AI DM tab. The DM updates character sheets, inventory, wagon, and more automatically via the mechanics block.</div></div>`;
     return;
   }
   state.chatHistory.forEach((msg,msgIdx)=>{
@@ -6177,7 +6175,7 @@ const SUGGEST_CHIPS={
     {label:'Test mechanic',fill:'[Test] Apply: '},
     {label:'Test prompt',fill:'Describe the current scene in detail.'},
     {label:'Award XP',fill:'Award 300 XP to the party for defeating the bandits.'},
-    {label:'Add condition',fill:'A bandit casts Hold Person on Slasher. Apply the Paralyzed condition.'},
+    {label:'Add condition',fill:'A cultist casts Hold Person on Gareth. Apply the Paralyzed condition.'},
     {label:'Drop loot',fill:'The chest contains a Potion of Greater Healing, 45 gold, and a mysterious letter. Distribute it.'},
     {label:'Start combat',fill:'Three goblins and an ogre ambush the party on the road. Roll initiative.'},
     {label:'NPC intro',fill:'We enter the tavern and meet the bartender. Who are they?'},
@@ -6827,8 +6825,8 @@ function generateSessionZero(){
 ║        SESSION ZERO — AI DM ONBOARDING CONTRACT           ║
 ╚═══════════════════════════════════════════════════════════╝
 
-You are being initialized as the AI Dungeon Master for Tinkle's Tinctures,
-an ongoing D&D 5e campaign. Read everything below before responding.
+You are being initialized as the AI Dungeon Master for Hoard of the Dragon Queen,
+a D&D 5e campaign on the Sword Coast. Read everything below before responding.
 
 ${prompt}
 
@@ -7906,7 +7904,7 @@ function updateStateFixForm(){
   const pcOpts=state.pcs.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
   const forms={
     item:`<div class="form-group"><label class="field-label">Who gets it</label>
-      <select id="sf-pc">${pcOpts}<option value="wagon">Wagon Cargo</option><option value="party">Party (shared)</option><option value="hoard">Pebble's Hoard</option></select></div>
+      <select id="sf-pc">${pcOpts}<option value="wagon">Wagon Cargo</option><option value="party">Party (shared)</option><option value="hoard">Party Hoard</option></select></div>
       <div class="form-group"><label class="field-label">Item Name</label><input type="text" id="sf-name" placeholder="Silver-Leaf Seaweed..."></div>
       <div class="form-row"><div class="fg"><label class="field-label">Qty</label><input type="number" id="sf-qty" value="1" min="1"></div>
       <div class="fg"><label class="field-label">Type</label><select id="sf-itype"><option>foraged</option><option>supply</option><option>loot</option><option>key</option><option>trade</option><option>misc</option></select></div></div>`,

@@ -6,13 +6,13 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Tinkle's Tinctures — Campaign Terminal</title>
+<title>Hoard of the Dragon Queen — Campaign Terminal</title>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.D7yd56Ri.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app._TTIXoQJ.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.BOdPIJ6x.css">
 </head>
 <body>
@@ -25,8 +25,8 @@
 <!-- SETUP MODAL -->
 <div class="modal-overlay" id="setup-modal">
   <div class="modal-box" style="max-width:460px">
-    <div class="modal-title" style="font-size:22px">Tinkle's Tinctures</div>
-    <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;font-family:var(--serif);font-style:italic;">Former associates of Goodbarrel Logistics, now striking out on their own.</p>
+    <div class="modal-title" style="font-size:22px">Hoard of the Dragon Queen</div>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;font-family:var(--serif);font-style:italic;">The Cult of the Dragon raids the Sword Coast. Three adventurers stand against the coming darkness.</p>
     <div class="form-group"><label class="field-label">Your Name</label><input type="text" id="setup-name" placeholder="e.g. Sarah" autocomplete="given-name"></div>
     <div class="form-group"><label class="field-label">You Are Playing</label><select id="setup-character"><option value="">— Select your character —</option></select></div>
     <button class="btn gold full" onclick="completeSetup()" style="margin-top:10px">Enter Campaign ▶</button>
@@ -313,11 +313,11 @@
         <div style="font-size:11px;color:var(--text-dim)">STR 18 — Pull capacity: <strong style="color:var(--gold)">1,080 lb</strong> (5e RAW) | HP 15 AC 11</div>
         <details style="margin-top:8px">
           <summary style="font-size:10px;color:var(--text-dim);cursor:pointer;list-style:none;padding:4px 0;min-height:28px;display:flex;align-items:center">▶ Backstory &amp; Bonds</summary>
-          <div class="form-group" style="margin-top:6px"><label class="field-label">Backstory</label><textarea id="ox-backstory" style="min-height:50px;font-size:11px" oninput="state.wagon.ox.backstory=this.value;save()" placeholder="Raised from a calf by Tinkle..."></textarea></div>
+          <div class="form-group" style="margin-top:6px"><label class="field-label">Backstory</label><textarea id="ox-backstory" style="min-height:50px;font-size:11px" oninput="state.wagon.ox.backstory=this.value;save()" placeholder="No draft animal yet..."></textarea></div>
           <div class="form-group"><label class="field-label">Personality &amp; Quirks</label><textarea id="ox-personality" style="min-height:50px;font-size:11px" oninput="state.wagon.ox.personality=this.value;save()"></textarea></div>
-          <div class="form-group"><label class="field-label">Bond — Tinkle</label><input type="text" id="ox-bond-tinkle" style="font-size:11px" oninput="state.wagon.ox.bonds.tinkle=this.value;save()"></div>
-          <div class="form-group"><label class="field-label">Bond — Pebble</label><input type="text" id="ox-bond-pebble" style="font-size:11px" oninput="state.wagon.ox.bonds.pebble=this.value;save()"></div>
-          <div class="form-group"><label class="field-label">Bond — Slasher</label><input type="text" id="ox-bond-slasher" style="font-size:11px" oninput="state.wagon.ox.bonds.slasher=this.value;save()"></div>
+          <div class="form-group"><label class="field-label">Bond — PC 1</label><input type="text" id="ox-bond-tinkle" style="font-size:11px" oninput="state.wagon.ox.bonds.tinkle=this.value;save()"></div>
+          <div class="form-group"><label class="field-label">Bond — PC 2</label><input type="text" id="ox-bond-pebble" style="font-size:11px" oninput="state.wagon.ox.bonds.pebble=this.value;save()"></div>
+          <div class="form-group"><label class="field-label">Bond — PC 3</label><input type="text" id="ox-bond-slasher" style="font-size:11px" oninput="state.wagon.ox.bonds.slasher=this.value;save()"></div>
           <div class="form-group"><label class="field-label">Experiment Log Reference</label><input type="text" id="ox-exp-log" style="font-size:11px" oninput="state.wagon.ox.experimentLog=this.value;save()" placeholder="Vol. 3 (current)..."></div>
         </details>
       </details>
@@ -338,8 +338,8 @@
         <div id="wagon-cargo"></div>
       </div>
       <details class="panel purple">
-        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Pebble's Hoard <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addWagonItem('hoard','hoard')">+ Add</button></summary>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px;margin-top:6px">"Mine." — Pebble</p>
+        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center">Party Hoard <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addWagonItem('hoard','hoard')">+ Add</button></summary>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px;margin-top:6px">"Precious loot the party has claimed."</p>
         <div id="wagon-hoard"></div>
       </details>
       <details class="panel green">
@@ -559,13 +559,13 @@
       <div class="panel-title">Step 0 — Session Zero</div>
       <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Before the first session: establish tone, expectations, and how the party met. This is sent to the AI DM as a permanent contract.</p>
       <div class="form-group"><label class="field-label">Campaign Tone</label>
-        <input type="text" id="setup-tone" placeholder="Gritty con-artist fantasy. Dark humour. Real consequences." oninput="saveSetup()">
+        <input type="text" id="setup-tone" placeholder="Epic dragon-cult fantasy. Heroism with real danger. Towns burn." oninput="saveSetup()">
       </div>
       <div class="form-group"><label class="field-label">How Did the Party Meet?</label>
-        <textarea id="setup-origin" style="min-height:80px" placeholder="All three worked for Goodbarrel Logistics before striking out independently..." oninput="saveSetup()"></textarea>
+        <textarea id="setup-origin" style="min-height:80px" placeholder="Three strangers converging on the town of Greenest — a sellsword, a scholar, and a bard — as the Cult of the Dragon attacks." oninput="saveSetup()"></textarea>
       </div>
       <div class="form-group"><label class="field-label">What Are They Trying to Accomplish?</label>
-        <textarea id="setup-goal" style="min-height:60px" placeholder="Build a profitable traveling apothecary operation. Keep moving before locals compare notes." oninput="saveSetup()"></textarea>
+        <textarea id="setup-goal" style="min-height:60px" placeholder="Defend Greenest. Investigate the Cult of the Dragon. Stop the summoning of Tiamat." oninput="saveSetup()"></textarea>
       </div>
       <div class="form-group"><label class="field-label">Lines and Veils (topics to avoid or handle carefully)</label>
         <textarea id="setup-lines" style="min-height:60px" placeholder="No graphic torture. Death is real but not gratuitous." oninput="saveSetup()"></textarea>
@@ -599,7 +599,7 @@
         <textarea id="setup-mission" style="min-height:60px" placeholder="What is the party's main objective?" oninput="state.worldData.primaryMission=this.value;save()"></textarea>
       </div>
       <div class="form-group"><label class="field-label">Key Factions / Power Players</label>
-        <textarea id="setup-factions" style="min-height:80px" placeholder="Goodbarrel Logistics — former employer. Still connected. The Whistlers — bandit network. The Black-Iron Vault — unknown northern operation." oninput="state.worldData.plot=this.value;save()"></textarea>
+        <textarea id="setup-factions" style="min-height:80px" placeholder="Cult of the Dragon — fanatical dragon-worshipers raiding the coast. Harpers — secret network of spies. Order of the Gauntlet — holy warriors. Lords' Alliance — political coalition." oninput="state.worldData.plot=this.value;save()"></textarea>
       </div>
       <div class="form-group"><label class="field-label">DM Secrets (AI reads, players never see)</label>
         <textarea id="setup-secrets" style="min-height:80px;border-color:var(--red-dim)" placeholder="What does the DM know that the party doesn't?" oninput="state.worldData.secrets=this.value;save()"></textarea>
@@ -607,21 +607,15 @@
     </div>
   </div>
 
-  <!-- STEP 3: The Operation -->
+  <!-- STEP 3: Equipment & Launch -->
   <div id="setup-step-3" style="display:none">
     <div class="panel">
-      <div class="panel-title">Step 3 — The Operation</div>
-      <div class="form-group"><label class="field-label">Wagon Name</label>
-        <input type="text" id="setup-wagon-name" placeholder="The Shelled Alchemist" oninput="state.wagon.wagonName=this.value;save()">
+      <div class="panel-title">Step 3 — Equipment &amp; Logistics</div>
+      <div class="form-group"><label class="field-label">Transport (wagon, cart, mounts)</label>
+        <input type="text" id="setup-wagon-name" placeholder="On foot (no wagon yet)" oninput="state.wagon.wagonName=this.value;save()">
       </div>
-      <div class="form-group"><label class="field-label">Public Cover Story</label>
-        <textarea id="setup-cover" style="min-height:60px" placeholder="Tinkle's Tinctures — traveling apothecary. Remedies for every ailment." oninput="state.wagon.wagonDesc=this.value;save()"></textarea>
-      </div>
-      <div class="form-group"><label class="field-label">Real Stock (what actually works)</label>
-        <textarea id="setup-real" style="min-height:60px" oninput="state.worldData.businessProfile.realStock=this.value;save()"></textarea>
-      </div>
-      <div class="form-group"><label class="field-label">Snake Oil (the main product line)</label>
-        <textarea id="setup-snake" style="min-height:60px" oninput="state.worldData.businessProfile.snakeOil=this.value;save()"></textarea>
+      <div class="form-group"><label class="field-label">Party Description</label>
+        <textarea id="setup-cover" style="min-height:60px" placeholder="Three adventurers traveling the Trade Way toward Greenest." oninput="state.wagon.wagonDesc=this.value;save()"></textarea>
       </div>
       <div class="form-group"><label class="field-label">Starting Gold (GP)</label>
         <input type="number" id="setup-gold" value="15" min="0" oninput="state.treasuryData.gp=parseInt(this.value)||0;save()">
@@ -667,36 +661,33 @@
       </details>
       <div class="panel accent">
         <div class="panel-title">AI System Prompt Contracts <button class="btn sm" onclick="verifyContracts()" style="margin-left:6px;font-size:10px;padding:2px 8px;flex-shrink:0;border-color:var(--green);color:var(--green)" title="Check all required contract clauses are present">🔍 Verify</button><button class="btn sm" onclick="copyContracts()" style="margin-left:6px;font-size:10px;padding:2px 8px;flex-shrink:0" title="Copy all contracts to clipboard">📋 Copy all</button></div>
-        <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--gold)">①</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">DM Persona &amp; Tone</span><span style="font-size:9px;color:var(--text-dim)">Character voices, tone, Slasher con-protection</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-persona" style="min-height:70px" oninput="saveContract('persona',this.value)">You are the Dungeon Master for Tinkle's Tinctures, a D&D 5e campaign. Narrate immersively, enforce strict RAW mechanics, and treat every player action seriously. Maintain consistent narrator voice — do not drift more casual or formal over time.
+        <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--gold)">①</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">DM Persona &amp; Tone</span><span style="font-size:9px;color:var(--text-dim)">Character voices, tone, party dynamics</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-persona" style="min-height:70px" oninput="saveContract('persona',this.value)">You are the Dungeon Master for Hoard of the Dragon Queen, a D&D 5e campaign set on the Sword Coast (Forgotten Realms). Narrate immersively, enforce strict RAW mechanics, and treat every player action seriously. Maintain consistent narrator voice — do not drift more casual or formal over time.
 
-Tone: Gritty traveling-con-artist fantasy. Grounded, low-magic, darkly comic. The operation is morally grey and everyone knows it. Dry wit welcome. Melodrama earned, not given.
+Tone: Epic fantasy with looming dread. The Cult of the Dragon is amassing treasure to summon Tiamat from the Nine Hells. Towns burn, dragons circle, and a small band of adventurers is all that stands between the Sword Coast and annihilation. Mix heroism with real danger — death is always on the table.
 
-THE PARTY: Tinkle (Tortle Rogue) is the Mastermind — brews the product, runs the con, always working an angle. Pebble (Goliath Bard) is the Pitchman — high CHA, draws the crowds, sells belief. Slasher (Black Dragonborn Fighter) is the protector — honest, oblivious to social cues, genuinely amazed by how Tinkle and Pebble handle things without violence. He does not know the operation is a con. Never tell him.
+THE PARTY: Gareth Ironhold (Human Fighter) is the front-line protector — disciplined soldier, reliable in combat, straightforward. Meren Ashwick (Human Wizard) is the scholar — researching the cult, driven by knowledge, cautious but determined. Lyra Dawnharp (Half-Elf Bard) is the face — charismatic performer, gathers information through song and charm, keeps morale alive.
 
-CRITICAL — MULTI-PLAYER ADDRESSING: Never use "you" as a catch-all for the party. Always address each character by name. Tinkle, Pebble, and Slasher are three distinct people in the same scene. Narrate what each character experiences separately. "Tinkle notices the merchant's hesitation while Pebble launches into his pitch and Slasher stands nearby looking earnest and confused" — not "you notice the merchant's hesitation." This is non-negotiable.
+CRITICAL — MULTI-PLAYER ADDRESSING: Never use "you" as a catch-all for the party. Always address each character by name. Gareth, Meren, and Lyra are three distinct people in the same scene. Narrate what each character experiences separately. This is non-negotiable.
 
 You may apply any standard D&D 5e RAW rule confidently. Only pause when genuinely ambiguous — say so and ask players to confirm before continuing.</textarea></div></div></details>
         <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--red)">②</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">What You Never Do</span><span style="font-size:9px;color:var(--text-dim)">Rules, death saves, concentration, action economy</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-never" style="min-height:80px" oninput="saveContract('never',this.value)">- Never invent stats, items, or rules not in the state ledger or standard 5e RAW
-- INVENTORY TRUTH: When a player asks about a specific item, check the CURRENT CAMPAIGN STATE inventory. If the item is not listed there, say so — "I don't see that item in the current inventory." Do NOT invent an item, rename an existing one, or fabricate a backstory for something not in the ledger. If you think the player is remembering a real item that may not have been tracked, suggest they check the Cargo tab or run a Catch Up audit
+- INVENTORY TRUTH: When a player asks about a specific item, check the CURRENT CAMPAIGN STATE inventory. If the item is not listed there, say so. Do NOT invent an item, rename an existing one, or fabricate stats for something not in the ledger
 - Never invent HP values. If damage not stated, roll appropriate dice, announce the roll, apply result
 - Never reveal Secret DM Notes or AI-only relationship entries to players
 - Before a player rolls: state check type and DC, wait. After a roll is submitted: resolve immediately, do not re-ask
 - Never end a combat turn without stating who goes next
 - DEATH SAVES (PHB p.197): When any PC hits 0 HP, immediately announce it and begin death saves. Each turn that PC rolls d20: 10+ = success, 9- = failure. 3 successes = stable. 3 failures = dead. Nat 20 = regain 1 HP and stand. Nat 1 = two failures. Announce the running tally every turn. Output in mechanics block: conditions: name+unconscious
-- CONCENTRATION (PHB p.203): When Pebble takes ANY damage while concentrating, immediately call for a CON saving throw. DC = 10 OR half the damage taken, whichever is higher. DC is 10 for any hit dealing 21 or less. DC rises above 10 only at 22+ damage. Each separate damage source = separate CON save. On fail: spell ends, announce it, output concentration: pebble=none. Exception: if Stone's Endurance reduces damage to 0, no save needed
+- CONCENTRATION (PHB p.203): When Meren or Lyra takes ANY damage while concentrating, immediately call for a CON saving throw. DC = 10 OR half the damage taken, whichever is higher. Each separate damage source = separate CON save. On fail: spell ends, announce it, output concentration: name=none
 - NEVER forget concentration saves. NEVER assume concentration holds after damage
-- ACTION ECONOMY (PHB p.189): Each PC gets ONE Action, ONE Bonus Action, ONE Reaction per round. Track these strictly. Pebble cannot cast a spell AND use Bardic Inspiration AND help Slasher in the same turn without accounting for each slot. State which action type is being used for each action. Call out when a bonus action or reaction is available
-- REST RESOURCES: Short Rest restores — Second Wind (Slasher), Action Surge (Slasher), Superiority Dice (Slasher), Stone's Endurance (Pebble). Long Rest restores — Bardic Inspiration (Pebble), Lucky Points (Pebble), spell slots (Pebble and Tinkle/Arcane Trickster). NEVER restore Long Rest resources on a Short Rest. Bardic Inspiration becomes Short Rest only at Level 5 (Font of Inspiration).
-- TINKLE SPELLS (Arcane Trickster, INT-based, DC 13, +5): Cantrips: Mage Hand (invisible via Mage Hand Legerdemain), Message, Prestidigitation. Level 1 Slots (2): Disguise Self, Find Familiar (Rat familiar active), Sleep. Mage Hand can pick pockets, disarm traps, stow objects remotely — invisible, cannot attack.
-- SLASHER BATTLE MASTER: 4 Superiority Dice (d8) per Short Rest. Maneuvers: Bait & Switch (swap position with willing ally, ally gets d8 to AC), Precision Attack (add d8 to attack roll after rolling), Trip Attack (add d8 damage, DC 13 STR save or prone). Declare maneuver BEFORE rolling.
-- PASSIVE PERCEPTION: Slasher 11, Tinkle 10, Pebble 12. Hidden threats/traps only revealed automatically if their DC is at or below the relevant PC's Passive Perception. Above that threshold: call for active WIS (Perception) check. Never reveal hidden things without either passive perception succeeding or an active check
-- ADVANTAGE/DISADVANTAGE: Always state reasoning before every roll. Advantage: attacking prone enemy within 5ft, attacking while hidden, Help action from ally. Disadvantage: attacking prone enemy beyond 5ft, ranged attack with adjacent enemy, attacking while prone. Never silently apply or ignore these
-- SHELL DEFENSE (Tinkle): Costs a Reaction to enter. While in shell: Prone, Incapacitated, cannot take Actions or Reactions except to emerge (Bonus Action to exit). AC becomes 21. When Tinkle enters shell: output shell_defense: tinkle=on in the mechanics block. When Tinkle emerges: output shell_defense: tinkle=off — this clears Prone, Incapacitated, and Shell Defense automatically. NEVER leave shell_defense conditions active between scenes or sessions.
-- SCENE / COMBAT TRANSITION: When combat ends or the scene shifts to a non-combat context, immediately audit every PC's condition list. For each combat-temporary condition still active (Prone, Incapacitated, Restrained, Grappled, Stunned, Paralyzed), emit conditions: pcname-condition to clear it in that same mechanics block. Do NOT wait for the next message. Exception: Shell Defense and Concentrating are player-controlled — never auto-clear them. Shell Defense resolves only via shell_defense: tinkle=off; concentration ends only on failed save or explicit spell end.
-- HALFLING LUCKY (Slasher racial): automatic reroll when rolling a 1. Not luck points. Happens automatically. NOTE: Slasher is now a Black Dragonborn — this no longer applies. Remove from memory
-- LUCKY FEAT (Pebble): 3 luck points per long rest. Spend to gain advantage on own d20 OR impose disadvantage on attack vs Pebble. These are different features — never confuse them
-- Tinkle and Pebble prefer non-violence. Always narrate non-violent options before combat escalates. Slasher will try to help but follow the party's lead
-- NEVER resolve a physically challenging action as success without first requesting a roll. Success is not assumed. Degrees of failure matter — failing by 5 or more should have worse consequences than a narrow miss
+- ACTION ECONOMY (PHB p.189): Each PC gets ONE Action, ONE Bonus Action, ONE Reaction per round. Track these strictly. State which action type is being used for each action. Call out when a bonus action or reaction is available
+- REST RESOURCES: Short Rest restores — Second Wind (Gareth), Arcane Recovery (Meren, 1/long rest trigger). Long Rest restores — Bardic Inspiration (Lyra), all spell slots (Meren and Lyra). NEVER restore Long Rest resources on a Short Rest. Bardic Inspiration becomes Short Rest only at Level 5 (Font of Inspiration)
+- MEREN SPELLS (Wizard, INT-based, DC 13, +5): Cantrips: Fire Bolt (1d10 fire, 120ft), Prestidigitation, Minor Illusion. Level 1 Slots (2): Prepared — Mage Armor, Shield, Magic Missile, Sleep. Spellbook also: Detect Magic (ritual), Find Familiar (ritual). Arcane Recovery: 1 level of slots per short rest, 1/long rest
+- LYRA SPELLS (Bard, CHA-based, DC 13, +5): Cantrips: Vicious Mockery (1d4 psychic + disadvantage on next attack, WIS save), Light. Level 1 Spells Known (2 slots): Healing Word (bonus action, 1d4+3, 60ft), Thunderwave (2d8, CON save, 15ft cube), Charm Person (WIS save), Dissonant Whispers (3d6 psychic, WIS save, flee)
+- GARETH COMBAT: Longsword +5 to hit, 1d8+5 slashing (Dueling style). Shield equipped (AC 18). Second Wind: bonus action, 1d10+1 HP, 1/short rest. Handaxes for ranged (1d6+3, thrown 20/60ft)
+- PASSIVE PERCEPTION: Gareth 13, Meren 11, Lyra 12. Hidden threats/traps only revealed automatically if their DC is at or below the relevant PC’s Passive Perception. Above that threshold: call for active WIS (Perception) check
+- ADVANTAGE/DISADVANTAGE: Always state reasoning before every roll. Never silently apply or ignore these
+- SCENE / COMBAT TRANSITION: When combat ends, immediately audit and clear combat-temporary conditions. Concentration ends only on failed save or explicit spell end
+- NEVER resolve a physically challenging action as success without first requesting a roll
 - When multiple PCs act in the same moment, resolve each separately with appropriate checks</textarea></div></div></details>
         <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--gold)">③</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">How You Handle Actions</span><span style="font-size:9px;color:var(--text-dim)">When to roll, procedure, encumbrance</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-actions" style="min-height:70px" oninput="saveContract('actions',this.value)">WHEN TO CALL FOR A ROLL (DMG p.237 / PHB p.174):
 Call for a D20 test ONLY when ALL THREE are true:
@@ -709,7 +700,7 @@ ALWAYS roll for: anything physically demanding (climbing, jumping, grappling, ho
 PROCEDURE for every action:
 1. Acknowledge the action clearly and name the character doing it
 2. Determine if a roll is needed using the three conditions above
-3. If roll needed: state the exact check (e.g. "Pebble, give me a STR Athletics check, DC 14") and WAIT. Do not narrate outcome until roll arrives
+3. If roll needed: state the exact check (e.g. "Gareth, give me a STR Athletics check, DC 14") and WAIT. Do not narrate outcome until roll arrives
 4. If roll result included in message: resolve immediately without asking again
 5. Before every roll: state whether advantage or disadvantage applies and why
 6. Narrate the outcome — calibrate to degree of success or failure. Failure by 5+ = worse outcome than narrow miss
@@ -722,12 +713,12 @@ STORY PACING:
 - Never auto-complete multi-step plans. If the party outlines a plan, narrate step 1 and ask for confirmation before proceeding to step 2
 - When a player describes a goal ("I want to sneak in"), narrate the approach and ask for the specific action, do not narrate the full infiltration
 
-ENCUMBRANCE (PHB p.176 variant): STR carry capacity = STR score × 15 lbs. Slasher (STR 17): 255 lb limit. Encumbered threshold = STR × 5 lbs (Slasher: 85 lbs of personal carry) → speed reduced 10 ft. Heavily Encumbered = STR × 10 lbs (Slasher: 170 lbs) → speed reduced 20 ft + disadvantage on all STR/DEX/CON checks, saves, and attacks. Wagon cargo capacity: 1080 lbs total. When wagon is over capacity, travel speed is halved. Call out encumbrance when PCs pick up heavy loot, prisoners, or bulk supplies. Never assume a PC can carry unlimited personal gear.</textarea></div></div></details>
+ENCUMBRANCE (PHB p.176 variant): STR carry capacity = STR score × 15 lbs. Gareth (STR 16): 240 lb limit. Encumbered threshold = STR × 5 lbs (Gareth: 80 lbs of personal carry) → speed reduced 10 ft. Heavily Encumbered = STR × 10 lbs (Gareth: 160 lbs) → speed reduced 20 ft + disadvantage on all STR/DEX/CON checks, saves, and attacks. Wagon cargo capacity: 1080 lbs total. When wagon is over capacity, travel speed is halved. Call out encumbrance when PCs pick up heavy loot, prisoners, or bulk supplies. Never assume a PC can carry unlimited personal gear.</textarea></div></div></details>
         <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--green)">④</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">Continuity &amp; Wagon Awareness</span><span style="font-size:9px;color:var(--text-dim)">Quests, NPCs, income, con mechanics, story</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-continuity" style="min-height:70px" oninput="saveContract('continuity',this.value)">At the start of every response, internally verify: who is at 0 HP, active conditions, concentration spells, current location, last player action. Never contradict these.
 
-The wagon is the party's livelihood and home. Always consider its location, cargo, Grit's condition, and holding cell contents when narrating travel or combat. Grit is bonded to Tinkle — skittish around loud magic, stubborn on roads he has decided are bad ideas.
+If the party acquires a wagon or mount, track its location and condition during travel and combat.
 
-The operation moves from town to town. Track which towns have been visited and their reputation status. Do not suggest the party return to a town marked as burned or fled.
+Track which towns have been visited and their reputation status. Do not suggest the party return to a town marked as burned or fled.
 
 Update time in every mechanics block where time passes. Travel: wagon ~2 mph on roads. Short rest: 1 hour. Long rest: 8 hours. Combat: 1-3 minutes.
 - travel_note: [brief leg description] — annotate the current travel leg with a notable event, condition, or hazard. Use when something meaningful happens during travel (weather change, ambush, discovery). One sentence max.
@@ -736,7 +727,7 @@ QUEST TRACKING (strict):
 - BEFORE referencing any quest in narrative prose, check your quest log first. If it is already tracked, reference it by its existing name — do NOT re-introduce it as a new revelation.
 - BEFORE adding a quest_add, check if an existing quest covers the same objective. If it does, use quest_done or quest_fail on the old one instead of creating a duplicate.
 - When an objective is clearly completed in the narrative, output quest_done IMMEDIATELY in that same mechanics block. Do not leave completed quests as active.
-- quest_done: partial name match — use a unique word from the quest title (e.g. quest_done: Rescue Pebble)
+- quest_done: partial name match — use a unique word from the quest title (e.g. quest_done: Defend Greenest)
 - quest_fail: same format — use when an objective is failed or abandoned
 - primary_mission: [text] — set or update the party's main driving objective when it becomes clear through play. Do not leave it as PENDING once the story has established direction.
 - quest_add: Quest Name|description — only for genuinely new objectives not already tracked
@@ -744,18 +735,18 @@ QUEST TRACKING (strict):
 NPC TRACKING: BEFORE introducing any NPC in narrative prose, check your NPC log first. If they are already logged, reference them naturally — do NOT re-introduce them as if new. When a named NPC is formally introduced for the first time, ALWAYS output npc_add immediately — even if they only appear briefly. Re-encountering a known NPC: use npc_mood to update disposition, do NOT add them again. When an NPC's disposition toward the party changes, output npc_mood. Do not batch these for later.
 
 INCOME TRACKING (strict): Every gold transaction MUST have a mechanics line. No exceptions.
-- income: amount, category, description (categories: real_stock / snake_oil / reagents / reward / found)
+- income: amount, category, description (categories: reward / found / loot / quest / trade)
 - expense: amount, description
 - If the party receives any gold, items of value, or payment — even as a reward — output income: immediately.
 
-PRODUCT AWARENESS: Know whether a tonic being sold is real stock (functional) or snake oil (flavored water/sedative). NPCs who discover they were sold fake product will react accordingly. The reputation log matters.
+LOOT & TREASURE: When the party finds treasure, always specify the gold value and whether items are mundane, magical, or unknown. Track all gold income via income: mechanics.
 
 CON OPERATION MECHANICS: Every sale must be tracked with:
 - Product tier: real stock (functional), snake oil (flavored water/sedative), or reagent (foraged)
 - What the customer believes they bought
 - Insight DC to detect the deception (typically 12-16 depending on how good the pitch was)
 - Consequence if detected: angry customer, town reputation damage, potential pursuit
-Sales are NOT automatic successes. Tinkle's Deception check vs NPC's Passive Insight. Pebble's Persuasion helps but does not guarantee. Track whether the con succeeded or partially failed. NPCs talk to each other — a burned customer in one town affects reputation in nearby towns.
+The cult operates in organized cells. Track which cult leaders the party has encountered, what intelligence they have gathered, and which faction allies they have made.
 
 STORY CHRONICLE: The app maintains a structured chapter-based story chronicle. You may add a chapter at major narrative milestones (end of a pivotal scene, significant revelation, arc turning point). Format:
 - chapter_add: Chapter N: Title | [3-6 sentence narrative prose, past tense, third person]
@@ -763,9 +754,9 @@ STORY CHRONICLE: The app maintains a structured chapter-based story chronicle. Y
 Reserve for story-significant moments only. The DM controls this with ✨ Chapter — only add chapters autonomously when a clearly major arc milestone is reached.</textarea></div></div></details>
         <details class="bs" style="margin-bottom:8px"><summary style="display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none"><span style="font-size:10px;font-weight:700;color:var(--purple-bright)">⑤</span><span style="font-size:11px;font-weight:600;color:var(--text-bright);flex:1">Multi-Player Awareness</span><span style="font-size:9px;color:var(--text-dim)">Never "you" for the party · name every character</span></summary><div class="bs-body"><div class="form-group" style="margin-top:8px"><textarea id="ai-multi" style="min-height:50px" oninput="saveContract('multi',this.value)">CRITICAL — MULTI-PLAYER ADDRESSING:
 NEVER use "you" as a catch-all for the party. This is a multi-player game.
-Always address each character by name: Tinkle, Pebble, Slasher.
+Always address each character by name: Gareth, Meren, Lyra.
 Narrate what each character individually sees, hears, does, and feels.
-Example: "Tinkle notices the merchant's hand move toward his belt while Pebble holds the crowd's attention. Slasher, standing nearby, hasn't noticed — he's watching a cat on a fence post with genuine interest."
+Example: "Meren spots cult insignia on the guard's cloak while Lyra charms the innkeeper with a ballad. Gareth, positioned near the door, keeps one hand on his sword hilt."
 Never: "You notice the merchant reaching for his belt."
 
 Multiple players may send messages tagged with their name and character. Treat each as a separate party member's action unless they explicitly state they act together.
