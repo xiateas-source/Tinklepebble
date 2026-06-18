@@ -1023,7 +1023,7 @@ function showSessionTab(which){
 // ═══ RENDER ALL ═══
 function renderAll(){
   if(typeof renderHUD==='function')renderHUD();
-  if(typeof renderStepBar==='function')renderStepBar();
+  if(typeof renderTurnTracker==='function')renderTurnTracker();
   renderCharTabs();renderCards();renderSheets();renderStatusMini();
   renderNPCs();renderQuests();renderCombat();renderPresets();
   renderLogs();renderChat();renderTurnCtr();
@@ -7071,7 +7071,7 @@ function renderQAMenu(){
   const body=document.getElementById('qa-menu-items');
   const titleEl=document.getElementById('qa-menu-title');
   if(!body)return;
-  const tabLabels={'tab-party':'Party Actions','tab-world':'World Actions','tab-wagon':'Wagon Actions','tab-combat':'Combat Actions','tab-session':'Session Actions','tab-ait':'AI Tools Actions','tab-dm':'DM Actions'};
+  const tabLabels={'tab-party':'Party','tab-world':'World','tab-wagon':'Wagon','tab-combat':'Combat','tab-session':'Session','tab-ait':'AI Tools','tab-dm':'Quick Actions'};
   if(titleEl)titleEl.textContent=tabLabels[currentTab]||'Quick Actions';
   const actions=(state.quickActions||[]).filter(a=>(a.context||[]).includes(currentTab));
   body.innerHTML='';
@@ -8571,34 +8571,25 @@ function renderHUD(){
   renderSceneLabel();
 }
 
-function renderSceneLabel(){
-  const lbl=document.getElementById('step-target-label');if(!lbl)return;
-  if(_stepTarget&&_stepTarget.type==='pc'){
-    const pc=state.pcs[_stepTarget.idx];
-    if(pc){lbl.textContent='⚔ '+esc(pc.name||'PC')+' selected · '+(parseInt(pc.hp)||0)+'/'+(parseInt(pc.hp_max)||1)+' HP';return;}
-  }
-  const loc=state.worldData?.location||'';
-  const scene=state.worldData?.scene_title||'';
-  const [sm,lg]=(state.hpSteps&&state.hpSteps.length===2)?state.hpSteps:[1,5];
-  lbl.textContent=scene?'📍 '+(scene+(loc?' · '+loc:'')):(loc?'📍 '+loc:'Tap a tile · ±'+sm+'/±'+lg+' HP (long-press to edit)');
-}
-function renderStepBar(){
-  const bar=document.getElementById('step-bar');if(!bar)return;
-  const [sm,lg]=(state.hpSteps&&state.hpSteps.length===2)?state.hpSteps:[1,5];
-  bar.innerHTML=
-    `<button class="step-btn dec" onclick="executeStep(-${lg})">-${lg}</button>`+
-    `<button class="step-btn dec" onclick="executeStep(-${sm})">-${sm}</button>`+
-    `<button class="step-btn inc" onclick="executeStep(${sm})">+${sm}</button>`+
-    `<button class="step-btn inc" onclick="executeStep(${lg})">+${lg}</button>`;
-}
-function setHpStep(which){
-  const cur=(state.hpSteps||[1,5])[which];
-  const label=which===0?'small step (currently '+cur+')':'large step (currently '+cur+')';
-  const v=parseInt(prompt('Set HP '+label+':'),10);
-  if(!v||v<1||v>999)return;
-  if(!state.hpSteps)state.hpSteps=[1,5];
-  state.hpSteps[which]=v;
-  save();renderStepBar();renderSceneLabel();
+function renderSceneLabel(){}
+function renderStepBar(){}
+function renderTurnTracker(){
+  const el=document.getElementById('turn-tracker');if(!el)return;
+  const c=state.combat;
+  if(!c||!c.active||!(c.list||[]).length){el.style.display='none';return;}
+  el.style.display='flex';
+  const curIdx=c.currentIdx||0;
+  el.innerHTML=c.list.map((ent,i)=>{
+    const isCur=i===curIdx;
+    const isPC=ent.isPC;
+    const hp=parseInt(ent.hp)||0;
+    const max=parseInt(ent.hp_max)||ent.hp||1;
+    const dead=hp<=0;
+    const color=isCur?'var(--gold-bright)':dead?'var(--text-dim)':isPC?'var(--green)':'var(--red)';
+    const bg=isCur?'var(--surface3)':'transparent';
+    const border=isCur?'1px solid var(--gold-dim)':'1px solid transparent';
+    return `<span style="padding:2px 6px;border-radius:4px;color:${color};background:${bg};border:${border};font-weight:${isCur?'700':'400'};opacity:${dead?.4:1};font-size:10px;flex-shrink:0${isCur?';text-decoration:underline':''}">${esc(ent.name.slice(0,8))}${isPC?'':' '+hp}</span>`;
+  }).join('');
 }
 function openStepConfig(){
   const [sm,lg]=(state.hpSteps&&state.hpSteps.length===2)?state.hpSteps:[1,5];
@@ -9958,7 +9949,7 @@ Object.assign(window, {
   closePCOverview, closeQAMenu, closeQAModal, closeTabOverflow, closeTreasury,
   completeSetup, connectFirebase, copyIdx, copyStateCompact, copyText,
   delChar, deleteChatMsg, deleteFlag, doLongRest, doQAHP, doShortRest,
-  doStateFix, editFlagNote, endCombat, executeReset, executeStep,
+  doStateFix, editFlagNote, endCombat, executeReset,
   exportConfig, exportFlagReport, fbDisconnect, genLedger, generateSessionZero,
   setFlagCatFilter, copyDevNotes,
   saveContract, renderContracts,
@@ -9966,7 +9957,7 @@ Object.assign(window, {
   loadPreset, lockPremise, logTurn, markChkDone,
   navTo, nextTurn, oocKey, openDashboard, openDrawer, openFlagModal,
   openLogisticsDrawer, openSystemsDrawer, switchLogisticsTab, switchSystemsTab,
-  openLevelUpWizard, openPCOverview, openQASheet, openRollSheet, openStepConfig, openTreasury, partyKey,
+  openLevelUpWizard, openPCOverview, openQASheet, openRollSheet, openStepConfig, openTreasury, partyKey, renderTurnTracker,
   pcLongRest, pcShortRest, prevTurn, quickD20, quickRoll,
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
@@ -9988,11 +9979,10 @@ Object.assign(window, {
   updQAFabIcon, pickQAFabIcon,
   updResource, updScene, updSecret, updSlot, updSnip, updSpell, updTown,
   toggleItemTag, updWItem, updateCpMode, updateRollMod, updateStateFixForm, updateStoryThread,
-  useResource, verifyElKey, renderSceneLabel, renderPartyPCList, toggleSkillProf,
+  useResource, verifyElKey, renderPartyPCList, toggleSkillProf,
   sendRollToChat, addPartyItem, remPI, updPI, closeInvEdit,
   showTermTip, rollStatCheck, rollInitiative,
   _expandedMsgs, openCompendiumFromOverview, setCompFilter, setSpellFilter, toggleCompendium,
-  renderStepBar, setHpStep,
   openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview,
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
