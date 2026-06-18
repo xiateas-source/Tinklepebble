@@ -28,7 +28,7 @@ Bottom nav: **AI DM** | **📜 Sheet** | **📦 Logistics** | **⚙ Systems**
 
 - **AI DM** (`navTo('log')`) — closes drawer; shows `#tab-dm` (always-visible main canvas)
 - **Sheet** (`navTo('party')`) — opens drawer with `#tab-party`; no subnav
-- **Logistics** (`navTo('logistics')`) — opens drawer with subnav: 🌍 World / 🛒 Wagon / ⚔ Combat
+- **Logistics** (`navTo('logistics')`) — opens drawer with subnav: 📔 Journal / 🛒 Wagon / ⚔ Combat
 - **Systems** (`navTo('systems')`) — opens drawer with subnav: 📅 Session / 🤖 AI Tools / 🔧 Dev / ⚙ Setup
 
 Nav functions: `navTo(key)`, `openDrawer(tabId)`, `closeDrawer()`, `switchLogisticsTab(sub)`, `switchSystemsTab(sub)`
@@ -48,30 +48,18 @@ Nav dots: `#logistics-dot`, `#systems-dot` — gold ● shown via `flashTab(tabI
 - `#party-inv` — Party-shared inventory list
 - `#sp-cards` — Superpowers plugin panel (if active)
 
-### 2. World Tab (`tab-world`)
-Three sub-tabs via `showWorldTab()`:
-- **World State Panel** (`#world-state-panel`)
-  - Environment: `#w_time`, `#w_season`, `#w_weather`, `#w_illum`
-  - Location: `#w_location`, `#w_loc_desc`
-  - Campaign: `#w_setting`, `#w_premise`, `#w_plot`, `#w_timers`
-  - Treasury: `#t_pp`, `#t_gp`, `#t_ep`, `#t_sp`, `#t_cp`, `#treasury-total`, `#session-pl`
-  - `#income-log`, `#npc-list`, `#quest-list`, `#town-rep-list`, `#campaign-secrets-list`
-- **Locations Panel** (`#world-locations-panel`)
-  - `state.locations[]` — one entry per city/camp/dungeon
-  - **List view**: Node Map SVG + location list cards
-  - **Map view**: Uploaded area map image with SVG drop-pin markers at percentage positions
-  - Toggle: `setLocView('list'|'map')` — `_locViewMode` module variable
-  - Tap node/pin → location detail bottom sheet (`#loc-ov`)
-  - Detail shows anchored NPCs, quests, consequences, town rep, income log filtered by location
-  - Player/DM view toggle (`toggleLocDmMode()`)
-  - 🌱 Seed button — `openLocationSeed()` drafts from travelLog, townReputation, NPC.lastSeen
-  - AI mechanics: `location_add:`, `location_visit:`, `location_history:`, `location_investment:`
-  - `mapPos: {x:%, y:%}` — percentage-based pin position on area map
-  - Area map in localStorage (`tt_area_map`), NOT Firebase
-  - `uploadAreaMap()` / `removeAreaMap()` / `startMapPlace()` / `handleMapTap()` — map workflow
-  - `_closeAllOverlays()` — closes all fixed overlays on drawer close
-- **Operations Panel** (`#world-ops-panel`)
-  - Business profile, Campaign Secrets, World Consequences
+### 2. World Tab (`tab-world`) — Journal View
+Single scrollable Journal with collapsible `<details>` sections (replaced 3-panel toggle in Session 19):
+- **Journal Header** (`#journal-header`) — `renderJournalHeader()`: location, time/weather, HP bars, quest/NPC/location counts, "Previously On" + "Catch Up" chip buttons
+- **Travel Log** (`#travel-log-visual`) — `renderTravelLog()`: most-recent-first timeline with cross-linked tappable chips (quests/NPCs/rep at each location)
+- **Journal Rep** (`#journal-rep-list`) — `renderJournalRep()`: town reputation list (duplicate of Wagon's `#town-rep-list`)
+- **Quests** (`#quest-list`) — collapsible `<details id="journal-sec-quests">`
+- **Locations** (`#locations-list-journal`) — collapsible `<details id="journal-sec-locations">`
+- **NPCs** (`#npc-list`) — collapsible `<details id="journal-sec-npcs">`
+- **Consequences** (`#consequence-list`) — collapsible `<details id="journal-sec-consequences">`
+- **Secrets** (`#campaign-secrets-list`) — collapsible `<details id="journal-sec-secrets">`
+- Ghost containers `#world-state-panel`, `#world-ops-panel`, `#world-locations-panel` kept as empty hidden divs for backward compat
+- Location system (list/map views, detail sheet, seed, area map) unchanged — renders into `#locations-list-journal`
 
 ### 3. Wagon Tab (`tab-wagon`)
 - Grit (ox) stats: `#ox-name`, `#ox-hp`, `#ox-hp-max`, `#ox-ac`, `#ox-feed`, `#ox-cond`
@@ -261,7 +249,13 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `renderHUD()` — PC tiles, Grit tile, Familiar tile
 - `renderContextStrip()` — Carousel with dot indicators; cycles through slides from `_ctxSlides()` (location, time, weather, quest, combat round, party HP, module episode). `_tapCtxStrip()` advances manually; `_ctxTimer` auto-rotates at 5s interval
 - `renderTurnTracker()` — Horizontal initiative strip in lower-dock during combat. Gold=active, green=PC, red=enemy, dimmed=dead. Hidden when `!state.combat.active`
-- `syncWorld()` — Refresh all world tab displays
+- `syncWorld()` — Refresh all world tab displays; also calls `renderJournalHeader()`, `renderJournalRep()`
+- `renderJournalHeader()` — Journal header: location, time/weather, HP bars, tracker counts, Previously On + Catch Up chips
+- `renderJournalRep()` — Town reputation list in Journal (`#journal-rep-list`)
+- `renderTravelLog()` — Travel timeline with cross-linked quest/NPC/rep chips, most-recent-first
+- `previouslyOn()` — Enhanced: detects sparse trackers, expands to 20-msg context, injects quest/location/NPC/rep mechanics, strips mechanics from display
+- `catchUpAudit()` — Sends tracker snapshot + recent 20 messages for AI audit, runs parseMechanics on response
+- `_mechPillNav(el)` — Pattern-matches mechanic pill textContent to navigate to relevant app section
 
 ### Navigation
 - `navTo(key)` — Route all navigation
@@ -381,9 +375,9 @@ Parsed from AI response blocks in format: `key: value`
 
 ---
 
-## Quick Action Types (23 total)
+## Quick Action Types (24 total)
 
-`hp`, `condition_add`, `condition_clear`, `resource_use`, `item_add_foraged`, `ox_feed`, `time_advance`, `save_game`, `combat_next`, `log_entry`, `context_refresh`, `town_rep`, `roll_submit`, `state_fix`, `resync_ai`, `surroundings`, `short_rest`, `random_event`, `roleplay_npc`, `char_moment`, `send_scene`, `module_checkin`, `shell_defense_toggle`
+`hp`, `condition_add`, `condition_clear`, `resource_use`, `item_add_foraged`, `ox_feed`, `time_advance`, `save_game`, `combat_next`, `log_entry`, `context_refresh`, `town_rep`, `roll_submit`, `state_fix`, `resync_ai`, `surroundings`, `short_rest`, `random_event`, `roleplay_npc`, `char_moment`, `send_scene`, `module_checkin`, `shell_defense_toggle`, `catch_up`
 
 ---
 
@@ -417,6 +411,7 @@ Type `//` before a message in any chat input to run a dev command instead of sen
 | `//gold +/-N` | Adjust treasury gold |
 | `//levelup` | Open Level Up wizard for the first ready PC |
 | `//testlevelup` | Force `levelReady=true` on first PC and open Level Up wizard (also: `test levelup`, `testlu`) |
+| `//catchup` | Run Catch Up audit — AI reviews tracker state against recent chat and fills gaps via parseMechanics |
 | `//explain topic` | Show in-chat help toast (16 topics: actions, combat, map, pins, inventory, ooc, contracts, dice, rest, spells, notes, flags, commands, export, shortcuts, context strip) |
 | `//help` | List all available commands |
 
