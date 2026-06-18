@@ -4806,6 +4806,7 @@ Rules:
 - Never wrap the mechanics block in markdown code fences, bold, or any formatting
 - If nothing changed still write: ---MECHANICS---\nnone\n---END---
 - Always update time: when meaningful time has passed (travel, rests, combat)
+- ENCUMBRANCE: The ledger shows carry weight for each PC and the wagon. If any PC is over STR×15 lbs or the wagon is over 1080 lbs, you MUST enforce travel speed penalties, disadvantage on physical checks, and narrate the strain. When adding items, always emit item_add with a weight estimate. Do not ignore encumbrance — it is a core survival mechanic
 - short_rest: [name] restores Bardic Inspiration, Stone's Endurance uses, and other short-rest features
 - consequence_add: [text] | [type] — log a world consequence. Types: background (ambient, slow-burn), faction (NPC group action), personal (affects a PC directly), escalation (urgent, building threat). Use for burned-town fallout, faction retaliation, PC reputation shifts, and ticking threats. Example: consequence_add: Thornhaven guards are now searching for a "tortoiseshell alchemist" | faction
 - consequence_resolve: [partial text] — mark a consequence resolved when the party has addressed it. Example: consequence_resolve: guards searching
@@ -6208,7 +6209,11 @@ async function sendMsg(){
     if(useLedger)genLedger();
     const ledger=useLedger?(document.getElementById('ledger-out')?.value||''):'';
     const _inject=_ctxInject;_ctxInject=null;
-    const sysProm=buildPrompt(ledger)+(_inject?'\n\n'+_inject:'');
+    const encWarns=[];
+    const wW=calcWeight();if(wW>MAX_LB)encWarns.push('Wagon OVER capacity: '+wW.toFixed(0)+'/'+MAX_LB+'lb. Travel speed halved, risk of axle failure.');
+    (state.pcs||[]).forEach(p=>{const w=_pcCarryWeight(p),c=_pcCarryCap(p);if(w>c)encWarns.push(p.name+' ENCUMBERED: '+w.toFixed(0)+'/'+c+'lb.');});
+    const encCtx=encWarns.length?'\n\n[ENCUMBRANCE WARNING] '+encWarns.join(' ')+' Enforce movement and travel penalties. Emit item_add/item_remove mechanics for any inventory changes.':'';
+    const sysProm=buildPrompt(ledger)+(_inject?'\n\n'+_inject:'')+encCtx;
     const histForApi=state.chatHistory.filter(m=>m.role!=='system').map(m=>({
       role:m.role==='assistant'?'assistant':'user',
       content:(m.playerName&&m.role!=='assistant'?'['+m.playerName+' playing '+m.playerChar+']: ':'')+m.content
