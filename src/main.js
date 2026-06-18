@@ -1836,8 +1836,9 @@ function renderTravelLog(){
   const log=state.worldData.travelLog||[];
   if(!log.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;font-style:italic">No travel recorded yet.</div>';return;}
   const _locMatch=(name,target)=>name&&target&&name.toLowerCase().includes(target.toLowerCase());
-  c.innerHTML=log.map((entry,i)=>{
-    const isLast=i===log.length-1;
+  const reversed=[...log].reverse();
+  c.innerHTML=reversed.map((entry,i)=>{
+    const isLast=i===0;
     const colIdx=entry.indexOf(':');
     let ts='',rest=entry;
     if(colIdx>-1&&colIdx<30){ts=entry.slice(0,colIdx).trim();rest=entry.slice(colIdx+1).trim();}
@@ -1881,7 +1882,7 @@ function renderTravelLog(){
       </div>
     </div>`;
   }).join('');
-  c.scrollTop=c.scrollHeight;
+  c.scrollTop=0;
 }
 function renderWagon(){renderCapacity();renderCells();renderCargo();renderHoard();}
 function calcWeight(){
