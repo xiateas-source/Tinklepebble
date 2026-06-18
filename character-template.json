@@ -1,8 +1,30 @@
 {
-  "_INSTRUCTIONS": [
-    "SEND THIS FILE TO AN AI (Gemini, ChatGPT, etc.) WITH YOUR CHARACTER IDEAS.",
+  "_INSTRUCTIONS_FOR_PLAYER": [
+    "=== HOW TO CREATE YOUR CHARACTERS ===",
     "",
-    "PROMPT TO USE:",
+    "1. Open Gemini (gemini.google.com) or any AI chat",
+    "2. Upload or paste this entire file",
+    "3. Tell the AI what characters you want, for example:",
+    "   'Fill in these 3 characters for Hoard of the Dragon Queen:",
+    "    PC1: A human fighter soldier who uses a greatsword",
+    "    PC2: A half-elf bard entertainer who talks her way out of everything",
+    "    PC3: A high elf wizard sage obsessed with ancient dragon lore'",
+    "4. The AI will fill in all the stats, spells, equipment, and features",
+    "5. Copy the JSON output the AI gives you (everything between the curly braces)",
+    "6. In the app: go to Systems tab > Dev > Paste JSON area",
+    "7. Paste it in and tap Import — your characters will load into the game",
+    "",
+    "TIPS:",
+    "- You can ask for ANY race/class combo from D&D 5e",
+    "- Ask the AI to roll stats or use point buy — your call",
+    "- If something looks wrong, ask the AI to fix it before importing",
+    "- The AI should NOT include the _INSTRUCTIONS fields in its output",
+    "- If you only want to update 1 or 2 characters, that's fine — the app matches by id",
+    ""
+  ],
+  "_INSTRUCTIONS_FOR_AI": [
+    "INSTRUCTIONS FOR THE AI FILLING THIS OUT:",
+    "",
     "Fill in 3 Level 1 D&D 5e characters for Hoard of the Dragon Queen.",
     "Use the EXACT JSON structure below — do not add or remove any fields.",
     "Replace all placeholder values with real D&D 5e data.",
@@ -25,9 +47,9 @@
     "- skillProfs: array of proficient saving throws, e.g. ['STR Save', 'CON Save']",
     "- languages: array of known languages, e.g. ['Common', 'Dwarvish']",
     "",
-    "OUTPUT: Return ONLY the JSON (this entire object minus the _INSTRUCTIONS field). No markdown, no commentary.",
+    "OUTPUT: Return ONLY the JSON with the pcs array (no _INSTRUCTIONS fields). No markdown code fences, no commentary — just raw JSON.",
     "",
-    "IMPORT: Copy the AI's output and paste into the app at Systems > Dev > Paste JSON"
+    "The player will paste your output into their D&D campaign app at Systems > Dev > Paste JSON"
   ],
   "pcs": [
     {
