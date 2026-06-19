@@ -5108,6 +5108,14 @@ function toggleCond(idx,cond){
   if(i>-1)pc.conditions.splice(i,1);else pc.conditions.push(cond);
   saveRefresh();
 }
+function clearPCConditions(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  const conds=(pc.conditions||[]).slice();
+  if(!conds.length){toast('No conditions to clear.');return;}
+  if(!confirm('Clear all conditions from '+pc.name+'?\n\n'+conds.join(', ')))return;
+  pc.conditions=[];pc.concentrating='';
+  saveRefresh();renderPCOverview();toast('✓ '+pc.name+' conditions cleared');
+}
 function addCondFromPicker(idx,sel){
   const cond=sel.value;if(!cond)return;
   const pc=state.pcs[idx];if(!pc)return;
@@ -10464,8 +10472,8 @@ function renderPCOverview(){
   if(badgeEl){
     const _negConds=(pc.conditions||[]).filter(c=>!['Inspired','Concentrating','Dodge','Hidden','Invisible'].includes(c));
     let badge='<span class="status-badge ok">OK</span>';
-    if(pc.hp<=0)badge='<span class="status-badge dead">DOWN</span>';
-    else if(pct<50||_negConds.length>0)badge='<span class="status-badge warn">HURT</span>';
+    if(pc.hp<=0)badge='<span class="status-badge dead" onclick="setCharSheetTab(2);renderPCOverview()" style="cursor:pointer">DOWN</span>';
+    else if(pct<50||_negConds.length>0)badge='<span class="status-badge warn" onclick="clearPCConditions('+idx+')" style="cursor:pointer" title="Tap to clear conditions">HURT</span>';
     badgeEl.innerHTML=badge+'<button class="sheet-lock-btn '+(locked?'locked':'unlocked')+'" onclick="toggleSheetLock('+idx+')" title="'+(locked?'Unlock to edit':'Lock sheet')+'" style="margin-left:8px">'+(locked?'🔒':'🔓')+'</button>';
   }
   const body=document.getElementById('pc-overview-body');if(!body)return;
@@ -10866,7 +10874,7 @@ Object.assign(window, {
   setSheetTab, setTtsProvider,
   showChatTab, renderSuggestChips, fillSuggest, showSessionMode, showSessionTab, showSetupStep, showTab, showWorldTab,
   speakActiveScene, speakIdx, speakScene, st, submitFlag, sw, switchUser,
-  testTts, toggleCombCond, toggleCond, toggleDeathSave, toggleDockDice, toggleEpContent, toggleFlagVerdict, toggleInspiration,
+  testTts, toggleCombCond, toggleCond, clearPCConditions, toggleDeathSave, toggleDockDice, toggleEpContent, toggleFlagVerdict, toggleInspiration,
   toggleHeaderMenu, toggleHeaderEdit, execHeaderSC, renderHeaderShortcuts,
   togglePremise, toggleQAContext, toggleQAMenu, toggleSkillProf,
   toggleSlot, toggleSuperpower, toggleTabOverflow, toggleThemeMode, toggleVis,
