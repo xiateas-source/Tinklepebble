@@ -86,9 +86,14 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 
 **Session 23** (2026-06-19): Level-up wizard auto-open (`_autoOpenLevelUp()` after parseMechanics, loadState, Firebase sync — wizard was only triggered from Long Rest button). Multi-level XP jump fix (`applyLevelUp` re-runs `checkLevelUp` after each level for sequential advancement e.g. Lv1→2→3). Skip button fix (`_luSkipSwap()` replaces module-scoped `_luWiz` in inline onclick). **Critical ability modifier math fix** — operator precedence bug in 4 places: `(parseInt(pc[s])||10-10)/2` evaluated as `||0`, giving wrong modifiers (STR 16 = +8 instead of +3). 7 missing window exposures (renderChat, renderNPCs, renderCells, renderQAEditor, renderQAResources, renderTownRep, toast). Double-send guard on `sendMsgQuick`. Toast error/warning variants (`.toast-error`, `.toast-warn`). Combat token tap targets (min-height 40px). Input font sizes bumped to 16px (mobile). HURT badge split (conditions → tappable clear, low HP → informational). XP slider on compact card + tap-to-edit on PC overview. Confirm dialogs for endCombat/remNPC. AI XP/HP contract hardening (FORMAT RULES 5-7, XP receipt injection, sanity warnings for suspicious deltas, hp_max increase guard). Save failure toast. Firebase pcs guard. Inventory null guards.
 
+**Session 24** (2026-06-19): Audit fixes #7-17 — Firebase dirty-edit guard (`_lastLocalEdit` 3s window), pcs array guard after state=remote, rewind redo (`_redoSnap` + Redo button), saveRefresh rAF debounce, renderChat hash skip, `--text-dim` contrast bump (#a07858→#b89070), condition toggle toast feedback, `_ctxInject` 60s staleness guard with `_ctxInjectTs`. Per-character JSON import (`importPCFromJSON(idx)` + `applyPCJSON(idx)` — "Update from JSON" button on each character sheet, auto-detects Gemini format, preserves HP/XP/conditions/inventory by default).
+
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
 - DR-8 ⬜ Incremental ledger (depends on DR-5)
+- DR-10 ⬜ `renderAll()` dirty-flag system (replaces rAF debounce with targeted re-renders)
+- DR-11 ⬜ Firebase partial sync (field-level updates instead of full blob)
+- DR-19 ⬜ Lazy-load SPELL_DB/FEATS_DB/LEVEL_UP_DATA (~96KB)
 
 ---
 
