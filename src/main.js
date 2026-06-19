@@ -6906,11 +6906,17 @@ async function sendMsg(){
     cacheResp(text,displayText);
     if(localStorage.getItem('tt_tts_auto')==='1'&&typeof speechSynthesis!=='undefined')speak(displayText);
     state.chatHistory.push({role:'assistant',content:displayText,mechanics,ts,realTs:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),msgId:pendingMsgId});
-    // Auto-checkpoint on message count
+    // Auto-increment turn counter on every AI response
+    state.turnCount=(state.turnCount||0)+1;
+    state.turnsSince=(state.turnsSince||0)+1;
     state.msgsSinceChk=(state.msgsSinceChk||0)+1;
+    renderTurnCtr();
+    // Auto-checkpoint: message count OR turn-based mode
     if(state.msgsSinceChk>=(state.autoChkInterval||8)){
       state.msgsSinceChk=0;
       setTimeout(()=>triggerChk('Auto — '+state.autoChkInterval+' messages'),800);
+    }else if(state.turnsSince>=getCpInt()){
+      setTimeout(()=>triggerChk('Auto — '+getCpInt()+' turns ('+state.chkMode+')'),800);
     }
     if(document.getElementById('chat-log')?.checked)state.logs.push({ts,type:'dm',body:displayText});
     saveRefresh();
