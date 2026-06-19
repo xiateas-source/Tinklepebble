@@ -10150,7 +10150,7 @@ function openSheetPicker(){
     <div class="qa-sheet-body" style="padding:12px">
       <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Select a character</div>
       ${state.pcs.map((pc,i)=>`<button class="btn full" style="margin-bottom:8px;text-align:left;padding:10px 14px;justify-content:flex-start;gap:10px" onclick="document.getElementById('sheet-picker-sheet').remove();document.getElementById('sheet-picker-bd').remove();openPCOverview(${i})">
-        <span style="font-size:18px">${pc.color||'⬤'}</span>
+        <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${pc.color||'var(--text-dim)'};flex-shrink:0"></span>
         <div><div style="font-size:13px;font-weight:600">${esc(pc.name)}</div><div style="font-size:10px;color:var(--text-dim)">${esc(pc.class||'')} ${pc.level?'L'+pc.level:''} · HP ${pc.hp||0}/${pc.hp_max||0}</div></div>
       </button>`).join('')}
     </div>`;
