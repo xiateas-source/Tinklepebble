@@ -5331,8 +5331,9 @@ FORMAT RULES:
 2. ---END--- is REQUIRED on its own line. Without it nothing saves.
 3. Mechanics block is LAST in your response. Nothing after ---END---.
 4. No code fences, bold, or formatting around the block.
-5. Never invent HP — only change by exact stated/rolled amounts.
-6. XP values are DELTAS (amount earned this encounter), never cumulative totals. xp:party+300 means "add 300 to each PC." Do not emit the running total.
+5. Never invent HP — only change by exact stated/rolled amounts. NEVER emit hp: or hp_max: for level-up purposes. The Level Up wizard handles all stat changes. If a PC levels up, the app sets their new HP automatically.
+6. XP values are DELTAS (amount earned THIS encounter ONLY), never running totals. xp:party+300 means "add 300 to each PC's CURRENT XP." The system ledger shows each PC's actual XP — trust it, do not recalculate from scratch. Do NOT compose an XP ledger and emit the sum.
+7. NEVER set hp, hp_max, level, class, features, spells, or slots via mechanics to "apply" a level-up. You CANNOT level up characters. The app wizard handles everything when XP crosses a threshold.
 
 MECHANIC KEY REFERENCE:
 Character: hp:[name]=[val] | hp_max:[name]=[val] | conditions:[name]+/-[cond] | slot_use/slot_restore:[name]=[lvl or all] | resource_use/resource_restore:[pc],[name] | concentration:[name]=spell/off | short_rest:[name] | shell_defense:[name]=on/off | xp:[name]+[amt] (DELTA only, not total)
@@ -5364,7 +5365,7 @@ COMBAT START — MANDATORY SEQUENCE:
 3. roll_request: Initiative | 1d20+[mod] | [PC] for EACH PC
 4. WAIT for initiative rolls before resolving actions
 
-LEVEL-UP: You CANNOT level up characters. Direct players to //levelup or Sheet > Level Up. Only narrate after [LEVEL UP COMPLETE] context message.`;
+LEVEL-UP: You CANNOT level up characters. NEVER set hp, hp_max, level, slots, or features to "apply" a level-up — the app wizard handles everything automatically when XP crosses a threshold. Direct players to //levelup or Sheet > Level Up. Only narrate stat changes after a [LEVEL UP COMPLETE] context message appears.`;
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
   const s0=state.campaignSetup||{};
   let sessionZeroSection='';
@@ -5495,7 +5496,7 @@ function parseMechanics(responseText, pendingMsgId=null){
           if(pc&&hpStr!==undefined){const old=pc.hp;pc.hp=Math.max(0,Math.min(pc.hp_max,parseInt(hpStr)));changes.push({text:pc.name+' HP '+old+'→'+pc.hp});if(pc.hp>0&&old<=0&&pc.conditions){pc.conditions=pc.conditions.filter(c=>c!=='Unconscious'&&c!=='Dying');changes.push({text:pc.name+' no longer unconscious'});}if(pc.hp===0&&document.getElementById('auto-down')?.checked)setTimeout(()=>triggerChk('PC Down: '+pc.name),300);}
         });
       }else if(key==='hp_max'){
-        val.split(',').forEach(part=>{const[nm,v]=part.trim().split('=');const pc=findPC(nm?.trim());if(pc&&v){pc.hp_max=parseInt(v);changes.push({text:pc.name+' MaxHP→'+v});}});
+        val.split(',').forEach(part=>{const[nm,v]=part.trim().split('=');const pc=findPC(nm?.trim());if(pc&&v){const newMax=parseInt(v);const old=pc.hp_max;pc.hp_max=newMax;changes.push({text:pc.name+' MaxHP '+old+'→'+newMax});if(newMax>old)changes.push({text:'⚠ hp_max increased by AI — level-up wizard should handle this',error:true});}});
       }else if(key==='conditions'){
         val.split(',').forEach(part=>{
           const p=part.trim();
@@ -5690,13 +5691,21 @@ function parseMechanics(responseText, pendingMsgId=null){
           if(m){
             const target=m[1].trim().toLowerCase();
             const amt=parseInt(m[2].replace(/,/g,''));
+            const _applyXP=pc=>{
+              const before=pc.xp||0;
+              pc.xp=before+amt;
+              changes.push({text:pc.name+' +'+amt+'xp ('+before+'→'+pc.xp+')'});
+              if(amt>0&&amt>=before&&before>0)changes.push({text:'⚠ XP delta ('+amt+') looks like a total — should be encounter-only',error:true});
+              checkLevelUp(pc);
+            };
             if(target==='party'||target==='all'){
-              state.pcs.forEach(pc=>{pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});checkLevelUp(pc);});
+              state.pcs.forEach(_applyXP);
             }else{
-              const pc=findPC(m[1].trim());if(pc){pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});checkLevelUp(pc);}
+              const pc=findPC(m[1].trim());if(pc)_applyXP(pc);
             }
           }
         });
+        _ctxInject=(_ctxInject||'')+'\n[XP APPLIED] Current XP: '+state.pcs.map(pc=>pc.name+' '+pc.xp+'/'+XP_T[Math.min(pc.level||1,19)]+' (Lv'+(pc.level||1)+')').join(', ')+'. These are the REAL values — trust them.';
       }else if(key==='module_episode'){
         const pts=val.split(',').map(p=>p.trim());
         const epIdx=parseInt(pts[0])-1;const epStatus=(pts[1]||'active').toLowerCase();
