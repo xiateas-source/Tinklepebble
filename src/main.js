@@ -1180,7 +1180,7 @@ function renderPartyPCList(){
     const hp=parseInt(pc.hp)||0,max=parseInt(pc.hp_max)||1;
     const pct=Math.max(0,Math.min(100,(hp/max)*100));
     const hpCol=hp<=0?'var(--red)':pct<25?'#c04a3a':pct<50?'var(--gold)':'var(--green)';
-    const conds=(pc.conditions||[]).map(c2=>`<span style="font-size:9px;background:rgba(139,58,42,.25);color:#e08060;border:1px solid var(--red-dim);border-radius:3px;padding:1px 4px">${esc(c2)}</span>`).join(' ');
+    const conds=(pc.conditions||[]).map(c2=>`<span onclick="event.stopPropagation();toggleCond(${i},'${c2.replace(/'/g,"\\'")}');renderPartyPCList()" style="font-size:9px;background:rgba(139,58,42,.25);color:#e08060;border:1px solid var(--red-dim);border-radius:3px;padding:2px 6px;cursor:pointer;min-height:20px;display:inline-flex;align-items:center">${esc(c2)} ✕</span>`).join(' ');
     const conc=pc.concentrating?`<span style="font-size:9px;color:var(--purple-bright)">⬤ ${esc(pc.concentrating)}</span>`:'';
     return `<div onclick="openPCOverview(${i})" style="background:var(--surface2);border:1px solid ${pc.color||'var(--border)'};border-radius:8px;padding:10px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .15s">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
@@ -1190,7 +1190,7 @@ function renderPartyPCList(){
         <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${hpCol}">${hp}<span style="font-size:10px;color:var(--text-dim)">/${max}</span></div>
       </div>
       <div style="height:3px;background:var(--surface3);border-radius:2px;margin-bottom:4px"><div style="height:3px;width:${pct.toFixed(1)}%;background:${hpCol};border-radius:2px;transition:width .3s"></div></div>
-      ${(()=>{const xp=parseInt(pc.xp)||0;const nxt=XP_T[Math.min(pc.level||1,19)];const xpPct=nxt?Math.min(100,(xp/nxt)*100):100;return`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><div style="flex:1;height:2px;background:var(--surface3);border-radius:1px"><div style="height:2px;width:${xpPct.toFixed(1)}%;background:var(--gold-dim);border-radius:1px"></div></div><span style="font-size:8px;color:var(--text-dim)">${xp.toLocaleString()} xp</span></div>`;})()}
+      ${(()=>{const xp=parseInt(pc.xp)||0;const nxt=XP_T[Math.min(pc.level||1,19)];const xpPct=nxt?Math.min(100,(xp/nxt)*100):100;return`<div onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><input type="range" min="0" max="${nxt||1}" value="${xp}" oninput="document.getElementById('xplbl-${i}').textContent=parseInt(this.value).toLocaleString()+' xp'" onchange="upd(${i},'xp',parseInt(this.value)||0);renderPartyPCList()" style="flex:1;height:6px;accent-color:var(--gold)"><span id="xplbl-${i}" style="font-size:8px;color:var(--text-dim);min-width:42px;text-align:right">${xp.toLocaleString()} xp</span></div>`;})()}
       ${conds||conc?`<div style="display:flex;flex-wrap:wrap;gap:3px">${conds}${conc}</div>`:''}
     </div>`;
   }).join('');
@@ -1651,7 +1651,7 @@ function renderNPCs(){
 }
 function addNPC(){state.npcs.push({name:'',disposition:'Neutral',details:'',status:'active',hp:0,lastSeen:state.worldData.location||''});saveRefresh();}
 function updNPC(i,k,v){state.npcs[i][k]=v;save();}
-function remNPC(i){state.npcs.splice(i,1);saveRefresh();}
+function remNPC(i){const n=state.npcs[i];if(!confirm('Delete NPC '+(n?.name||'#'+(i+1))+'?'))return;state.npcs.splice(i,1);saveRefresh();}
 function dedupNPCs(){
   const all=state.npcs||[];if(!all.length){toast('No NPCs to dedup');return;}
   const kept=[];let removed=0;
@@ -2559,6 +2559,7 @@ function nextTurn(){if(!state.combat.active||!(state.combat.list||[]).length)ret
 function prevTurn(){if(!state.combat.active||!(state.combat.list||[]).length)return;state.combat.currentIdx--;if(state.combat.currentIdx<0){state.combat.currentIdx=state.combat.list.length-1;state.combat.round=Math.max(1,state.combat.round-1);}_injectTurnCtx();saveRefresh();}
 const COMBAT_ONLY_CONDS=new Set(['Prone','Grappled','Restrained']);
 function endCombat(){
+  if(!confirm('End combat? (Round '+state.combat.round+', '+state.combat.list.length+' combatants)'))return;
   var summary='Combat ended — Round '+state.combat.round+', '+state.combat.list.length+' combatants.';
   var loc=(state.worldData||{}).location||'';
   if(loc){
@@ -4483,6 +4484,7 @@ function migrate(s){
   const savedVer=s.saveVersion||0;
 
   // ══ STRUCTURAL GUARDS — run every load (idempotent null/array protection) ══
+  if(!Array.isArray(s.pcs))s.pcs=[];
   if(!Array.isArray(s.chatHistory))s.chatHistory=[];
   if(!Array.isArray(s.logs))s.logs=[];
   if(!Array.isArray(s.chkHistory))s.chkHistory=[];
@@ -4958,8 +4960,8 @@ function save(){
       // State too large — trim chat history aggressively and retry
       state.chatHistory=state.chatHistory.slice(-30);
       state.logs=state.logs.slice(-50);
-      try{localStorage.setItem('tt_v1',JSON.stringify(state));autosaveDot();}
-      catch(e2){console.error('Save failed after trim:',e2);}
+      try{localStorage.setItem('tt_v1',JSON.stringify(state));autosaveDot();toast('⚠ Storage full — trimmed old messages','warn');}
+      catch(e2){console.error('Save failed after trim:',e2);toast('Save failed — storage full','error',5000);}
     }
   }
 }
@@ -5172,10 +5174,10 @@ function toggleSlot(idx,li,pi){
   const pc=state.pcs[idx];if(!pc||!Array.isArray(pc.slots))return;const s=pc.slots[li];if(!s)return;
   s.used=(s.used===pi+1)?pi:pi+1;saveRefresh();
 }
-function addPcItem(idx){if(!state.pcs[idx].inventory)state.pcs[idx].inventory=[];state.pcs[idx].inventory.push({name:'',qty:1,weight:0,type:'misc',notes:''});save();renderCards();renderSheets();}
-function updPcItem(pi,ii,k,v){state.pcs[pi].inventory[ii][k]=v;save();}
-function remPcItem(pi,ii){state.pcs[pi].inventory.splice(ii,1);save();renderCards();}
-function remPcItemSheet(pi,ii){state.pcs[pi].inventory.splice(ii,1);save();renderCards();renderSheets();}
+function addPcItem(idx){const pc=state.pcs[idx];if(!pc)return;if(!pc.inventory)pc.inventory=[];pc.inventory.push({name:'',qty:1,weight:0,type:'misc',notes:''});save();renderCards();renderSheets();}
+function updPcItem(pi,ii,k,v){const pc=state.pcs[pi];if(!pc?.inventory?.[ii])return;pc.inventory[ii][k]=v;save();}
+function remPcItem(pi,ii){const pc=state.pcs[pi];if(!pc?.inventory)return;pc.inventory.splice(ii,1);save();renderCards();}
+function remPcItemSheet(pi,ii){const pc=state.pcs[pi];if(!pc?.inventory)return;pc.inventory.splice(ii,1);save();renderCards();renderSheets();}
 
 // ═══ AI PROVIDER ═══
 function setProvider(p){
@@ -10534,7 +10536,8 @@ function renderPCOverview(){
     const _negConds=(pc.conditions||[]).filter(c=>!['Inspired','Concentrating','Dodge','Hidden','Invisible'].includes(c));
     let badge='<span class="status-badge ok">OK</span>';
     if(pc.hp<=0)badge='<span class="status-badge dead" onclick="setCharSheetTab(2);renderPCOverview()" style="cursor:pointer">DOWN</span>';
-    else if(pct<50||_negConds.length>0)badge='<span class="status-badge warn" onclick="clearPCConditions('+idx+')" style="cursor:pointer" title="Tap to clear conditions">HURT</span>';
+    else if(_negConds.length>0)badge='<span class="status-badge warn" onclick="clearPCConditions('+idx+')" style="cursor:pointer" title="Tap to clear conditions">'+esc(_negConds[0])+(_negConds.length>1?' +'+(_negConds.length-1):'')+'</span>';
+    else if(pct<50)badge='<span class="status-badge warn" title="HP below 50%">HURT</span>';
     badgeEl.innerHTML=badge+'<button class="sheet-lock-btn '+(locked?'locked':'unlocked')+'" onclick="toggleSheetLock('+idx+')" title="'+(locked?'Unlock to edit':'Lock sheet')+'" style="margin-left:8px">'+(locked?'🔒':'🔓')+'</button>';
   }
   const body=document.getElementById('pc-overview-body');if(!body)return;
@@ -10600,8 +10603,8 @@ function renderCharSheet(idx,locked){
       <span>HD: ${hdRem}/${hdTotal}d${hitDie}</span>
       <span>Prof: <strong style="color:var(--gold)">+${prof}</strong></span>
       <span>PP: ${passPerc}</span>
-      <span style="flex:1;height:2px;background:var(--surface3);border-radius:1px"><span style="display:block;height:2px;width:${xpPct.toFixed(1)}%;background:var(--gold-dim);border-radius:1px"></span></span>
-      <span>${xp.toLocaleString()} XP</span>
+      <span onclick="(function(){const v=parseInt(prompt('Set XP for ${esc(pc.name)}:','${xp}'));if(isNaN(v))return;upd(${idx},'xp',v);renderPCOverview();})()" style="flex:1;height:6px;background:var(--surface3);border-radius:3px;cursor:pointer"><span style="display:block;height:6px;width:${xpPct.toFixed(1)}%;background:var(--gold-dim);border-radius:3px"></span></span>
+      <span onclick="(function(){const v=parseInt(prompt('Set XP for ${esc(pc.name)}:','${xp}'));if(isNaN(v))return;upd(${idx},'xp',v);renderPCOverview();})()" style="cursor:pointer">${xp.toLocaleString()} XP</span>
       ${dsRow}
     </div>
   </div>`;
