@@ -4265,7 +4265,11 @@ function importPCFromJSON(idx){
   el.classList.add('open');
   el.innerHTML=`<div class="modal-box" style="max-width:440px;max-height:85vh;overflow:auto">
     <h3 style="margin:0 0 8px;font-size:14px;color:var(--gold)">Update ${esc(pc.name||'Character')} from JSON</h3>
-    <p style="font-size:11px;color:var(--text-dim);margin:0 0 10px">Paste a character JSON from Gemini or a raw PC object. HP, XP, conditions &amp; inventory are preserved by default.</p>
+    <p style="font-size:11px;color:var(--text-dim);margin:0 0 10px;line-height:1.4">
+      <b style="color:var(--text)">Single character update</b> — paste one character's JSON to update stats, spells, features, etc.<br>
+      Use the templates on GitHub (<i>single-character-template</i>, <i>levelup-template</i>, or <i>spellbook-template</i>) with Gemini to generate the JSON.<br>
+      <span style="color:var(--gold-dim)">Loading a whole party?</span> Use <b>Systems &gt; Dev &gt; Paste JSON</b> instead.
+    </p>
     <textarea id="pc-json-input" style="width:100%;min-height:140px;font-size:12px;font-family:var(--mono)" placeholder='{"name":"...","class":"Fighter","level":3,...}'></textarea>
     <div id="pc-json-err" style="display:none;color:var(--red);font-size:11px;margin:4px 0"></div>
     <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);margin:6px 0"><input type="checkbox" id="pc-json-preserve" checked style="width:auto;accent-color:var(--gold)"> Preserve HP, XP, conditions &amp; inventory</label>
