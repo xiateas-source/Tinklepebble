@@ -1909,12 +1909,26 @@ function remPI(i){state.partyInventory.splice(i,1);_piEditIdx=null;save();render
 // ═══ INCOME LOG ═══
 function renderIncome(){
   const c=document.getElementById('income-log');if(!c)return;c.innerHTML='';
-  (state.treasuryData.incomeLog||[]).slice().reverse().forEach(e=>{
+  const log=state.treasuryData.incomeLog||[];
+  log.slice().reverse().forEach((e,ri)=>{
+    const realIdx=log.length-1-ri;
     const d=document.createElement('div');
     d.className='income-row income-'+(e.type==='in'?'in':'out');
+    d.style.cursor='pointer';
     d.innerHTML=`<span>${esc(e.desc)}</span><span style="color:${e.type==='in'?'var(--green-bright)':'var(--red)'};font-weight:bold">${e.type==='in'?'+':'−'}${e.amt} gp</span>`;
+    d.onclick=()=>removeIncomeEntry(realIdx);
     c.appendChild(d);
   });
+}
+function removeIncomeEntry(idx){
+  const log=state.treasuryData.incomeLog;if(!log||!log[idx])return;
+  const e=log[idx];
+  if(!confirm('Delete "'+e.desc+' '+(e.type==='in'?'+':'−')+e.amt+'gp"?\nThis will adjust the treasury.'))return;
+  if(e.type==='in')state.treasuryData.gp=Math.max(0,(parseFloat(state.treasuryData.gp)||0)-e.amt);
+  else state.treasuryData.gp=(parseFloat(state.treasuryData.gp)||0)+e.amt;
+  log.splice(idx,1);
+  const gpEl=document.getElementById('t_gp');if(gpEl)gpEl.value=state.treasuryData.gp;
+  save();renderIncome();renderTreasuryTotal();toast('✓ Entry removed, treasury adjusted.');
 }
 function addIncome(){
   const desc=document.getElementById('inc-desc').value.trim();
@@ -10748,7 +10762,7 @@ function csRemLang(idx,li){
 Object.assign(window, {
   _luNext, _luRollHP, _luSelectSubclass, _luSetHP, _luToggleSpell, _luUpdateASI, _luSetASIMode, _luSelectFeat, _luUpdateFeatAbility, _luFilterFeats, _luSelectSwapOld, _luSelectSwapNew, FEATS_DB,
   addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, cloneCombatant, addCondFromPicker,
-  addFamiliar, addIncome, addLogEntry, addModuleEpisode, addNPC, addNewChar,
+  addFamiliar, addIncome, removeIncomeEntry, addLogEntry, addModuleEpisode, addNPC, addNewChar,
   addPartyItem, addPartyToCombat, addPcItem, addPreset, addQA, addQuest,
   addFromCompendium, addManeuverToPC, MANEUVER_DB, SPELL_DB, addResource, addScene, addSlotLvl, addSnip, addSpell, addTownRep, addWagonItem,
   adjHP, applyLevelUp, askDMFromParty, auditWithAI, awardXP,
