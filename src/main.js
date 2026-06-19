@@ -5980,7 +5980,7 @@ function confirmLedgerChip(amt,dir){
   // Auto-dismiss if ignored — never nags forever.
   setTimeout(()=>{if(chip.isConnected)close();},12000);
 }
-function findPC(name){if(!name)return null;return state.pcs.find(p=>p.id===name||p.name.toLowerCase()===name.toLowerCase());}
+function findPC(name){if(!name)return null;const nl=name.trim().toLowerCase();return state.pcs.find(p=>p.id===name||p.name.toLowerCase()===nl)||state.pcs.find(p=>p.name.toLowerCase().startsWith(nl+' '))||state.pcs.find(p=>p.name.toLowerCase().split(' ')[0]===nl)||null;}
 
 // ═══ AI COMPLIANCE CHIPS — NPC + ITEM ═══
 function _showChip(icon,label,borderColor,onConfirm){
