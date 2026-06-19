@@ -514,6 +514,7 @@ function fbStartListening(){
         remote.campaignSetup=state.campaignSetup;
       }
       state=remote;state._ts=remoteTs;
+      state.pcs.forEach(pc=>checkLevelUp(pc));
       try{localStorage.setItem('tt_v1',JSON.stringify(state));}catch(e){}
       renderAll();genLedger();autosaveDot();
       // Notify on new party messages from others
@@ -2623,19 +2624,24 @@ function doLongRest(){
   if(document.getElementById('auto-rest')?.checked)triggerChk('Long Rest');
   toast('🌙 Long Rest — all HP and slots restored!');
   state.pcs.forEach(pc=>checkLevelUp(pc));
-  const readyIdx=state.pcs.findIndex(pc=>pc.levelReady);
-  if(readyIdx>=0)setTimeout(()=>openLevelUpWizard(readyIdx),800);
+  _autoOpenLevelUp();
 }
 
 // ═══ LEVEL UP WIZARD ═══
 let _luWiz=null,_luTestSnapshot=null;
 
 function checkLevelUp(pc){
-  const lvl=pc.level||1;if(lvl>=20||pc.levelReady)return;
-  if((pc.xp||0)>=XP_T[Math.min(lvl,19)]){
+  const lvl=pc.level||1;
+  const xp=parseInt(pc.xp)||0;
+  const threshold=XP_T[Math.min(lvl,19)];
+  console.log('[LevelUp] checkLevelUp:',pc.name,'lvl='+lvl,'xp='+xp,'threshold='+threshold,'levelReady='+pc.levelReady);
+  if(lvl>=20)return;
+  if(pc.levelReady)return;
+  if(xp>=threshold){
     pc.levelReady=true;
     const newLvl=lvl+1;
-    toast('⬆ '+pc.name+' ready for Level '+newLvl+'! Take a Long Rest to advance.');
+    console.log('[LevelUp] '+pc.name+' QUALIFIES for Level '+newLvl);
+    toast('⬆ '+pc.name+' ready for Level '+newLvl+'! Use //levelup or take a Long Rest.');
     const clsKey=Object.keys(LEVEL_UP_DATA).find(k=>(pc.class||'').toLowerCase().includes(k));
     const lvlData=clsKey&&LEVEL_UP_DATA[clsKey]&&LEVEL_UP_DATA[clsKey].levels[newLvl];
     let choiceHints='';
@@ -2660,6 +2666,13 @@ function checkLevelUp(pc){
       +' Announce: "'+pc.name+' has earned enough experience to reach Level '+newLvl+'! Type //levelup in the chat or open the character sheet to advance."'
       +' Do NOT narrate stat changes, choose feats, choose spells, or apply HP increases — the Level Up wizard handles everything.'
       +' You may mention what awaits them in general terms (e.g. "exciting choices ahead at this level") but do NOT list specific options or fabricate a stat block.';
+  }
+}
+function _autoOpenLevelUp(){
+  const readyIdx=state.pcs.findIndex(pc=>pc.levelReady);
+  if(readyIdx>=0){
+    console.log('[LevelUp] Auto-opening wizard for '+state.pcs[readyIdx].name);
+    setTimeout(()=>openLevelUpWizard(readyIdx),800);
   }
 }
 
@@ -4974,6 +4987,7 @@ function loadState(){
     }
     state=p;
     state.pcs.forEach(pc=>checkLevelUp(pc));
+    setTimeout(()=>_autoOpenLevelUp(),1500);
   }
   catch(e){console.error('Load error',e);}
 }
@@ -5904,6 +5918,7 @@ function parseMechanics(responseText, pendingMsgId=null){
   });
   if(changes.length>0){
     state.pcs.forEach(pc=>checkLevelUp(pc));
+    _autoOpenLevelUp();
     save();
     renderCharTabs();renderCards();renderStatusMini();renderSheets();
     renderNPCs();renderQuests();renderConsequences();renderCombat();renderWagon();syncWorld();renderModuleTracker();
@@ -10332,9 +10347,13 @@ function _handleSlashCmd(raw){
 
   // //levelup — open the level-up wizard for the first ready PC
   if(lower==='levelup'||lower==='level up'||lower==='lu'){
+    state.pcs.forEach(pc=>checkLevelUp(pc));
     const readyIdx=(state.pcs||[]).findIndex(p=>p.levelReady);
     if(readyIdx>=0){openLevelUpWizard(readyIdx);_cmdResult('⬆ Opening Level Up wizard for '+state.pcs[readyIdx].name);}
-    else{_cmdResult('No characters are ready to level up. Award XP first.');}
+    else{
+      const diag=(state.pcs||[]).map(p=>p.name+': Lv'+(p.level||1)+' XP='+(p.xp||0)+' need='+XP_T[Math.min(p.level||1,19)]).join(', ');
+      _cmdResult('No characters are ready to level up. ['+diag+']');
+    }
     return;
   }
 
