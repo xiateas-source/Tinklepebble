@@ -3111,14 +3111,24 @@ function applyLevelUp(){
   const isTest=!!_luTestSnapshot;
   if(!isTest){
     _ctxInject='[LEVEL UP COMPLETE] '+parts.join(' ')+' Update your full understanding of this character and narrate the advancement when prompted.';
-    triggerChk('Level Up: '+pc.name+' → Level '+newLvl);
   }
   saveRefresh();
   closeLevelUpModal();
   if(!isTest)toast('🎉 '+pc.name+' is now Level '+newLvl+'!');
-  // Queue next ready PC
-  const nextIdx=state.pcs.findIndex((p2,i)=>i!==idx&&p2.levelReady);
-  if(nextIdx>=0)setTimeout(()=>openLevelUpWizard(nextIdx),800);
+  // Re-check all PCs. The current PC may qualify for ANOTHER level (multi-level
+  // XP jump — e.g. 2,050 XP clears both the L2 and L3 thresholds), and other PCs
+  // may also be ready. checkLevelUp re-sets levelReady + a PENDING ctxInject.
+  if(!isTest)state.pcs.forEach(p2=>checkLevelUp(p2));
+  const nextIdx=state.pcs.findIndex(p2=>p2.levelReady);
+  if(nextIdx>=0){
+    // More advancement pending — reopen the wizard. The COMPLETE ctxInject above
+    // is overwritten by checkLevelUp's PENDING; the AI sees the final state once
+    // the whole chain resolves. Defer the checkpoint until then.
+    setTimeout(()=>openLevelUpWizard(nextIdx),800);
+  }else if(!isTest){
+    // Final level-up in the chain — fire the checkpoint now.
+    triggerChk('Level Up: '+pc.name+' → Level '+newLvl);
+  }
 }
 
 // ═══ SESSION LOG ═══
