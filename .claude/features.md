@@ -357,11 +357,33 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - **Current ability scores** — compact score display at top of ASI step for reference
 - **Spell swap** — optional step for spellcasters to replace one known spell with another from class list
 - Helper functions: `_luSetASIMode()`, `_luSelectFeat()`, `_luUpdateFeatAbility()`, `_luFilterFeats()`, `_luSelectSwapOld()`, `_luSelectSwapNew()`, `_luParseKnownSpells()`, `_luGetSwapPool()`
+- `_getLevelUpData(pc)` — Merges built-in `LEVEL_UP_DATA` with imported `state.classData`. Imported data overrides built-in for same class/level.
+- `_getClassSpellPool(ch)` — Replaces `_getBardSpells()`. Works with any class's spell list (imported `spellList`, built-in `BARD_SPELLS`, or `SPELL_DB` fallback by class tag)
+- Spell slot progression now works for any class with `slots` data (was bard-only)
+- Broader spellcaster detection: classes with slot data + named caster classes get spell swap step
+
+### Importable Class Progression (`state.classData`)
+- `state.classData` — Stores imported class/subclass progression data, keyed by lowercase class name. Syncs via Firebase (`STATE_KEYS`).
+- Format per class: `{hit_die, slots:{level:[counts]}, spellList:{0:[cantrips],1:[spells],...}, levels:{N:{auto:[],choose:[]}}}`
+- `openClassDataImport()` — Opens modal for pasting class progression JSON. Validates structure, merges with existing data.
+- `applyClassData()` — Parses and imports class data into `state.classData`. Shows loaded classes.
+- `_normalizeSlots(slots)` — Converts string keys to integer keys for slot data.
+- Button: ☰ hamburger menu > "📖 Import Class Progression"
+- Template: `class-progression-template.json` with full AI instructions and Wizard example
 
 ### Character JSON Import
 - `importPCFromJSON(idx)` — Opens modal with JSON textarea for updating a single character. Auto-detects Gemini format (`{characters:[...]}` or `{ability_scores:...}`) and raw PC objects
 - `applyPCJSON(idx)` — Parses pasted JSON, merges with existing PC (preserves HP/XP/conditions/inventory by default via checkbox)
 - Button: "📋 Update from JSON" on each character's edit sheet
+- `importFromPaste()` — Full-party import from paste modal. Handles full save, PC-only patch, wagon-only, world-only. Preserve merge uses `{...existing,...newPc}`.
+- `importConfig(el)` — File upload import. Handles `{characters:[...]}` Gemini wrapper. Confirm dialog before replacing state.
+
+### Player Template Files
+- `character-template.json` — Full 3-PC party creation template with all field formats documented
+- `single-character-template.json` — Single character creation/rebuild template for Update from JSON
+- `levelup-template.json` — Level-up helper for AI-assisted advancement
+- `spellbook-template.json` — Spellbook builder for casters (merges only magic/spellbook/slots)
+- `class-progression-template.json` — Class progression data for extending the level-up wizard
 
 ### Removed / No-Op
 - `renderStepBar()` / `renderSceneLabel()` — empty no-op functions (step bar replaced by turn tracker in Session 18)
