@@ -1,49 +1,39 @@
 # Session Log — Handoff Note
 
-## Session 23 · 2026-06-19
+## Session 24 · 2026-06-19
 
 ### Shipped
-- **Level-up wizard auto-open** — Wizard now opens automatically after mechanics parse, page load, and Firebase sync (not just Long Rest button). Added `_autoOpenLevelUp()` helper.
-- **Multi-level XP jump fix** — `applyLevelUp()` re-runs `checkLevelUp` after each level so a PC with enough XP for multiple levels advances through them sequentially (e.g., Lv1→2→3).
-- **Skip button fix** — Spell Swap step's "Skip →" button was broken (module-scoped `_luWiz` in inline onclick). Replaced with exposed `_luSkipSwap()` function.
-- **Level-up debug logging** — `checkLevelUp` now logs level/XP/threshold to console. `//levelup` shows diagnostic info when no PCs qualify.
-- **`checkLevelUp` after Firebase sync** — Was missing; Firebase `state=remote` replacement lost level-ready flags.
-- **Full app audit (3-agent parallel)** — Bug audit, UX/gameplay audit, performance audit across the entire codebase.
-- **Ability modifier math fix (CRITICAL)** — Operator precedence bug in 4 places: `(parseInt(pc[s])||10-10)/2` gave wrong results (STR 16 = +8 instead of +3). Fixed all to explicit `(n-10)/2`.
-- **7 missing window exposures** — `renderChat`, `renderNPCs`, `renderCells`, `renderQAEditor`, `renderQAResources`, `renderTownRep`, `toast` — same class as Skip button bug, silently broke editing NPCs, towns, cells, chat expand, etc.
-- **Double-send guard** — `sendMsgQuick` now checks `chat-input.disabled` to prevent two AI calls from rapid taps.
-- **Toast error/warning variants** — Added `.toast-error` (red), `.toast-warn` (amber), `.toast-red` CSS classes. Tagged ~15 error paths.
-- **Combat token tap targets** — `.zone-token` and `.init-chip` min-height 40px, `.zt-cond` bumped to 9px with better contrast.
-- **Input font sizes** — All form inputs bumped to 16px, chat input 13→16px, NPC/inventory inputs 11-12→14px.
-- **HURT badge fix** — Now shows actual condition name when conditions exist (tappable to clear). Shows informational "HURT" when just low HP (not clickable). Compact card condition chips now tappable with ✕.
-- **XP slider** — Compact party card XP bar replaced with interactive range slider. PC overview XP bar/label tappable to edit.
-- **Confirm dialogs** — `endCombat` and `remNPC` now require confirmation.
-- **Save failure toast** — Storage full errors now surface to user instead of silent console.error.
-- **Firebase pcs guard** — Added `if(!Array.isArray(s.pcs))s.pcs=[]` to migrate() structural guards.
-- **Inventory null guards** — `addPcItem`, `updPcItem`, `remPcItem`, `remPcItemSheet` all null-guarded.
-- **AI XP/HP contract hardening** — Strengthened FORMAT RULES (ban hp/hp_max for level-up, XP must be encounter-only deltas). LEVEL-UP clause expanded. XP handler injects `[XP APPLIED]` receipt with actual values. Sanity warnings for suspicious XP deltas and AI-set hp_max increases.
+- **Audit fixes 7-17** — All actionable items from the 3-agent parallel audit:
+  - #7 Firebase dirty-edit guard — `_lastLocalEdit` timestamp in `upd()`, Firebase sync skips full state replacement if user edited within 3 seconds (preserves chat merge)
+  - #8 Firebase pcs guard — `if(!Array.isArray(state.pcs))state.pcs=[]` after `state=remote` assignment
+  - #9 Rewind redo — `_redoSnap` captures state before rewind; Redo button appears in rewind list to undo the last rewind
+  - #10+#13 saveRefresh throttle — `requestAnimationFrame` debounce prevents multiple DOM rebuilds per frame
+  - #12 renderChat hash check — skips full innerHTML rebuild when chat length + last message haven't changed
+  - #14 --text-dim contrast — bumped from `#a07858` to `#b89070` (~4.5:1 WCAG AA on dark surfaces)
+  - #16 Condition toast feedback — `toggleCond` and `addCondFromPicker` now toast "+condition" / "−condition"
+  - #17 _ctxInject staleness guard — `_ctxInjectTs` tracks when set; expires after 60 seconds in sendMsg
+- **Per-character JSON import** — "Update from JSON" button on each character's edit sheet. Opens modal with textarea for pasting Gemini/raw JSON. Auto-detects format (Gemini `{characters:[...]}`, single Gemini char `{ability_scores:...}`, or raw PC object). Checkbox to preserve HP/XP/conditions/inventory (default on). `importPCFromJSON(idx)` + `applyPCJSON(idx)`.
+- **Session 23 doc updates** — roadmap Session 23 entry, features.md additions (level-up auto-open, skip swap, XP slider, toast variants, AI contract hardening)
 
 ### Decisions Made
-- HURT badge behavior split: conditions → tappable clear, low HP → informational only
-- XP bar on compact card is an interactive range slider; on overview it's tap-to-prompt
-- Toast now accepts (msg, style, dur) — style can be 'error', 'warn', 'red'
-- AI contract explicitly bans hp/hp_max/level/slots/features mechanics for level-up purposes
-- XP receipt context injection ensures AI sees real XP values after every award
+- Firebase dirty-edit guard uses 3-second window (matches typical field-edit→save cycle)
+- _ctxInject expires after 60 seconds (long enough for normal flow, short enough to prevent leaks across sessions)
+- JSON import preserves HP/XP/conditions/inventory by default (checkbox override)
+- saveRefresh uses rAF debounce, not setTimeout — coalesces within the same frame without introducing artificial delay
+- Items #10 (full renderAll dirty-flag refactor), #11 (Firebase partial sync), #19 (lazy-load static data) deferred as deep refactors
 
 ### Known Issues
-- `renderAll()` rebuilds ~50 sub-renderers on every mutation (performance — needs dirty-flag system)
-- Firebase uploads entire state as single JSON blob on every save (bandwidth)
-- `renderChat()` rebuilds all 80 messages on every call
-- `--text-dim` (#a07858) fails WCAG contrast on dark bg
-- Stale `_ctxInject` can leak between contexts (set in combat/refresh, consumed on next sendMsg)
-- Level-up wizard has no back button (mis-picked subclass needs full restart)
-- `save()` JSON.stringify is synchronous and unthrottled
+- `renderAll()` still rebuilds ~50 sub-renderers (rAF debounce helps but doesn't eliminate; needs dirty-flag system)
+- Firebase still uploads entire state blob on every save (#11)
+- ~96KB static data (SPELL_DB, FEATS_DB, LEVEL_UP_DATA) loaded at startup (#19)
+- Level-up wizard has no back button
+- `save()` JSON.stringify still synchronous (rAF debounce reduces frequency but doesn't offload)
 
 ### In Progress
 - Nothing actively in progress
 
 ### Next Up
-1. **Remaining audit items** — renderAll optimization, Firebase partial sync, lazy-load static data, rewind redo, previewMechanics parity
+1. **Deep refactors** — renderAll dirty-flag system (#10), Firebase partial sync (#11), lazy-load static data (#19)
 2. **Module import → world setup auto-fill**
 3. **Character Creation Wizard**
 4. **Inline NPC name linking**
@@ -55,4 +45,4 @@
 - Branch: `claude/new-session-rvx6tn`
 - All changes committed and merged to main
 - Main is pushed and up to date with origin/main
-- Last commit on branch: 5677395
+- Last commit on branch: 009de20

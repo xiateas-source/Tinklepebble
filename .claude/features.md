@@ -358,6 +358,11 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - **Spell swap** — optional step for spellcasters to replace one known spell with another from class list
 - Helper functions: `_luSetASIMode()`, `_luSelectFeat()`, `_luUpdateFeatAbility()`, `_luFilterFeats()`, `_luSelectSwapOld()`, `_luSelectSwapNew()`, `_luParseKnownSpells()`, `_luGetSwapPool()`
 
+### Character JSON Import
+- `importPCFromJSON(idx)` — Opens modal with JSON textarea for updating a single character. Auto-detects Gemini format (`{characters:[...]}` or `{ability_scores:...}`) and raw PC objects
+- `applyPCJSON(idx)` — Parses pasted JSON, merges with existing PC (preserves HP/XP/conditions/inventory by default via checkbox)
+- Button: "📋 Update from JSON" on each character's edit sheet
+
 ### Removed / No-Op
 - `renderStepBar()` / `renderSceneLabel()` — empty no-op functions (step bar replaced by turn tracker in Session 18)
 - `executeStep()`, `_stepTarget` — removed from active codebase; only remnants in `index_monolith.html` (legacy)
