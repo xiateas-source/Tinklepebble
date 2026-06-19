@@ -1,0 +1,158 @@
+{
+  "_INSTRUCTIONS_FOR_PLAYER": [
+    "=== CLASS PROGRESSION IMPORTER ===",
+    "",
+    "This template lets you add ANY D&D 5e class to the level-up wizard.",
+    "The app has built-in data for Fighter, Rogue, and Bard (levels 2-10).",
+    "Use this to add: Wizard, Cleric, Paladin, Ranger, Sorcerer, Warlock,",
+    "Monk, Druid, Barbarian, Artificer — or extend existing classes to level 20.",
+    "",
+    "HOW TO USE:",
+    "1. Open Gemini (gemini.google.com) or any AI chat",
+    "2. Paste this entire file",
+    "3. Tell the AI what class you need:",
+    "   'Generate full Wizard progression levels 2-20 with School of Evocation",
+    "    and School of Divination subclasses'",
+    "   OR",
+    "   'Generate Paladin progression levels 2-20 with Oath of Devotion",
+    "    and Oath of Vengeance subclasses'",
+    "4. Copy the JSON output",
+    "5. In the app: tap ☰ hamburger menu > '📖 Import Class Progression'",
+    "6. Paste the JSON and tap Import",
+    "7. Now when any character of that class levels up, the wizard will offer",
+    "   the correct features, subclass choices, spell selections, and ASIs",
+    "",
+    "TIPS:",
+    "- You can import multiple classes at once — just include them all in the same JSON",
+    "- Imported data merges with built-in data (doesn't replace it)",
+    "- If you import a class that already has built-in data (e.g. Fighter),",
+    "  imported levels override the built-in ones for those specific levels",
+    "- Import syncs to all devices via Firebase — only need to do it once",
+    "- You can re-import to add more subclasses or fix mistakes",
+    ""
+  ],
+  "_INSTRUCTIONS_FOR_AI": [
+    "INSTRUCTIONS FOR THE AI:",
+    "",
+    "Generate D&D 5e class progression data for the level-up wizard.",
+    "Use the EXACT JSON structure shown below. The output is consumed by the app's",
+    "level-up wizard which presents steps: HP roll → auto features → choices → confirm.",
+    "",
+    "TOP-LEVEL STRUCTURE:",
+    "  { \"classname\": { hit_die, slots, spellList, levels } }",
+    "  - classname: lowercase class name (e.g. 'wizard', 'paladin')",
+    "  - hit_die: number (6, 8, 10, or 12)",
+    "  - slots: spell slot progression keyed by character level (omit for non-casters)",
+    "  - spellList: spell names organized by spell level (omit if using app's built-in spell database)",
+    "  - levels: object keyed by level number (2-20), each with 'auto' and 'choose' arrays",
+    "",
+    "SLOTS FORMAT (for casters):",
+    "  Key = character level, Value = array of max slots per spell level",
+    "  Example: { \"2\": [3], \"3\": [4,2], \"5\": [4,3,2] }",
+    "  Index 0 = 1st level slots, index 1 = 2nd level, etc.",
+    "  Include entries for every level where slots change.",
+    "  Half-casters (Paladin/Ranger): start at level 2 with [2]",
+    "  Full casters (Wizard/Cleric/etc.): start at level 1 with [2]",
+    "  Warlock: use pact magic slots (all same level), e.g. level 5: [2] (2 3rd-level slots)",
+    "",
+    "SPELL LIST FORMAT (optional — only include if the class isn't in the app's spell database):",
+    "  { \"0\": [\"Cantrip1\", \"Cantrip2\"], \"1\": [\"Spell1\", \"Spell2\"], \"2\": [...] }",
+    "  Key = spell level (0 = cantrips), Value = array of spell names",
+    "  Include all spells the class can choose from at each level",
+    "",
+    "LEVELS FORMAT:",
+    "  Each level has 'auto' (automatic features) and 'choose' (player choices).",
+    "",
+    "  auto: array of strings — features gained automatically at this level.",
+    "    Each string should be: 'FEATURE NAME: Description.'",
+    "    For subclass-specific features, prefix with subclass name:",
+    "    'School of Evocation: Sculpt Spells — create safe pockets for allies in your AoE spells.'",
+    "    Include ALL features for ALL subclasses in the auto array — the app displays all of them.",
+    "",
+    "  choose: array of choice objects. Valid types:",
+    "",
+    "  SUBCLASS CHOICE (level 1-3 depending on class):",
+    "    { \"type\": \"subclass\", \"prompt\": \"Choose Arcane Tradition\", \"options\": [\"School of Evocation\", \"School of Divination\"] }",
+    "",
+    "  ASI / FEAT CHOICE (levels 4, 8, 12, 16, 19 — Fighter gets extras at 6, 14):",
+    "    { \"type\": \"asi\", \"prompt\": \"Ability Score Improvement\" }",
+    "",
+    "  SPELL CHOICE (for classes that learn/prepare new spells on level-up):",
+    "    { \"type\": \"spell\", \"prompt\": \"Choose 1 new Wizard spell (up to 3rd level)\", \"count\": 1, \"tier\": 3 }",
+    "    - count: how many spells to pick",
+    "    - tier: max spell level available",
+    "    - cantrip: true if cantrips are also available in this pick (optional)",
+    "",
+    "RULES FOR EACH CLASS:",
+    "- Include EVERY level from 2 to 20 (level 1 is character creation, not level-up)",
+    "- Include subclass choice at the correct level (Wizard 2, most classes 3, Cleric 1)",
+    "- Include ASI at correct levels (most: 4,8,12,16,19; Fighter: 4,6,8,12,14,16,19; Rogue: 4,8,10,12,16,19)",
+    "- For prepared casters (Cleric, Druid, Paladin): don't include spell choices in 'choose' —",
+    "  they prepare from their full list each day, not on level-up",
+    "- For known casters (Bard, Sorcerer, Ranger, Warlock): include spell choices on levels where",
+    "  they gain new spells known",
+    "- Wizards: include spell choices (they add 2 spells to their spellbook per level)",
+    "- Include proficiency bonus changes in auto features when they change (levels 5, 9, 13, 17)",
+    "- Include scaling features (Sneak Attack dice, Bardic Inspiration die, etc.)",
+    "",
+    "OUTPUT: Return ONLY the JSON object with class data. No markdown code fences, no commentary.",
+    "Example: { \"wizard\": { \"hit_die\": 6, \"slots\": {...}, \"levels\": {...} } }"
+  ],
+  "_EXAMPLE": {
+    "wizard": {
+      "hit_die": 6,
+      "slots": {
+        "2": [3],
+        "3": [4, 2],
+        "4": [4, 3],
+        "5": [4, 3, 2],
+        "6": [4, 3, 3],
+        "7": [4, 3, 3, 1],
+        "8": [4, 3, 3, 2],
+        "9": [4, 3, 3, 3, 1],
+        "10": [4, 3, 3, 3, 2],
+        "11": [4, 3, 3, 3, 2, 1],
+        "12": [4, 3, 3, 3, 2, 1],
+        "13": [4, 3, 3, 3, 2, 1, 1],
+        "14": [4, 3, 3, 3, 2, 1, 1],
+        "15": [4, 3, 3, 3, 2, 1, 1, 1],
+        "16": [4, 3, 3, 3, 2, 1, 1, 1],
+        "17": [4, 3, 3, 3, 2, 1, 1, 1, 1],
+        "18": [4, 3, 3, 3, 3, 1, 1, 1, 1],
+        "19": [4, 3, 3, 3, 3, 2, 1, 1, 1],
+        "20": [4, 3, 3, 3, 3, 2, 2, 1, 1]
+      },
+      "levels": {
+        "2": {
+          "auto": [],
+          "choose": [
+            {"type": "subclass", "prompt": "Choose Arcane Tradition", "options": ["School of Evocation", "School of Divination", "School of Abjuration", "School of Conjuration", "School of Necromancy", "School of Transmutation", "School of Illusion", "School of Enchantment"]},
+            {"type": "spell", "prompt": "Add 2 spells to your spellbook (up to 1st level)", "count": 2, "tier": 1}
+          ]
+        },
+        "3": {
+          "auto": [
+            "School of Evocation: Sculpt Spells — When you cast an evocation spell that affects other creatures, choose a number of them equal to 1 + the spell's level. Those creatures automatically succeed on their saving throws against the spell and take no damage.",
+            "School of Divination: Portent — After finishing a long rest, roll 2d20 and record the numbers. You can replace any attack roll, saving throw, or ability check made by you or a creature you can see with one of these foretelling rolls."
+          ],
+          "choose": [
+            {"type": "spell", "prompt": "Add 2 spells to your spellbook (up to 2nd level)", "count": 2, "tier": 2}
+          ]
+        },
+        "4": {
+          "auto": [],
+          "choose": [
+            {"type": "asi", "prompt": "Ability Score Improvement"},
+            {"type": "spell", "prompt": "Add 2 spells to your spellbook (up to 2nd level)", "count": 2, "tier": 2, "cantrip": true}
+          ]
+        },
+        "5": {
+          "auto": ["Proficiency bonus increases to +3."],
+          "choose": [
+            {"type": "spell", "prompt": "Add 2 spells to your spellbook (up to 3rd level)", "count": 2, "tier": 3}
+          ]
+        }
+      }
+    }
+  }
+}

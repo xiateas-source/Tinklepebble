@@ -159,6 +159,7 @@
       <label class="btn" style="cursor:pointer">📥 Import<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importConfig(this);closeHeaderMenu()"></label>
       <button onclick="copyStateCompact();closeHeaderMenu()" class="btn">📋 Copy State</button>
       <button onclick="openModal('paste-modal');closeHeaderMenu()" class="btn">📋 Paste JSON</button>
+      <button onclick="openClassDataImport();closeHeaderMenu()" class="btn" style="grid-column:span 2">📖 Import Class Progression</button>
     </div>
   </div>
   <div style="margin-bottom:10px;padding-top:8px;border-top:1px solid var(--border)">

@@ -26,6 +26,8 @@
     "- For multiclass dips: 'Level up to Fighter 4 / Warlock 1, I'm dipping Warlock'",
     "- The app's built-in level-up wizard also handles this — this template is for when",
     "  you want more control or AI help choosing options",
+    "- To add your class to the built-in level-up wizard, use class-progression-template.json",
+    "  (☰ menu > Import Class Progression). Then the wizard handles everything automatically.",
     ""
   ],
   "_INSTRUCTIONS_FOR_AI": [

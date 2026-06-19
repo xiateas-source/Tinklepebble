@@ -32,6 +32,8 @@
     "- The AI should NOT include the _INSTRUCTIONS fields in its output",
     "- If you only want to update 1 or 2 characters, that's fine — the app matches by id",
     "- For single-character updates, you can paste just the character object (no pcs wrapper)",
+    "- Playing a class other than Fighter/Rogue/Bard? Use class-progression-template.json",
+    "  to add your class's level-up data to the wizard",
     ""
   ],
   "_INSTRUCTIONS_FOR_AI": [

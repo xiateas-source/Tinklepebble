@@ -377,7 +377,7 @@ function showTermTip(event,term){
 
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
-const SAVE_VERSION=13;
+const SAVE_VERSION=14;
 
 // ═══ FIREBASE DROP 2 ═══
 let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false,_chatMutatedAt=0,_lastMechReceipt=null,_lastLocalEdit=0;
@@ -2686,17 +2686,28 @@ function _autoOpenLevelUp(){
   }
 }
 
+function _getLevelUpData(pc){
+  const cls=(pc.class||'').toLowerCase();
+  const imported=state.classData||{};
+  const builtIn=LEVEL_UP_DATA;
+  const clsKey=Object.keys(builtIn).find(k=>cls.includes(k))||Object.keys(imported).find(k=>cls.includes(k))||null;
+  if(!clsKey)return{clsKey:null,data:null};
+  const base=builtIn[clsKey]||{};
+  const ext=imported[clsKey]||{};
+  const merged={hit_die:ext.hit_die||base.hit_die||8,spellList:ext.spellList||base.spellList||null,slots:{...(base.slots||{}),...(ext.slots||{})},levels:{...(base.levels||{}),...(ext.levels||{})}};
+  return{clsKey,data:merged};
+}
 function openLevelUpWizard(idx){
   const pc=state.pcs[idx];if(!pc)return;
   const newLvl=(pc.level||1)+1;
-  const clsKey=Object.keys(LEVEL_UP_DATA).find(k=>(pc.class||'').toLowerCase().includes(k))||null;
-  const data=clsKey?LEVEL_UP_DATA[clsKey]:null;
+  const {clsKey,data}=_getLevelUpData(pc);
   const lvlData=(data&&data.levels[newLvl])||{auto:[],choose:[]};
   const hitDie=data?data.hit_die:8;
   const steps=[{type:'hp',hitDie}];
   if((lvlData.auto||[]).length)steps.push({type:'auto',features:lvlData.auto});
   const cls=(pc.class||'').toLowerCase();
-  const isSpellcaster=cls.includes('bard')||cls.includes('arcane trickster')||cls.includes('eldritch knight');
+  const hasSlots=data&&data.slots&&Object.keys(data.slots).length>0;
+  const isSpellcaster=hasSlots||cls.includes('bard')||cls.includes('arcane trickster')||cls.includes('eldritch knight')||cls.includes('paladin')||cls.includes('ranger')||cls.includes('cleric')||cls.includes('druid')||cls.includes('sorcerer')||cls.includes('warlock')||cls.includes('wizard');
   if(isSpellcaster&&(pc.magic||'').trim().length>10)steps.push({type:'spell_swap'});
   (lvlData.choose||[]).forEach(c=>steps.push({type:'choice',choice:c}));
   steps.push({type:'confirm'});
@@ -2863,27 +2874,41 @@ function _luParseKnownSpells(pc){
 
 function _luGetSwapPool(pc){
   const cls=(pc.class||'').toLowerCase();
-  const isBard=cls.includes('bard');
+  const clsKey=_luWiz?_luWiz.clsKey:null;
   const newLvl=_luWiz?_luWiz.newLvl:((pc.level||1)+1);
   let pool=[];
-  if(isBard){
-    const maxTier=newLvl>=5?3:newLvl>=3?2:1;
-    for(let t=0;t<=maxTier;t++){(BARD_SPELLS[t]||[]).forEach(s=>pool.push(s));}
+  const imported=(state.classData||{})[clsKey];
+  const spellList=imported&&imported.spellList?imported.spellList:cls.includes('bard')?BARD_SPELLS:null;
+  if(spellList){
+    const maxTier=newLvl>=9?5:newLvl>=7?4:newLvl>=5?3:newLvl>=3?2:1;
+    for(let t=0;t<=maxTier;t++){(spellList[t]||[]).forEach(s=>pool.push(s));}
   } else {
-    const maxSpellLvl=newLvl>=19?5:newLvl>=13?4:newLvl>=7?2:1;
+    const searchCls=clsKey||'wizard';
+    const maxSpellLvl=newLvl>=17?9:newLvl>=15?8:newLvl>=13?7:newLvl>=11?6:newLvl>=9?5:newLvl>=7?4:newLvl>=5?3:newLvl>=3?2:1;
     SPELL_DB.forEach(sp=>{
-      if(sp.classes.includes('wizard')&&sp.level<=maxSpellLvl)pool.push(sp.name);
+      if(sp.classes&&sp.classes.includes(searchCls)&&sp.level<=maxSpellLvl)pool.push(sp.name);
     });
   }
   const known=_luParseKnownSpells(pc);
   return pool.filter(s=>!known.includes(s));
 }
 
-function _getBardSpells(ch){
+function _getClassSpellPool(ch){
   const tier=ch.tier||1;
   let pool=[];
-  if(ch.cantrip)(BARD_SPELLS[0]||[]).forEach(s=>pool.push('[Cantrip] '+s));
-  for(let t=1;t<=tier;t++){(BARD_SPELLS[t]||[]).forEach(s=>pool.push((t>1?'[L'+t+'] ':'')+s));}
+  const cls=_luWiz?_luWiz.clsKey:'bard';
+  const imported=(state.classData||{})[cls];
+  const spellList=imported&&imported.spellList?imported.spellList:cls==='bard'?BARD_SPELLS:null;
+  if(spellList){
+    if(ch.cantrip&&spellList[0])(spellList[0]).forEach(s=>pool.push('[Cantrip] '+s));
+    for(let t=1;t<=tier;t++){(spellList[t]||[]).forEach(s=>pool.push((t>1?'[L'+t+'] ':'')+s));}
+  }else{
+    SPELL_DB.forEach(sp=>{
+      if(sp.level<=tier&&sp.classes&&sp.classes.includes(cls)){
+        pool.push((sp.level>1?'[L'+sp.level+'] ':sp.level===0?'[Cantrip] ':'')+sp.name);
+      }
+    });
+  }
   const known=(_luWiz&&_luWiz.pc&&_luWiz.pc.magic)||'';
   return pool.filter(s=>!known.includes(s.replace(/^\[[^\]]+\]\s*/,'')));
 }
@@ -2933,7 +2958,7 @@ function _renderLevelUpStep(){
       actEl.innerHTML='<button class="btn gold full" id="lu-next-btn" disabled onclick="_luNext()">→ Next</button>';
     }
     else if(ch.type==='spell'){
-      const spells=_getBardSpells(ch);
+      const spells=_getClassSpellPool(ch);
       bodyEl.innerHTML='<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Select '+ch.count+':</div>'+
         '<div id="lu-spell-list" style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm)">'+
         spells.map(s=>{
@@ -3049,7 +3074,7 @@ function _renderLevelUpStep(){
       rows.push('Feat: <strong style="color:var(--text)">'+esc(featStr)+'</strong><br>');
     }
     if(choices.swapOld&&choices.swapNew)rows.push('Spell Swap: <strong style="color:var(--text)">'+esc(choices.swapOld)+' → '+esc(choices.swapNew)+'</strong><br>');
-    if(clsKey==='bard'&&data&&data.slots&&data.slots[newLvl])rows.push('Spell Slots: <strong style="color:var(--text)">'+data.slots[newLvl].map((m,i)=>SPELL_LVLS[i]+': '+m).join(', ')+'</strong><br>');
+    if(data&&data.slots&&data.slots[newLvl])rows.push('Spell Slots: <strong style="color:var(--text)">'+data.slots[newLvl].map((m,i)=>SPELL_LVLS[i]+': '+m).join(', ')+'</strong><br>');
     rows.push('</div>');
     bodyEl.innerHTML='<div style="padding:12px;background:var(--surface3);border-radius:var(--radius-sm)">'+rows.join('')+'</div>';
     actEl.innerHTML='<button class="btn gold full" style="font-size:15px;padding:14px" onclick="applyLevelUp()">🎉 Level Up!</button>';
@@ -3108,8 +3133,8 @@ function applyLevelUp(){
   // Spells
   if(choices.spells&&choices.spells.length)
     p.magic=(p.magic?p.magic+'\n':'')+'[Level '+newLvl+'] '+choices.spells.join(', ');
-  // Bard spell slots
-  if(clsKey==='bard'&&data&&data.slots&&data.slots[newLvl]){
+  // Spell slots (any caster class with slot progression data)
+  if(data&&data.slots&&data.slots[newLvl]){
     p.slots=data.slots[newLvl].map((max,i)=>({max,used:Math.min((p.slots&&p.slots[i]?p.slots[i].used:0),max)}));
   }
   // Clear levelReady
@@ -4332,6 +4357,69 @@ function applyPCJSON(idx){
     toast('✓ '+state.pcs[idx].name+' updated from JSON');
   }catch(e){errShow('JSON Error: '+e.message);}
 }
+function openClassDataImport(){
+  let el=document.getElementById('classdata-modal');
+  if(!el){el=document.createElement('div');el.id='classdata-modal';el.className='modal-overlay';document.body.appendChild(el);}
+  el.classList.add('open');
+  const existing=Object.keys(state.classData||{});
+  const existingHtml=existing.length?'<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Loaded: <b style="color:var(--gold)">'+existing.map(k=>k.charAt(0).toUpperCase()+k.slice(1)).join(', ')+'</b></div>':'';
+  el.innerHTML=`<div class="modal-box" style="max-width:480px;max-height:85vh;overflow:auto">
+    <h3 style="margin:0 0 8px;font-size:14px;color:var(--gold)">Import Class Progression Data</h3>
+    <p style="font-size:11px;color:var(--text-dim);margin:0 0 10px;line-height:1.4">
+      Paste class/subclass progression JSON to extend the level-up wizard.<br>
+      Use the <i>class-progression-template.json</i> on GitHub with Gemini to generate data for any class.<br>
+      Imported data merges with built-in data (Fighter, Rogue, Bard). Imported levels override built-in ones for the same class.
+    </p>
+    ${existingHtml}
+    <textarea id="classdata-input" style="width:100%;min-height:160px;font-size:11px;font-family:var(--mono)" placeholder='{"wizard":{"hit_die":6,"slots":{...},"levels":{...}}}'></textarea>
+    <div id="classdata-err" style="display:none;color:var(--red);font-size:11px;margin:4px 0"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn gold" onclick="applyClassData()" style="flex:1">Import</button>
+      <button class="btn" onclick="closeModal('classdata-modal')">Cancel</button>
+    </div>
+  </div>`;
+}
+function applyClassData(){
+  const raw=(document.getElementById('classdata-input')?.value||'').trim();
+  const errEl=document.getElementById('classdata-err');
+  const errShow=m=>{if(errEl){errEl.textContent=m;errEl.style.display='block';}};
+  if(!raw){errShow('Nothing pasted.');return;}
+  try{
+    const p=JSON.parse(raw);
+    if(!p||typeof p!=='object'||Array.isArray(p)){errShow('Expected an object keyed by class name, e.g. {"wizard":{...}}');return;}
+    const classes=Object.keys(p);
+    if(!classes.length){errShow('No class data found.');return;}
+    let imported=0;
+    classes.forEach(cls=>{
+      const key=cls.toLowerCase();
+      const cd=p[cls];
+      if(!cd||typeof cd!=='object'){return;}
+      if(!cd.hit_die||!cd.levels){errShow(cls+': needs hit_die and levels fields.');return;}
+      if(!state.classData)state.classData={};
+      if(!state.classData[key])state.classData[key]={};
+      state.classData[key].hit_die=cd.hit_die;
+      if(cd.slots)state.classData[key].slots={...(state.classData[key].slots||{}),..._normalizeSlots(cd.slots)};
+      if(cd.spellList)state.classData[key].spellList=cd.spellList;
+      if(cd.levels){
+        if(!state.classData[key].levels)state.classData[key].levels={};
+        Object.keys(cd.levels).forEach(lvl=>{
+          const ld=cd.levels[lvl];
+          state.classData[key].levels[parseInt(lvl)]={auto:ld.auto||[],choose:ld.choose||[]};
+        });
+      }
+      imported++;
+    });
+    if(!imported){errShow('No valid class data found. Each class needs hit_die and levels.');return;}
+    closeModal('classdata-modal');
+    saveRefresh();
+    toast('✓ Imported progression for: '+classes.map(c=>c.charAt(0).toUpperCase()+c.slice(1)).join(', '));
+  }catch(e){errShow('JSON Error: '+e.message);}
+}
+function _normalizeSlots(slots){
+  const out={};
+  Object.keys(slots).forEach(k=>{out[parseInt(k)]=slots[k];});
+  return out;
+}
 function getCanonicalPCs(){
   // Returns fresh canonical PC definitions — used for version merge
   // These are the source of truth for sheet fields and starting inventory
@@ -4788,6 +4876,10 @@ function migrate(s){
     });
   }
 
+  if(savedVer<14){
+    if(!s.classData||typeof s.classData!=='object')s.classData={};
+  }
+
   // ══ CANONICAL QA COMPLETENESS — always run to pick up QAs added in current version ══
   const validTabs=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dm'];
   const hasValidActions=s.quickActions.some(qa=>(qa.context||[]).some(c=>validTabs.includes(c)));
@@ -4882,6 +4974,7 @@ function migrate(s){
   if(!s.wagon.ac)s.wagon.ac=11;
   if(!s.wagon.conditions)s.wagon.conditions='';
   if(s.wagon.wagonName===undefined)s.wagon.wagonName='';
+  if(!s.classData||typeof s.classData!=='object')s.classData={};
   if(!s.combat||typeof s.combat!=='object')s.combat={active:false,round:1,currentIdx:0,list:[]};
   if(!Array.isArray(s.combat.list))s.combat.list=[];
   if(!s.combat.zones)s.combat.zones=_defaultZones();
@@ -5025,7 +5118,7 @@ const STATE_KEYS = ['pcs','worldData','npcs','quests','treasuryData',
   'partyInventory','wagon','combat','encounterPresets','scenes',
   'activeSceneIdx','snippets','dmSecrets','logSummary','logs',
   'activeEditTab','turnCount','turnsSince','chkCount','chkMode',
-  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences','headerShortcuts','moduleProgress','moduleReference','campaignSetup'];
+  'chkHistory','rewindStack','wagonFilter','chatHistory','oocHistory','partyChat','plugins','errorLog','sessionNotes','storyChapters','prevSessionSummary','aiContracts','sessionArchive','locations','consequences','headerShortcuts','moduleProgress','moduleReference','campaignSetup','classData'];
 
 // What stays in localStorage (device-specific settings):
 // tt_gk, tt_ok, tt_provider, tt_tts_*, tt_pname, tt_pchar, tt_cache
@@ -11092,7 +11185,7 @@ Object.assign(window, {
   exportGameplayLog, exportMoment, exportOOCMoment, deleteOOCMsg, populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
   zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
-  renderSetupLock, setSetupUnlocked, remAtk, rewindTo, redoRewind, importPCFromJSON, applyPCJSON,
+  renderSetupLock, setSetupUnlocked, remAtk, rewindTo, redoRewind, importPCFromJSON, applyPCJSON, openClassDataImport, applyClassData,
   renderPCOverview, renderHUD, renderCharTabs,
   remPcItem, remResource, renderCapacity, renderErrorLog, closeWEdit, setCargoPCFilter, _setInvSearch,
 });
