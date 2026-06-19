@@ -858,7 +858,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   document.addEventListener('click',e=>{
     const m=document.getElementById('treasury-modal');
     const gp=document.getElementById('hud-gp');
-    if(m&&m.style.display!=='none'&&!m.contains(e.target)&&e.target!==gp){m.style.display='none';}
+    if(m&&m.style.display!=='none'&&!m.contains(e.target)&&e.target!==gp&&document.contains(e.target)){m.style.display='none';}
   });
   // Draggable FAB
   (()=>{
@@ -5284,7 +5284,7 @@ Items: item_add:[target],[name],[qty],[type],[weight] | item_remove:[target],[na
 World: location:[name] | time:[value] | weather:[value] | loc_desc:[text] | travel_note:[text] | town_rep:[town],[status],[notes]
 Story: quest_add/quest_done/quest_fail:[text] | quest_update:[name]|[notes] | primary_mission:[text] | npc_add:[name],[disposition],[desc] | npc_mood:[name]=[mood] | consequence_add:[text]|[type] | consequence_resolve:[text] | module_episode:N,active|complete
 Location: location_add:Name|Type|Desc | location_visit:Name | location_history:Name|Text|dmOnly | location_investment:Name|Desc|Amt
-Wagon: wagon_cell_add/update/remove | wagon_hp:[val] | ox_hp:[val] | ox_condition:[cond]
+Wagon: wagon_add:Name|Capacity|Weight|AC|Condition | wagon_cell_add/update/remove | wagon_hp:[val] | ox_hp:[val] | ox_condition:[cond]
 Familiar: familiar_hp:[name]|[hp]
 PC: pc_update:[name],[field],[value] | pc_add/pc_delete:[name]
 
@@ -5353,7 +5353,7 @@ LEVEL-UP: You CANNOT level up characters. Direct players to //levelup or Sheet >
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
-const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|familiar_hp|animal_hp|animal_condition|income|expense|xp|quest_add|quest_done|quest_fail|quest_update|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
+const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_add|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|familiar_hp|animal_hp|animal_condition|income|expense|xp|quest_add|quest_done|quest_fail|quest_update|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
 const _NAKED_MECH_RE=new RegExp('^[-*•]?\\s*(?:[A-Za-z][A-Za-z0-9 ]*:\\s*)?('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
@@ -5511,6 +5511,14 @@ function parseMechanics(responseText, pendingMsgId=null){
         else if(tgt==='party')remFrom(state.partyInventory||[],nm);
         else{const pc=findPC(tgt);if(pc)remFrom(pc.inventory||[],nm);}
         changes.push({text:'Removed '+qty+'x '+nm});
+      }else if(key==='wagon_add'){
+        const pts=val.split('|').map(p=>p.trim());
+        if(pts[0])state.wagon.name=pts[0];
+        if(pts[1]){const cap=parseFloat(pts[1]);if(cap>0)state.wagon.capacity=cap;}
+        if(pts[2]!==undefined){const w=parseFloat(pts[2]);if(!isNaN(w))state.wagon.wagonWeight=w;}
+        if(pts[3]){const ac=parseInt(pts[3]);if(ac>0)state.wagon.ac=ac;}
+        if(pts[4])state.wagon.condition=pts[4];
+        changes.push({text:'Wagon: '+(pts[0]||'updated')+' (cap '+(state.wagon.capacity||DEFAULT_MAX_LB)+' lb)'});
       }else if(key==='wagon_cell_add'){
         const pts=val.split(',').map(p=>p.trim());
         if(!state.wagon.cells)state.wagon.cells=[];
@@ -5619,7 +5627,15 @@ function parseMechanics(responseText, pendingMsgId=null){
       else if(key==='xp'){
         val.split(',').forEach(part=>{
           const m=part.trim().match(/^([^+]+)\+(\d+)$/);
-          if(m){const pc=findPC(m[1].trim());if(pc){const amt=parseInt(m[2]);pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});checkLevelUp(pc);}}
+          if(m){
+            const target=m[1].trim().toLowerCase();
+            const amt=parseInt(m[2]);
+            if(target==='party'||target==='all'){
+              state.pcs.forEach(pc=>{pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});checkLevelUp(pc);});
+            }else{
+              const pc=findPC(m[1].trim());if(pc){pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});checkLevelUp(pc);}
+            }
+          }
         });
       }else if(key==='module_episode'){
         const pts=val.split(',').map(p=>p.trim());
@@ -9599,7 +9615,8 @@ function renderLocations(){
     }
     const isCur=loc.status==='current';
     const fill=isCur?'var(--gold)':'var(--surface3)';
-    const stroke=repColor(loc);
+    const hasQuest=(state.quests||[]).some(q=>q.status==='active'&&q.text&&q.text.toLowerCase().includes(loc.name.toLowerCase()));
+    const stroke=hasQuest?'var(--green)':repColor(loc);
     const labelY=y+(y<CY?-(NODE_R+8):NODE_R+14);
     const lbl=loc.name.length>10?loc.name.slice(0,9)+'…':loc.name;
     svgNodes+=`<g onclick="openLocationDetail('${loc.id}')" style="cursor:pointer">
