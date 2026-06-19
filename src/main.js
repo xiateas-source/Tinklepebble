@@ -4294,8 +4294,14 @@ function applyPCJSON(idx){
     const pc=state.pcs[idx];
     const preserve=document.getElementById('pc-json-preserve')?.checked;
     if(preserve){
-      const kept={hp:pc.hp,hp_max:pc.hp_max,xp:pc.xp,conditions:pc.conditions,inventory:pc.inventory,slots:pc.slots,resources:pc.resources,color:pc.color,id:pc.id};
-      state.pcs[idx]={...p,...kept};
+      // Start from old PC so fields the JSON omits (backstory/roleplay) survive,
+      // overlay the imported data (stats, skillProfs, spellbook, slots win),
+      // then force live-play fields back to their current values.
+      const merged={...pc,...p};
+      merged.hp=pc.hp;merged.hp_max=pc.hp_max;merged.xp=pc.xp;
+      merged.conditions=pc.conditions;merged.inventory=pc.inventory;
+      merged.color=pc.color;merged.id=pc.id;
+      state.pcs[idx]=merged;
     }else{
       p.id=pc.id||p.id;p.color=pc.color||p.color;
       state.pcs[idx]=p;
