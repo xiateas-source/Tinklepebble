@@ -2713,6 +2713,13 @@ function _luNext(){
   _renderLevelUpStep();
 }
 
+function _luSkipSwap(){
+  if(!_luWiz)return;
+  _luWiz.choices.swapOld='';
+  _luWiz.choices.swapNew='';
+  _luNext();
+}
+
 function _luRollHP(hd,conMod){
   if(!_luWiz)return;
   const roll=Math.ceil(Math.random()*hd);
@@ -3010,7 +3017,7 @@ function _renderLevelUpStep(){
     bodyEl.innerHTML=html;
     const hasSwap=choices.swapOld&&choices.swapNew;
     actEl.innerHTML=
-      '<button class="btn" onclick="if(_luWiz){_luWiz.choices.swapOld=\'\';_luWiz.choices.swapNew=\'\';}_luNext()">Skip →</button>'+
+      '<button class="btn" onclick="_luSkipSwap()">Skip →</button>'+
       '<button class="btn gold" id="lu-next-btn" '+(hasSwap?'':'disabled')+' onclick="_luNext()" style="margin-left:auto">Swap & Next →</button>';
   }
   else if(step.type==='confirm'){
@@ -10889,7 +10896,7 @@ function csRemLang(idx,li){
 // ═══ EXPOSE ALL FUNCTIONS NEEDED BY HTML EVENT HANDLERS ═══
 // These are global because HTML onclick/oninput/etc. attributes need them
 Object.assign(window, {
-  _luNext, _luRollHP, _luSelectSubclass, _luSetHP, _luToggleSpell, _luUpdateASI, _luSetASIMode, _luSelectFeat, _luUpdateFeatAbility, _luFilterFeats, _luSelectSwapOld, _luSelectSwapNew, FEATS_DB,
+  _luNext, _luSkipSwap, _luRollHP, _luSelectSubclass, _luSetHP, _luToggleSpell, _luUpdateASI, _luSetASIMode, _luSelectFeat, _luUpdateFeatAbility, _luFilterFeats, _luSelectSwapOld, _luSelectSwapNew, FEATS_DB,
   addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, cloneCombatant, addCondFromPicker,
   addAnimal, updAnimal, remAnimal, openAnimalOverview, renderAnimals,
   addFamiliar, addIncome, removeIncomeEntry, updIncome, closeIncomeEdit, addLogEntry, addModuleEpisode, addNPC, addNewChar,
