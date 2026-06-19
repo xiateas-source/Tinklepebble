@@ -1096,9 +1096,9 @@ function renderContextStrip(){
   const slides=_ctxSlides();
   if(!slides.length){el.innerHTML='<span style="color:var(--text-dim);font-style:italic">No active quests</span>';return;}
   el.innerHTML=slides.map((s,i)=>{
-    const bg=s.primary?'var(--gold-dim)':s.combat?'var(--red)':s.warning?'var(--gold-dim)':s.quest?'var(--surface3)':'var(--surface2)';
-    const color=s.primary?'var(--text-bright)':s.combat?'var(--text-bright)':s.warning?'var(--gold-bright)':s.quest?'var(--green)':'var(--text)';
-    const border=s.primary?'var(--gold)':s.combat?'var(--red)':s.warning?'var(--gold)':s.quest?'var(--green)':'var(--border)';
+    const bg=s.primary?'rgba(208,120,69,.15)':s.combat?'var(--red)':s.warning?'rgba(208,120,69,.12)':s.quest?'var(--surface3)':'var(--surface2)';
+    const color=s.primary?'var(--gold-bright)':s.combat?'var(--text-bright)':s.warning?'var(--gold-bright)':s.quest?'var(--green)':'var(--text)';
+    const border=s.primary?'var(--gold-bright)':s.combat?'var(--red)':s.warning?'var(--gold)':s.quest?'var(--green)':'var(--border)';
     const extra=s.primary?'font-weight:700;font-size:11px;':'';
     return `<span class="ctx-chip" style="background:${bg};color:${color};border:1px solid ${border};${extra}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>`;
   }).join('');
@@ -6914,7 +6914,9 @@ async function sendMsg(){
     .replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*?---END---/gi,'')
     .replace(/\*{1,3}MECHANICS\*{1,3}[\s\S]*$/gi,'')
     .replace(/(?:MECHANICS:|##\s*MECHANICS)[\s\S]*$/,'')
+    .replace(/(?:---\s*\n)?\bMECHANICS\b\s*\n[\s\S]*$/im,'')
     .replace(/^---END---\s*$/gm,'')
+    .replace(/^---\s*$/gm,'')
     // Strip any naked mechanic lines the AI put directly in the response body
     .replace(new RegExp('^[-*•]?\\s*('+_MECH_KEYS+'): .+$','gm'),'')
     .replace(/\n{3,}/g,'\n\n')
