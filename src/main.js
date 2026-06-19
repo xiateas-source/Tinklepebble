@@ -5739,18 +5739,15 @@ function parseMechanics(responseText, pendingMsgId=null){
         }
       }
       else if(key==='roll_request'){
-        // Format: Skill|DC|PCname (PCname optional)
         const rp=val.split('|').map(s=>s.trim());
         const skill=rp[0]||'Check',dc=rp[1]||'',pcname=rp[2]||'';
         const label=(pcname?pcname+': ':'')+skill+(dc?' DC '+dc:'');
-        const sub=pcname?'':'Roll and send your result to the DM.';
-        const banner=document.getElementById('roll-request-banner');
-        const lbl=document.getElementById('roll-request-label');
-        const subEl=document.getElementById('roll-request-sub');
-        if(banner){banner.style.display='block';}
-        if(lbl)lbl.textContent='🎲 '+label;
-        if(subEl)subEl.textContent=sub||'Roll and send your result.';
-        window._pendingRollRequest={skill,dc,pcname};
+        if(!window._rollRequestQueue)window._rollRequestQueue=[];
+        const dupe=window._rollRequestQueue.some(r=>r.skill===skill&&r.pcname===pcname);
+        if(!dupe){
+          window._rollRequestQueue.push({skill,dc,pcname,label,id:Date.now()+Math.random()});
+          _renderRollQueue();
+        }
         changes.push({text:'Roll requested: '+label});
       }
       else if(key==='spell_add'){
@@ -6164,6 +6161,22 @@ function detectUnloggedLocation(prose,changes){
 
 // ═══ MECHANIC VALIDATOR — POST-PARSE AUDIT ═══
 
+function detectProseRolls(prose){
+  if(!prose||prose.length<20)return;
+  const patterns=[
+    /[Rr]olling\s+\d+d\d+/,
+    /[Rr]oll(?:ed|s)?\s*(?:\(?\s*\d+d\d+)/,
+    /\b\d+d\d+[+\-]\d+\s*[=:]\s*\*{0,2}\d+\*{0,2}/,
+    /[Rr]esult:\s*\*{0,2}\d+\*{0,2}/,
+    /[Rr]olling\s+\d+d\d+.*?=\s*\*{0,2}\d+/,
+  ];
+  for(const re of patterns){
+    if(re.test(prose)){
+      toast('⚠ AI rolled dice in prose — rolls should use roll_request: so YOU roll in the app');
+      return;
+    }
+  }
+}
 function _validateMechanics(changes){
   if(!changes||!changes.length)return;
   const warnings=[];
@@ -6338,7 +6351,28 @@ async function summarizeAndPrune(){
   }
 }
 function clearChat(){if(confirm('Clear narrative chat and Rules channel? Log unaffected.')){state.chatHistory=[];state.oocHistory=[];showChatTab('narrative');saveRefresh();}}
-function dismissRollRequest(){const b=document.getElementById('roll-request-banner');if(b)b.style.display='none';}
+function _renderRollQueue(){
+  const c=document.getElementById('roll-request-queue');if(!c)return;
+  const q=window._rollRequestQueue||[];
+  if(!q.length){c.innerHTML='';return;}
+  c.innerHTML=q.map((r,i)=>{
+    const sub=r.pcname?'':'Roll and send your result to the DM.';
+    return `<div style="background:var(--surface2);border:1px solid var(--gold);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text-bright)"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">🎲</span><div style="flex:1"><div style="font-weight:600;color:var(--gold-bright)">🎲 ${esc(r.label)}</div><div style="font-size:10px;color:var(--text-dim);margin-top:1px">${esc(sub)||'Roll and send your result.'}</div></div><button class="btn sm gold" onclick="openRollFromQueue(${i})" style="flex-shrink:0">Roll</button><button class="btn sm" onclick="dismissRollRequest(${i})" style="flex-shrink:0">✕</button></div></div>`;
+  }).join('');
+}
+function dismissRollRequest(idx){
+  const q=window._rollRequestQueue||[];
+  if(idx!==undefined&&idx>=0&&idx<q.length)q.splice(idx,1);
+  else q.length=0;
+  _renderRollQueue();
+}
+function openRollFromQueue(idx){
+  const q=window._rollRequestQueue||[];
+  const r=q[idx];if(!r)return;
+  window._pendingRollRequest={skill:r.skill,dc:r.dc,pcname:r.pcname};
+  window._pendingRollQueueIdx=idx;
+  openRollSheet();
+}
 
 // ═══ CHAT TABS ═══
 let _activeTab='narrative';
@@ -6844,6 +6878,7 @@ async function sendMsg(){
     detectUnloggedHealing(displayText,mechanics);
     detectUnloggedCondition(displayText,mechanics);
     detectUnloggedLocation(displayText,mechanics);
+    detectProseRolls(displayText);
     _validateMechanics(mechanics);
     cacheResp(text,displayText);
     if(localStorage.getItem('tt_tts_auto')==='1'&&typeof speechSynthesis!=='undefined')speak(displayText);
@@ -6957,6 +6992,7 @@ function openRollSheet(){
       if(!resEl||!resEl.dataset.sendTxt){toast('Roll a die first!');return;}
       const t='['+(pc?.name||'Party')+(rt?' — '+rt:'')+'] '+resEl.dataset.sendTxt+(act?' — "'+act+'"':'');
       closeQAModal();
+      if(window._pendingRollQueueIdx!==undefined){dismissRollRequest(window._pendingRollQueueIdx);window._pendingRollQueueIdx=undefined;}
       const inp=document.getElementById('chat-input');if(inp){inp.value=t;sendMsg();}
     });
   setTimeout(()=>{
@@ -10812,7 +10848,7 @@ Object.assign(window, {
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
   setLocStatus, deleteLocation, openLocationSeed, closeLocSeed, confirmLocationSeed,
   uploadAreaMap, removeAreaMap, startMapPlace, cancelMapPlace, handleMapTap, setLocView, pinAction, closePinMenu, movePin, unpinFromMap,
-  openSheetPicker, dismissRollRequest,
+  openSheetPicker, dismissRollRequest, openRollFromQueue,
   renderSessionArchive, handleModuleFile, handleModulePDF, handleModuleMD, previewPDFSection, autoAssignPDF, applyPDFImport, cancelPDFImport, _pdfModeToggle, recalibrateModule,
   verifyContracts, clearFlagNote,
   rsAdjMod, rsRollDice, _buildRsPills,

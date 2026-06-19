@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.CoYO2DCk.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.DwoazyZ6.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.DrJOujGe.css">
 </head>
 <body>
@@ -907,17 +907,7 @@ When the party travels through wilderness, arrives at a new outdoor location, or
         <div class="typing-ind" id="typing-ind">DM is writing<span class="tdot">.</span><span class="tdot">.</span><span class="tdot">.</span></div>
         <div id="ai-retry-status" style="display:none;font-size:11px;color:var(--text-dim);padding:4px 0 2px;font-family:var(--mono)"></div>
         <div class="offline-banner" id="offline-banner">📴 Offline — showing cached response</div>
-        <div id="roll-request-banner" style="display:none;background:var(--surface2);border:1px solid var(--gold);border-radius:6px;padding:8px 10px;margin:4px 0;font-size:12px;color:var(--text-bright)">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:16px">🎲</span>
-            <div style="flex:1">
-              <div style="font-weight:600;color:var(--gold-bright)" id="roll-request-label">Roll needed</div>
-              <div style="font-size:10px;color:var(--text-dim);margin-top:1px" id="roll-request-sub"></div>
-            </div>
-            <button class="btn sm gold" onclick="openRollSheet()" style="flex-shrink:0">Roll</button>
-            <button class="btn sm" onclick="dismissRollRequest()" style="flex-shrink:0">✕</button>
-          </div>
-        </div>
+        <div id="roll-request-queue" style="display:flex;flex-direction:column;gap:4px;margin:4px 0"></div>
         <div id="dm-inline-input-row" style="display:none">
           <textarea id="chat-input" style="display:none" onkeydown="chatKey(event)"></textarea>
           <button id="send-btn" style="display:none" onclick="sendMsg()">Send</button>
