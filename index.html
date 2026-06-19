@@ -320,10 +320,12 @@
         </details>
       </details>
       <div class="panel">
-        <div class="panel-title">Cargo Capacity</div>
+        <div class="panel-title">Cargo Capacity
+          <span style="margin-left:auto;font-size:10px;color:var(--text-dim)">Max: <input type="number" id="wagon-cap-input" style="width:60px;font-size:10px;padding:2px 4px;text-align:right" min="100" step="10" onchange="state.wagon.capacity=parseFloat(this.value)||1080;save();renderWagon()"> lb</span>
+        </div>
         <div class="cap-bar-wrap"><div class="cap-bar-fill" id="cap-fill" style="width:0%;background:var(--green)"></div><div class="cap-bar-label" id="cap-lbl">0 / 1,080 lb</div></div>
-        <div id="cap-warn" style="font-size:11px;color:var(--red);display:none;margin-top:4px">⚠ Encumbered! Ox speed reduced per 5e encumbrance rules.</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Encumbered &gt;540 lb (−10ft) | Heavy &gt;1,080 lb (−20ft, disadvantage on Str/Dex/Con)</div>
+        <div id="cap-warn" style="font-size:11px;color:var(--red);display:none;margin-top:4px">⚠ Encumbered! Speed reduced per 5e encumbrance rules.</div>
+        <div id="cap-thresholds" style="font-size:10px;color:var(--text-dim);margin-top:4px"></div>
       </div>
       <div class="panel danger">
         <div class="panel-title">Holding Cells <button class="btn sm green" style="margin-left:auto" onclick="addCell()">+ Add Cell</button></div>

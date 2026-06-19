@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.CZn6n6gi.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.DFMOP4j5.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.DrJOujGe.css">
 </head>
 <body>
@@ -320,10 +320,12 @@
         </details>
       </details>
       <div class="panel">
-        <div class="panel-title">Cargo Capacity</div>
+        <div class="panel-title">Cargo Capacity
+          <span style="margin-left:auto;font-size:10px;color:var(--text-dim)">Max: <input type="number" id="wagon-cap-input" style="width:60px;font-size:10px;padding:2px 4px;text-align:right" min="100" step="10" onchange="state.wagon.capacity=parseFloat(this.value)||1080;save();renderWagon()"> lb</span>
+        </div>
         <div class="cap-bar-wrap"><div class="cap-bar-fill" id="cap-fill" style="width:0%;background:var(--green)"></div><div class="cap-bar-label" id="cap-lbl">0 / 1,080 lb</div></div>
-        <div id="cap-warn" style="font-size:11px;color:var(--red);display:none;margin-top:4px">⚠ Encumbered! Ox speed reduced per 5e encumbrance rules.</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Encumbered &gt;540 lb (−10ft) | Heavy &gt;1,080 lb (−20ft, disadvantage on Str/Dex/Con)</div>
+        <div id="cap-warn" style="font-size:11px;color:var(--red);display:none;margin-top:4px">⚠ Encumbered! Speed reduced per 5e encumbrance rules.</div>
+        <div id="cap-thresholds" style="font-size:10px;color:var(--text-dim);margin-top:4px"></div>
       </div>
       <div class="panel danger">
         <div class="panel-title">Holding Cells <button class="btn sm green" style="margin-left:auto" onclick="addCell()">+ Add Cell</button></div>

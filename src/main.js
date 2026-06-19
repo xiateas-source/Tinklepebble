@@ -5,7 +5,8 @@ const ALL_CONDS=['Blinded','Charmed','Deafened','Exhausted','Frightened','Grappl
 const SPELL_LVLS=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
 const XP_T=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
 const CP_INT={exploration:6,combat:3,roleplay:8,custom:6};
-const MAX_LB=1080;
+const DEFAULT_MAX_LB=1080;
+function getMaxLb(){return parseFloat(state.wagon?.capacity)||DEFAULT_MAX_LB;}
 const ZONE_IDS=['front','back','left','right','air','rear'];
 const ZONE_LABELS={front:'Frontline',back:'Backline',left:'Left Flank',right:'Right Flank',air:'Air Space',rear:'Rear Guard'};
 const ZONE_ADJ={front:['left','right','back','air'],back:['front','rear'],left:['front'],right:['front'],air:['front'],rear:['back']};
@@ -1073,10 +1074,14 @@ function _ctxSlides(){
     slides.unshift({icon:'⚔',text:'Round '+round+' · '+(cur?cur.name+'\'s turn':'—'),action:'showTab(\'tab-combat\')',combat:true});
   }
   const activeQuests=(state.quests||[]).filter(q=>q.status==='active');
-  if(activeQuests.length){
-    const qText=activeQuests[0].text.split('|')[0].slice(0,50);
-    slides.push({icon:'📜',text:qText+(activeQuests.length>1?' (+' +(activeQuests.length-1)+')':''),action:'showTab(\'tab-world\')'});
-  }
+  activeQuests.forEach(q=>{
+    slides.push({icon:'📜',text:(q.text||'').split('|')[0].slice(0,50),action:'showTab(\'tab-world\')'});
+  });
+  const activeCsq=(state.consequences||[]).filter(c=>!c.resolved);
+  activeCsq.forEach(c=>{
+    const tag=c.type?c.type.toUpperCase()+': ':'';
+    slides.push({icon:'⚠',text:tag+(c.text||'').slice(0,50),action:'showTab(\'tab-world\')',warning:true});
+  });
   if(state.treasuryData){
     const gp=parseFloat(state.treasuryData.gp)||0;
     if(gp>0)slides.push({icon:'💰',text:gp+' gp',action:null});
@@ -1090,7 +1095,8 @@ function renderContextStrip(){
   if(_ctxSlide>=slides.length)_ctxSlide=0;
   const s=slides[_ctxSlide];
   const dots=slides.length>1?'<span style="margin-left:auto;font-size:8px;color:var(--text-dim);letter-spacing:2px">'+slides.map((_,i)=>i===_ctxSlide?'●':'○').join('')+'</span>':'';
-  el.innerHTML=`<span style="cursor:${s.action?'pointer':'default'};color:${s.combat?'var(--red)':'var(--gold)'};font-weight:${s.combat?'600':'normal'}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>${dots}`;
+  const sColor=s.combat?'var(--red)':s.warning?'var(--gold-bright)':'var(--gold)';
+  el.innerHTML=`<span style="cursor:${s.action?'pointer':'default'};color:${sColor};font-weight:${s.combat||s.warning?'600':'normal'}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>${dots}`;
   if(!_ctxTimer){
     const n=_ctxSlides().length;
     if(n>1)_ctxTimer=setInterval(()=>{_ctxSlide=(_ctxSlide+1)%_ctxSlides().length;renderContextStrip();},5000);
@@ -1511,13 +1517,17 @@ function renderJournalRep(){
   if(!state.worldData.townReputation.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No towns visited yet.</div>';return;}
   const statuses=['good','neutral','burned','fled'];
   state.worldData.townReputation.forEach((t,i)=>{
-    const d=document.createElement('div');d.className='town-row '+(t.status||'neutral');
-    d.innerHTML=`<input type="text" value="${esc(t.town||'')}" style="flex:1;min-width:80px;font-size:11px" placeholder="Town name" onchange="updTown(${i},'town',this.value);renderJournalRep()">
-      <select style="width:75px;font-size:10px;padding:3px" onchange="updTown(${i},'status',this.value);renderJournalRep()">
-        ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
-      </select>
-      <input type="text" value="${esc(t.notes||'')}" style="flex:2;min-width:100px;font-size:11px" placeholder="Notes..." onchange="updTown(${i},'notes',this.value)">
-      <button class="btn sm red icon-btn" onclick="remTown(${i});renderJournalRep()">&times;</button>`;
+    const d=document.createElement('div');
+    const statusColor=t.status==='good'?'var(--green)':t.status==='burned'||t.status==='fled'?'var(--red)':'var(--text-dim)';
+    d.style.cssText='display:flex;flex-direction:column;gap:4px;padding:8px;border:1px solid var(--border);border-left:3px solid '+statusColor+';border-radius:4px;background:var(--surface2);margin-bottom:6px';
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px">
+        <input type="text" value="${esc(t.town||'')}" style="flex:1;font-size:12px;font-weight:600" placeholder="Town name" onchange="updTown(${i},'town',this.value);renderJournalRep()">
+        <select style="width:75px;font-size:10px;padding:3px;border-color:${statusColor};color:${statusColor}" onchange="updTown(${i},'status',this.value);renderJournalRep()">
+          ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="btn sm red icon-btn" onclick="remTown(${i});renderJournalRep()">&times;</button>
+      </div>
+      <input type="text" value="${esc(t.notes||'')}" style="font-size:11px;color:var(--text)" placeholder="Notes — what happened here..." onchange="updTown(${i},'notes',this.value)">`;
     c.appendChild(d);
   });
 }
@@ -1688,7 +1698,7 @@ function renderQuests(){
     groupEl.style.cssText='display:flex;gap:0;min-height:40px;margin-bottom:'+(isLast?'0':'2')+'px';
     const timeline=document.createElement('div');
     timeline.style.cssText='display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:18px;padding-top:4px';
-    timeline.innerHTML=`<div style="width:12px;height:12px;border-radius:50%;flex-shrink:0;background:${activeInGroup?'var(--gold)':'var(--surface3)'};border:2px solid ${activeInGroup?'var(--gold-bright)':'var(--border-bright)'}"></div>${!isLast?'<div style="width:1px;flex:1;background:var(--border);margin:3px 0"></div>':''}`;
+    timeline.innerHTML=`<div style="width:12px;height:12px;border-radius:50%;flex-shrink:0;background:${activeInGroup?'var(--green)':'var(--surface3)'};border:2px solid ${activeInGroup?'var(--green)':'var(--border-bright)'}"></div>${!isLast?'<div style="width:1px;flex:1;background:var(--border);margin:3px 0"></div>':''}`;
     const content=document.createElement('div');
     content.style.cssText='flex:1;min-width:0;padding-bottom:'+(isLast?'0':'12')+'px;margin-left:6px';
     let locHdr=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
@@ -1907,6 +1917,7 @@ function updPI(i,k,v){state.partyInventory[i][k]=v;save();}
 function remPI(i){state.partyInventory.splice(i,1);_piEditIdx=null;save();renderPartyInv();}
 
 // ═══ INCOME LOG ═══
+let _incomeEditIdx=null;
 function renderIncome(){
   const c=document.getElementById('income-log');if(!c)return;c.innerHTML='';
   const log=state.treasuryData.incomeLog||[];
@@ -1915,12 +1926,37 @@ function renderIncome(){
     const d=document.createElement('div');
     d.className='income-row income-'+(e.type==='in'?'in':'out');
     d.style.cursor='pointer';
-    d.innerHTML=`<span>${esc(e.desc)}</span><span style="color:${e.type==='in'?'var(--green-bright)':'var(--red)'};font-weight:bold">${e.type==='in'?'+':'−'}${e.amt} gp</span>`;
-    d.onclick=()=>removeIncomeEntry(realIdx);
+    if(_incomeEditIdx===realIdx){
+      d.style.cssText='display:flex;flex-direction:column;gap:4px;padding:6px 8px;border:1px solid var(--gold);border-radius:4px;background:var(--surface2);margin-bottom:4px';
+      d.innerHTML=`<input type="text" value="${esc(e.desc)}" style="font-size:11px" placeholder="Description" onchange="updIncome(${realIdx},'desc',this.value)">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" value="${e.amt}" style="width:70px;font-size:11px" min="0" onchange="updIncome(${realIdx},'amt',parseFloat(this.value)||0)">
+          <span style="font-size:10px;color:var(--text-dim)">gp</span>
+          <select style="font-size:10px;width:60px" onchange="updIncome(${realIdx},'type',this.value)"><option value="in" ${e.type==='in'?'selected':''}>In</option><option value="out" ${e.type!=='in'?'selected':''}>Out</option></select>
+          <button class="btn sm red" onclick="removeIncomeEntry(${realIdx})" style="margin-left:auto">Delete</button>
+          <button class="btn sm" onclick="_incomeEditIdx=null;renderIncome()">Done</button>
+        </div>`;
+    }else{
+      d.innerHTML=`<span>${esc(e.desc)}</span><span style="color:${e.type==='in'?'var(--green-bright)':'var(--red)'};font-weight:bold">${e.type==='in'?'+':'−'}${e.amt} gp</span>`;
+      d.onclick=()=>{_incomeEditIdx=realIdx;renderIncome();};
+    }
     c.appendChild(d);
   });
 }
+function updIncome(idx,key,val){
+  const log=state.treasuryData.incomeLog;if(!log||!log[idx])return;
+  const e=log[idx];
+  if(key==='amt'){
+    const oldAmt=e.amt;const diff=val-oldAmt;
+    if(e.type==='in')state.treasuryData.gp=Math.max(0,(parseFloat(state.treasuryData.gp)||0)+diff);
+    else state.treasuryData.gp=Math.max(0,(parseFloat(state.treasuryData.gp)||0)-diff);
+    const gpEl=document.getElementById('t_gp');if(gpEl)gpEl.value=state.treasuryData.gp;
+    renderTreasuryTotal();
+  }
+  e[key]=val;save();renderIncome();
+}
 function removeIncomeEntry(idx){
+  _incomeEditIdx=null;
   const log=state.treasuryData.incomeLog;if(!log||!log[idx])return;
   const e=log[idx];
   if(!confirm('Delete "'+e.desc+' '+(e.type==='in'?'+':'−')+e.amt+'gp"?\nThis will adjust the treasury.'))return;
@@ -2007,11 +2043,13 @@ function calcWeight(){
   return w;
 }
 function renderCapacity(){
-  const w=calcWeight();const pct=Math.min(100,(w/MAX_LB)*100);
+  const maxLb=getMaxLb();const w=calcWeight();const pct=Math.min(100,(w/maxLb)*100);
   const fill=document.getElementById('cap-fill');const lbl=document.getElementById('cap-lbl');const warn=document.getElementById('cap-warn');
   if(fill){fill.style.width=pct+'%';fill.style.background=pct>100?'var(--red)':pct>50?'var(--gold)':'var(--green)';}
-  if(lbl)lbl.textContent=w.toFixed(1)+' / '+MAX_LB+' lb ('+Math.round(pct)+'%)';
-  if(warn)warn.style.display=w>MAX_LB/2?'block':'none';
+  if(lbl)lbl.textContent=w.toFixed(1)+' / '+maxLb+' lb ('+Math.round(pct)+'%)';
+  if(warn)warn.style.display=w>maxLb/2?'block':'none';
+  const capInput=document.getElementById('wagon-cap-input');if(capInput)capInput.value=maxLb;
+  const thresh=document.getElementById('cap-thresholds');if(thresh)thresh.textContent='Encumbered >'+Math.round(maxLb/2)+' lb (−10ft) | Heavy >'+maxLb+' lb (−20ft, disadvantage on Str/Dex/Con)';
 }
 function renderCells(){
   const c=document.getElementById('holding-cells');if(!c)return;
@@ -3781,7 +3819,7 @@ function genLedger(){
     l+="\n━━━ WAGON & TRANSPORT ━━━\n";
     const ox=state.wagon.ox;
     l+='Ox ('+ox.name+'): HP '+ox.hp+'/'+ox.hp_max+' AC '+ox.ac+' | Feed: '+ox.feed+' | Conditions: '+ox.conditions+'\n';
-    l+='Cargo Weight: '+calcWeight().toFixed(1)+'/'+MAX_LB+'lb\n';
+    l+='Cargo Weight: '+calcWeight().toFixed(1)+'/'+getMaxLb()+'lb\n';
     if(state.wagon.cells?.length){l+='Holding Cells:\n';state.wagon.cells.forEach(c=>l+='  ['+c.temperament?.toUpperCase()+'] '+c.name+' ('+c.size+') Escape: '+c.escDC+' Weight: '+c.weight+'lb\n');}
     if(state.wagon.cargo?.length){l+='Cargo:\n';state.wagon.cargo.forEach(i=>l+='  '+i.name+' x'+i.qty+' ['+i.type+'] '+i.weight+'lb\n');}
     if(state.wagon.hoard?.length){l+="Party Hoard:\n";state.wagon.hoard.forEach(i=>l+='  '+i.name+' x'+i.qty+' '+i.weight+'lb\n');}
@@ -4692,6 +4730,7 @@ function migrate(s){
   if(!s.wagon.ox.bonds||typeof s.wagon.ox.bonds!=='object')s.wagon.ox.bonds={};
   if(!Array.isArray(s.wagon.ox.quirks))s.wagon.ox.quirks=[];
   if(s.wagon.ox.experimentLog===undefined)s.wagon.ox.experimentLog='';
+  if(s.wagon.capacity===undefined)s.wagon.capacity=DEFAULT_MAX_LB;
   if(!Array.isArray(s.wagon.cells))s.wagon.cells=[];
   if(!Array.isArray(s.wagon.cargo))s.wagon.cargo=[];
   if(!Array.isArray(s.wagon.hoard))s.wagon.hoard=[];
@@ -5248,7 +5287,7 @@ CRITICAL RULES:
 3. item_add: Emit for EVERY item found/foraged/bought/stolen/acquired — even if mentioned in prose.
 4. location_add: Emit for ANY new named location visited.
 5. Always update time/location/weather when they change.
-6. Encumbrance: PC carry cap = STR×15 lbs. Wagon cap = 1080 lbs. Enforce penalties when exceeded.
+6. Encumbrance: PC carry cap = STR×15 lbs. Wagon cap = ${getMaxLb()} lbs. Enforce penalties when exceeded.
 
 COMBAT (6-zone system: Frontline/Backline/Left Flank/Right Flank/Air Space/Rear Guard):
 Adjacency: Front↔Left, Front↔Right, Front↔Back, Front↔Air, Back↔Rear. Move=1 adjacent, 2 non-adjacent. OA on leaving hostile zone.
@@ -5448,7 +5487,8 @@ function parseMechanics(responseText, pendingMsgId=null){
         const tgt=hasTarget?firstLower:'wagon';
         const base=hasTarget?1:0; // offset: skip target token when present
         const iname=pts[base]||'Item';const iqty=parseInt(pts[base+1])||1;const itype=pts[base+2]||'misc';const iweight=parseFloat(pts[base+3])||0;
-        const item={name:iname,qty:iqty,weight:iweight,type:itype,notes:'',ts:state.worldData?.time,location:state.worldData?.location};
+        const _provenance=[(state.worldData?.time||''),(state.worldData?.location||'')].filter(Boolean).join(' — ')||'';
+        const item={name:iname,qty:iqty,weight:iweight,type:itype,notes:_provenance,ts:state.worldData?.time,location:state.worldData?.location};
         const _fuzzyMatch=(a,b)=>{const al=a.toLowerCase().replace(/\s+/g,''),bl=b.toLowerCase().replace(/\s+/g,'');if(al===bl)return true;if(Math.abs(al.length-bl.length)>2)return false;let d=0;for(let i=0;i<Math.max(al.length,bl.length);i++){if(al[i]!==bl[i])d++;if(d>1)return false;}return true;};
         const stackOrAdd=(list)=>{const ex=list.find(i=>_fuzzyMatch(i.name,iname));if(ex){ex.qty=(ex.qty||1)+iqty;return ex.name;}list.push(item);return false;};
         const _itemMsg=(s,dest)=>s?(s+' ×+'+iqty+' → '+dest):('+'+iname+' → '+dest);
@@ -6166,7 +6206,7 @@ function _validateMechanics(changes){
     if(w>cap)warnings.push(pc.name+' over carry capacity: '+w.toFixed(1)+'/'+cap+'lb');
   });
   const wagonW=calcWeight();
-  if(wagonW>MAX_LB)warnings.push('Wagon over capacity: '+wagonW.toFixed(1)+'/'+MAX_LB+'lb');
+  if(wagonW>getMaxLb())warnings.push('Wagon over capacity: '+wagonW.toFixed(1)+'/'+getMaxLb()+'lb');
 
   // Treasury negative check
   if(state.treasuryData){
@@ -6790,7 +6830,7 @@ async function sendMsg(){
     const ledger=useLedger?(document.getElementById('ledger-out')?.value||''):'';
     const _inject=_ctxInject;_ctxInject=null;
     const encWarns=[];
-    const wW=calcWeight();if(wW>MAX_LB)encWarns.push('Wagon OVER capacity: '+wW.toFixed(0)+'/'+MAX_LB+'lb. Travel speed halved, risk of axle failure.');
+    const wW=calcWeight();if(wW>getMaxLb())encWarns.push('Wagon OVER capacity: '+wW.toFixed(0)+'/'+getMaxLb()+'lb. Travel speed halved, risk of axle failure.');
     (state.pcs||[]).forEach(p=>{const w=_pcCarryWeight(p),c=_pcCarryCap(p);if(w>c)encWarns.push(p.name+' ENCUMBERED: '+w.toFixed(0)+'/'+c+'lb.');});
     const encCtx=encWarns.length?'\n\n[ENCUMBRANCE WARNING] '+encWarns.join(' ')+' Enforce movement and travel penalties. Emit item_add/item_remove mechanics for any inventory changes.':'';
     const receipt=_lastMechReceipt||'';_lastMechReceipt=null;
@@ -7619,12 +7659,16 @@ function renderTownRep(){
   state.worldData.townReputation.forEach((t,i)=>{
     const d=document.createElement('div');d.className='town-row '+(t.status||'neutral');
     const statuses=['good','neutral','burned','fled'];
-    d.innerHTML=`<input type="text" value="${esc(t.town||'')}" style="flex:1;min-width:80px;font-size:11px" placeholder="Town name" onchange="updTown(${i},'town',this.value)">
-      <select style="width:75px;font-size:11px;padding:3px" onchange="updTown(${i},'status',this.value);renderTownRep()">
-        ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
-      </select>
-      <input type="text" value="${esc(t.notes||'')}" style="flex:2;min-width:100px;font-size:11px" placeholder="Notes..." onchange="updTown(${i},'notes',this.value)">
-      <button class="btn sm red icon-btn" onclick="remTown(${i})">&times;</button>`;
+    const statusColor=t.status==='good'?'var(--green)':t.status==='burned'||t.status==='fled'?'var(--red)':'var(--text-dim)';
+    d.style.cssText='display:flex;flex-direction:column;gap:4px;padding:8px;border:1px solid var(--border);border-left:3px solid '+statusColor+';border-radius:4px;background:var(--surface2);margin-bottom:6px';
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px">
+        <input type="text" value="${esc(t.town||'')}" style="flex:1;font-size:12px;font-weight:600" placeholder="Town name" onchange="updTown(${i},'town',this.value)">
+        <select style="width:75px;font-size:10px;padding:3px;border-color:${statusColor};color:${statusColor}" onchange="updTown(${i},'status',this.value);renderTownRep()">
+          ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="btn sm red icon-btn" onclick="remTown(${i})">&times;</button>
+      </div>
+      <input type="text" value="${esc(t.notes||'')}" style="font-size:11px;color:var(--text)" placeholder="Notes — what happened here..." onchange="updTown(${i},'notes',this.value)">`;
     c.appendChild(d);
   });
 }
@@ -10742,7 +10786,7 @@ function csRemLang(idx,li){
 Object.assign(window, {
   _luNext, _luRollHP, _luSelectSubclass, _luSetHP, _luToggleSpell, _luUpdateASI, _luSetASIMode, _luSelectFeat, _luUpdateFeatAbility, _luFilterFeats, _luSelectSwapOld, _luSelectSwapNew, FEATS_DB,
   addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, cloneCombatant, addCondFromPicker,
-  addFamiliar, addIncome, removeIncomeEntry, addLogEntry, addModuleEpisode, addNPC, addNewChar,
+  addFamiliar, addIncome, removeIncomeEntry, updIncome, addLogEntry, addModuleEpisode, addNPC, addNewChar,
   addPartyItem, addPartyToCombat, addPcItem, addPreset, addQA, addQuest,
   addFromCompendium, addManeuverToPC, MANEUVER_DB, SPELL_DB, addResource, addScene, addSlotLvl, addSnip, addSpell, addTownRep, addWagonItem,
   adjHP, applyLevelUp, askDMFromParty, auditWithAI, awardXP,
