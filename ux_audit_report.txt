@@ -1,0 +1,50 @@
+UX AUDIT REPORT — Hoard of the Dragon Queen Campaign Terminal
+Date: 2026-06-19
+Viewport: 412x915 (mobile portrait)
+================================================================================
+
+--- PHASE 1: Chat Input & Message Truncation ---
+[FIXED] Message truncation max-height increased from 130px to 180px
+  → Shows ~6 lines before truncating instead of 4
+[FIXED] "Read more ▼" now toggleable — "Show less ▲" appears after expanding
+  → Previously, expanded messages could not be re-collapsed
+[FIXED] Gradient fade overlay reduced from 44px to 36px, pointer-events:none added
+  → Text underneath the gradient is no longer obscured by unclickable overlay
+
+--- PHASE 2: Chat Tab Tap Targets ---
+[FIXED] Chat tab buttons: font-size 11px → 12px, padding 8px → 10px, min-height 36px → 40px
+  → Meets Material Design touch target minimums (48dp recommended, 36dp absolute minimum)
+  → Labels now more readable on small screens
+  → Tabs: 📖 Narrative | ❓ Rules | 🗨️ OOC
+
+--- PHASE 3: Bottom Nav Labels ---
+[FIXED] Nav button labels: font-size 9px → 10px
+  → Labels (AI DM, Sheet, Logistics, Systems) more legible
+  → Nav dock height remains 54px with safe-area padding
+
+--- PHASE 4: Suggestion Chips ---
+[FIXED] Chip padding increased: 3px 10px → 5px 12px, font-size 10px → 11px
+  → min-height:28px ensures adequate touch target
+  → Chips now easier to tap on mobile without misfire
+
+--- PHASE 5: Mechanic Pills & Badge ---
+[FIXED] Mechanic badge header: padding 2px → 6px, min-height:28px added
+  → "⚡ Changes N — tap to expand" is now a proper touch target
+[FIXED] Mechanic pills: padding 2px 9px → 4px 10px, min-height:24px added
+  → Individual mechanic pills easier to tap for navigation
+
+--- PHASE 6: Consequence Management ---
+[FIXED] Delete button now has aria-label="Delete consequence"
+  → Accessible via assistive technology and test selectors
+[FIXED] Resolve button now has aria-label="Mark consequence resolved"
+  → Larger tap target: padding 2px 6px → 4px 8px, min-height/width 28px
+[ADDED] "🗑 Clear resolved" bulk action button
+  → Appears inside the Resolved section with confirmation dialog
+  → Addresses "no way to purge resolved consequences" deficit
+  → aria-label="Clear all resolved consequences" for accessibility
+
+--- SUMMARY ---
+7 CSS tap-target improvements (chat tabs, nav labels, suggestion chips, mech pills/badge)
+1 new feature (message collapse/expand toggle)
+1 new feature (clear all resolved consequences)
+3 accessibility improvements (aria-labels on consequence actions)

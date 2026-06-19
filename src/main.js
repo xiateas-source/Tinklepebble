@@ -1795,13 +1795,13 @@ function renderConsequences(){
       <span style="font-size:10px;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.5px;flex-shrink:0">${cs.type||'background'}</span>
       <span style="flex:1;font-size:11px;color:${isResolved?'var(--text-dim)':'var(--text)'};${isResolved?'text-decoration:line-through':''};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(cs.text)}</span>
       ${cs.location?`<span style="font-size:9px;color:var(--text-dim);flex-shrink:0">📍 ${esc(cs.location)}</span>`:''}
-      ${!isResolved?`<button onclick="event.stopPropagation();resolveConsequence('${cs.id}')" style="flex-shrink:0;font-size:9px;padding:2px 6px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer" title="Mark resolved">✓</button>`:''}
+      ${!isResolved?`<button onclick="event.stopPropagation();resolveConsequence('${cs.id}')" style="flex-shrink:0;font-size:11px;padding:4px 8px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer;min-height:28px;min-width:28px" title="Mark resolved" aria-label="Mark consequence resolved">✓</button>`:''}
     </summary>
     <div style="padding:8px 10px;border-top:1px solid var(--border)">
       <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;align-items:center">
         <select style="width:90px;font-size:10px;padding:3px;border-color:${col};color:${col}" onchange="updConsequence(${realIdx},'type',this.value)">${CSQ_TYPES.map(t=>`<option value="${t}" ${cs.type===t?'selected':''}>${t}</option>`).join('')}</select>
         <input type="text" value="${esc(cs.location||'')}" placeholder="Location" style="width:90px;font-size:10px" onchange="updConsequence(${realIdx},'location',this.value)">
-        <button class="btn sm red icon-btn" onclick="remConsequence(${realIdx})" style="margin-left:auto" title="Delete">&times;</button>
+        <button class="btn sm red icon-btn" onclick="remConsequence(${realIdx})" style="margin-left:auto" title="Delete" aria-label="Delete consequence">&times;</button>
       </div>
       <textarea style="font-size:11px;width:100%;box-sizing:border-box;min-height:50px" onchange="updConsequence(${realIdx},'text',this.value)">${esc(cs.text||'')}</textarea>
       ${cs.ts?`<div style="font-size:9px;color:var(--text-dim);margin-top:3px">${esc(cs.ts)}</div>`:''}
@@ -1816,8 +1816,18 @@ function renderConsequences(){
     const sum=document.createElement('summary');sum.style.cssText='font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;cursor:pointer;list-style:none;padding:4px 0';sum.textContent='▶ Resolved ('+resolved.length+')';
     det.appendChild(sum);
     resolved.forEach((cs,i)=>det.appendChild(render(cs,active.length+i,true)));
+    const clearBar=document.createElement('div');clearBar.style.cssText='display:flex;justify-content:flex-end;margin-top:6px;padding:4px 0';
+    clearBar.innerHTML='<button onclick="clearResolvedConsequences()" style="font-size:10px;padding:4px 10px;border-radius:4px;border:1px solid var(--red-dim);background:none;color:var(--red);cursor:pointer;font-family:var(--sans);min-height:28px" aria-label="Clear all resolved consequences">🗑 Clear resolved</button>';
+    det.appendChild(clearBar);
     c.appendChild(det);
   }
+}
+function clearResolvedConsequences(){
+  const resolved=(state.consequences||[]).filter(c=>c.resolved);
+  if(!resolved.length){toast('No resolved consequences');return;}
+  if(!confirm('Delete all '+resolved.length+' resolved consequence'+(resolved.length===1?'':'s')+'?'))return;
+  state.consequences=(state.consequences||[]).filter(c=>!c.resolved);
+  save();renderConsequences();toast('Cleared '+resolved.length+' resolved consequence'+(resolved.length===1?'':'s'));
 }
 function addConsequence(){
   if(!Array.isArray(state.consequences))state.consequences=[];
@@ -6342,7 +6352,7 @@ function renderChat(){
     const isExpanded=_expandedMsgs.has(msgIdx);
     let questChips='';
     if(isDM&&msg.msgId){const linked=(state.quests||[]).map((q,qi)=>({q,qi})).filter(({q})=>q.chatMsgId===msg.msgId);if(linked.length)questChips='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">'+linked.map(({q,qi})=>`<span onclick="navTo('world');setTimeout(()=>{const d=document.getElementById('quest-det-${qi}');if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'});d.style.outline='2px solid var(--gold)';d.style.borderRadius='6px';setTimeout(()=>{d.style.outline='';},2200);}},350)" style="cursor:pointer;font-size:10px;background:var(--surface3);border:1px solid var(--gold-dim);border-radius:4px;padding:2px 8px;color:var(--gold)">⚔ ${esc((q.text||'').split('|')[0].slice(0,35))}</span>`).join('')+'</div>';}
-    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${isLong&&!isExpanded?`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});this.previousElementSibling.classList.remove('msg-collapsed');this.remove()">Read more ▼</span>`:''}${mechBadge}${questChips}`;
+    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${isLong?(!isExpanded?`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});renderChat()">Read more ▼</span>`:`<span class="show-less" onclick="_expandedMsgs.delete(${msgIdx});renderChat()">Show less ▲</span>`):''}${mechBadge}${questChips}`;
     c.appendChild(d);
   });
   const distWas=prevHeight-prevScroll-c.clientHeight;
@@ -10866,7 +10876,7 @@ Object.assign(window, {
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
   remSecret, remSlotLvl, remSnip, remSpell, remTown, remWItem,
-  renderAll, renderSheets, renderCards, resolveConsequence, addConsequence, updConsequence, remConsequence, dedupConsequences, dedupNPCs, dedupQuests, dedupLocations, dedupTownRep, rollAttack, rollStatCheck, rollInitiative,
+  renderAll, renderSheets, renderCards, resolveConsequence, addConsequence, updConsequence, remConsequence, clearResolvedConsequences, dedupConsequences, dedupNPCs, dedupQuests, dedupLocations, dedupTownRep, rollAttack, rollStatCheck, rollInitiative,
   saveRefresh, saveSetupPC, saveTts, saveBP,
   scrollStoryBottom, scrollStoryTop, selectFlagCat,
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
