@@ -4976,6 +4976,7 @@ function autosaveDot(){
 function upd(idx,key,val){
   state.pcs[idx][key]=val;
   if(key==='hp_max'&&state.pcs[idx].hp>val)state.pcs[idx].hp=val;
+  if(key==='xp')checkLevelUp(state.pcs[idx]);
   saveRefresh();
 }
 function adjHP(idx,isHeal){
@@ -5286,9 +5287,10 @@ FORMAT RULES:
 3. Mechanics block is LAST in your response. Nothing after ---END---.
 4. No code fences, bold, or formatting around the block.
 5. Never invent HP — only change by exact stated/rolled amounts.
+6. XP values are DELTAS (amount earned this encounter), never cumulative totals. xp:party+300 means "add 300 to each PC." Do not emit the running total.
 
 MECHANIC KEY REFERENCE:
-Character: hp:[name]=[val] | hp_max:[name]=[val] | conditions:[name]+/-[cond] | slot_use/slot_restore:[name]=[lvl or all] | resource_use/resource_restore:[pc],[name] | concentration:[name]=spell/off | short_rest:[name] | shell_defense:[name]=on/off | xp:[name]+[amt]
+Character: hp:[name]=[val] | hp_max:[name]=[val] | conditions:[name]+/-[cond] | slot_use/slot_restore:[name]=[lvl or all] | resource_use/resource_restore:[pc],[name] | concentration:[name]=spell/off | short_rest:[name] | shell_defense:[name]=on/off | xp:[name]+[amt] (DELTA only, not total)
 Economy: income:[amt],[category],[desc] (category: reward/found/loot/quest/trade) | expense:[amt],[desc] | gp/sp/cp/ep/pp: absolute SET only
 Items: item_add:[target],[name],[qty],[type],[weight] | item_remove:[target],[name],[qty]
 World: location:[name] | time:[value] | weather:[value] | loc_desc:[text] | travel_note:[text] | town_rep:[town],[status],[notes]
@@ -5421,9 +5423,9 @@ function parseMechanics(responseText, pendingMsgId=null){
     if(['gp','sp','cp','ep','pp','income'].includes(k)&&/\bxp\b/i.test(v)){_rejected.push(k+': XP is not currency — use xp: mechanic');return false;}
     if(k==='xp'){
       const recent=(state.chatHistory||[]).slice(-3);
-      const lastXPLine=recent.reverse().find(m=>m.mechanics?.some(c=>c.text?.includes('XP')));
+      const lastXPLine=recent.reverse().find(m=>m.mechanics?.some(c=>/xp/i.test(c.text||'')));
       if(lastXPLine){
-        const lastXPText=lastXPLine.mechanics.filter(c=>c.text?.includes('XP')).map(c=>c.text).join();
+        const lastXPText=lastXPLine.mechanics.filter(c=>/xp/i.test(c.text||'')).map(c=>c.text).join();
         const thisNorm=v.replace(/\s+/g,'');
         const lastNorm=lastXPText.replace(/[^0-9+]/g,'');
         const thisAmts=(thisNorm.match(/\+(\d+)/g)||[]).sort().join();
@@ -5636,10 +5638,11 @@ function parseMechanics(responseText, pendingMsgId=null){
       }
       else if(key==='xp'){
         val.split(',').forEach(part=>{
-          const m=part.trim().match(/^([^+]+)\+(\d+)$/);
+          const p=part.trim();
+          const m=p.match(/^([^+=]+?)\s*\+\s*(\d[\d,]*)\s*$/);
           if(m){
             const target=m[1].trim().toLowerCase();
-            const amt=parseInt(m[2]);
+            const amt=parseInt(m[2].replace(/,/g,''));
             if(target==='party'||target==='all'){
               state.pcs.forEach(pc=>{pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});checkLevelUp(pc);});
             }else{
