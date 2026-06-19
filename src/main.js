@@ -1931,7 +1931,7 @@ function renderIncome(){
           <span style="font-size:10px;color:var(--text-dim)">gp</span>
           <select style="font-size:10px;width:60px" onchange="updIncome(${realIdx},'type',this.value)"><option value="in" ${e.type==='in'?'selected':''}>In</option><option value="out" ${e.type!=='in'?'selected':''}>Out</option></select>
           <button class="btn sm red" onclick="removeIncomeEntry(${realIdx})" style="margin-left:auto">Delete</button>
-          <button class="btn sm" onclick="_incomeEditIdx=null;renderIncome()">Done</button>
+          <button class="btn sm" onclick="closeIncomeEdit()">Done</button>
         </div>`;
     }else{
       d.innerHTML=`<span>${esc(e.desc)}</span><span style="color:${e.type==='in'?'var(--green-bright)':'var(--red)'};font-weight:bold">${e.type==='in'?'+':'−'}${e.amt} gp</span>`;
@@ -1940,6 +1940,7 @@ function renderIncome(){
     c.appendChild(d);
   });
 }
+function closeIncomeEdit(){_incomeEditIdx=null;renderIncome();}
 function updIncome(idx,key,val){
   const log=state.treasuryData.incomeLog;if(!log||!log[idx])return;
   const e=log[idx];
@@ -10809,7 +10810,7 @@ Object.assign(window, {
   _luNext, _luRollHP, _luSelectSubclass, _luSetHP, _luToggleSpell, _luUpdateASI, _luSetASIMode, _luSelectFeat, _luUpdateFeatAbility, _luFilterFeats, _luSelectSwapOld, _luSelectSwapNew, FEATS_DB,
   addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, cloneCombatant, addCondFromPicker,
   addAnimal, updAnimal, remAnimal, openAnimalOverview, renderAnimals,
-  addFamiliar, addIncome, removeIncomeEntry, updIncome, addLogEntry, addModuleEpisode, addNPC, addNewChar,
+  addFamiliar, addIncome, removeIncomeEntry, updIncome, closeIncomeEdit, addLogEntry, addModuleEpisode, addNPC, addNewChar,
   addPartyItem, addPartyToCombat, addPcItem, addPreset, addQA, addQuest,
   addFromCompendium, addManeuverToPC, MANEUVER_DB, SPELL_DB, addResource, addScene, addSlotLvl, addSnip, addSpell, addTownRep, addWagonItem,
   adjHP, applyLevelUp, askDMFromParty, auditWithAI, awardXP,
