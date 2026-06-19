@@ -399,7 +399,7 @@ function fbInit(config){
     updFbStatus(true);
     return true;
   }catch(e){
-    toast('⚠ Firebase unavailable — running in local-only mode');
+    toast('⚠ Firebase unavailable — running in local-only mode','error');
     var errEl=document.getElementById('fb-error');
     if(errEl){errEl.textContent='Firebase unavailable — local-only mode ('+e.message+')';errEl.style.display='block';}
     fbEnabled=false;updFbStatus(false);return false;
@@ -558,7 +558,7 @@ function updFbStatus(connected){
 
 function fbLoadConfig(){
   if(typeof firebase==='undefined'){
-    toast('⚠ Firebase unavailable — offline mode only');
+    toast('⚠ Firebase unavailable — offline mode only','error');
     var banner=document.getElementById('fb-offline-banner');
     if(banner)banner.style.display='block';
     updFbStatus(false);
@@ -612,7 +612,7 @@ function connectFirebase(){
     var ok=fbInit(config);
     if(ok){state._ts=Date.now();fbSave(state);}
   }catch(e){
-    toast('Config parse error: '+e.message);
+    toast('Config parse error: '+e.message,'error');
     var errEl=document.getElementById('fb-error');
     if(errEl){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
     console.error('Firebase config error:',e);
@@ -1213,7 +1213,7 @@ function addNewChar(){
   state.activeEditTab=state.pcs.length-1;saveRefresh();toast('✓ Character added!');
 }
 function delChar(idx){
-  if(state.pcs.length<=1){toast('Cannot delete last character.');return;}
+  if(state.pcs.length<=1){toast('Cannot delete last character.','error');return;}
   const n=state.pcs[idx].name;
   if(!confirm('Delete '+n+'?'))return;
   state.pcs.splice(idx,1);state.activeEditTab=Math.min(state.activeEditTab||0,state.pcs.length-1);
@@ -4094,7 +4094,7 @@ function exportConfig(){
     toast('✓ Full save exported to Downloads.');
   }catch(e){
     try{navigator.clipboard.writeText(JSON.stringify(state));toast('✓ Save copied to clipboard.');}
-    catch(e2){toast('Export failed: '+e2.message);}
+    catch(e2){toast('Export failed: '+e2.message,'error');}
   }
 }
 function copyStateCompact(){
@@ -4127,7 +4127,7 @@ function copyStateCompact(){
       document.body.removeChild(ta);
       toast('✓ Compact state copied to clipboard.');
     });
-  }catch(e){toast('Copy failed: '+e.message);}
+  }catch(e){toast('Copy failed: '+e.message,'error');}
 }
 function importConfig(el){
   const file=el.files[0];if(!file)return;
@@ -5041,7 +5041,7 @@ function renderAttackEditor(idx){
   c.innerHTML='';
   if(!(pc.attacks||[]).length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:12px 0;text-align:center">No attacks yet. Add weapons, spells used in combat, or special abilities.</div>';return;}
   const prof=Math.floor(((pc.level||1)-1)/4)+2;
-  const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);
+  const sm=s=>{const n=parseInt(pc[s])||10;return Math.floor((n-10)/2);};
   (pc.attacks||[]).forEach((atk,ai)=>{
     const b=(atk.proficient!==false?prof:0)+sm(atk.stat||'str')+(parseInt(atk.attackBonus)||0);
     const ds=atk.damageStat==='none'?0:sm(atk.damageStat||atk.stat||'str');
@@ -5085,7 +5085,7 @@ function rollAttack(idx,ai){
   const pc=state.pcs[idx];if(!pc)return;
   const atk=(pc.attacks||[])[ai];if(!atk)return;
   const prof=Math.floor(((pc.level||1)-1)/4)+2;
-  const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);
+  const sm=s=>{const n=parseInt(pc[s])||10;return Math.floor((n-10)/2);};
   const atkBonus=(atk.proficient!==false?prof:0)+sm(atk.stat||'str')+(parseInt(atk.attackBonus)||0);
   const d20=Math.ceil(Math.random()*20);
   const total=d20+atkBonus;
@@ -6254,7 +6254,7 @@ function detectProseRolls(prose){
   ];
   for(const re of patterns){
     if(re.test(prose)){
-      toast('⚠ AI rolled dice in prose — rolls should use roll_request: so YOU roll in the app');
+      toast('⚠ AI rolled dice in prose — rolls should use roll_request: so YOU roll in the app','warn');
       return;
     }
   }
@@ -7359,12 +7359,12 @@ async function verifyElKey(){
   toast('Checking key…');
   try{
     const r=await fetch('https://api.elevenlabs.io/v1/user',{headers:{'xi-api-key':key}});
-    if(!r.ok){const b=await r.text();let m='';try{m=JSON.parse(b)?.detail?.message||b;}catch{m=b;}toast('✗ Invalid key: '+String(m).slice(0,60));return;}
+    if(!r.ok){const b=await r.text();let m='';try{m=JSON.parse(b)?.detail?.message||b;}catch{m=b;}toast('✗ Invalid key: '+String(m).slice(0,60),'error');return;}
     const u=await r.json();
     const used=u?.subscription?.character_count||0;
     const limit=u?.subscription?.character_limit||0;
     toast('✓ Key valid — '+used.toLocaleString()+' / '+limit.toLocaleString()+' chars used');
-  }catch(e){toast('Network error: '+e.message);}
+  }catch(e){toast('Network error: '+e.message,'error');}
 }
 function loadElSettings(){
   const k=localStorage.getItem('tt_el_key')||'';
@@ -9320,9 +9320,12 @@ function exportMoment(msgIdx){
 }
 
 // ═══ TOAST ═══
-function toast(msg,dur){
+function toast(msg,style,dur){
   const t=document.getElementById('toast');if(!t)return;
-  t.innerText=msg;t.style.display='block';
+  if(typeof style==='number'){dur=style;style=null;}
+  t.innerText=msg;
+  t.className='toast'+(style?' toast-'+style:'');
+  t.style.display='block';
   setTimeout(()=>{t.style.display='none';},dur||2500);
 }
 
@@ -10474,6 +10477,8 @@ function sendMsgQuick(){
     _handleSlashCmd(val.slice(2).trim());
     return;
   }
+  const ci=document.getElementById('chat-input');
+  if(ci&&ci.disabled)return;
   const activeBtn=document.querySelector('.chat-tab-btn.active');
   const channel=activeBtn?.id?.replace('chat-tab-','')||_activeTab;
   if(channel==='party'){qi.value='';sendPartyMsg(val);return;}
@@ -10482,7 +10487,6 @@ function sendMsgQuick(){
   qi.value='';
   if(channel==='ooc'){sendOOCMsg(val);return;}
   if(channel==='test'){sendTestMsg(val);return;}
-  const ci=document.getElementById('chat-input');
   if(ci){ci.value=val;sendMsg();}
 }
 
@@ -10716,7 +10720,7 @@ function renderCharSheet(idx,locked){
     // Attacks table
     let atkHtml='';
     if((pc.attacks||[]).length){
-      const sm=s=>Math.floor((parseInt(pc[s])||10-10)/2);
+      const sm=s=>{const n=parseInt(pc[s])||10;return Math.floor((n-10)/2);};
       atkHtml='<div style="margin-bottom:10px"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:5px">Attacks</div>';
       pc.attacks.forEach((a,ai)=>{
         const b=(a.proficient!==false?prof:0)+sm(a.stat||'str')+(parseInt(a.attackBonus)||0);
@@ -10859,7 +10863,7 @@ function csSpendHD(idx,pipIdx){
   const cls=(pc.class||'fighter').toLowerCase().trim();
   const classKey=Object.keys(LEVEL_UP_DATA).find(k=>cls.includes(k));
   const hitDie=classKey?LEVEL_UP_DATA[classKey].hit_die:8;
-  const conMod=Math.floor((parseInt(pc.con)||10-10)/2);
+  const conMod=(()=>{const n=parseInt(pc.con)||10;return Math.floor((n-10)/2);})();
   if(pipIdx<hdUsed){
     // Click on spent pip = un-spend (refund)
     pc.hd_used=Math.max(0,hdUsed-1);
@@ -10923,7 +10927,8 @@ Object.assign(window, {
   remCell, remComb, remModuleEp, remNPC, remPI,
   remPcItemSheet, remPreset, remQA, remQ, remRel, remScene,
   remSecret, remSlotLvl, remSnip, remSpell, remTown, remWItem,
-  renderAll, renderSheets, renderCards, resolveConsequence, addConsequence, updConsequence, remConsequence, clearResolvedConsequences, dedupConsequences, dedupNPCs, dedupQuests, dedupLocations, dedupTownRep, rollAttack, rollStatCheck, rollInitiative,
+  renderAll, renderSheets, renderCards, renderChat, renderCells, renderNPCs, renderQAEditor, renderQAResources, renderTownRep, toast,
+  resolveConsequence, addConsequence, updConsequence, remConsequence, clearResolvedConsequences, dedupConsequences, dedupNPCs, dedupQuests, dedupLocations, dedupTownRep, rollAttack, rollStatCheck, rollInitiative,
   saveRefresh, saveSetupPC, saveTts, saveBP,
   scrollStoryBottom, scrollStoryTop, selectFlagCat,
   sendContextRefresh, sendMsg, sendMsgQuick, sendOOCMsg, sendPartyMsg,
