@@ -4146,8 +4146,18 @@ function importConfig(el){
   const file=el.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
-    try{const p=JSON.parse(e.target.result);if(p?.pcs?.length>=1){migrate(p);state=p;saveRefresh();toast('✓ Imported!');}else alert('Invalid save file.');}
-    catch(err){alert('Error: '+err.message);}
+    try{
+      let p=JSON.parse(e.target.result);
+      if(p?.characters&&Array.isArray(p.characters)&&!p.pcs){
+        const needsConvert=p.characters[0]?.ability_scores&&!p.characters[0]?.str;
+        if(needsConvert)p={pcs:_convertGeminiPCs(p.characters)};
+        else p={pcs:p.characters.map(c=>{if(Array.isArray(c.features))c.features=c.features.map(f=>(f.name||'').toUpperCase()+': '+(f.description||'')).join('\n');if(Array.isArray(c.slots))c.slots=c.slots.map(s=>({max:s.max||0,used:s.used||0}));return c;})};
+      }
+      if(p?.pcs?.length>=1){
+        if(!confirm('Import save file? This will replace your current data.'))return;
+        migrate(p);state=p;saveRefresh();toast('✓ Imported!');
+      }else alert('Invalid save file — no characters found.');
+    }catch(err){alert('Error: '+err.message);}
   };
   reader.readAsText(file);el.value='';
 }
@@ -4230,8 +4240,9 @@ function importFromPaste(){
     }else if(hasPcsOnly){
       // PC patch only — merge, preserve everything else
       if(!confirm('Update '+p.pcs.length+' character sheet(s) only? Everything else (world, wagon, chat, inventory) will be preserved.'))return;
-      // Merge PCs
       p.pcs.forEach(newPc=>{
+        if(Array.isArray(newPc.features))newPc.features=newPc.features.map(f=>(f.name||'').toUpperCase()+': '+(f.description||'')).join('\n');
+        if(Array.isArray(newPc.slots))newPc.slots=newPc.slots.map(s=>({max:s.max||0,used:s.used||0}));
         const idx=state.pcs.findIndex(pc=>pc.id===newPc.id||pc.name===newPc.name);
         if(idx>-1){
           const existing=state.pcs[idx];
@@ -4239,12 +4250,18 @@ function importFromPaste(){
           if(isBlank){
             state.pcs[idx]=newPc;
           } else {
-            const preserved={hp:existing.hp,xp:existing.xp,conditions:existing.conditions,inventory:existing.inventory,slots:existing.slots,resources:existing.resources};
-            state.pcs[idx]={...newPc,...preserved};
+            const merged={...existing,...newPc};
+            merged.hp=existing.hp;merged.hp_max=existing.hp_max;merged.xp=existing.xp;
+            merged.conditions=existing.conditions;merged.inventory=existing.inventory;
+            merged.color=existing.color;merged.id=existing.id;
+            state.pcs[idx]=merged;
           }
         }
         else state.pcs.push(newPc);
       });
+    }else if(hasWagonOnly){
+      if(!confirm('Update wagon/party inventory only? Characters and world data will be preserved.'))return;
+      Object.assign(state.wagon,p.wagon);
     }else if(p?.worldData&&!p?.pcs){
       if(!confirm('Update world data only? PCs and wagon will be preserved.'))return;
       Object.assign(state.worldData,p.worldData);
