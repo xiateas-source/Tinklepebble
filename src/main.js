@@ -380,7 +380,7 @@ function showTermTip(event,term){
 const SAVE_VERSION=13;
 
 // ═══ FIREBASE DROP 2 ═══
-let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false,_chatMutatedAt=0,_lastMechReceipt=null;
+let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false,_chatMutatedAt=0,_lastMechReceipt=null,_lastLocalEdit=0;
 const FB_PATH='campaigns/tinklepebble/state';
 const FB_KEYS='campaigns/tinklepebble/keys';
 
@@ -513,7 +513,14 @@ function fbStartListening(){
       if(state.campaignSetup&&Object.keys(state.campaignSetup).length&&(!remote.campaignSetup||!Object.keys(remote.campaignSetup).length)){
         remote.campaignSetup=state.campaignSetup;
       }
+      if(Date.now()-_lastLocalEdit<3000){
+        state.chatHistory=chatMerged;
+        try{localStorage.setItem('tt_v1',JSON.stringify(state));}catch(e){}
+        renderChat();
+        return;
+      }
       state=remote;state._ts=remoteTs;
+      if(!Array.isArray(state.pcs))state.pcs=[];
       state.pcs.forEach(pc=>checkLevelUp(pc));
       try{localStorage.setItem('tt_v1',JSON.stringify(state));}catch(e){}
       renderAll();genLedger();autosaveDot();
@@ -1162,7 +1169,7 @@ function verifyContracts(){
   if((c.actions||'').trim())parts.push('## ACTIONS & MECHANICS\n'+c.actions.trim());
   if((c.continuity||'').trim())parts.push('## CONTINUITY\n'+c.continuity.trim());
   if((c.multi||'').trim())parts.push('## MULTI-PLAYER\n'+c.multi.trim());
-  _ctxInject=parts.join('\n\n');
+  _ctxInject=parts.join('\n\n');_ctxInjectTs=Date.now();
   const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   state.chatHistory.push({role:'system',content:'🔍 Contracts verified ('+checks.length+' checks passed) — refresh queued for next message.',ts,realTs:ts});
   save();renderChat();showTab('tab-dm');
@@ -1247,6 +1254,7 @@ function renderSheets(){
   c.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="display:flex;gap:8px;align-items:center"><label class="field-label" style="margin:0">Color</label><input type="color" value="${pc.color||'#5a8a5a'}" onchange="upd(${idx},'color',this.value)" style="width:40px;height:32px;padding:2px;cursor:pointer;background:none;border:1px solid var(--border);border-radius:2px"></div>
+      <button class="btn sm" onclick="importPCFromJSON(${idx})" style="font-size:10px">📋 Update from JSON</button>
       <button class="btn sm red" onclick="delChar(${idx})">🗑 Delete ${esc(pc.name)}</button>
     </div>
     <div class="form-row">
@@ -2436,7 +2444,7 @@ function zoneHPAdj(idx,amt){
   if(dmg&&ent.concentrating){
     const dc=Math.max(10,Math.floor(dmg/2));
     toast('⚡ '+ent.name+' concentrating on '+ent.concentrating+' — CON save DC '+dc);
-    _ctxInject='[CONCENTRATION CHECK] '+ent.name+' took '+dmg+' damage while concentrating on '+ent.concentrating+'. DC '+dc+' CON save required. Resolve this before continuing.';
+    _ctxInject='[CONCENTRATION CHECK] '+ent.name+' took '+dmg+' damage while concentrating on '+ent.concentrating+'. DC '+dc+' CON save required. Resolve this before continuing.';_ctxInjectTs=Date.now();
   }
   const pc=state.pcs.find(p=>p.name===ent.name);
   if(pc){pc.hp=Math.max(0,Math.min(pc.hp_max,ent.hp));renderCards();renderStatusMini();}
@@ -2541,7 +2549,7 @@ function _injectTurnCtx(){
   const durs=cur.condDurations||{};
   const conds=(cur.conditions||[]).length?cur.conditions.map(c=>{const d=durs[c];return c+(d?' ('+d+' rounds)':'');}).join(', '):'none';
   const conc=cur.concentrating?' Concentrating: '+cur.concentrating+'.':'';
-  _ctxInject='[TURN ADVANCE] Round '+state.combat.round+', '+cur.name+"'s turn. Zone: "+zone+'. HP: '+cur.hp+'/'+cur.hp_max+'. AC: '+cur.ac+'. Conditions: '+conds+'.'+conc+' Awaiting action.';
+  _ctxInject='[TURN ADVANCE] Round '+state.combat.round+', '+cur.name+"'s turn. Zone: "+zone+'. HP: '+cur.hp+'/'+cur.hp_max+'. AC: '+cur.ac+'. Conditions: '+conds+'.'+conc+' Awaiting action.';_ctxInjectTs=Date.now();
 }
 function _tickCondDurations(entIdx){
   const ent=state.combat.list[entIdx];if(!ent||!ent.condDurations)return;
@@ -2667,6 +2675,7 @@ function checkLevelUp(pc){
       +' Announce: "'+pc.name+' has earned enough experience to reach Level '+newLvl+'! Type //levelup in the chat or open the character sheet to advance."'
       +' Do NOT narrate stat changes, choose feats, choose spells, or apply HP increases — the Level Up wizard handles everything.'
       +' You may mention what awaits them in general terms (e.g. "exciting choices ahead at this level") but do NOT list specific options or fabricate a stat block.';
+    _ctxInjectTs=Date.now();
   }
 }
 function _autoOpenLevelUp(){
@@ -3118,7 +3127,7 @@ function applyLevelUp(){
   if(choices.swapOld&&choices.swapNew)parts.push('Spell swap: replaced '+choices.swapOld+' with '+choices.swapNew+'.');
   const isTest=!!_luTestSnapshot;
   if(!isTest){
-    _ctxInject='[LEVEL UP COMPLETE] '+parts.join(' ')+' Update your full understanding of this character and narrate the advancement when prompted.';
+    _ctxInject='[LEVEL UP COMPLETE] '+parts.join(' ')+' Update your full understanding of this character and narrate the advancement when prompted.';_ctxInjectTs=Date.now();
   }
   saveRefresh();
   closeLevelUpModal();
@@ -4240,6 +4249,47 @@ function importFromPaste(){
     toast('✓ '+(hasCore?'Full save':'Partial patch')+' loaded!');
   }catch(err){if(errEl){errEl.textContent='JSON Error: '+err.message;errEl.style.display='block';}}
 }
+function importPCFromJSON(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  let el=document.getElementById('pc-json-modal');
+  if(!el){el=document.createElement('div');el.id='pc-json-modal';el.className='modal-overlay';document.body.appendChild(el);}
+  el.classList.add('open');
+  el.innerHTML=`<div class="modal-box" style="max-width:440px;max-height:85vh;overflow:auto">
+    <h3 style="margin:0 0 8px;font-size:14px;color:var(--gold)">Update ${esc(pc.name||'Character')} from JSON</h3>
+    <p style="font-size:11px;color:var(--text-dim);margin:0 0 10px">Paste a character JSON from Gemini or a raw PC object. HP, XP, conditions &amp; inventory are preserved by default.</p>
+    <textarea id="pc-json-input" style="width:100%;min-height:140px;font-size:12px;font-family:var(--mono)" placeholder='{"name":"...","class":"Fighter","level":3,...}'></textarea>
+    <div id="pc-json-err" style="display:none;color:var(--red);font-size:11px;margin:4px 0"></div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);margin:6px 0"><input type="checkbox" id="pc-json-preserve" checked style="width:auto;accent-color:var(--gold)"> Preserve HP, XP, conditions &amp; inventory</label>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn gold" onclick="applyPCJSON(${idx})" style="flex:1">Apply</button>
+      <button class="btn" onclick="closeModal('pc-json-modal')">Cancel</button>
+    </div>
+  </div>`;
+}
+function applyPCJSON(idx){
+  const raw=(document.getElementById('pc-json-input')?.value||'').trim();
+  const errEl=document.getElementById('pc-json-err');
+  const errShow=m=>{if(errEl){errEl.textContent=m;errEl.style.display='block';}};
+  if(!raw){errShow('Nothing pasted.');return;}
+  try{
+    let p=JSON.parse(raw);
+    if(p.characters&&Array.isArray(p.characters))p=_convertGeminiPCs(p.characters)[0];
+    else if(p.ability_scores&&!p.str)p=_convertGeminiPCs([p])[0];
+    if(!p||!p.name){errShow('Could not find a valid character. Need at least a "name" field.');return;}
+    const pc=state.pcs[idx];
+    const preserve=document.getElementById('pc-json-preserve')?.checked;
+    if(preserve){
+      const kept={hp:pc.hp,hp_max:pc.hp_max,xp:pc.xp,conditions:pc.conditions,inventory:pc.inventory,slots:pc.slots,resources:pc.resources,color:pc.color,id:pc.id};
+      state.pcs[idx]={...p,...kept};
+    }else{
+      p.id=pc.id||p.id;p.color=pc.color||p.color;
+      state.pcs[idx]=p;
+    }
+    closeModal('pc-json-modal');
+    saveRefresh();
+    toast('✓ '+state.pcs[idx].name+' updated from JSON');
+  }catch(e){errShow('JSON Error: '+e.message);}
+}
 function getCanonicalPCs(){
   // Returns fresh canonical PC definitions — used for version merge
   // These are the source of truth for sheet fields and starting inventory
@@ -5010,7 +5060,9 @@ function loadState(){
   }
   catch(e){console.error('Load error',e);}
 }
-function saveRefresh(){save();renderAll();}
+let _srPending=false;
+function saveRefresh(){save();if(_srPending)return;_srPending=true;requestAnimationFrame(()=>{_srPending=false;renderAll();});}
+function saveRefreshImmediate(){save();renderAll();}
 function autosaveDot(){
   const d=document.getElementById('as-dot');const l=document.getElementById('as-lbl');if(!d)return;
   d.className='autosave-dot saving';l.innerText='Saving...';
@@ -5019,6 +5071,7 @@ function autosaveDot(){
 
 // ═══ MUTATORS ═══
 function upd(idx,key,val){
+  _lastLocalEdit=Date.now();
   state.pcs[idx][key]=val;
   if(key==='hp_max'&&state.pcs[idx].hp>val)state.pcs[idx].hp=val;
   if(key==='xp')checkLevelUp(state.pcs[idx]);
@@ -5151,7 +5204,8 @@ function pcLongRest(idx){
 }
 function toggleCond(idx,cond){
   const pc=state.pcs[idx];if(!pc)return;if(!Array.isArray(pc.conditions))pc.conditions=[];const i=pc.conditions.indexOf(cond);
-  if(i>-1)pc.conditions.splice(i,1);else pc.conditions.push(cond);
+  if(i>-1){pc.conditions.splice(i,1);toast((pc.name||'PC')+': −'+cond);}
+  else{pc.conditions.push(cond);toast((pc.name||'PC')+': +'+cond);}
   saveRefresh();
 }
 function clearPCConditions(idx){
@@ -5166,8 +5220,10 @@ function addCondFromPicker(idx,sel){
   const cond=sel.value;if(!cond)return;
   const pc=state.pcs[idx];if(!pc)return;
   if(!Array.isArray(pc.conditions))pc.conditions=[];
-  if(!pc.conditions.includes(cond))pc.conditions.push(cond);
+  if(pc.conditions.includes(cond)){sel.value='';return;}
+  pc.conditions.push(cond);
   sel.value='';
+  toast((pc.name||'PC')+': +'+cond);
   saveRefresh();
 }
 function toggleSlot(idx,li,pi){
@@ -5705,7 +5761,7 @@ function parseMechanics(responseText, pendingMsgId=null){
             }
           }
         });
-        _ctxInject=(_ctxInject||'')+'\n[XP APPLIED] Current XP: '+state.pcs.map(pc=>pc.name+' '+pc.xp+'/'+XP_T[Math.min(pc.level||1,19)]+' (Lv'+(pc.level||1)+')').join(', ')+'. These are the REAL values — trust them.';
+        _ctxInject=(_ctxInject||'')+'\n[XP APPLIED] Current XP: '+state.pcs.map(pc=>pc.name+' '+pc.xp+'/'+XP_T[Math.min(pc.level||1,19)]+' (Lv'+(pc.level||1)+')').join(', ')+'. These are the REAL values — trust them.';_ctxInjectTs=Date.now();
       }else if(key==='module_episode'){
         const pts=val.split(',').map(p=>p.trim());
         const epIdx=parseInt(pts[0])-1;const epStatus=(pts[1]||'active').toLowerCase();
@@ -6355,8 +6411,12 @@ function cacheResp(user,resp){const c=JSON.parse(localStorage.getItem(CKEY)||'[]
 function getCached(){return JSON.parse(localStorage.getItem(CKEY)||'[]')[0]||null;}
 
 // ═══ AI DM CHAT ═══
+let _chatRenderHash='';
 function renderChat(){
   const c=document.getElementById('chat-msgs');if(!c)return;
+  const hash=(state.chatHistory||[]).length+':'+(state.chatHistory?.at(-1)?.content?.length||0)+':'+(Object.keys(_expandedMsgs||{}).length);
+  if(hash===_chatRenderHash&&c.children.length>0)return;
+  _chatRenderHash=hash;
   const prevScroll=c.scrollTop;const prevHeight=c.scrollHeight;
   c.innerHTML='';
   if(!state.chatHistory||!state.chatHistory.length){
@@ -6939,6 +6999,7 @@ async function sendMsg(){
     const useLedger=document.getElementById('chat-ledger')?.checked;
     if(useLedger)genLedger();
     const ledger=useLedger?(document.getElementById('ledger-out')?.value||''):'';
+    if(_ctxInject&&Date.now()-_ctxInjectTs>60000){console.log('[ctxInject] Expired stale injection');_ctxInject=null;}
     const _inject=_ctxInject;_ctxInject=null;
     const encWarns=[];
     const wW=calcWeight();if(wW>getMaxLb())encWarns.push('Wagon OVER capacity: '+wW.toFixed(0)+'/'+getMaxLb()+'lb. Travel speed halved, risk of axle failure.');
@@ -7165,7 +7226,7 @@ function updateRollMod(){
   if(ROLL_FORMULAS[rt]&&formulaEl)formulaEl.value=ROLL_FORMULAS[rt];
 }
 // Pending context injection — appended to system prompt on next sendMsg(), then cleared
-let _ctxInject=null;
+let _ctxInject=null,_ctxInjectTs=0;
 function sendContextRefresh(){
   const w=state.worldData;
   const lines=[
@@ -7185,7 +7246,7 @@ function sendContextRefresh(){
     if(p.concentrating)s+=' (Conc: '+p.concentrating+')';
     lines.push(s);
   });
-  _ctxInject=lines.join('\n');
+  _ctxInject=lines.join('\n');_ctxInjectTs=Date.now();
   const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   state.chatHistory.push({role:'system',content:'↺ Context refreshed — will apply on your next message.',ts,realTs:ts});
   save();renderChat();showTab('tab-dm');
@@ -7220,7 +7281,7 @@ function sendSessionZero(){
   const out=document.getElementById('s0-output')?.textContent||'';
   if(!out||out==='— Click Generate —'){toast('Generate the Session Zero first.');return;}
   const key=getKey();if(!key){toast('Set an API key first (AI Tools tab).');return;}
-  _ctxInject=out;
+  _ctxInject=out;_ctxInjectTs=Date.now();
   closeModal('s0-modal');
   showChatTab('narrative');
   const input=document.getElementById('chat-quick-input');
@@ -7303,13 +7364,22 @@ function pushRewindSnap(){
 }
 function renderRewind(){
   const el=document.getElementById('rewind-list');if(!el)return;
-  if(!state.rewindStack?.length){el.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:8px">No snapshots yet.</div>';return;}
-  el.innerHTML=state.rewindStack.map((s,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;margin-bottom:4px;font-size:11px;flex-wrap:wrap"><span style="flex:1;color:var(--text-dim)">${s.ts} — T${s.turn} — ${s.data.pcs.map(p=>p.name+':'+p.hp).join(', ')}</span><button class="btn sm red" onclick="rewindTo(${i})">Rewind</button></div>`).join('');
+  if(!state.rewindStack?.length&&!_redoSnap){el.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:8px">No snapshots yet.</div>';return;}
+  let html=_redoSnap?'<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--surface3);border:1px solid var(--gold-dim);border-radius:2px;margin-bottom:8px;font-size:11px"><span style="flex:1;color:var(--gold)">Undo last rewind ('+_redoSnap.ts+')</span><button class="btn sm gold" onclick="redoRewind()">Redo</button></div>':'';
+  html+=(state.rewindStack||[]).map((s,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;margin-bottom:4px;font-size:11px;flex-wrap:wrap"><span style="flex:1;color:var(--text-dim)">${s.ts} — T${s.turn} — ${s.data.pcs.map(p=>p.name+':'+p.hp).join(', ')}</span><button class="btn sm red" onclick="rewindTo(${i})">Rewind</button></div>`).join('');
+  el.innerHTML=html;
 }
+let _redoSnap=null;
 function rewindTo(idx){
   const s=state.rewindStack[idx];if(!s)return;
   if(!confirm('Rewind to '+s.ts+'?'))return;
-  Object.assign(state,s.data);saveRefresh();toast('✓ Rewound!');
+  _redoSnap={ts:new Date().toLocaleString(),data:JSON.parse(JSON.stringify({pcs:state.pcs,worldData:state.worldData,treasuryData:state.treasuryData,quests:state.quests,npcs:state.npcs,combat:state.combat,wagon:state.wagon,partyInventory:state.partyInventory}))};
+  Object.assign(state,s.data);saveRefresh();toast('✓ Rewound — tap Redo to undo');
+}
+function redoRewind(){
+  if(!_redoSnap)return;
+  if(!confirm('Redo — restore state from before rewind?'))return;
+  Object.assign(state,_redoSnap.data);_redoSnap=null;saveRefresh();toast('✓ Redo applied');
 }
 
 // ═══ TTS ═══
@@ -8468,7 +8538,7 @@ function rollInitiativeToChat(){
 function resyncAI(){
   genLedger();
   const ledger=document.getElementById('ledger-out')?.value||'';
-  _ctxInject='[FULL STATE RESYNC — read everything below before responding]\n'+ledger;
+  _ctxInject='[FULL STATE RESYNC — read everything below before responding]\n'+ledger;_ctxInjectTs=Date.now();
   const inp=document.getElementById('chat-input');
   if(inp)inp.value='[STATE RESYNC] Confirm in one sentence: current location, all PC HP values, and what the party is doing right now.';
   sendMsg();
@@ -10980,7 +11050,7 @@ Object.assign(window, {
   exportGameplayLog, exportMoment, exportOOCMoment, deleteOOCMsg, populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
   zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
-  renderSetupLock, setSetupUnlocked, remAtk, rewindTo,
+  renderSetupLock, setSetupUnlocked, remAtk, rewindTo, redoRewind, importPCFromJSON, applyPCJSON,
   renderPCOverview, renderHUD, renderCharTabs,
   remPcItem, remResource, renderCapacity, renderErrorLog, closeWEdit, setCargoPCFilter, _setInvSearch,
 });
