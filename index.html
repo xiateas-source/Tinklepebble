@@ -299,31 +299,19 @@
 <div id="tab-wagon" class="tab-section">
   <div class="grid-2">
     <div class="col">
-      <details class="panel accent" id="mount-panel">
-        <summary class="panel-title" style="cursor:pointer;list-style:none;display:flex;align-items:center" id="mount-panel-title">Mount / Draft Animal</summary>
-        <div class="form-row" style="margin-top:8px">
-          <div class="fg"><label class="field-label">Name</label><input type="text" id="ox-name" oninput="state.wagon.ox.name=this.value;save();syncMountTitle()" placeholder="(No mount yet)"></div>
-          <div style="width:65px"><label class="field-label">HP</label><input type="number" id="ox-hp" oninput="state.wagon.ox.hp=parseInt(this.value)||0;save();renderCapacity()"></div>
-          <div style="width:70px"><label class="field-label">Max HP</label><input type="number" id="ox-hp-max" oninput="state.wagon.ox.hp_max=parseInt(this.value)||15;save()"></div>
-          <div style="width:55px"><label class="field-label">AC</label><input type="number" id="ox-ac" oninput="state.wagon.ox.ac=parseInt(this.value)||11;save()"></div>
+      <div class="panel accent">
+        <div class="panel-title">Animals &amp; Companions
+          <button class="btn sm green" style="margin-left:auto" onclick="addAnimal()">+ Add</button>
         </div>
-        <div class="form-row">
-          <div class="fg"><label class="field-label">Conditions</label><input type="text" id="ox-cond" oninput="state.wagon.ox.conditions=this.value;save()"></div>
-          <div class="fg"><label class="field-label">Feed Status</label><select id="ox-feed" onchange="state.wagon.ox.feed=this.value;save()"><option value="fed">Fed</option><option value="hungry">Hungry</option><option value="starving">Starving</option></select></div>
-        </div>
-        <p style="font-size:10px;color:var(--text-dim);margin:4px 0 0">Wagon pull capacity = mount STR × 30 × 5 (5e RAW). No mount = no wagon hauling.</p>
-        <details style="margin-top:8px">
-          <summary style="font-size:10px;color:var(--text-dim);cursor:pointer;list-style:none;padding:4px 0;min-height:28px;display:flex;align-items:center">▶ Backstory &amp; Personality</summary>
-          <div class="form-group" style="margin-top:6px"><label class="field-label">Backstory</label><textarea id="ox-backstory" style="min-height:50px;font-size:11px" oninput="state.wagon.ox.backstory=this.value;save()" placeholder="How did the party acquire this animal?"></textarea></div>
-          <div class="form-group"><label class="field-label">Personality &amp; Quirks</label><textarea id="ox-personality" style="min-height:50px;font-size:11px" oninput="state.wagon.ox.personality=this.value;save()"></textarea></div>
-          <div id="mount-bonds"></div>
-        </details>
-      </details>
+        <div id="animals-list"></div>
+      </div>
       <div class="panel">
-        <div class="panel-title">Cargo Capacity</div>
+        <div class="panel-title">Cargo Capacity
+          <span style="margin-left:auto;font-size:10px;color:var(--text-dim)">Max: <input type="number" id="wagon-cap-input" style="width:60px;font-size:10px;padding:2px 4px;text-align:right" min="100" step="10" onchange="state.wagon.capacity=parseFloat(this.value)||1080;save();renderWagon()"> lb</span>
+        </div>
         <div class="cap-bar-wrap"><div class="cap-bar-fill" id="cap-fill" style="width:0%;background:var(--green)"></div><div class="cap-bar-label" id="cap-lbl">0 / 1,080 lb</div></div>
-        <div id="cap-warn" style="font-size:11px;color:var(--red);display:none;margin-top:4px">⚠ Encumbered! Ox speed reduced per 5e encumbrance rules.</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Encumbered &gt;540 lb (−10ft) | Heavy &gt;1,080 lb (−20ft, disadvantage on Str/Dex/Con)</div>
+        <div id="cap-warn" style="font-size:11px;color:var(--red);display:none;margin-top:4px">⚠ Encumbered! Speed reduced per 5e encumbrance rules.</div>
+        <div id="cap-thresholds" style="font-size:10px;color:var(--text-dim);margin-top:4px"></div>
       </div>
       <div class="panel danger">
         <div class="panel-title">Holding Cells <button class="btn sm green" style="margin-left:auto" onclick="addCell()">+ Add Cell</button></div>

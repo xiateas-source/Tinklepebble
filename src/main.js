@@ -5,7 +5,8 @@ const ALL_CONDS=['Blinded','Charmed','Deafened','Exhausted','Frightened','Grappl
 const SPELL_LVLS=['1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
 const XP_T=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
 const CP_INT={exploration:6,combat:3,roleplay:8,custom:6};
-const MAX_LB=1080;
+const DEFAULT_MAX_LB=1080;
+function getMaxLb(){return parseFloat(state.wagon?.capacity)||DEFAULT_MAX_LB;}
 const ZONE_IDS=['front','back','left','right','air','rear'];
 const ZONE_LABELS={front:'Frontline',back:'Backline',left:'Left Flank',right:'Right Flank',air:'Air Space',rear:'Rear Guard'};
 const ZONE_ADJ={front:['left','right','back','air'],back:['front','rear'],left:['front'],right:['front'],air:['front'],rear:['back']};
@@ -376,7 +377,7 @@ function showTermTip(event,term){
 
 // Save version — increment whenever PC data or state structure changes significantly
 // loadState() uses this to detect stale saves and merge canonical PC data
-const SAVE_VERSION=12;
+const SAVE_VERSION=13;
 
 // ═══ FIREBASE DROP 2 ═══
 let fbConfig=null,fbApp=null,fbDb=null,fbRef=null,fbListening=false,fbLastWrite=0,fbEnabled=false,_chatMutatedAt=0,_lastMechReceipt=null;
@@ -1033,7 +1034,7 @@ function renderAll(){
   renderLogs();renderChat();renderTurnCtr();
   renderChkHist();renderRewind();renderScenes();renderSnips();renderModuleTracker();renderStoryRead();
   renderWagon();renderIncome();renderPartyInv();syncWorld();renderTreasuryTotal();
-  renderCampaignSecrets();renderTownRep();renderConsequences();syncBP();syncOxProfile();renderQAEditor();updProvStatusMini();
+  renderCampaignSecrets();renderTownRep();renderConsequences();syncBP();renderAnimals();renderQAEditor();updProvStatusMini();
   renderPlugins();renderSuperpowers();renderErrorLog();updatePlayerLbl();renderOOC();renderParty();renderSetupLock();renderContracts();
   // Ensure session sub-panels are in correct state
   if(document.getElementById('sess-log-panel')){
@@ -1073,10 +1074,14 @@ function _ctxSlides(){
     slides.unshift({icon:'⚔',text:'Round '+round+' · '+(cur?cur.name+'\'s turn':'—'),action:'showTab(\'tab-combat\')',combat:true});
   }
   const activeQuests=(state.quests||[]).filter(q=>q.status==='active');
-  if(activeQuests.length){
-    const qText=activeQuests[0].text.split('|')[0].slice(0,50);
-    slides.push({icon:'📜',text:qText+(activeQuests.length>1?' (+' +(activeQuests.length-1)+')':''),action:'showTab(\'tab-world\')'});
-  }
+  activeQuests.forEach(q=>{
+    slides.push({icon:'📜',text:(q.text||'').split('|')[0].slice(0,50),action:'showTab(\'tab-world\')'});
+  });
+  const activeCsq=(state.consequences||[]).filter(c=>!c.resolved);
+  activeCsq.forEach(c=>{
+    const tag=c.type?c.type.toUpperCase()+': ':'';
+    slides.push({icon:'⚠',text:tag+(c.text||'').slice(0,50),action:'showTab(\'tab-world\')',warning:true});
+  });
   if(state.treasuryData){
     const gp=parseFloat(state.treasuryData.gp)||0;
     if(gp>0)slides.push({icon:'💰',text:gp+' gp',action:null});
@@ -1090,7 +1095,8 @@ function renderContextStrip(){
   if(_ctxSlide>=slides.length)_ctxSlide=0;
   const s=slides[_ctxSlide];
   const dots=slides.length>1?'<span style="margin-left:auto;font-size:8px;color:var(--text-dim);letter-spacing:2px">'+slides.map((_,i)=>i===_ctxSlide?'●':'○').join('')+'</span>':'';
-  el.innerHTML=`<span style="cursor:${s.action?'pointer':'default'};color:${s.combat?'var(--red)':'var(--gold)'};font-weight:${s.combat?'600':'normal'}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>${dots}`;
+  const sColor=s.combat?'var(--red)':s.warning?'var(--gold-bright)':'var(--gold)';
+  el.innerHTML=`<span style="cursor:${s.action?'pointer':'default'};color:${sColor};font-weight:${s.combat||s.warning?'600':'normal'}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>${dots}`;
   if(!_ctxTimer){
     const n=_ctxSlides().length;
     if(n>1)_ctxTimer=setInterval(()=>{_ctxSlide=(_ctxSlide+1)%_ctxSlides().length;renderContextStrip();},5000);
@@ -1458,11 +1464,8 @@ function syncWorld(){
   const spr=document.getElementById('setup-premise');if(spr)spr.value=state.worldData.premise||'';
   const sst=document.getElementById('setup-setting');if(sst)sst.value=state.worldData.setting||'';
   const smq=document.getElementById('setup-mission');if(smq)smq.value=state.worldData.primaryMission||'';
-  syncBP();syncOxProfile();
+  syncBP();renderAnimals();
   updatePremiseUI();
-  const ox=state.wagon.ox;
-  const om={name:'ox-name',hp:'ox-hp',hp_max:'ox-hp-max',ac:'ox-ac',conditions:'ox-cond',feed:'ox-feed'};
-  Object.entries(om).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&ox[k]!==undefined)el.value=ox[k];});
 }
 function renderJournalHeader(){
   const el=document.getElementById('journal-header');if(!el)return;
@@ -1511,13 +1514,17 @@ function renderJournalRep(){
   if(!state.worldData.townReputation.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No towns visited yet.</div>';return;}
   const statuses=['good','neutral','burned','fled'];
   state.worldData.townReputation.forEach((t,i)=>{
-    const d=document.createElement('div');d.className='town-row '+(t.status||'neutral');
-    d.innerHTML=`<input type="text" value="${esc(t.town||'')}" style="flex:1;min-width:80px;font-size:11px" placeholder="Town name" onchange="updTown(${i},'town',this.value);renderJournalRep()">
-      <select style="width:75px;font-size:10px;padding:3px" onchange="updTown(${i},'status',this.value);renderJournalRep()">
-        ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
-      </select>
-      <input type="text" value="${esc(t.notes||'')}" style="flex:2;min-width:100px;font-size:11px" placeholder="Notes..." onchange="updTown(${i},'notes',this.value)">
-      <button class="btn sm red icon-btn" onclick="remTown(${i});renderJournalRep()">&times;</button>`;
+    const d=document.createElement('div');
+    const statusColor=t.status==='good'?'var(--green)':t.status==='burned'||t.status==='fled'?'var(--red)':'var(--text-dim)';
+    d.style.cssText='display:flex;flex-direction:column;gap:4px;padding:8px;border:1px solid var(--border);border-left:3px solid '+statusColor+';border-radius:4px;background:var(--surface2);margin-bottom:6px';
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px">
+        <input type="text" value="${esc(t.town||'')}" style="flex:1;font-size:12px;font-weight:600" placeholder="Town name" onchange="updTown(${i},'town',this.value);renderJournalRep()">
+        <select style="width:75px;font-size:10px;padding:3px;border-color:${statusColor};color:${statusColor}" onchange="updTown(${i},'status',this.value);renderJournalRep()">
+          ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="btn sm red icon-btn" onclick="remTown(${i});renderJournalRep()">&times;</button>
+      </div>
+      <input type="text" value="${esc(t.notes||'')}" style="font-size:11px;color:var(--text)" placeholder="Notes — what happened here..." onchange="updTown(${i},'notes',this.value)">`;
     c.appendChild(d);
   });
 }
@@ -1688,7 +1695,7 @@ function renderQuests(){
     groupEl.style.cssText='display:flex;gap:0;min-height:40px;margin-bottom:'+(isLast?'0':'2')+'px';
     const timeline=document.createElement('div');
     timeline.style.cssText='display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:18px;padding-top:4px';
-    timeline.innerHTML=`<div style="width:12px;height:12px;border-radius:50%;flex-shrink:0;background:${activeInGroup?'var(--gold)':'var(--surface3)'};border:2px solid ${activeInGroup?'var(--gold-bright)':'var(--border-bright)'}"></div>${!isLast?'<div style="width:1px;flex:1;background:var(--border);margin:3px 0"></div>':''}`;
+    timeline.innerHTML=`<div style="width:12px;height:12px;border-radius:50%;flex-shrink:0;background:${activeInGroup?'var(--green)':'var(--surface3)'};border:2px solid ${activeInGroup?'var(--green)':'var(--border-bright)'}"></div>${!isLast?'<div style="width:1px;flex:1;background:var(--border);margin:3px 0"></div>':''}`;
     const content=document.createElement('div');
     content.style.cssText='flex:1;min-width:0;padding-bottom:'+(isLast?'0':'12')+'px;margin-left:6px';
     let locHdr=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
@@ -1907,6 +1914,7 @@ function updPI(i,k,v){state.partyInventory[i][k]=v;save();}
 function remPI(i){state.partyInventory.splice(i,1);_piEditIdx=null;save();renderPartyInv();}
 
 // ═══ INCOME LOG ═══
+let _incomeEditIdx=null;
 function renderIncome(){
   const c=document.getElementById('income-log');if(!c)return;c.innerHTML='';
   const log=state.treasuryData.incomeLog||[];
@@ -1915,12 +1923,37 @@ function renderIncome(){
     const d=document.createElement('div');
     d.className='income-row income-'+(e.type==='in'?'in':'out');
     d.style.cursor='pointer';
-    d.innerHTML=`<span>${esc(e.desc)}</span><span style="color:${e.type==='in'?'var(--green-bright)':'var(--red)'};font-weight:bold">${e.type==='in'?'+':'−'}${e.amt} gp</span>`;
-    d.onclick=()=>removeIncomeEntry(realIdx);
+    if(_incomeEditIdx===realIdx){
+      d.style.cssText='display:flex;flex-direction:column;gap:4px;padding:6px 8px;border:1px solid var(--gold);border-radius:4px;background:var(--surface2);margin-bottom:4px';
+      d.innerHTML=`<input type="text" value="${esc(e.desc)}" style="font-size:11px" placeholder="Description" onchange="updIncome(${realIdx},'desc',this.value)">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" value="${e.amt}" style="width:70px;font-size:11px" min="0" onchange="updIncome(${realIdx},'amt',parseFloat(this.value)||0)">
+          <span style="font-size:10px;color:var(--text-dim)">gp</span>
+          <select style="font-size:10px;width:60px" onchange="updIncome(${realIdx},'type',this.value)"><option value="in" ${e.type==='in'?'selected':''}>In</option><option value="out" ${e.type!=='in'?'selected':''}>Out</option></select>
+          <button class="btn sm red" onclick="removeIncomeEntry(${realIdx})" style="margin-left:auto">Delete</button>
+          <button class="btn sm" onclick="_incomeEditIdx=null;renderIncome()">Done</button>
+        </div>`;
+    }else{
+      d.innerHTML=`<span>${esc(e.desc)}</span><span style="color:${e.type==='in'?'var(--green-bright)':'var(--red)'};font-weight:bold">${e.type==='in'?'+':'−'}${e.amt} gp</span>`;
+      d.onclick=()=>{_incomeEditIdx=realIdx;renderIncome();};
+    }
     c.appendChild(d);
   });
 }
+function updIncome(idx,key,val){
+  const log=state.treasuryData.incomeLog;if(!log||!log[idx])return;
+  const e=log[idx];
+  if(key==='amt'){
+    const oldAmt=e.amt;const diff=val-oldAmt;
+    if(e.type==='in')state.treasuryData.gp=Math.max(0,(parseFloat(state.treasuryData.gp)||0)+diff);
+    else state.treasuryData.gp=Math.max(0,(parseFloat(state.treasuryData.gp)||0)-diff);
+    const gpEl=document.getElementById('t_gp');if(gpEl)gpEl.value=state.treasuryData.gp;
+    renderTreasuryTotal();
+  }
+  e[key]=val;save();renderIncome();
+}
 function removeIncomeEntry(idx){
+  _incomeEditIdx=null;
   const log=state.treasuryData.incomeLog;if(!log||!log[idx])return;
   const e=log[idx];
   if(!confirm('Delete "'+e.desc+' '+(e.type==='in'?'+':'−')+e.amt+'gp"?\nThis will adjust the treasury.'))return;
@@ -2007,11 +2040,13 @@ function calcWeight(){
   return w;
 }
 function renderCapacity(){
-  const w=calcWeight();const pct=Math.min(100,(w/MAX_LB)*100);
+  const maxLb=getMaxLb();const w=calcWeight();const pct=Math.min(100,(w/maxLb)*100);
   const fill=document.getElementById('cap-fill');const lbl=document.getElementById('cap-lbl');const warn=document.getElementById('cap-warn');
   if(fill){fill.style.width=pct+'%';fill.style.background=pct>100?'var(--red)':pct>50?'var(--gold)':'var(--green)';}
-  if(lbl)lbl.textContent=w.toFixed(1)+' / '+MAX_LB+' lb ('+Math.round(pct)+'%)';
-  if(warn)warn.style.display=w>MAX_LB/2?'block':'none';
+  if(lbl)lbl.textContent=w.toFixed(1)+' / '+maxLb+' lb ('+Math.round(pct)+'%)';
+  if(warn)warn.style.display=w>maxLb/2?'block':'none';
+  const capInput=document.getElementById('wagon-cap-input');if(capInput)capInput.value=maxLb;
+  const thresh=document.getElementById('cap-thresholds');if(thresh)thresh.textContent='Encumbered >'+Math.round(maxLb/2)+' lb (−10ft) | Heavy >'+maxLb+' lb (−20ft, disadvantage on Str/Dex/Con)';
 }
 function renderCells(){
   const c=document.getElementById('holding-cells');if(!c)return;
@@ -2468,21 +2503,15 @@ function addPartyToCombat(){
       state.logs.push({ts:state.worldData.time,type:'combat',body:pc.name+' joined '+ZONE_LABELS[zone]+' (d20['+roll+']+'+pc.initiative+'='+val+')'});
     }
   });
-  // Add mount + Wagon to Rear Guard if not already present
-  const ox=state.wagon?.ox;
-  const mountName=ox?.name||'';
-  if(mountName&&ox.hp_max>0&&!state.combat.list.some(c=>c.name===mountName)){
-    state.combat.list.push({name:mountName,val:0,hp:ox.hp||0,hp_max:ox.hp_max||0,ac:ox.ac||10,isPC:false,zone:'rear',conditions:[],concentrating:''});
-  }
+  // Add all animals + Wagon to Rear Guard
+  (state.wagon.animals||[]).forEach(a=>{
+    if(a.name&&a.hp_max>0&&!state.combat.list.some(c=>c.name===a.name)){
+      state.combat.list.push({name:a.name,val:0,hp:a.hp||0,hp_max:a.hp_max||0,ac:a.ac||10,isPC:false,zone:'rear',conditions:[],concentrating:''});
+    }
+  });
   if(!state.combat.list.some(c=>c.name==='Wagon')){
     state.combat.list.push({name:'Wagon',val:0,hp:state.wagon?.hp||20,hp_max:state.wagon?.hp_max||20,ac:state.wagon?.ac||11,isPC:false,zone:'rear',conditions:[],concentrating:''});
   }
-  state.pcs.forEach(p=>{
-    if(p.familiar&&!state.combat.list.some(c=>c.name===p.familiar.name)){
-      const f=p.familiar;
-      state.combat.list.push({name:f.name,val:0,hp:f.hp||1,hp_max:f.hp_max||1,ac:f.ac||10,isPC:false,zone:'rear',conditions:[],concentrating:''});
-    }
-  });
   sortComb();saveRefresh();
 }
 function sortComb(){state.combat.list.sort((a,b)=>b.val-a.val);}
@@ -2538,7 +2567,8 @@ function endCombat(){
   });
   state.combat.list.forEach(ent=>{
     if(ent.isPC)return;
-    state.pcs.forEach(p=>{if(p.familiar&&p.familiar.name===ent.name){p.familiar.hp=Math.max(0,ent.hp);}});
+    (state.wagon.animals||[]).forEach(a=>{if(a.name===ent.name)a.hp=Math.max(0,ent.hp);});
+    state.pcs.forEach(p=>{if(p.familiar&&p.familiar.name===ent.name)p.familiar.hp=Math.max(0,ent.hp);});
     if(state.wagon?.ox&&state.wagon.ox.name&&ent.name===state.wagon.ox.name)state.wagon.ox.hp=Math.max(0,ent.hp);
   });
   state.combat={active:false,round:1,currentIdx:0,list:[],zones:_defaultZones(),moveMode:'ai'};
@@ -3730,10 +3760,9 @@ function genLedger(){
       const pcW=_pcCarryWeight(p);const pcCap=_pcCarryCap(p);
       if(pcW>0)l+=' | Carry: '+pcW.toFixed(1)+'/'+pcCap+'lb'+(pcW>pcCap?' OVER':'');
       l+='\n';
-      if(p.familiar){const f=p.familiar;l+='  Familiar '+f.name+': HP '+f.hp+'/'+f.hp_max+'\n';}
     });
     const cb=_combatLedgerBlock();if(cb)l+='\n'+cb;
-    const ox=state.wagon.ox;if(ox.name&&ox.hp_max>0)l+="\n"+(ox.name)+": HP "+ox.hp+"/"+ox.hp_max+" | Feed: "+ox.feed+"\n";
+    (state.wagon.animals||[]).forEach(a=>{if(a.name&&a.hp_max>0)l+=a.name+' ('+a.role+'): HP '+a.hp+'/'+a.hp_max+(a.feed?' | Feed: '+a.feed:'')+'\n';});
     l+="Treasury: GP "+state.treasuryData.gp+"\n";
     l+="=== END COMPACT ===";
     if(out){out.value=l;const chars=l.length;const toks=Math.round(chars/4);document.getElementById('ledger-chars').innerText=chars+' chars';document.getElementById('ledger-tokens').innerText='~'+toks+' tokens';}
@@ -3765,7 +3794,6 @@ function genLedger(){
       if(p.backstory_secret)l+='  Secret: '+p.backstory_secret+'\n';
       if((p.inventory||[]).length){const iw=_pcCarryWeight(p);const ic=_pcCarryCap(p);l+='  Inventory ('+iw.toFixed(1)+'/'+ic+'lb): '+p.inventory.map(i=>i.name+'(x'+i.qty+', '+((parseFloat(i.weight)||0)*(parseInt(i.qty)||1)).toFixed(1)+'lb)').join(', ')+'\n';}
     }
-    if(p.familiar){const f=p.familiar;l+='  Familiar: '+f.name+' ('+f.type+') HP '+f.hp+'/'+f.hp_max+' AC '+f.ac+' | PP '+(f.passive_perception||10)+(f.notes?' | '+f.notes.slice(0,80):'')+'\n';}
     l+='\n';
   });
   l+="━━━ WORLD ━━━\n";
@@ -3779,9 +3807,10 @@ function genLedger(){
     l+='PP:'+state.treasuryData.pp+' GP:'+state.treasuryData.gp+' EP:'+state.treasuryData.ep+' SP:'+state.treasuryData.sp+' CP:'+state.treasuryData.cp+'\n';
     if((state.partyInventory||[]).length){l+="\n━━━ PARTY INVENTORY ━━━\n";state.partyInventory.forEach(i=>l+='  '+i.name+' x'+i.qty+' ('+i.weight+'lb) ['+i.type+']\n');}
     l+="\n━━━ WAGON & TRANSPORT ━━━\n";
-    const ox=state.wagon.ox;
-    l+='Ox ('+ox.name+'): HP '+ox.hp+'/'+ox.hp_max+' AC '+ox.ac+' | Feed: '+ox.feed+' | Conditions: '+ox.conditions+'\n';
-    l+='Cargo Weight: '+calcWeight().toFixed(1)+'/'+MAX_LB+'lb\n';
+    (state.wagon.animals||[]).forEach(a=>{
+      l+=a.role.toUpperCase()+' ('+a.name+'): HP '+(a.hp||0)+'/'+(a.hp_max||0)+' AC '+(a.ac||10)+(a.feed?' | Feed: '+a.feed:'')+(a.conditions&&a.conditions!=='None'?' | '+a.conditions:'')+'\n';
+    });
+    l+='Cargo Weight: '+calcWeight().toFixed(1)+'/'+getMaxLb()+'lb\n';
     if(state.wagon.cells?.length){l+='Holding Cells:\n';state.wagon.cells.forEach(c=>l+='  ['+c.temperament?.toUpperCase()+'] '+c.name+' ('+c.size+') Escape: '+c.escDC+' Weight: '+c.weight+'lb\n');}
     if(state.wagon.cargo?.length){l+='Cargo:\n';state.wagon.cargo.forEach(i=>l+='  '+i.name+' x'+i.qty+' ['+i.type+'] '+i.weight+'lb\n');}
     if(state.wagon.hoard?.length){l+="Party Hoard:\n";state.wagon.hoard.forEach(i=>l+='  '+i.name+' x'+i.qty+' '+i.weight+'lb\n');}
@@ -4608,6 +4637,21 @@ function migrate(s){
     (s.combat.list||[]).forEach(function(c){if(!c.zone)c.zone='front';});
   }
 
+  // ══ VERSION GATE: savedVer < 13 — Multi-animal system ══
+  if(savedVer<13){
+    if(!Array.isArray(s.wagon.animals))s.wagon.animals=[];
+    const ox=s.wagon.ox;
+    if(ox&&ox.name&&ox.hp_max>0&&!s.wagon.animals.some(a=>a.name===ox.name)){
+      s.wagon.animals.push({id:'animal_'+Date.now(),name:ox.name,type:ox.name?'ox':'',role:'draft',hp:ox.hp||0,hp_max:ox.hp_max||0,ac:ox.ac||10,conditions:ox.conditions||'None',feed:ox.feed||'N/A',backstory:ox.backstory||'',personality:ox.personality||'',notes:''});
+    }
+    s.pcs.forEach(p=>{
+      if(p.familiar&&p.familiar.name&&!s.wagon.animals.some(a=>a.name===p.familiar.name)){
+        const f=p.familiar;
+        s.wagon.animals.push({id:'animal_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),name:f.name,type:f.type||'familiar',role:'familiar',hp:f.hp||1,hp_max:f.hp_max||1,ac:f.ac||10,conditions:'',feed:'',backstory:'',personality:'',notes:f.notes||'',ownerId:p.id,speed:f.speed||'',str:f.str,dex:f.dex,con:f.con,int:f.int,wis:f.wis,cha:f.cha,passive_perception:f.passive_perception});
+      }
+    });
+  }
+
   // ══ CANONICAL QA COMPLETENESS — always run to pick up QAs added in current version ══
   const validTabs=['tab-party','tab-world','tab-wagon','tab-combat','tab-session','tab-ait','tab-dm'];
   const hasValidActions=s.quickActions.some(qa=>(qa.context||[]).some(c=>validTabs.includes(c)));
@@ -4692,6 +4736,8 @@ function migrate(s){
   if(!s.wagon.ox.bonds||typeof s.wagon.ox.bonds!=='object')s.wagon.ox.bonds={};
   if(!Array.isArray(s.wagon.ox.quirks))s.wagon.ox.quirks=[];
   if(s.wagon.ox.experimentLog===undefined)s.wagon.ox.experimentLog='';
+  if(s.wagon.capacity===undefined)s.wagon.capacity=DEFAULT_MAX_LB;
+  if(!Array.isArray(s.wagon.animals))s.wagon.animals=[];
   if(!Array.isArray(s.wagon.cells))s.wagon.cells=[];
   if(!Array.isArray(s.wagon.cargo))s.wagon.cargo=[];
   if(!Array.isArray(s.wagon.hoard))s.wagon.hoard=[];
@@ -5248,7 +5294,7 @@ CRITICAL RULES:
 3. item_add: Emit for EVERY item found/foraged/bought/stolen/acquired — even if mentioned in prose.
 4. location_add: Emit for ANY new named location visited.
 5. Always update time/location/weather when they change.
-6. Encumbrance: PC carry cap = STR×15 lbs. Wagon cap = 1080 lbs. Enforce penalties when exceeded.
+6. Encumbrance: PC carry cap = STR×15 lbs. Wagon cap = ${getMaxLb()} lbs. Enforce penalties when exceeded.
 
 COMBAT (6-zone system: Frontline/Backline/Left Flank/Right Flank/Air Space/Rear Guard):
 Adjacency: Front↔Left, Front↔Right, Front↔Back, Front↔Air, Back↔Rear. Move=1 adjacent, 2 non-adjacent. OA on leaving hostile zone.
@@ -5301,13 +5347,13 @@ LEVEL-UP: You CANNOT level up characters. Direct players to //levelup or Sheet >
       +(globalRef?'\nMODULE REFERENCE (always active):\n'+globalRef+'\n':'')
       +(epContent?'\nACTIVE EPISODE CONTENT — '+activeEp.name+':\n'+epContent+'\n':'');
   }
-  const inventoryGuard='\n\nINVENTORY INTEGRITY: Check CAMPAIGN STATE inventory before answering about items. If not listed, say so — never fabricate stats or magic item properties. Emit item_add: when items are identified/attuned.\n';
+  const inventoryGuard='\n\nINVENTORY INTEGRITY: Check CAMPAIGN STATE inventory before answering about items. If not listed, say so — never fabricate stats or magic item properties. Emit item_add: for EVERY item found, looted, bought, stolen, foraged, identified, or attuned.\n';
   return g('ai-persona')+'\n'+premiseSection+sessionZeroSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+inventoryGuard+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
 }
 
 // ═══ MECHANICS BLOCK PARSER — Option B ═══
 // All recognized mechanic keys — used by parseMechanics and display stripping
-const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|familiar_hp|income|expense|xp|quest_add|quest_done|quest_fail|quest_update|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
+const _MECH_KEYS='hp|hp_max|conditions|concentration|location|time|weather|travel_note|loc_desc|gp|sp|cp|ep|pp|item_add|item_remove|slot_use|slot_restore|resource_use|resource_restore|shell_defense|wagon_cell_add|wagon_cell_update|wagon_cell_remove|wagon_hp|ox_hp|ox_condition|familiar_hp|animal_hp|animal_condition|income|expense|xp|quest_add|quest_done|quest_fail|quest_update|primary_mission|npc_add|npc_mood|pc_update|pc_add|pc_delete|module_episode|short_rest|town_rep|save_game|save|spell_add|sp_charge|consequence_add|consequence_resolve|chapter_add|chapter_update|location_add|location_visit|location_history|location_investment|roll_request|zone_move|zone_add_enemy|zone_remove|zone_effect|zone_label|combat_start|combat_end|zone_fog|none';
 const _NAKED_MECH_RE=new RegExp('^[-*•]?\\s*(?:[A-Za-z][A-Za-z0-9 ]*:\\s*)?('+_MECH_KEYS+'): .+','m');
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
@@ -5448,7 +5494,8 @@ function parseMechanics(responseText, pendingMsgId=null){
         const tgt=hasTarget?firstLower:'wagon';
         const base=hasTarget?1:0; // offset: skip target token when present
         const iname=pts[base]||'Item';const iqty=parseInt(pts[base+1])||1;const itype=pts[base+2]||'misc';const iweight=parseFloat(pts[base+3])||0;
-        const item={name:iname,qty:iqty,weight:iweight,type:itype,notes:'',ts:state.worldData?.time,location:state.worldData?.location};
+        const _provenance=[(state.worldData?.time||''),(state.worldData?.location||'')].filter(Boolean).join(' — ')||'';
+        const item={name:iname,qty:iqty,weight:iweight,type:itype,notes:_provenance,ts:state.worldData?.time,location:state.worldData?.location};
         const _fuzzyMatch=(a,b)=>{const al=a.toLowerCase().replace(/\s+/g,''),bl=b.toLowerCase().replace(/\s+/g,'');if(al===bl)return true;if(Math.abs(al.length-bl.length)>2)return false;let d=0;for(let i=0;i<Math.max(al.length,bl.length);i++){if(al[i]!==bl[i])d++;if(d>1)return false;}return true;};
         const stackOrAdd=(list)=>{const ex=list.find(i=>_fuzzyMatch(i.name,iname));if(ex){ex.qty=(ex.qty||1)+iqty;return ex.name;}list.push(item);return false;};
         const _itemMsg=(s,dest)=>s?(s+' ×+'+iqty+' → '+dest):('+'+iname+' → '+dest);
@@ -5475,15 +5522,31 @@ function parseMechanics(responseText, pendingMsgId=null){
         if(cell){cell.temperament=pts[1]||cell.temperament;changes.push({text:cell.name+' → '+cell.temperament});}
       }else if(key==='wagon_cell_remove'){
         if(state.wagon.cells){const i=state.wagon.cells.findIndex(c=>c.name.toLowerCase()===val.toLowerCase());if(i>-1){state.wagon.cells.splice(i,1);changes.push({text:'Cell removed: '+val});}}
-      }else if(key==='ox_hp'){state.wagon.ox.hp=Math.max(0,parseInt(val)||0);changes.push({text:'Ox HP → '+state.wagon.ox.hp});}
-      else if(key==='ox_condition'){state.wagon.ox.conditions=val;changes.push({text:'Ox → '+val});}
-      else if(key==='familiar_hp'){
+      }else if(key==='ox_hp'){
+        const a=(state.wagon.animals||[]).find(an=>an.role==='draft');
+        if(a){a.hp=Math.max(0,parseInt(val)||0);changes.push({text:a.name+' HP → '+a.hp});}
+        if(state.wagon.ox)state.wagon.ox.hp=Math.max(0,parseInt(val)||0);
+      }else if(key==='ox_condition'){
+        const a=(state.wagon.animals||[]).find(an=>an.role==='draft');
+        if(a){a.conditions=val;changes.push({text:a.name+' → '+val});}
+        if(state.wagon.ox)state.wagon.ox.conditions=val;
+      }else if(key==='familiar_hp'){
         const parts=val.split('|').map(s=>s.trim());
         const fname=parts[0]||'';const fhp=parseInt(parts[1]);
         if(!isNaN(fhp)){
+          const a=findAnimal(fname);
+          if(a){a.hp=Math.max(0,Math.min(a.hp_max,fhp));changes.push({text:a.name+' HP → '+a.hp});}
           const pc=state.pcs.find(p=>p.familiar&&p.familiar.name.toLowerCase()===fname.toLowerCase());
-          if(pc&&pc.familiar){pc.familiar.hp=Math.max(0,Math.min(pc.familiar.hp_max,fhp));changes.push({text:'Familiar '+pc.familiar.name+' HP → '+pc.familiar.hp});}
+          if(pc&&pc.familiar)pc.familiar.hp=Math.max(0,Math.min(pc.familiar.hp_max,fhp));
         }
+      }else if(key==='animal_hp'){
+        const parts=val.split('=').map(s=>s.trim());
+        const a=findAnimal(parts[0]);
+        if(a){a.hp=Math.max(0,Math.min(a.hp_max,parseInt(parts[1])||0));changes.push({text:a.name+' HP → '+a.hp});}
+      }else if(key==='animal_condition'){
+        const parts=val.split('=').map(s=>s.trim());
+        const a=findAnimal(parts[0]);
+        if(a){a.conditions=parts[1]||'';changes.push({text:a.name+' → '+a.conditions});}
       }
       else if(key==='save_game'||key==='save'){
         save();changes.push({text:'Game saved'});
@@ -5980,7 +6043,7 @@ function confirmLedgerChip(amt,dir){
   // Auto-dismiss if ignored — never nags forever.
   setTimeout(()=>{if(chip.isConnected)close();},12000);
 }
-function findPC(name){if(!name)return null;return state.pcs.find(p=>p.id===name||p.name.toLowerCase()===name.toLowerCase());}
+function findPC(name){if(!name)return null;const nl=name.trim().toLowerCase();return state.pcs.find(p=>p.id===name||p.name.toLowerCase()===nl)||state.pcs.find(p=>p.name.toLowerCase().startsWith(nl+' '))||state.pcs.find(p=>p.name.toLowerCase().split(' ')[0]===nl)||null;}
 
 // ═══ AI COMPLIANCE CHIPS — NPC + ITEM ═══
 function _showChip(icon,label,borderColor,onConfirm){
@@ -6166,7 +6229,7 @@ function _validateMechanics(changes){
     if(w>cap)warnings.push(pc.name+' over carry capacity: '+w.toFixed(1)+'/'+cap+'lb');
   });
   const wagonW=calcWeight();
-  if(wagonW>MAX_LB)warnings.push('Wagon over capacity: '+wagonW.toFixed(1)+'/'+MAX_LB+'lb');
+  if(wagonW>getMaxLb())warnings.push('Wagon over capacity: '+wagonW.toFixed(1)+'/'+getMaxLb()+'lb');
 
   // Treasury negative check
   if(state.treasuryData){
@@ -6790,11 +6853,12 @@ async function sendMsg(){
     const ledger=useLedger?(document.getElementById('ledger-out')?.value||''):'';
     const _inject=_ctxInject;_ctxInject=null;
     const encWarns=[];
-    const wW=calcWeight();if(wW>MAX_LB)encWarns.push('Wagon OVER capacity: '+wW.toFixed(0)+'/'+MAX_LB+'lb. Travel speed halved, risk of axle failure.');
+    const wW=calcWeight();if(wW>getMaxLb())encWarns.push('Wagon OVER capacity: '+wW.toFixed(0)+'/'+getMaxLb()+'lb. Travel speed halved, risk of axle failure.');
     (state.pcs||[]).forEach(p=>{const w=_pcCarryWeight(p),c=_pcCarryCap(p);if(w>c)encWarns.push(p.name+' ENCUMBERED: '+w.toFixed(0)+'/'+c+'lb.');});
     const encCtx=encWarns.length?'\n\n[ENCUMBRANCE WARNING] '+encWarns.join(' ')+' Enforce movement and travel penalties. Emit item_add/item_remove mechanics for any inventory changes.':'';
     const receipt=_lastMechReceipt||'';_lastMechReceipt=null;
-    const sysProm=buildPrompt(ledger)+(_inject?'\n\n'+_inject:'')+encCtx+(receipt?'\n\n'+receipt:'');
+    const pendingRolls=(window._rollRequestQueue||[]).length?'\n\n[PENDING ROLLS — DO NOT RESOLVE] '+window._rollRequestQueue.map(r=>(r.pcname||'Party')+': '+r.skill+(r.dc?' DC '+r.dc:'')).join('; ')+'. These players have NOT rolled yet. Do NOT narrate outcomes, assume results, or roll for them. Resolve ONLY the acting player\'s actions.':'';
+    const sysProm=buildPrompt(ledger)+(_inject?'\n\n'+_inject:'')+encCtx+(receipt?'\n\n'+receipt:'')+pendingRolls;
     const histForApi=state.chatHistory.filter(m=>m.role!=='system').map(m=>({
       role:m.role==='assistant'?'assistant':'user',
       content:(m.playerName&&m.role!=='assistant'?'['+m.playerName+' playing '+m.playerChar+']: ':'')+m.content
@@ -7618,12 +7682,16 @@ function renderTownRep(){
   state.worldData.townReputation.forEach((t,i)=>{
     const d=document.createElement('div');d.className='town-row '+(t.status||'neutral');
     const statuses=['good','neutral','burned','fled'];
-    d.innerHTML=`<input type="text" value="${esc(t.town||'')}" style="flex:1;min-width:80px;font-size:11px" placeholder="Town name" onchange="updTown(${i},'town',this.value)">
-      <select style="width:75px;font-size:11px;padding:3px" onchange="updTown(${i},'status',this.value);renderTownRep()">
-        ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
-      </select>
-      <input type="text" value="${esc(t.notes||'')}" style="flex:2;min-width:100px;font-size:11px" placeholder="Notes..." onchange="updTown(${i},'notes',this.value)">
-      <button class="btn sm red icon-btn" onclick="remTown(${i})">&times;</button>`;
+    const statusColor=t.status==='good'?'var(--green)':t.status==='burned'||t.status==='fled'?'var(--red)':'var(--text-dim)';
+    d.style.cssText='display:flex;flex-direction:column;gap:4px;padding:8px;border:1px solid var(--border);border-left:3px solid '+statusColor+';border-radius:4px;background:var(--surface2);margin-bottom:6px';
+    d.innerHTML=`<div style="display:flex;align-items:center;gap:6px">
+        <input type="text" value="${esc(t.town||'')}" style="flex:1;font-size:12px;font-weight:600" placeholder="Town name" onchange="updTown(${i},'town',this.value)">
+        <select style="width:75px;font-size:10px;padding:3px;border-color:${statusColor};color:${statusColor}" onchange="updTown(${i},'status',this.value);renderTownRep()">
+          ${statuses.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="btn sm red icon-btn" onclick="remTown(${i})">&times;</button>
+      </div>
+      <input type="text" value="${esc(t.notes||'')}" style="font-size:11px;color:var(--text)" placeholder="Notes — what happened here..." onchange="updTown(${i},'notes',this.value)">`;
     c.appendChild(d);
   });
 }
@@ -7656,26 +7724,56 @@ function syncBP(){
 }
 
 // ═══ OX PROFILE SYNC ═══
-function syncMountTitle(){
-  const t=document.getElementById('mount-panel-title');
-  const name=state.wagon?.ox?.name;
-  if(t)t.textContent=name?name+' — Mount / Draft Animal':'Mount / Draft Animal';
+function syncMountTitle(){}
+function syncOxProfile(){renderAnimals();}
+function findAnimal(name){if(!name)return null;const nl=name.trim().toLowerCase();return(state.wagon.animals||[]).find(a=>a.name.toLowerCase()===nl)||(state.wagon.animals||[]).find(a=>a.name.toLowerCase().startsWith(nl+' '))||(state.wagon.animals||[]).find(a=>a.name.toLowerCase().split(' ')[0]===nl)||null;}
+function renderAnimals(){
+  const c=document.getElementById('animals-list');if(!c)return;
+  const animals=state.wagon.animals||[];
+  if(!animals.length){c.innerHTML='<div style="color:var(--text-dim);font-size:11px;padding:6px">No animals. Tap + Add.</div>';return;}
+  c.innerHTML='';
+  animals.forEach((a,i)=>{
+    const roleIcon=a.role==='draft'?'🐂':a.role==='mount'?'🐴':a.role==='familiar'?'🦉':'🐾';
+    const hpPct=a.hp_max>0?Math.max(0,Math.min(100,(a.hp/a.hp_max)*100)):0;
+    const hpCol=hpPct<20?'var(--red)':hpPct<50?'var(--gold)':'var(--green)';
+    const det=document.createElement('details');det.className='bs';det.style.cssText='margin-bottom:6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2)';
+    det.innerHTML=`<summary style="list-style:none;cursor:pointer;padding:8px 10px;display:flex;align-items:center;gap:6px">
+      <span>${roleIcon}</span>
+      <span style="flex:1;font-weight:600;font-size:12px;color:var(--text-bright)">${esc(a.name||'Unnamed')}</span>
+      <span style="font-size:10px;padding:1px 6px;border-radius:8px;background:var(--surface3);color:var(--text-dim)">${a.role||'companion'}</span>
+      <span style="font-size:11px;font-weight:700;color:${hpCol};font-family:var(--mono)">${a.hp||0}/${a.hp_max||0}</span>
+    </summary>
+    <div style="padding:8px 10px;border-top:1px solid var(--border)">
+      <div class="form-row">
+        <div class="fg"><label class="field-label">Name</label><input type="text" value="${esc(a.name||'')}" onchange="updAnimal(${i},'name',this.value)" style="font-size:11px"></div>
+        <div style="width:50px"><label class="field-label">HP</label><input type="number" value="${a.hp||0}" onchange="updAnimal(${i},'hp',parseInt(this.value)||0)" style="font-size:11px"></div>
+        <div style="width:55px"><label class="field-label">Max</label><input type="number" value="${a.hp_max||0}" onchange="updAnimal(${i},'hp_max',parseInt(this.value)||0)" style="font-size:11px"></div>
+        <div style="width:45px"><label class="field-label">AC</label><input type="number" value="${a.ac||10}" onchange="updAnimal(${i},'ac',parseInt(this.value)||10)" style="font-size:11px"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label class="field-label">Type</label><input type="text" value="${esc(a.type||'')}" placeholder="ox, horse, owl..." onchange="updAnimal(${i},'type',this.value)" style="font-size:11px"></div>
+        <div class="fg"><label class="field-label">Role</label><select onchange="updAnimal(${i},'role',this.value)" style="font-size:11px">
+          <option value="draft"${a.role==='draft'?' selected':''}>Draft</option>
+          <option value="mount"${a.role==='mount'?' selected':''}>Mount</option>
+          <option value="familiar"${a.role==='familiar'?' selected':''}>Familiar</option>
+          <option value="companion"${a.role==='companion'?' selected':''}>Companion</option>
+        </select></div>
+        <div class="fg"><label class="field-label">Conditions</label><input type="text" value="${esc(a.conditions||'')}" onchange="updAnimal(${i},'conditions',this.value)" style="font-size:11px"></div>
+      </div>
+      ${a.role==='draft'?`<div class="form-row"><div class="fg"><label class="field-label">Feed</label><select onchange="updAnimal(${i},'feed',this.value)" style="font-size:11px"><option value="fed"${a.feed==='fed'?' selected':''}>Fed</option><option value="hungry"${a.feed==='hungry'?' selected':''}>Hungry</option><option value="starving"${a.feed==='starving'?' selected':''}>Starving</option></select></div></div>`:''}
+      <div class="form-group" style="margin-top:4px"><label class="field-label">Notes</label><textarea style="min-height:35px;font-size:11px" onchange="updAnimal(${i},'notes',this.value)">${esc(a.notes||'')}</textarea></div>
+      <div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn sm red" onclick="remAnimal(${i})">Remove</button></div>
+    </div>`;
+    c.appendChild(det);
+  });
 }
-function syncOxProfile(){
-  const ox=state.wagon.ox||{};
-  const el1=document.getElementById('ox-backstory');if(el1)el1.value=ox.backstory||'';
-  const el2=document.getElementById('ox-personality');if(el2)el2.value=ox.personality||'';
-  syncMountTitle();
-  const bc=document.getElementById('mount-bonds');
-  if(bc){
-    const bonds=ox.bonds||{};
-    bc.innerHTML=state.pcs.map((p,i)=>{
-      const key=p.id||('pc'+(i+1));
-      const label=p.name||('Character '+(i+1));
-      return '<div class="form-group"><label class="field-label">Bond — '+esc(label)+'</label><input type="text" style="font-size:11px" value="'+esc(bonds[key]||'')+'" oninput="if(!state.wagon.ox.bonds)state.wagon.ox.bonds={};state.wagon.ox.bonds[\''+key+'\']=this.value;save()"></div>';
-    }).join('');
-  }
+function addAnimal(){
+  if(!Array.isArray(state.wagon.animals))state.wagon.animals=[];
+  state.wagon.animals.push({id:'animal_'+Date.now(),name:'',type:'',role:'companion',hp:1,hp_max:1,ac:10,conditions:'',feed:'',backstory:'',personality:'',notes:''});
+  save();renderAnimals();
 }
+function updAnimal(i,k,v){const a=(state.wagon.animals||[])[i];if(!a)return;a[k]=v;save();renderAnimals();renderHUD();}
+function remAnimal(i){if(!confirm('Remove this animal?'))return;state.wagon.animals.splice(i,1);save();renderAnimals();renderHUD();}
 
 // ═══ PROVIDER STATUS MINI ═══
 function updProvStatusMini(){
@@ -7895,7 +7993,7 @@ function executeQA(action){
     case 'save_game': save();triggerChk('Save Game');break;
     case 'combat_next': nextTurn();break;
     case 'context_refresh': sendContextRefresh();break;
-    case 'ox_feed': state.wagon.ox.feed='fed';save();renderWagon();toast('✓ '+(state.wagon.ox.name||'Mount')+' fed.');break;
+    case 'ox_feed': (state.wagon.animals||[]).filter(a=>a.role==='draft').forEach(a=>a.feed='fed');if(state.wagon.ox)state.wagon.ox.feed='fed';save();renderWagon();renderAnimals();toast('✓ Draft animals fed.');break;
     case 'time_advance':
       openQASheet(action.label,`
         <div class="form-group"><label class="field-label">Advance time by</label>
@@ -9351,35 +9449,22 @@ function renderHUD(){
       +'<div class="hud-spark '+sparkCls+'" style="width:'+pct.toFixed(1)+'%"></div>';
     mosaic.appendChild(tile);
   });
-  // Familiar tiles
-  state.pcs.forEach((pc,pi)=>{
-    if(!pc.familiar)return;
-    const f=pc.familiar;
-    const fhp=parseInt(f.hp)||0,fmax=parseInt(f.hp_max)||1;
-    const fpct=Math.max(0,Math.min(100,(fhp/fmax)*100));
-    const fsparkCls=fpct<20?'danger':fpct<55?'warn':'ok';
+  // Animal tiles (unified: draft, mount, familiar, companion)
+  (state.wagon.animals||[]).forEach((a,ai)=>{
+    if(!a.name||!a.hp_max)return;
+    const ahp=parseInt(a.hp)||0,amax=parseInt(a.hp_max)||1;
+    const apct=Math.max(0,Math.min(100,(ahp/amax)*100));
+    const asparkCls=apct<20?'danger':apct<55?'warn':'ok';
+    const icon=a.role==='draft'?'🐂':a.role==='mount'?'🐴':a.role==='familiar'?'🦉':'🐾';
+    const color=a.role==='familiar'?'var(--purple-bright)':'var(--green)';
     const tile=document.createElement('div');
-    tile.className='hud-tile fam-tile';
-    tile.onclick=(function(idx){return function(){openFamiliarOverview(idx);};})(pi);
-    tile.innerHTML='<div class="hud-name" style="color:var(--purple-bright)">🦉 '+esc(f.name||'Familiar')+'</div>'
-      +'<div class="hud-val">'+fhp+'<span style="font-size:9px;color:var(--text-dim)">/'+fmax+'</span></div>'
-      +'<div class="hud-spark '+fsparkCls+'" style="width:'+fpct.toFixed(1)+'%"></div>';
+    tile.className='hud-tile';
+    tile.onclick=(function(idx){return function(){openAnimalOverview(idx);};})(ai);
+    tile.innerHTML='<div class="hud-name" style="color:'+color+'">'+icon+' '+esc(a.name)+'</div>'
+      +'<div class="hud-val">'+ahp+'<span style="font-size:9px;color:var(--text-dim)">/'+amax+'</span></div>'
+      +'<div class="hud-spark '+asparkCls+'" style="width:'+apct.toFixed(1)+'%"></div>';
     mosaic.appendChild(tile);
   });
-  // Grit tile
-  const ox=state.wagon&&state.wagon.ox;
-  if(ox){
-    const ghp=parseInt(ox.hp)||0,gmax=parseInt(ox.hp_max)||15;
-    const gpct=Math.max(0,Math.min(100,(ghp/gmax)*100));
-    const gsparkCls=gpct<20?'danger':gpct<55?'warn':'ok';
-    const gritTile=document.createElement('div');
-    gritTile.className='hud-tile grit-tile';
-    gritTile.onclick=openGritOverview;
-    gritTile.innerHTML='<div class="hud-name" style="color:var(--green)">🐂 '+esc(ox.name||'No mount')+'</div>'
-      +'<div class="hud-val">'+ghp+'<span style="font-size:9px;color:var(--text-dim)">/'+gmax+'</span></div>'
-      +'<div class="hud-spark '+gsparkCls+'" style="width:'+gpct.toFixed(1)+'%"></div>';
-    mosaic.appendChild(gritTile);
-  }
   // GP
   const gp=parseFloat((state.treasuryData||{}).gp)||0;
   const gpEl=document.getElementById('hud-gp');
@@ -9407,36 +9492,45 @@ function renderTurnTracker(){
     return `<span style="padding:2px 6px;border-radius:4px;color:${color};background:${bg};border:${border};font-weight:${isCur?'700':'400'};opacity:${dead?.4:1};font-size:10px;flex-shrink:0${isCur?';text-decoration:underline':''}">${esc(ent.name.slice(0,8))}${isPC?'':' '+hp}</span>`;
   }).join('');
 }
-function openFamiliarOverview(pcIdx){
-  const pc=state.pcs[pcIdx];if(!pc||!pc.familiar)return;
-  const f=pc.familiar;
-  const hp=parseInt(f.hp)||0,max=parseInt(f.hp_max)||1;
+function openAnimalOverview(idx){
+  const a=(state.wagon.animals||[])[idx];if(!a)return;
+  const hp=parseInt(a.hp)||0,max=parseInt(a.hp_max)||1;
   const pct=Math.max(0,Math.min(100,(hp/max)*100));
   const hpCol=hp<=0?'var(--red)':pct<25?'#c04a3a':pct<50?'var(--gold)':'var(--green)';
-  const titleEl=document.getElementById('familiar-ov-title');
-  const bodyEl=document.getElementById('familiar-ov-body');
-  if(titleEl)titleEl.textContent='🦉 '+(f.name||'Familiar')+' · '+esc(pc.name)+"'s Familiar";
+  const icon=a.role==='draft'?'🐂':a.role==='mount'?'🐴':a.role==='familiar'?'🦉':'🐾';
+  const titleEl=document.getElementById('grit-ov-title');
+  const bodyEl=document.getElementById('grit-ov-body');
+  if(titleEl)titleEl.textContent=icon+' '+esc(a.name||'Animal');
+  const feedRow=a.role==='draft'?`<div style="display:flex;gap:6px;margin-top:8px">
+    <button class="btn sm" onclick="state.wagon.animals[${idx}].feed='fed';save();openAnimalOverview(${idx});renderHUD()" style="flex:1;border-color:var(--green);color:var(--green)">✅ Fed</button>
+    <button class="btn sm" onclick="state.wagon.animals[${idx}].feed='hungry';save();openAnimalOverview(${idx});renderHUD()" style="flex:1;border-color:var(--gold);color:var(--gold-bright)">⚠ Hungry</button>
+    <button class="btn sm" onclick="state.wagon.animals[${idx}].feed='starving';save();openAnimalOverview(${idx});renderHUD()" style="flex:1;border-color:var(--red);color:var(--red)">🔴 Starving</button>
+  </div>`:'';
+  const feedEmoji=a.feed?({fed:'✅',hungry:'⚠',starving:'🔴'}[a.feed]||'')+'  '+a.feed+' · ':'';
   if(bodyEl)bodyEl.innerHTML=`
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-      <span style="font-size:11px;color:var(--text-dim)">${esc(f.type||'Familiar')} · AC ${f.ac||10} · ${esc(f.speed||'20 ft.')}</span>
+      <span style="font-size:11px;color:var(--text-dim)">${esc(a.type||a.role||'animal')} · AC ${a.ac||10}${a.feed?' · '+feedEmoji:''}${a.conditions&&a.conditions!=='None'?' · '+esc(a.conditions):''}</span>
       <span style="font-size:20px;font-weight:700;color:${hpCol};font-family:var(--mono);margin-left:auto">${hp}<span style="font-size:12px;color:var(--text-dim)">/${max}</span></span>
     </div>
     <div class="hp-bar-wrap" style="margin-bottom:8px"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
-    ${f.notes?`<div style="font-size:10px;color:var(--text-dim);white-space:pre-line;line-height:1.5;margin-bottom:10px">${esc(f.notes)}</div>`:''}
+    ${a.notes?`<div style="font-size:10px;color:var(--text-dim);white-space:pre-line;line-height:1.5;margin-bottom:8px">${esc(a.notes)}</div>`:''}
     <div style="display:flex;gap:6px;align-items:center">
       <span style="font-size:11px;color:var(--text-dim)">HP:</span>
-      <input type="number" id="fov-amt" style="width:52px;text-align:center;padding:4px;font-size:12px" placeholder="Amt">
-      <button class="btn sm green" onclick="(function(){const v=parseInt(document.getElementById('fov-amt').value);if(!v)return;state.pcs[${pcIdx}].familiar.hp=Math.min(state.pcs[${pcIdx}].familiar.hp_max,(state.pcs[${pcIdx}].familiar.hp||0)+v);document.getElementById('fov-amt').value='';save();openFamiliarOverview(${pcIdx});renderHUD();})()" style="padding:3px 10px">Heal</button>
-      <button class="btn sm red" onclick="(function(){const v=parseInt(document.getElementById('fov-amt').value);if(!v)return;state.pcs[${pcIdx}].familiar.hp=Math.max(0,(state.pcs[${pcIdx}].familiar.hp||0)-v);document.getElementById('fov-amt').value='';save();openFamiliarOverview(${pcIdx});renderHUD();})()" style="padding:3px 10px">Dmg</button>
+      <input type="number" id="gov-amt" style="width:52px;text-align:center;padding:4px;font-size:12px" placeholder="Amt">
+      <button class="btn sm green" onclick="(function(){const v=parseInt(document.getElementById('gov-amt').value);if(!v)return;const a=state.wagon.animals[${idx}];a.hp=Math.min(a.hp_max,(a.hp||0)+v);document.getElementById('gov-amt').value='';save();openAnimalOverview(${idx});renderHUD();})()" style="padding:3px 10px">Heal</button>
+      <button class="btn sm red" onclick="(function(){const v=parseInt(document.getElementById('gov-amt').value);if(!v)return;const a=state.wagon.animals[${idx}];a.hp=Math.max(0,(a.hp||0)-v);document.getElementById('gov-amt').value='';save();openAnimalOverview(${idx});renderHUD();})()" style="padding:3px 10px">Dmg</button>
     </div>
+    ${feedRow}
   `;
-  document.getElementById('familiar-ov')?.classList.add('is-open');
-  document.getElementById('familiar-ov-bd')?.classList.add('is-open');
+  document.getElementById('grit-ov')?.classList.add('is-open');
+  document.getElementById('grit-ov-bd')?.classList.add('is-open');
 }
-function closeFamiliarOverview(){
-  document.getElementById('familiar-ov')?.classList.remove('is-open');
-  document.getElementById('familiar-ov-bd')?.classList.remove('is-open');
+function openFamiliarOverview(pcIdx){
+  const pc=state.pcs[pcIdx];if(!pc||!pc.familiar)return;
+  const a=(state.wagon.animals||[]).findIndex(an=>an.ownerId===pc.id||an.name===pc.familiar.name);
+  if(a>-1)openAnimalOverview(a);
 }
+function closeFamiliarOverview(){closeGritOverview();}
 function toggleDeathSave(idx,type,slot){
   const pc=state.pcs[idx];if(!pc)return;
   if(!pc.death_saves)pc.death_saves={successes:0,failures:0};
@@ -9929,35 +10023,8 @@ function confirmLocationSeed(){
 }
 
 function openGritOverview(){
-  const ox=state.wagon&&state.wagon.ox;if(!ox)return;
-  const hp=parseInt(ox.hp)||0,max=parseInt(ox.hp_max)||15;
-  const pct=Math.max(0,Math.min(100,(hp/max)*100));
-  const hpCol=hp<=0?'var(--red)':pct<25?'#c04a3a':pct<50?'var(--gold)':'var(--green)';
-  const feedEmoji={fed:'✅',hungry:'⚠',starving:'🔴'}[ox.feed||'fed']||'✅';
-  const titleEl=document.getElementById('grit-ov-title');
-  const bodyEl=document.getElementById('grit-ov-body');
-  if(titleEl)titleEl.textContent='🐂 '+esc(ox.name||'Mount');
-  if(bodyEl)bodyEl.innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-      <span style="font-size:11px;color:var(--text-dim)">AC ${ox.ac||11} · ${feedEmoji} ${ox.feed||'fed'} · ${esc(ox.conditions||'No conditions')}</span>
-      <span style="font-size:20px;font-weight:700;color:${hpCol};font-family:var(--mono);margin-left:auto">${hp}<span style="font-size:12px;color:var(--text-dim)">/${max}</span></span>
-    </div>
-    <div class="hp-bar-wrap" style="margin-bottom:10px"><div class="hp-bar-fill" style="width:${pct}%;background:${hpCol}"></div></div>
-    ${ox.personality?`<div style="font-size:10px;color:var(--text-dim);font-style:italic;margin-bottom:8px;line-height:1.4">${esc(ox.personality)}</div>`:''}
-    <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px">
-      <span style="font-size:11px;color:var(--text-dim)">HP:</span>
-      <input type="number" id="gov-amt" style="width:52px;text-align:center;padding:4px;font-size:12px" placeholder="Amt">
-      <button class="btn sm green" onclick="(function(){const v=parseInt(document.getElementById('gov-amt').value);if(!v)return;state.wagon.ox.hp=Math.min(state.wagon.ox.hp_max,(state.wagon.ox.hp||0)+v);document.getElementById('gov-amt').value='';save();openGritOverview();renderHUD();})()" style="padding:3px 10px">Heal</button>
-      <button class="btn sm red" onclick="(function(){const v=parseInt(document.getElementById('gov-amt').value);if(!v)return;state.wagon.ox.hp=Math.max(0,(state.wagon.ox.hp||0)-v);document.getElementById('gov-amt').value='';save();openGritOverview();renderHUD();})()" style="padding:3px 10px">Dmg</button>
-    </div>
-    <div style="display:flex;gap:6px">
-      <button class="btn sm" onclick="state.wagon.ox.feed='fed';save();openGritOverview();renderHUD()" style="flex:1;border-color:var(--green);color:var(--green)">✅ Fed</button>
-      <button class="btn sm" onclick="state.wagon.ox.feed='hungry';save();openGritOverview();renderHUD()" style="flex:1;border-color:var(--gold);color:var(--gold-bright)">⚠ Hungry</button>
-      <button class="btn sm" onclick="state.wagon.ox.feed='starving';save();openGritOverview();renderHUD()" style="flex:1;border-color:var(--red);color:var(--red)" style="flex:1">🔴 Starving</button>
-    </div>
-  `;
-  document.getElementById('grit-ov')?.classList.add('is-open');
-  document.getElementById('grit-ov-bd')?.classList.add('is-open');
+  const idx=(state.wagon.animals||[]).findIndex(a=>a.role==='draft');
+  if(idx>-1)openAnimalOverview(idx);
 }
 function closeGritOverview(){
   document.getElementById('grit-ov')?.classList.remove('is-open');
@@ -10094,7 +10161,7 @@ function switchLogisticsTab(sub){
   document.querySelectorAll('#drawer-subnav .drawer-subnav-btn').forEach(b=>{
     b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+sub+"'"));
   });
-  if(sub==='wagon'){renderWagon();renderIncome();renderPartyInv();renderTreasuryTotal();}
+  if(sub==='wagon'){renderWagon();renderAnimals();renderIncome();renderPartyInv();renderTreasuryTotal();}
   if(sub==='world'){syncWorld();renderLocations();renderNPCs();renderQuests();renderConsequences();renderCampaignSecrets();}
   if(sub==='combat'){renderCombat();}
   clearTabBadge('tab-'+sub);
@@ -10741,7 +10808,8 @@ function csRemLang(idx,li){
 Object.assign(window, {
   _luNext, _luRollHP, _luSelectSubclass, _luSetHP, _luToggleSpell, _luUpdateASI, _luSetASIMode, _luSelectFeat, _luUpdateFeatAbility, _luFilterFeats, _luSelectSwapOld, _luSelectSwapNew, FEATS_DB,
   addAttack, addCampaignSecret, addCell, addCombCond, addCombatant, cloneCombatant, addCondFromPicker,
-  addFamiliar, addIncome, removeIncomeEntry, addLogEntry, addModuleEpisode, addNPC, addNewChar,
+  addAnimal, updAnimal, remAnimal, openAnimalOverview, renderAnimals,
+  addFamiliar, addIncome, removeIncomeEntry, updIncome, addLogEntry, addModuleEpisode, addNPC, addNewChar,
   addPartyItem, addPartyToCombat, addPcItem, addPreset, addQA, addQuest,
   addFromCompendium, addManeuverToPC, MANEUVER_DB, SPELL_DB, addResource, addScene, addSlotLvl, addSnip, addSpell, addTownRep, addWagonItem,
   adjHP, applyLevelUp, askDMFromParty, auditWithAI, awardXP,
