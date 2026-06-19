@@ -2896,6 +2896,7 @@ function _renderLevelUpStep(){
   const bodyEl=document.getElementById('lu-body');
   const actEl=document.getElementById('lu-actions');
   if(!titleEl||!bodyEl||!actEl)return;
+  const nameTag='<span style="color:var(--text-bright)">'+esc(pc.name)+'</span> → Lv '+newLvl;
   const prog='<small style="opacity:.5;font-size:10px;font-weight:400;margin-left:6px">'+(stepIdx+1)+'/'+steps.length+'</small>';
   const X='<button class="btn sm" onclick="closeLevelUpModal()" style="margin-left:auto">✕</button>';
 
@@ -2903,7 +2904,7 @@ function _renderLevelUpStep(){
     const hd=step.hitDie||8;
     const conMod=parseInt(((pc.con||'10 (+0)').match(/\(([^)]+)\)/)||['','0'])[1])||0;
     const avg=Math.floor(hd/2)+1+conMod;
-    titleEl.innerHTML='⬆ '+esc(pc.name)+' → Level '+newLvl+prog+X;
+    titleEl.innerHTML='⬆ '+nameTag+' — Hit Points'+prog+X;
     bodyEl.innerHTML=
       '<div style="font-size:13px;font-weight:600;margin-bottom:12px">Hit Points</div>'+
       '<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px">'+
@@ -2917,7 +2918,7 @@ function _renderLevelUpStep(){
       '<button class="btn" id="lu-next-btn" disabled onclick="_luNext()" style="margin-left:auto">→ Next</button>';
   }
   else if(step.type==='auto'){
-    titleEl.innerHTML='⬆ New Features'+prog+X;
+    titleEl.innerHTML='⬆ '+nameTag+' — New Features'+prog+X;
     bodyEl.innerHTML=
       '<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">'+esc(pc.name)+' gains at Level '+newLvl+':</div>'+
       step.features.map(f=>'<div style="padding:10px 14px;background:var(--surface3);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--radius-sm);margin-bottom:8px;font-size:12px;line-height:1.6">'+esc(f)+'</div>').join('');
@@ -2925,7 +2926,7 @@ function _renderLevelUpStep(){
   }
   else if(step.type==='choice'){
     const ch=step.choice;
-    titleEl.innerHTML='⬆ '+esc(ch.prompt||'Choose')+prog+X;
+    titleEl.innerHTML='⬆ '+nameTag+' — '+esc(ch.prompt||'Choose')+prog+X;
     if(ch.type==='subclass'){
       bodyEl.innerHTML='<div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">This choice is permanent.</div>'+
         ch.options.map(o=>'<div id="luopt_'+o.replace(/[^a-zA-Z0-9]/g,'_')+'" class="lu-option" onclick="_luSelectSubclass(\''+o.replace(/'/g,"\\'")+'\')">'+esc(o)+'</div>').join('');
@@ -2951,6 +2952,8 @@ function _renderLevelUpStep(){
     else if(ch.type==='asi'){
       const stats=['STR','DEX','CON','INT','WIS','CHA'];
       const mode=choices.asiMode||'asi';
+      const allDefault=stats.every(s=>parseInt((pc[s.toLowerCase()]||'10').toString().split(' ')[0])===10);
+      const defWarn=allDefault?'<div style="padding:6px 10px;background:var(--red);color:var(--text-bright);border-radius:var(--radius-sm);font-size:11px;margin-bottom:8px">⚠ All stats are 10 (defaults). Update character sheet or paste JSON before picking ASI.</div>':'';
       const scoreRow='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">'+
         stats.map(s=>{
           const raw=(pc[s.toLowerCase()]||'10 (+0)');
@@ -2966,10 +2969,10 @@ function _renderLevelUpStep(){
         '<button onclick="_luSetASIMode(\'asi\')" style="flex:1;padding:8px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:'+(mode==='asi'?'var(--gold)':'var(--surface2)')+';color:'+(mode==='asi'?'var(--bg)':'var(--text)')+'">Ability Score +</button>'+
         '<button onclick="_luSetASIMode(\'feat\')" style="flex:1;padding:8px;border:none;border-left:1px solid var(--gold-dim);font-size:11px;font-weight:600;cursor:pointer;background:'+(mode==='feat'?'var(--gold)':'var(--surface2)')+';color:'+(mode==='feat'?'var(--bg)':'var(--text)')+'">Take a Feat</button>'+
       '</div>';
-      titleEl.innerHTML='⬆ Ability Score Improvement'+prog+X;
+      titleEl.innerHTML='⬆ '+nameTag+' — ASI'+prog+X;
       if(mode==='asi'){
         const opts=stats.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
-        bodyEl.innerHTML=scoreRow+modeToggle+
+        bodyEl.innerHTML=defWarn+scoreRow+modeToggle+
           '<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">+2 to one ability, or +1 to two different abilities. Max 20.</div>'+
           '<div class="form-group"><label class="field-label">First Ability</label><select id="lu-asi-1" onchange="_luUpdateASI()"><option value="">— Choose —</option>'+opts+'</select></div>'+
           '<div class="form-group"><label class="field-label">Second Ability (optional — split into +1/+1)</label><select id="lu-asi-2" onchange="_luUpdateASI()"><option value="">— None (first ability gets +2) —</option>'+opts+'</select></div>'+
@@ -2989,7 +2992,7 @@ function _renderLevelUpStep(){
             '<div style="font-size:10px;color:var(--text);line-height:1.5;margin-top:3px">'+esc(f.desc)+'</div>'+
             prereq+'</div>';
         }).join('');
-        bodyEl.innerHTML=scoreRow+modeToggle+
+        bodyEl.innerHTML=defWarn+scoreRow+modeToggle+
           '<input type="text" id="lu-feat-search" oninput="_luFilterFeats()" placeholder="Search feats..." style="width:100%;padding:6px 10px;font-size:12px;margin-bottom:8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text)">'+
           '<div style="max-height:220px;overflow-y:auto">'+featHtml+'</div>'+
           '<div id="lu-feat-ability" style="display:none"></div>';
@@ -2999,7 +3002,7 @@ function _renderLevelUpStep(){
     }
   }
   else if(step.type==='spell_swap'){
-    titleEl.innerHTML='⬆ Spell Swap (Optional)'+prog+X;
+    titleEl.innerHTML='⬆ '+nameTag+' — Spell Swap'+prog+X;
     const known=_luParseKnownSpells(pc);
     const pool=_luGetSwapPool(pc);
     let html='<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">You may replace one known spell with another from your class spell list.</div>';
@@ -3031,7 +3034,7 @@ function _renderLevelUpStep(){
       '<button class="btn gold" id="lu-next-btn" '+(hasSwap?'':'disabled')+' onclick="_luNext()" style="margin-left:auto">Swap & Next →</button>';
   }
   else if(step.type==='confirm'){
-    titleEl.innerHTML='⬆ Confirm Level Up'+X;
+    titleEl.innerHTML='⬆ '+nameTag+' — Confirm'+X;
     const rows=[];
     rows.push('<div style="font-size:15px;font-weight:700;color:var(--gold-bright);margin-bottom:10px">'+esc(pc.name)+' → Level '+newLvl+'</div>');
     rows.push('<div style="font-size:12px;line-height:2;color:var(--text-dim)">');
