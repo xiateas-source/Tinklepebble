@@ -9502,11 +9502,10 @@ function renderTurnTracker(){
   if(!c||!c.active||!(c.list||[]).length){el.style.display='none';return;}
   el.style.display='flex';
   const curIdx=c.currentIdx||0;
-  el.innerHTML=c.list.map((ent,i)=>{
+  el.innerHTML='<span onclick="endCombat()" style="padding:2px 6px;border-radius:4px;color:var(--red);border:1px solid var(--red);font-size:10px;flex-shrink:0;cursor:pointer;font-weight:600" title="End combat">✕</span>'+c.list.map((ent,i)=>{
     const isCur=i===curIdx;
     const isPC=ent.isPC;
     const hp=parseInt(ent.hp)||0;
-    const max=parseInt(ent.hp_max)||ent.hp||1;
     const dead=hp<=0;
     const color=isCur?'var(--gold-bright)':dead?'var(--text-dim)':isPC?'var(--green)':'var(--red)';
     const bg=isCur?'var(--surface3)':'transparent';
