@@ -1073,6 +1073,8 @@ let _ctxSlide=0;
 let _ctxTimer=null;
 function _ctxSlides(){
   const slides=[];
+  const w=state.worldData||{};
+  if(w.primaryMission)slides.push({icon:'🎯',text:w.primaryMission,action:'showTab(\'tab-world\')',primary:true});
   if(state.combat&&state.combat.active&&(state.combat.list||[]).length){
     const round=state.combat.round||1;
     const cur=state.combat.list[state.combat.currentIdx||0];
@@ -1087,8 +1089,6 @@ function _ctxSlides(){
     const tag=c.type?c.type.toUpperCase()+': ':'';
     slides.push({icon:'⚠',text:tag+(c.text||'').slice(0,60),action:'showTab(\'tab-world\')',warning:true});
   });
-  const w=state.worldData||{};
-  if(w.primaryMission)slides.push({icon:'🎯',text:w.primaryMission,action:'showTab(\'tab-world\')'});
   return slides;
 }
 function renderContextStrip(){
@@ -1096,10 +1096,11 @@ function renderContextStrip(){
   const slides=_ctxSlides();
   if(!slides.length){el.innerHTML='<span style="color:var(--text-dim);font-style:italic">No active quests</span>';return;}
   el.innerHTML=slides.map((s,i)=>{
-    const bg=s.combat?'var(--red)':s.warning?'var(--gold-dim)':s.quest?'var(--surface3)':'var(--surface2)';
-    const color=s.combat?'var(--text-bright)':s.warning?'var(--gold-bright)':s.quest?'var(--green)':'var(--text)';
-    const border=s.combat?'var(--red)':s.warning?'var(--gold)':s.quest?'var(--green)':'var(--border)';
-    return `<span class="ctx-chip" style="background:${bg};color:${color};border:1px solid ${border}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>`;
+    const bg=s.primary?'var(--gold-dim)':s.combat?'var(--red)':s.warning?'var(--gold-dim)':s.quest?'var(--surface3)':'var(--surface2)';
+    const color=s.primary?'var(--text-bright)':s.combat?'var(--text-bright)':s.warning?'var(--gold-bright)':s.quest?'var(--green)':'var(--text)';
+    const border=s.primary?'var(--gold)':s.combat?'var(--red)':s.warning?'var(--gold)':s.quest?'var(--green)':'var(--border)';
+    const extra=s.primary?'font-weight:700;font-size:11px;':'';
+    return `<span class="ctx-chip" style="background:${bg};color:${color};border:1px solid ${border};${extra}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>`;
   }).join('');
 }
 function _tapCtxStrip(){
@@ -1795,7 +1796,7 @@ function renderConsequences(){
       <span style="font-size:10px;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.5px;flex-shrink:0">${cs.type||'background'}</span>
       <span style="flex:1;font-size:11px;color:${isResolved?'var(--text-dim)':'var(--text)'};${isResolved?'text-decoration:line-through':''};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(cs.text)}</span>
       ${cs.location?`<span style="font-size:9px;color:var(--text-dim);flex-shrink:0">📍 ${esc(cs.location)}</span>`:''}
-      ${!isResolved?`<button onclick="event.stopPropagation();resolveConsequence('${cs.id}')" style="flex-shrink:0;font-size:11px;padding:4px 8px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer;min-height:28px;min-width:28px" title="Mark resolved" aria-label="Mark consequence resolved">✓</button>`:''}
+      ${!isResolved?`<button onclick="event.stopPropagation();resolveConsequence('${cs.id}')" style="flex-shrink:0;font-size:12px;padding:4px 10px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer;min-height:28px" title="Mark resolved" aria-label="Resolve consequence">✓</button>`:''}
     </summary>
     <div style="padding:8px 10px;border-top:1px solid var(--border)">
       <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;align-items:center">
@@ -1815,19 +1816,12 @@ function renderConsequences(){
     det.style.cssText='margin-top:8px';
     const sum=document.createElement('summary');sum.style.cssText='font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;cursor:pointer;list-style:none;padding:4px 0';sum.textContent='▶ Resolved ('+resolved.length+')';
     det.appendChild(sum);
-    resolved.forEach((cs,i)=>det.appendChild(render(cs,active.length+i,true)));
-    const clearBar=document.createElement('div');clearBar.style.cssText='display:flex;justify-content:flex-end;margin-top:6px;padding:4px 0';
+    const clearBar=document.createElement('div');clearBar.style.cssText='display:flex;justify-content:flex-end;padding:4px 0';
     clearBar.innerHTML='<button onclick="clearResolvedConsequences()" style="font-size:10px;padding:4px 10px;border-radius:4px;border:1px solid var(--red-dim);background:none;color:var(--red);cursor:pointer;font-family:var(--sans);min-height:28px" aria-label="Clear all resolved consequences">🗑 Clear resolved</button>';
     det.appendChild(clearBar);
+    resolved.forEach((cs,i)=>det.appendChild(render(cs,active.length+i,true)));
     c.appendChild(det);
   }
-}
-function clearResolvedConsequences(){
-  const resolved=(state.consequences||[]).filter(c=>c.resolved);
-  if(!resolved.length){toast('No resolved consequences');return;}
-  if(!confirm('Delete all '+resolved.length+' resolved consequence'+(resolved.length===1?'':'s')+'?'))return;
-  state.consequences=(state.consequences||[]).filter(c=>!c.resolved);
-  save();renderConsequences();toast('Cleared '+resolved.length+' resolved consequence'+(resolved.length===1?'':'s'));
 }
 function addConsequence(){
   if(!Array.isArray(state.consequences))state.consequences=[];
@@ -1839,6 +1833,13 @@ function remConsequence(i){if(!confirm('Delete this consequence?'))return;state.
 function resolveConsequence(id){
   const cs=state.consequences.find(c=>c.id===id);
   if(cs){cs.resolved=true;cs.resolvedTs=new Date().toLocaleString();save();renderConsequences();toast('✓ Consequence resolved.');}
+}
+function clearResolvedConsequences(){
+  const resolved=(state.consequences||[]).filter(c=>c.resolved);
+  if(!resolved.length){toast('No resolved consequences to clear.');return;}
+  if(!confirm('Delete '+resolved.length+' resolved consequence'+(resolved.length===1?'':'s')+'? This cannot be undone.'))return;
+  state.consequences=(state.consequences||[]).filter(c=>!c.resolved);
+  save();renderConsequences();toast('✓ Cleared '+resolved.length+' resolved consequence'+(resolved.length===1?'':'s'));
 }
 function dedupConsequences(){
   const all=state.consequences||[];
@@ -4986,6 +4987,7 @@ function autosaveDot(){
 function upd(idx,key,val){
   state.pcs[idx][key]=val;
   if(key==='hp_max'&&state.pcs[idx].hp>val)state.pcs[idx].hp=val;
+  if(key==='xp')checkLevelUp(state.pcs[idx]);
   saveRefresh();
 }
 function adjHP(idx,isHeal){
@@ -5296,9 +5298,10 @@ FORMAT RULES:
 3. Mechanics block is LAST in your response. Nothing after ---END---.
 4. No code fences, bold, or formatting around the block.
 5. Never invent HP — only change by exact stated/rolled amounts.
+6. XP values are DELTAS (amount earned this encounter), never cumulative totals. xp:party+300 means "add 300 to each PC." Do not emit the running total.
 
 MECHANIC KEY REFERENCE:
-Character: hp:[name]=[val] | hp_max:[name]=[val] | conditions:[name]+/-[cond] | slot_use/slot_restore:[name]=[lvl or all] | resource_use/resource_restore:[pc],[name] | concentration:[name]=spell/off | short_rest:[name] | shell_defense:[name]=on/off | xp:[name]+[amt]
+Character: hp:[name]=[val] | hp_max:[name]=[val] | conditions:[name]+/-[cond] | slot_use/slot_restore:[name]=[lvl or all] | resource_use/resource_restore:[pc],[name] | concentration:[name]=spell/off | short_rest:[name] | shell_defense:[name]=on/off | xp:[name]+[amt] (DELTA only, not total)
 Economy: income:[amt],[category],[desc] (category: reward/found/loot/quest/trade) | expense:[amt],[desc] | gp/sp/cp/ep/pp: absolute SET only
 Items: item_add:[target],[name],[qty],[type],[weight] | item_remove:[target],[name],[qty]
 World: location:[name] | time:[value] | weather:[value] | loc_desc:[text] | travel_note:[text] | town_rep:[town],[status],[notes]
@@ -5431,9 +5434,9 @@ function parseMechanics(responseText, pendingMsgId=null){
     if(['gp','sp','cp','ep','pp','income'].includes(k)&&/\bxp\b/i.test(v)){_rejected.push(k+': XP is not currency — use xp: mechanic');return false;}
     if(k==='xp'){
       const recent=(state.chatHistory||[]).slice(-3);
-      const lastXPLine=recent.reverse().find(m=>m.mechanics?.some(c=>c.text?.includes('XP')));
+      const lastXPLine=recent.reverse().find(m=>m.mechanics?.some(c=>/xp/i.test(c.text||'')));
       if(lastXPLine){
-        const lastXPText=lastXPLine.mechanics.filter(c=>c.text?.includes('XP')).map(c=>c.text).join();
+        const lastXPText=lastXPLine.mechanics.filter(c=>/xp/i.test(c.text||'')).map(c=>c.text).join();
         const thisNorm=v.replace(/\s+/g,'');
         const lastNorm=lastXPText.replace(/[^0-9+]/g,'');
         const thisAmts=(thisNorm.match(/\+(\d+)/g)||[]).sort().join();
@@ -5646,10 +5649,11 @@ function parseMechanics(responseText, pendingMsgId=null){
       }
       else if(key==='xp'){
         val.split(',').forEach(part=>{
-          const m=part.trim().match(/^([^+]+)\+(\d+)$/);
+          const p=part.trim();
+          const m=p.match(/^([^+=]+?)\s*\+\s*(\d[\d,]*)\s*$/);
           if(m){
             const target=m[1].trim().toLowerCase();
-            const amt=parseInt(m[2]);
+            const amt=parseInt(m[2].replace(/,/g,''));
             if(target==='party'||target==='all'){
               state.pcs.forEach(pc=>{pc.xp=(pc.xp||0)+amt;changes.push({text:pc.name+' +'+amt+'xp'});checkLevelUp(pc);});
             }else{
@@ -6352,7 +6356,8 @@ function renderChat(){
     const isExpanded=_expandedMsgs.has(msgIdx);
     let questChips='';
     if(isDM&&msg.msgId){const linked=(state.quests||[]).map((q,qi)=>({q,qi})).filter(({q})=>q.chatMsgId===msg.msgId);if(linked.length)questChips='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">'+linked.map(({q,qi})=>`<span onclick="navTo('world');setTimeout(()=>{const d=document.getElementById('quest-det-${qi}');if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'});d.style.outline='2px solid var(--gold)';d.style.borderRadius='6px';setTimeout(()=>{d.style.outline='';},2200);}},350)" style="cursor:pointer;font-size:10px;background:var(--surface3);border:1px solid var(--gold-dim);border-radius:4px;padding:2px 8px;color:var(--gold)">⚔ ${esc((q.text||'').split('|')[0].slice(0,35))}</span>`).join('')+'</div>';}
-    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${isLong?(!isExpanded?`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});renderChat()">Read more ▼</span>`:`<span class="show-less" onclick="_expandedMsgs.delete(${msgIdx});renderChat()">Show less ▲</span>`):''}${mechBadge}${questChips}`;
+    const truncToggle=isLong?(isExpanded?`<span class="read-more" onclick="_expandedMsgs.delete(${msgIdx});renderChat()">Show less ▲</span>`:`<span class="read-more" onclick="_expandedMsgs.add(${msgIdx});this.previousElementSibling.classList.remove('msg-collapsed');this.textContent='Show less ▲';this.onclick=function(){_expandedMsgs.delete(${msgIdx});renderChat();}">Read more ▼</span>`):'';
+    d.innerHTML=`<div class="msg-hdr"><span style="font-weight:bold">${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${moreBtn}${tsHtml}</div></div><div class="chat-msg-text${isLong&&!isExpanded?' msg-collapsed':''}">${text}</div>${truncToggle}${mechBadge}${questChips}`;
     c.appendChild(d);
   });
   const distWas=prevHeight-prevScroll-c.clientHeight;
@@ -10146,7 +10151,7 @@ function openSheetPicker(){
     <div class="qa-sheet-body" style="padding:12px">
       <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Select a character</div>
       ${state.pcs.map((pc,i)=>`<button class="btn full" style="margin-bottom:8px;text-align:left;padding:10px 14px;justify-content:flex-start;gap:10px" onclick="document.getElementById('sheet-picker-sheet').remove();document.getElementById('sheet-picker-bd').remove();openPCOverview(${i})">
-        <span style="font-size:18px">${pc.color||'⬤'}</span>
+        <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${pc.color||'var(--text-dim)'};flex-shrink:0"></span>
         <div><div style="font-size:13px;font-weight:600">${esc(pc.name)}</div><div style="font-size:10px;color:var(--text-dim)">${esc(pc.class||'')} ${pc.level?'L'+pc.level:''} · HP ${pc.hp||0}/${pc.hp_max||0}</div></div>
       </button>`).join('')}
     </div>`;
