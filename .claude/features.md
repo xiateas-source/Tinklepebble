@@ -19,6 +19,8 @@
 - `.stat-mini` (circular embossed stat tiles, 50% border-radius)
 - `.qa-fab` (floating action button), `.qa-menu`, `.qa-sheet` (bottom sheet modals)
 - `.drawer-sheet` (fixed bottom sheets with `.is-open` slide-up transition)
+- `.toast-error` (red #8b3a2a), `.toast-warn` (amber #7a5c28), `.toast-red` (alias for error) — `toast(msg, style, dur)` accepts style string
+- `.zone-token`, `.init-chip` — min-height 40px for mobile tap targets; `.zt-cond` 9px with better contrast
 
 ---
 
@@ -242,7 +244,7 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `renderCharSheet(idx)` — 6-tab digital sheet (Core/Skills/Combat/Spells/Gear/Features)
 - `renderCompendium(idx)` — Browsable spell/maneuver compendium with class/level filters, search, grouped by level, + Add button
 - `_sortSpellbook(book)` — Sorts spellbook by level (cantrips first) then alphabetically. Called from: spell_add mechanic, spell picker addSpellToBook, manual addSpell, updSpell on name/level change, migrate() on load
-- `renderPartyPCList()` — Compact PC list with HP bars and XP progress
+- `renderPartyPCList()` — Compact PC list with HP bars, XP range slider (interactive), tappable condition chips (✕ to clear). HURT badge: conditions → tappable `clearPCConditions()`, low HP → informational only
 - `renderSessionArchive()` — Collapsible session archive entries, newest-first
 - `renderLocations()` — Node Map SVG + location list
 - `renderHeaderShortcuts()` — Customizable ☰ shortcut grid
@@ -276,7 +278,7 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `_mergeChatHistories(local, remote)` — Clock-independent chat merge (prefers longer array if it contains shorter's latest)
 
 ### AI/Chat
-- `sendMsg()` — Send player action to AI
+- `sendMsg()` — Send player action to AI; `sendMsgQuick()` has double-send guard (checks `chat-input.disabled`)
 - `buildPrompt(ledger)` — System prompt with all contracts; validates MULTI-PLAYER ADDRESSING clause
 - `genLedger()` — Compile current state ledger
 - `parseMechanics(responseText, msgId)` — 60 handlers / 65 keys; `_MECH_KEYS` controls display stripping
@@ -295,6 +297,9 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `detectUnloggedCondition()` — Catch narrated condition adds without `conditions:` mechanic (14 D&D conditions)
 - `detectUnloggedLocation()` — Catch narrated arrivals without `location:` mechanic
 - `_validateMechanics(changes)` — Post-parse audit: clamps HP/slots/resources to valid ranges, deduplicates conditions, floors treasury at 0, encumbrance warnings (PC carry STR×15, wagon 1080lb), income log dedup (same desc+amt+type), toasts corrections
+- **XP receipt injection** — After XP handler applies deltas, injects `[XP APPLIED]` receipt into `_ctxInject` with real PC XP values. Sanity warning if delta ≥ existing total (likely cumulative instead of encounter-only)
+- **hp_max guard** — Warns (toast-error) when AI increases hp_max (level-up wizard should handle this)
+- **AI contract FORMAT RULES 5-7** — Ban hp/hp_max for level-ups; XP must be encounter-only deltas (never totals); AI cannot set level/class/features/spells/slots via mechanics
 - `_pcCarryWeight(pc)` / `_pcCarryCap(pc)` — PC personal carry weight from inventory, capacity = STR×15
 - `toggleItemTag(list, idx, tag)` — Toggle a type tag on/off for multi-category items (comma-separated)
 - `detectProseRolls(prose)` — Regex detection of AI rolling dice in prose text; warns via toast
@@ -344,6 +349,10 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 
 ### Level-Up Wizard
 - `checkLevelUp(pc)` → `openLevelUpWizard(idx)` → `_renderLevelUpStep()` → `applyLevelUp()`
+- `_autoOpenLevelUp()` — finds first `levelReady` PC and opens wizard (called after parseMechanics, loadState, Firebase sync)
+- `_luSkipSwap()` — skip spell swap step (window-exposed, replaces inline onclick)
+- **Multi-level jumps** — `applyLevelUp` re-runs `checkLevelUp` on all PCs after each level, chains sequential advancement
+- **Debug logging** — `checkLevelUp` logs level/XP/threshold to console; `//levelup` shows diagnostics
 - **Feat selection** — ASI/Feat toggle on ASI step. `FEATS_DB` (56 feats: 42 PHB + 14 TCoE) with descriptions, half-feat ability picker, search filter
 - **Current ability scores** — compact score display at top of ASI step for reference
 - **Spell swap** — optional step for spellcasters to replace one known spell with another from class list

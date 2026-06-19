@@ -10,7 +10,7 @@
 - Vite-based build: `src/main.js` + `src/style.css` → `index.html` → builds to `docs/` (GitHub Pages from `main`)
 - Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` persisted to `localStorage('tt_v1')` and Firebase
-- `SAVE_VERSION=12` — `migrate()` = structural guards → v8–v12 gates → canonical QA → core defaults
+- `SAVE_VERSION=13` — `migrate()` = structural guards → v8–v13 gates → canonical QA → core defaults
 - `renderAll()` = central render; `renderChat()` = narrative chat
 - `callAI()` = retry wrapper (2x, 1.2s/2.4s, 5xx only) + OpenRouter free-model fallback
 - `summarizeAndPrune()` = rolling AI summary at 75 msgs → appends to `sessionArchive[]` (50-cap), `prevSessionSummary` = last 3 batches joined
@@ -83,6 +83,8 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 **Session 22** (2026-06-18): Session Zero Step 0 persistence fix (direct inline saves, Firebase campaignSetup preservation, init-time DOM load). Session Zero → AI prompt injection (SESSION ZERO section in buildPrompt). Player Agency contract (strict rules in Contract 5). roll_request enforcement (all roll types, not just skill checks). Spell DB additions (Guidance, Mold Earth, Entangle, Grease). launchCampaign() validation warnings. generateSessionZero() dynamic campaign name.
 
 **Session 21** (2026-06-18): Markdown/text module import (`.md`/`.txt` alongside PDF, `#` heading parser, auto-merges `##` subsections). PDF extraction fix (Y-coordinate line breaks, per-line pattern matching, 40-page fallback threshold). Auto-assign on import (chapters→episodes, overview/appendices→reference). Import default fix (sections default to "Create New Episode"). PC import blank-template fix (fully replaces unnamed PCs). Firebase sync fix (removed canonical PC merge — remote DM data now authoritative for player devices). migrate() cleanup (stale contracts, empty ox defaults, skip unnamed PCs in ledger). Character template file for Gemini-assisted creation (`character-template.json`).
+
+**Session 23** (2026-06-19): Level-up wizard auto-open (`_autoOpenLevelUp()` after parseMechanics, loadState, Firebase sync — wizard was only triggered from Long Rest button). Multi-level XP jump fix (`applyLevelUp` re-runs `checkLevelUp` after each level for sequential advancement e.g. Lv1→2→3). Skip button fix (`_luSkipSwap()` replaces module-scoped `_luWiz` in inline onclick). **Critical ability modifier math fix** — operator precedence bug in 4 places: `(parseInt(pc[s])||10-10)/2` evaluated as `||0`, giving wrong modifiers (STR 16 = +8 instead of +3). 7 missing window exposures (renderChat, renderNPCs, renderCells, renderQAEditor, renderQAResources, renderTownRep, toast). Double-send guard on `sendMsgQuick`. Toast error/warning variants (`.toast-error`, `.toast-warn`). Combat token tap targets (min-height 40px). Input font sizes bumped to 16px (mobile). HURT badge split (conditions → tappable clear, low HP → informational). XP slider on compact card + tap-to-edit on PC overview. Confirm dialogs for endCombat/remNPC. AI XP/HP contract hardening (FORMAT RULES 5-7, XP receipt injection, sanity warnings for suspicious deltas, hp_max increase guard). Save failure toast. Firebase pcs guard. Inventory null guards.
 
 ### Open Deep Refactors
 - DR-5 ⬜ `parseMechanics()` → dispatch table registry (high risk, week+)
