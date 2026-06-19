@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.dUa0ioAQ.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.DP85RUSF.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.BEe734Dr.css">
 </head>
 <body>
@@ -767,105 +767,101 @@ When the party travels through wilderness, arrives at a new outdoor location, or
 
 <!-- CHECKPOINTS TAB -->
 <div id="tab-ait-chk" class="tab-section">
-  <div class="grid-2">
+  <div class="grid-1">
     <div class="col">
+      <!-- TURN COUNTER -->
       <div class="panel accent">
         <div class="panel-title">Turn Counter &amp; Checkpoints</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Total Turns</div><div style="font-family:var(--serif);font-size:26px;color:var(--gold)" id="stat-turns">0</div></div>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Since Chk</div><div style="font-family:var(--serif);font-size:26px;color:var(--gold)" id="stat-since">0</div></div>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Checkpoints</div><div style="font-family:var(--serif);font-size:26px;color:var(--gold)" id="stat-chks">0</div></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Total Turns</div><div style="font-family:var(--serif);font-size:22px;color:var(--gold)" id="stat-turns">0</div></div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Since Chk</div><div style="font-family:var(--serif);font-size:22px;color:var(--gold)" id="stat-since">0</div></div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Checkpoints</div><div style="font-family:var(--serif);font-size:22px;color:var(--gold)" id="stat-chks">0</div></div>
         </div>
-        <div class="form-group">
-          <label class="field-label">Auto-Checkpoint every N AI messages <span style="color:var(--text-dim);font-size:10px">(default: 8)</span></label>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="number" id="auto-chk-n" value="8" min="3" max="30" style="width:70px" onchange="state.autoChkInterval=parseInt(this.value)||8;save()">
-            <span style="font-size:11px;color:var(--text-dim)">messages per checkpoint</span>
-          </div>
-        </div>
-        <div class="form-row" style="align-items:flex-end">
-          <div class="fg"><label class="field-label">Mode (manual turns)</label><select id="cp-mode" onchange="updateCpMode()"><option value="exploration">Exploration (6 turns)</option><option value="combat">Combat (3 turns)</option><option value="roleplay">Roleplay (8 turns)</option><option value="custom">Custom</option></select></div>
-          <div style="width:80px"><label class="field-label">Custom N</label><input type="number" id="cp-n" value="6" min="1" onchange="updateCpMode()"></div>
-        </div>
-        <div class="btn-row" style="margin-top:6px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
           <button class="btn gold" onclick="logTurn()">+ Log Turn</button>
           <button class="btn green" onclick="triggerChk('Manual')">⚡ Force Checkpoint</button>
           <button class="btn" onclick="resetTurns()">Reset</button>
         </div>
-        <hr class="divider">
-        <div class="sec-label">Auto-trigger on:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;font-size:12px">
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="auto-lvl" checked> Level-up</label>
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="auto-rest" checked> Long rest</label>
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="auto-down" checked> PC hits 0 HP</label>
-        </div>
+        <details style="border-top:1px solid var(--border);padding-top:8px">
+          <summary style="font-size:10px;font-weight:600;color:var(--text-dim);cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Checkpoint Settings</summary>
+          <div style="margin-top:8px">
+            <div class="form-group" style="margin-bottom:6px">
+              <label class="field-label">Auto every <input type="number" id="auto-chk-n" value="8" min="3" max="30" style="width:50px;display:inline" onchange="state.autoChkInterval=parseInt(this.value)||8;save()"> AI messages</label>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;font-size:11px">
+              <label class="field-label" style="margin:0">Mode</label>
+              <select id="cp-mode" onchange="updateCpMode()" style="font-size:11px;flex:1"><option value="exploration">Exploration (6)</option><option value="combat">Combat (3)</option><option value="roleplay">Roleplay (8)</option><option value="custom">Custom</option></select>
+              <input type="number" id="cp-n" value="6" min="1" style="width:50px;font-size:11px" onchange="updateCpMode()">
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--text-dim)">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase">Auto on:</span>
+              <label style="display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" id="auto-lvl" checked> Level-up</label>
+              <label style="display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" id="auto-rest" checked> Long rest</label>
+              <label style="display:flex;align-items:center;gap:3px;cursor:pointer"><input type="checkbox" id="auto-down" checked> PC 0 HP</label>
+            </div>
+          </div>
+        </details>
       </div>
 
+      <!-- REWIND + HISTORY — grouped right after checkpoints -->
+      <div class="panel">
+        <div class="panel-title">⏪ Rewind Stack <span style="margin-left:auto;font-size:10px;color:var(--text-dim)">Last 10 snapshots</span></div>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Snapshots taken at each checkpoint. Rewind to any point.</p>
+        <div id="rewind-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Checkpoint History</div>
+        <div id="chk-hist" style="max-height:200px;overflow-y:auto"></div>
+        <button class="btn sm red" onclick="clearChkHist()" style="margin-top:6px">Clear History</button>
+      </div>
 
-      <div class="panel accent" id="firebase-panel">
-        <div class="panel-title">Firebase Sync — Drop 2
+      <!-- AI SYNC -->
+      <div class="panel">
+        <div class="panel-title">AI Sync</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button class="btn gold full" onclick="sendContextRefresh()">🔔 Context Refresh</button>
+          <button class="btn purple full" onclick="resyncAI()">⚡ Re-sync State</button>
+        </div>
+        <p style="font-size:10px;color:var(--text-dim);margin:0"><strong style="color:var(--gold)">Refresh</strong> = nudge (location, scene, conditions). <strong style="color:var(--purple-bright)">Re-sync</strong> = full ledger (all stats, quests, NPCs, inventory).</p>
+      </div>
+
+      <!-- FIREBASE — collapsed by default -->
+      <details class="panel accent" id="firebase-panel">
+        <summary class="panel-title" style="cursor:pointer;list-style:none">Firebase Sync
           <span id="fb-status" style="margin-left:auto;font-size:11px;color:var(--text-dim)">⚪ Local only</span>
-        </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Connect Firebase to sync state between both phones live. One setup, works every session.</p>
+        </summary>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Connect Firebase to sync state between both phones live.</p>
         <div class="form-group"><label class="field-label">Paste Firebase Config JSON</label>
-          <textarea id="fb-config-input" style="min-height:100px;font-size:10px;font-family:var(--mono)" placeholder='{"apiKey":"AIza...","databaseURL":"https://your-project-default-rtdb.firebaseio.com","projectId":"your-project",...}'></textarea>
+          <textarea id="fb-config-input" style="min-height:80px;font-size:10px;font-family:var(--mono)" placeholder='{"apiKey":"AIza...","databaseURL":"https://your-project-default-rtdb.firebaseio.com","projectId":"your-project",...}'></textarea>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="display:flex;gap:8px;margin-bottom:8px">
           <button class="btn gold full" onclick="connectFirebase()">🔥 Connect</button>
           <button class="btn red" id="fb-disconnect-btn" onclick="fbDisconnect()" style="display:none">Disconnect</button>
         </div>
-        <p style="font-size:10px;color:var(--text-dim)"><strong style="color:var(--text)">Setup:</strong> firebase.google.com → Create project → Realtime Database → Create database → Project Settings → Your Apps → Web app → copy config → paste above.<br><br>Set rules to allow read/write for household use.</p>
+        <p style="font-size:10px;color:var(--text-dim)"><strong style="color:var(--text)">Setup:</strong> firebase.google.com → Create project → Realtime Database → Create database → Project Settings → Your Apps → Web app → copy config → paste above.</p>
         <div id="fb-error" style="display:none;color:var(--red);font-size:11px;padding:6px;background:rgba(192,74,58,.1);border:1px solid var(--red);border-radius:2px;margin-top:8px"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">AI Sync</div>
-        <div style="margin-bottom:10px">
-          <div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:3px">🔔 Context Refresh — use first</div>
-          <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Sends the current scene to the AI — location, conditions, who's present. Use when the AI loses the thread or contradicts something recent. Think: tap the DM on the shoulder.</p>
-          <p style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Use when: AI forgot what room you're in · AI described wrong weather · AI called a character by wrong name once</p>
-          <button class="btn gold full" onclick="sendContextRefresh()">🔔 Context Refresh</button>
-        </div>
-        <hr style="border:none;border-top:1px solid var(--border);margin:10px 0">
-        <div>
-          <div style="font-size:12px;font-weight:600;color:var(--purple-bright);margin-bottom:3px">⚡ Re-sync AI State — escalate only</div>
-          <p style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Sends the full compiled ledger — every PC stat, quest, NPC, inventory, treasury. Use when the AI is meaningfully wrong about persistent state or at session start. Think: hand the DM all their notes.</p>
-          <p style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Use when: AI has wrong HP · Starting a new session · AI drifted significantly from reality</p>
-          <button class="btn purple full" onclick="resyncAI()">⚡ Re-sync AI State</button>
-        </div>
-      </div>
-      <div class="panel accent">
-        <div class="panel-title">Quick Actions Editor
-          <button class="btn sm green" style="margin-left:auto" onclick="addQA()">+ Add Action</button>
-        </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Customise the ⚡ floating button. Set label, type, and which tabs it appears on.</p>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-          <label class="field-label" style="margin:0;white-space:nowrap">FAB Icon</label>
-          <input type="text" id="qa-fab-icon-input" maxlength="4" style="width:52px;font-size:20px;text-align:center;padding:4px" placeholder="⚡" oninput="updQAFabIcon(this.value)">
-          <div style="display:flex;gap:5px;flex-wrap:wrap" id="qa-fab-presets">
+      </details>
+
+      <!-- QUICK ACTIONS — collapsed by default -->
+      <details class="panel accent">
+        <summary class="panel-title" style="cursor:pointer;list-style:none">Quick Actions Editor
+          <button class="btn sm green" style="margin-left:auto" onclick="event.stopPropagation();addQA()">+ Add</button>
+        </summary>
+        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Customise the floating action button.</p>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <label class="field-label" style="margin:0">FAB Icon</label>
+          <input type="text" id="qa-fab-icon-input" maxlength="4" style="width:44px;font-size:18px;text-align:center;padding:3px" placeholder="⚡" oninput="updQAFabIcon(this.value)">
+          <div style="display:flex;gap:4px;flex-wrap:wrap" id="qa-fab-presets">
             <button class="btn sm" onclick="pickQAFabIcon('⚡')">⚡</button>
             <button class="btn sm" onclick="pickQAFabIcon('🎲')">🎲</button>
             <button class="btn sm" onclick="pickQAFabIcon('🗡️')">🗡️</button>
             <button class="btn sm" onclick="pickQAFabIcon('🔮')">🔮</button>
             <button class="btn sm" onclick="pickQAFabIcon('⚔️')">⚔️</button>
-            <button class="btn sm" onclick="pickQAFabIcon('🌿')">🌿</button>
             <button class="btn sm" onclick="pickQAFabIcon('🐉')">🐉</button>
-            <button class="btn sm" onclick="pickQAFabIcon('✦')">✦</button>
           </div>
         </div>
         <div id="qa-editor-list"></div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="panel">
-        <div class="panel-title">⏪ Rewind Stack <span style="margin-left:auto;font-size:10px;color:var(--text-dim)">Last 10 snapshots</span></div>
-        <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Snapshots taken at each checkpoint. Rewind to any point. Chat history not included.</p>
-        <div id="rewind-list"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Checkpoint History</div>
-        <div id="chk-hist" style="max-height:260px;overflow-y:auto"></div>
-        <button class="btn sm red" onclick="clearChkHist()" style="margin-top:8px">Clear History</button>
-      </div>
+      </details>
     </div>
   </div>
 </div>
