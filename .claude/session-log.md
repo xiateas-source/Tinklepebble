@@ -1,48 +1,53 @@
 # Session Log — Handoff Note
 
-## Session 24 · 2026-06-19
+## Session 25 · 2026-06-19
 
 ### Shipped
-- **Audit fixes 7-17** — All actionable items from the 3-agent parallel audit:
-  - #7 Firebase dirty-edit guard — `_lastLocalEdit` timestamp in `upd()`, Firebase sync skips full state replacement if user edited within 3 seconds (preserves chat merge)
-  - #8 Firebase pcs guard — `if(!Array.isArray(state.pcs))state.pcs=[]` after `state=remote` assignment
-  - #9 Rewind redo — `_redoSnap` captures state before rewind; Redo button appears in rewind list to undo the last rewind
-  - #10+#13 saveRefresh throttle — `requestAnimationFrame` debounce prevents multiple DOM rebuilds per frame
-  - #12 renderChat hash check — skips full innerHTML rebuild when chat length + last message haven't changed
-  - #14 --text-dim contrast — bumped from `#a07858` to `#b89070` (~4.5:1 WCAG AA on dark surfaces)
-  - #16 Condition toast feedback — `toggleCond` and `addCondFromPicker` now toast "+condition" / "−condition"
-  - #17 _ctxInject staleness guard — `_ctxInjectTs` tracks when set; expires after 60 seconds in sendMsg
-- **Per-character JSON import** — "Update from JSON" button on each character's edit sheet. Opens modal with textarea for pasting Gemini/raw JSON. Auto-detects format (Gemini `{characters:[...]}`, single Gemini char `{ability_scores:...}`, or raw PC object). Checkbox to preserve HP/XP/conditions/inventory (default on). `importPCFromJSON(idx)` + `applyPCJSON(idx)`.
-- **Session 23 doc updates** — roadmap Session 23 entry, features.md additions (level-up auto-open, skip swap, XP slider, toast variants, AI contract hardening)
+- **Import system audit & fixes** — `importFromPaste` preserve-merge was backwards (`{...newPc,...preserved}` → `{...existing,...newPc}`), same bug previously fixed in `applyPCJSON`. Also: `importConfig` now has confirm dialog + handles Gemini `{characters:[...]}` wrapper. Dead `hasWagonOnly` branch wired up. `hp_max` added to preserved fields.
+- **In-app import guidance** — Both import modals now explain when to use which method (full-party vs single-character), with cross-references
+- **Player template suite** — 3 new template files:
+  - `single-character-template.json` — one character via Update from JSON button
+  - `levelup-template.json` — AI-assisted level-up with preserve mode
+  - `spellbook-template.json` — caster spellbook rebuild (magic/spellbook/slots only)
+- **Updated `character-template.json`** — added attacks field, spellbook format, familiar format, fixed skillProfs to include skills + saves, backstory placeholders
+- **Importable class progression data** (SAVE_VERSION 13→14):
+  - `state.classData` stores imported class/subclass progression, syncs via Firebase
+  - `_getLevelUpData(pc)` merges built-in `LEVEL_UP_DATA` with imported `state.classData`
+  - `_getClassSpellPool(ch)` replaces `_getBardSpells()` — works with any class
+  - Spell slot progression works for all classes (was bard-only)
+  - Broader spellcaster detection for spell swap step
+  - `openClassDataImport()` / `applyClassData()` — import UI in hamburger menu
+  - `class-progression-template.json` — template for AI-generated class data
 
 ### Decisions Made
-- Firebase dirty-edit guard uses 3-second window (matches typical field-edit→save cycle)
-- _ctxInject expires after 60 seconds (long enough for normal flow, short enough to prevent leaks across sessions)
-- JSON import preserves HP/XP/conditions/inventory by default (checkbox override)
-- saveRefresh uses rAF debounce, not setTimeout — coalesces within the same frame without introducing artificial delay
-- Items #10 (full renderAll dirty-flag refactor), #11 (Firebase partial sync), #19 (lazy-load static data) deferred as deep refactors
+- Class data stored in `state.classData` (syncs via Firebase) rather than baked into source — DM imports once, all devices get it
+- Imported class levels override built-in ones for same class (allows extending Fighter/Rogue/Bard to L11-20)
+- `_getClassSpellPool` falls back to SPELL_DB class tags when no spellList is imported
+- SAVE_VERSION bump 13→14 for classData field
 
 ### Known Issues
-- `renderAll()` still rebuilds ~50 sub-renderers (rAF debounce helps but doesn't eliminate; needs dirty-flag system)
-- Firebase still uploads entire state blob on every save (#11)
-- ~96KB static data (SPELL_DB, FEATS_DB, LEVEL_UP_DATA) loaded at startup (#19)
+- Built-in LEVEL_UP_DATA still only covers Fighter, Rogue, Bard L2-10 — other classes need import
+- SPELL_DB only has bard/wizard/druid spells — other class spell lists need import via spellList field or DB expansion
+- `renderAll()` still rebuilds everything (rAF debounce helps but no dirty-flag system)
+- Firebase still uploads entire state blob on every save
 - Level-up wizard has no back button
-- `save()` JSON.stringify still synchronous (rAF debounce reduces frequency but doesn't offload)
+- Import modals reference "templates on GitHub" but don't link directly
 
 ### In Progress
 - Nothing actively in progress
 
 ### Next Up
-1. **Deep refactors** — renderAll dirty-flag system (#10), Firebase partial sync (#11), lazy-load static data (#19)
-2. **Module import → world setup auto-fill**
-3. **Character Creation Wizard**
-4. **Inline NPC name linking**
-5. **Combat quick-panel**
-6. **Spell tap-to-see** — user request
-7. **Treasury gold tracking audit** — user reported 215gp discrepancy
+1. **Import system UX cleanup** — move Update from JSON to prominent row, add Export Character, add Import Spells on Spells tab, fix stale "Systems > Dev" references
+2. **Deep refactors** — renderAll dirty-flag system, Firebase partial sync, lazy-load static data
+3. **Module import → world setup auto-fill**
+4. **Character Creation Wizard**
+5. **Inline NPC name linking**
+6. **Combat quick-panel**
+7. **Spell tap-to-see** — user request
+8. **Treasury gold tracking audit** — user reported 215gp discrepancy
 
 ### Branch State
 - Branch: `claude/new-session-rvx6tn`
 - All changes committed and merged to main
 - Main is pushed and up to date with origin/main
-- Last commit on branch: 009de20
+- Last commit on branch: 4c3f1b2
