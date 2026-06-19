@@ -770,7 +770,7 @@ ACTIVE EPISODE CONTENT — `+v.name+`:
 CONTRACT 2 — WHAT YOU NEVER DO:
 `+t("ai-never")+`
 
-INVENTORY INTEGRITY: Check CAMPAIGN STATE inventory before answering about items. If not listed, say so — never fabricate stats or magic item properties. Emit item_add: when items are identified/attuned.
+INVENTORY INTEGRITY: Check CAMPAIGN STATE inventory before answering about items. If not listed, say so — never fabricate stats or magic item properties. Emit item_add: for EVERY item found, looted, bought, stolen, foraged, identified, or attuned.
 `+`
 
 CONTRACT 3 — HOW YOU HANDLE ACTIONS:

@@ -5301,7 +5301,7 @@ LEVEL-UP: You CANNOT level up characters. Direct players to //levelup or Sheet >
       +(globalRef?'\nMODULE REFERENCE (always active):\n'+globalRef+'\n':'')
       +(epContent?'\nACTIVE EPISODE CONTENT — '+activeEp.name+':\n'+epContent+'\n':'');
   }
-  const inventoryGuard='\n\nINVENTORY INTEGRITY: Check CAMPAIGN STATE inventory before answering about items. If not listed, say so — never fabricate stats or magic item properties. Emit item_add: when items are identified/attuned.\n';
+  const inventoryGuard='\n\nINVENTORY INTEGRITY: Check CAMPAIGN STATE inventory before answering about items. If not listed, say so — never fabricate stats or magic item properties. Emit item_add: for EVERY item found, looted, bought, stolen, foraged, identified, or attuned.\n';
   return g('ai-persona')+'\n'+premiseSection+sessionZeroSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+inventoryGuard+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
 }
 

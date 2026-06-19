@@ -97,7 +97,7 @@ Three sub-tabs via `showSessionMode()` / `showSessionTab()`:
 - Chat tabs: `#chat-tab-narrative` (📖 Narrative), `#chat-tab-ooc` (❓ Rules), `#chat-tab-party` (🗨️ OOC with `#party-badge`)
 - `#chat-msgs`, `#chat-input` (hidden), `#chat-quick-input` (visible bottom bar)
 - `#typing-ind`, `#offline-banner`
-- `#roll-request-banner` — Persistent banner for `roll_request:` mechanic
+- `#roll-request-queue` — Stacked banners for `roll_request:` mechanic (queue-based, supports multiple simultaneous requests)
 - `#dice-picker-panel` — Dice buttons (d4–d20)
 - `#ooc-msgs`, `#party-msgs`
 
@@ -297,6 +297,11 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 - `_validateMechanics(changes)` — Post-parse audit: clamps HP/slots/resources to valid ranges, deduplicates conditions, floors treasury at 0, encumbrance warnings (PC carry STR×15, wagon 1080lb), income log dedup (same desc+amt+type), toasts corrections
 - `_pcCarryWeight(pc)` / `_pcCarryCap(pc)` — PC personal carry weight from inventory, capacity = STR×15
 - `toggleItemTag(list, idx, tag)` — Toggle a type tag on/off for multi-category items (comma-separated)
+- `detectProseRolls(prose)` — Regex detection of AI rolling dice in prose text; warns via toast
+- `_renderRollQueue()` — Renders stacked roll_request banners from `_rollRequestQueue[]`
+- `openRollFromQueue(idx)` — Opens roll sheet pre-filled with skill/PC from queued request
+- `dismissRollRequest(idx)` — Removes entry from roll queue (or clears all if no idx)
+- `removeIncomeEntry(idx)` — Tap-to-delete income log entry with treasury adjustment and confirm
 
 ### Location System
 - `renderLocations()` — List view (Node Map SVG + cards) or Map view (area map + pins)
@@ -373,7 +378,7 @@ Parsed from AI response blocks in format: `key: value`
 
 **Zone Combat:** `zone_move` (name|zone_id), `zone_add_enemy` (name|hp|ac|zone_id|init), `zone_remove` (name), `zone_effect` (zone_id|effect|type), `zone_label` (zone_id|label), `zone_fog` (zone_id|hide/reveal), `combat_start` (description), `combat_end` (summary)
 
-**Interaction:** `roll_request` (Skill|DC|PCname — triggers persistent banner), `save_game`/`save`, `sp_charge` (superpowers plugin)
+**Interaction:** `roll_request` (Skill|DC|PCname — queued banners via `_rollRequestQueue[]`, auto-fills roll sheet with skill+PC, dismissed on submit), `save_game`/`save`, `sp_charge` (superpowers plugin)
 
 ---
 
@@ -439,8 +444,8 @@ Functions: `_handleSlashCmd(raw)` — command dispatcher; `SUGGEST_CHIPS{}` — 
 - **Module Progress Tracker** — Episode status, progress bar, `module_episode:` mechanic
 - **Session Archive** — `state.sessionArchive[]`, 50-cap append-based, collapsible entries newest-first
 - **Error Flag System** — 7 categories, 4-state verdict cycle, `uiCtx` auto-build, AI audit + JSON export
-- **Rewind Stack** — Last 10 state snapshots, one-tap restore
-- **Checkpoint System** — Manual + auto triggers (long rest, level-up, 0 HP, every N messages)
+- **Checkpoint System** — Periodic game-state snapshots for crash recovery and session continuity (NOT narrative — that's the Journal). Auto-triggers on: long rest, level-up, PC at 0 HP, every N AI messages (default 8, configurable 3–30). Manual trigger via ⚡ button. Each checkpoint records timestamp, reason, turn number, and party HP. Accessed via Systems > ⏪ Tools. State fields: `chkCount`, `chkMode`, `chkHistory[]` (30-cap), `msgsSinceChk`, `autoChkInterval`. Functions: `triggerChk()`, `renderChkHist()`, `clearChkHist()`, `logTurn()`, `markChkDone()`
+- **Rewind Stack** — Last 10 checkpoint snapshots, one-tap full state restore (chat excluded). Shown alongside Checkpoint History in Systems > ⏪ Tools
 - **Skill Proficiency Inference** — Parses `pc.skills` text as fallback when `skillProfs[]` is empty; Expertise detection via "(Expertise)" pattern
 - **Firebase Sync** — Config modal, real-time bidirectional sync, clock-independent chat merge
 - **Spell Compendium** — `SPELL_DB` (~65 spells, Bard + Wizard cantrips–3rd level), `MANEUVER_DB` (16 Battle Master maneuvers). Functions: `toggleCompendium(idx)`, `openCompendiumFromOverview(idx)`, `setCompFilter(idx,k,v)`, `addFromCompendium(idx,spellName)`, `addManeuverToPC(idx,name)`, `renderCompendium(idx)`. Class/level dropdowns, search, one-tap add to spellbook.
