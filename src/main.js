@@ -4209,8 +4209,14 @@ function importFromPaste(){
     const errShow=(msg)=>{if(errEl){errEl.textContent=msg;errEl.style.display='block';}};
     // Auto-detect Gemini format and convert
     if(p?.characters&&Array.isArray(p.characters)&&!p.pcs){
-      p={pcs:_convertGeminiPCs(p.characters)};
-      toast('🔄 Converted from Gemini format');
+      const needsConvert=p.characters[0]?.ability_scores&&!p.characters[0]?.str;
+      if(needsConvert){
+        p={pcs:_convertGeminiPCs(p.characters)};
+        toast('🔄 Converted from Gemini format');
+      }else{
+        p={pcs:p.characters.map(c=>{if(Array.isArray(c.features))c.features=c.features.map(f=>(f.name||'').toUpperCase()+': '+(f.description||'')).join('\n');if(Array.isArray(c.slots))c.slots=c.slots.map(s=>({max:s.max||0,used:s.used||0}));return c;})};
+        toast('🔄 Imported character data');
+      }
     }
     // Detect partial vs full save
     const hasCore=p?.pcs?.length>=1&&p?.worldData&&p?.wagon;
@@ -4276,8 +4282,14 @@ function applyPCJSON(idx){
   if(!raw){errShow('Nothing pasted.');return;}
   try{
     let p=JSON.parse(raw);
-    if(p.characters&&Array.isArray(p.characters))p=_convertGeminiPCs(p.characters)[0];
+    if(p.characters&&Array.isArray(p.characters)){
+      const ch=p.characters[0];
+      if(ch.ability_scores&&!ch.str)p=_convertGeminiPCs(p.characters)[0];
+      else p=ch;
+    }
     else if(p.ability_scores&&!p.str)p=_convertGeminiPCs([p])[0];
+    if(Array.isArray(p.features))p.features=p.features.map(f=>(f.name||'').toUpperCase()+': '+(f.description||'')).join('\n');
+    if(Array.isArray(p.slots))p.slots=p.slots.map(s=>({max:s.max||0,used:s.used||0}));
     if(!p||!p.name){errShow('Could not find a valid character. Need at least a "name" field.');return;}
     const pc=state.pcs[idx];
     const preserve=document.getElementById('pc-json-preserve')?.checked;
