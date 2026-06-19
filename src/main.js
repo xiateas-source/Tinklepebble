@@ -4436,10 +4436,10 @@ function migrate(s){
   if(!s.aiContracts||typeof s.aiContracts!=='object')s.aiContracts={persona:'',never:'',actions:'',continuity:'',multi:''};
   // Auto-append missing contract clauses (idempotent — checks for marker text before appending)
   if(s.aiContracts.never&&!s.aiContracts.never.includes('DUNGEON SECRETS')){
-    s.aiContracts.never+='\n\n• DUNGEON SECRETS: Never reveal the contents of unexplored rooms, loot locations, enemy positions, or dungeon secrets before the players discover them through play or successful checks.\n• PLAYER AGENCY: Before resolving any scene transition, room entry, escape sequence, or significant NPC action, ask the players what they want to do first. Do not assume and narrate.\n• SKILL CHECKS: Never skip skill checks. Every uncertain action with meaningful consequences requires a declared DC, a player roll, and narration of the result. No automatic successes or assumed outcomes.\n• DICE ROLLS: NEVER roll dice for players. NEVER write "Rolling 1d20... Result: 18" or similar. ALL rolls must go through roll_request: so the player rolls in the app. You narrate the OUTCOME after they submit their roll, never before.\n• XP IS NOT GOLD: NEVER emit gp:/income:/expense: for XP awards. XP uses the xp: mechanic ONLY. Gold and XP are completely separate systems.';
+    s.aiContracts.never+='\n\nAUTO-RULES:\n1. DUNGEON SECRETS: Never reveal unexplored rooms, loot, or enemy positions before players discover them.\n2. PLAYER AGENCY: Ask before resolving scene transitions, room entries, or significant actions. Never assume.\n3. SKILL CHECKS: Every uncertain action needs a declared DC + player roll via roll_request. No auto-successes.\n4. DICE: Never roll for players. Never write "Rolling 1d20... Result: 18." Use roll_request: only.';
   }
   if(s.aiContracts.multi&&!s.aiContracts.multi.includes('PLAYER AGENCY (STRICT')){
-    s.aiContracts.multi+='\n\nPLAYER AGENCY (STRICT — NEVER VIOLATE):\n- One player CANNOT act for another player\'s character. If Player A says "we all charge in," resolve ONLY Player A\'s character. Then ASK the other players what their characters do.\n- When multiple objectives are offered (e.g. "save the temple, secure the mill, or reinforce the gate"), each player chooses independently. NEVER assume the party stays together — ask each player where they go.\n- NEVER narrate a PC\'s action, decision, movement, or position unless that PC\'s player explicitly stated it.\n- Even if a player says "leaving [PC] to follow or not" — that is NOT permission to narrate [PC]\'s choice.\n- After resolving any action, ALWAYS check: has every PC been given a chance to act? If not, ask them by name.';
+    s.aiContracts.multi+='\n\nPLAYER AGENCY (STRICT):\n1. One player cannot act for another\'s character. "We all charge in" → resolve ONLY that player\'s PC, then ask the others.\n2. Multiple objectives → each player chooses independently. Never assume the party stays together.\n3. Never narrate a PC\'s action/movement unless that PC\'s player stated it.\n4. After every action: has every PC had a chance to act? If not, ask by name.';
   }
   // Normalize NPCs, quests
   s.npcs.forEach(n=>{if(n.hp===undefined)n.hp=0;});
@@ -5198,122 +5198,70 @@ function buildPrompt(ledger){
   const activeSnips=(state.snippets||[]).filter(s=>s.active!==false&&s.text).map(s=>'['+s.name+']\n'+s.text).join('\n\n');
   const mechBlock=`
 CONTRACT 6 — MECHANICS BLOCK (REQUIRED)
-After EVERY response, end with a mechanics block. Use exact format. If nothing changed write "none".
-This block is machine-parsed by the app — format must be exact. It is stripped from displayed text.
+End EVERY response with a mechanics block. Machine-parsed — exact format required. Stripped from display.
+If nothing changed: ---MECHANICS---\\nnone\\n---END---
 
+FORMAT:
 ---MECHANICS---
-hp: [name]=4
-hp_max: [name]=8
-conditions: [name]+poisoned, [name]-charmed
-slot_use: [name]=1
-slot_restore: [name]=all
-short_rest: [name]
-location: The Sunken Vault
-time: Day 2, dusk
-weather: Heavy rain
-income: 8, reward, Rescued merchant caravan
-expense: 3, Stable fee at the Broken Axle
-item_add: [name], Iron Key, 1, key, 0
-item_remove: party, Torch, 2
-item_add: wagon, Mushroom Cluster, 3, foraged, 0.1
-wagon_cell_add: Goblin Scout, Small, hostile, DC14, 40
-wagon_cell_update: Goblin Scout, sedated
-wagon_cell_remove: Goblin Scout
-wagon_hp: 14
-ox_hp: 12
-ox_condition: exhausted
-familiar_hp: Pip|0
-xp: [name]+50, [name]+50, [name]+50
-quest_done: Find the missing cart
-quest_add: Investigate the old mill
-npc_mood: Durgrim=hostile
-npc_add: Mira, Neutral, Halfling innkeeper
-pc_update: [name], class, Fighter/Champion
-pc_add: Grimtooth, Half-Orc, Barbarian, 1, 14, 14, 15
-pc_delete: Grimtooth
+key: value
 ---END---
 
-Rules:
-- One command per line, only include lines where something actually changed
-- Never invent HP values — only change HP by exact stated or rolled amounts
-- income: [amount], [category], [description] — USE THIS for all gold earned (logs to income ledger). Category: reward/found/loot/quest/trade/misc
-- expense: [amount], [description] — USE THIS for all gold spent (logs to expense ledger and deducts from GP)
-- gp: use a plain number to SET an absolute GP value (corrections only — does not create a log entry)
-- npc_add: EVERY TIME a named NPC is mentioned by name — whether formally introduced, referenced in dialogue, or recalled from lore — output npc_add if that NPC is not already in the tracker. Every time.
-- npc_mood: EVERY TIME an NPC's relationship to the party changes, output npc_mood.
-- resource_use: [pc], [resource name] — decrements a resource pip (Bardic Inspiration, Stone's Endurance, Lucky Points)
-- resource_restore: [pc], [resource name or all] — restores resource uses (short or long rest)
-- shell_defense: [name]=on/off — character retreats into shell defense (if applicable)
-- familiar_hp: [name]|[new HP] — set a familiar's HP (e.g. familiar_hp: Pip|0 when killed, familiar_hp: Pip|1 when resummoned). Familiars are tracked in the ledger under their owner's PC block
-- town_rep: [town name], [good/neutral/burned/fled], [brief notes] — updates town reputation log
-- income: [amount], [category], [description] — logs income (category: reward/found/loot/quest/trade)
-- If a numeric value is estimated, append (est) — e.g. wagon_cell_add: Cave Bear, Large, hostile, DC18, 400 (est)
-- primary_mission: [text] — set or update the party's main quest objective
-- quest_fail: [partial name] — mark a quest as failed/abandoned
-- quest_update: [partial name] | [status/note text] — update notes on an existing quest (e.g. quest_update: Stop the Cult | Status: Critical; infiltration planned)
-- module_episode: N, active|complete — when the party enters a new story episode or completes one. N is the episode number. Auto-marks prior episodes complete when advancing. Output this whenever a major story chapter begins or ends
-- EVERY item found, foraged, bought, stolen, or acquired MUST have an item_add: line. No exceptions. If the player forages mushrooms, the mechanics block must include item_add even if you mentioned them in prose
-- NEVER generate JSON for the players to paste. ALL state updates go through the mechanics block only. Generating paste JSON will corrupt the game state
-- The ---END--- marker is REQUIRED. Every mechanics block must end with ---END--- on its own line. Without it the entire block is ignored and nothing saves
-- The mechanics block must be the LAST thing in your response. Nothing after ---END---
-- Never wrap the mechanics block in markdown code fences, bold, or any formatting
-- If nothing changed still write: ---MECHANICS---\nnone\n---END---
-- Always update time: when meaningful time has passed (travel, rests, combat)
-- Always update location: when the party moves to a new named area, building, or region
-- Always update weather: when weather conditions change or when entering a new outdoor area
-- Always emit location_add: for ANY new named location the party visits (town, dungeon, camp, waypoint, building)
-- ENCUMBRANCE: The ledger shows carry weight for each PC and the wagon. If any PC is over STR×15 lbs or the wagon is over 1080 lbs, you MUST enforce travel speed penalties, disadvantage on physical checks, and narrate the strain. When adding items, always emit item_add with a weight estimate. Do not ignore encumbrance — it is a core survival mechanic
-- short_rest: [name] restores class short-rest features (Second Wind for Fighters, Arcane Recovery for Wizards, etc.)
-- consequence_add: [text] | [type] — log a world consequence. Types: background (ambient, slow-burn), faction (NPC group action), personal (affects a PC directly), escalation (urgent, building threat). Use for burned-town fallout, faction retaliation, PC reputation shifts, and ticking threats. Example: consequence_add: Cult of the Dragon sends scouts to track the party after Greenest | faction
-- consequence_resolve: [partial text] — mark a consequence resolved when the party has addressed it. Example: consequence_resolve: guards searching
-- location_add: Name | Type | Description — create a new location entry. Types: town/city/camp/ruin/dungeon/waypoint. Use when the party first arrives at a new named place. Example: location_add: Greenest | town | Small farming town under dragon attack
-- location_visit: Name — mark a known location as visited and update its last-visited timestamp. Use on return trips. Example: location_visit: Greenest
-- location_history: Name | Text | dmOnly — add an event entry to a location's history. Set dmOnly to true for secret events. Example: location_history: Greenest | Governor Nighthill paid 250gp for the party's help | false
-- location_investment: Name | Description | Amount — record a party investment at a location. Example: location_investment: Greenest | Mill stake | 50
-- roll_request: Skill | DC | PCname — show a persistent roll banner prompting the player to roll. PCname is optional (omit for whole party). ALWAYS use this instead of asking for a roll in prose text. The app shows a tappable banner with a Roll button — the player cannot roll from prose alone. Use for ALL rolls: skill checks, saving throws, attack rolls, damage rolls, spell rolls. Examples: roll_request: Persuasion | 14 | [PC name]. roll_request: Sleep damage | 5d8 | [PC name]. roll_request: Attack | 1d20+5 | [PC name]. If no roll_request is emitted, the player has no way to submit a roll
+EXAMPLE:
+---MECHANICS---
+hp: Slasher=10
+conditions: Aria+poisoned
+slot_use: Valenns=1
+location: The Keep
+time: Day 1, midnight
+weather: Storm
+income: 8, reward, Rescued caravan
+item_add: Slasher, Iron Key, 1, key, 0
+xp: Slasher+50, Aria+50, Valenns+50
+npc_add: Escobert, Friendly, Shield dwarf castellan
+quest_add: Defend the Sally Port
+roll_request: Initiative | 1d20+1 | Slasher
+combat_start: Sally Port Ambush
+zone_add_enemy: Cultist | 9 | 12 | front | 14
+---END---
 
-ZONE COMBAT SYSTEM:
-Combat uses 6 abstract zones instead of a grid: Frontline, Backline, Left Flank, Right Flank, Air Space, Rear Guard.
-Adjacency: Frontline↔Left Flank, Frontline↔Right Flank, Frontline↔Backline, Frontline↔Air Space, Backline↔Rear Guard.
-Movement costs 1 move for adjacent zones, 2 moves (or Dash) for non-adjacent. Leaving a zone with enemies provokes opportunity attacks.
-Air Space only appears when flying creatures exist. Rear Guard is safest — enemies must punch through Backline.
+FORMAT RULES:
+1. One key: value per line. Only emit lines where something changed.
+2. ---END--- is REQUIRED on its own line. Without it nothing saves.
+3. Mechanics block is LAST in your response. Nothing after ---END---.
+4. No code fences, bold, or formatting around the block.
+5. Never invent HP — only change by exact stated/rolled amounts.
 
-Zone mechanics commands:
-- combat_start: [optional description] — begin combat, initialize zone grid. Output this BEFORE any zone_add_enemy lines
-- combat_end: [summary text] — end combat, reset zones, log summary to location history
-- zone_move: [name] | [zone_id] — move a combatant to a zone. zone_id: front/back/left/right/air/rear. Example: zone_move: [PC name] | left
-- zone_add_enemy: [name] | [hp] | [ac] | [zone_id] | [initiative] — add enemy to combat in a specific zone. Example: zone_add_enemy: Cultist | 9 | 12 | front | 14
-- zone_remove: [name] — remove a combatant (dead, fled, etc). Example: zone_remove: Cultist
-- zone_effect: [zone_id] | [effect text] | [type] — apply an effect to a zone. type: terrain or effect (default). Example: zone_effect: front | Fog Cloud — obscured | effect. Example: zone_effect: back | Difficult terrain (rubble) | terrain
-- zone_label: [zone_id] | [new label] — rename a zone for narrative context. Example: zone_label: left | Collapsed Tower. Example: zone_label: rear | Wagon Circle
-- zone_fog: [zone_id] | hide — hide a zone from the player view (fog of war). Example: zone_fog: rear | hide
-- zone_fog: [zone_id] | reveal — reveal a previously hidden zone. Example: zone_fog: left | reveal
-Use fog of war to hide unexplored areas, secret rooms, or zones the party hasn't reached yet. Reveal zones as the party explores or discovers them.
+MECHANIC KEY REFERENCE:
+Character: hp:[name]=[val] | hp_max:[name]=[val] | conditions:[name]+/-[cond] | slot_use/slot_restore:[name]=[lvl or all] | resource_use/resource_restore:[pc],[name] | concentration:[name]=spell/off | short_rest:[name] | shell_defense:[name]=on/off | xp:[name]+[amt]
+Economy: income:[amt],[category],[desc] (category: reward/found/loot/quest/trade) | expense:[amt],[desc] | gp/sp/cp/ep/pp: absolute SET only
+Items: item_add:[target],[name],[qty],[type],[weight] | item_remove:[target],[name],[qty]
+World: location:[name] | time:[value] | weather:[value] | loc_desc:[text] | travel_note:[text] | town_rep:[town],[status],[notes]
+Story: quest_add/quest_done/quest_fail:[text] | quest_update:[name]|[notes] | primary_mission:[text] | npc_add:[name],[disposition],[desc] | npc_mood:[name]=[mood] | consequence_add:[text]|[type] | consequence_resolve:[text] | module_episode:N,active|complete
+Location: location_add:Name|Type|Desc | location_visit:Name | location_history:Name|Text|dmOnly | location_investment:Name|Desc|Amt
+Wagon: wagon_cell_add/update/remove | wagon_hp:[val] | ox_hp:[val] | ox_condition:[cond]
+Familiar: familiar_hp:[name]|[hp]
+PC: pc_update:[name],[field],[value] | pc_add/pc_delete:[name]
 
-Starting positions when combat begins:
-- Melee fighters (Fighter): Frontline
-- Ranged/casters (Wizard, Bard): Backline
-- Wagon/mounts: Rear Guard (auto-added by the app if present)
-- Flanks: for ambushes, flanking maneuvers, or when enemies surround
-- Air Space: only when flying creatures exist
-Override these defaults when the narrative demands it (ambush from behind, surrounded, etc).
+CRITICAL RULES:
+1. roll_request: Skill|DC|PCname — ONLY way players can roll. Emit for ALL rolls (checks, saves, attacks, damage, spells). NEVER resolve rolls in prose. Multiple roll_requests queue as separate banners.
+2. npc_add: Emit for EVERY named NPC mentioned — formal intro, dialogue reference, or lore recall. Every time.
+3. item_add: Emit for EVERY item found/foraged/bought/stolen/acquired — even if mentioned in prose.
+4. location_add: Emit for ANY new named location visited.
+5. Always update time/location/weather when they change.
+6. Encumbrance: PC carry cap = STR×15 lbs. Wagon cap = 1080 lbs. Enforce penalties when exceeded.
 
-ALWAYS use zone_move to reposition characters during combat based on the narrative. When a PC says "I charge in" move them to the appropriate zone. When enemies flank, move them to flanks. Keep zone positions consistent with the story.
+COMBAT (6-zone system: Frontline/Backline/Left Flank/Right Flank/Air Space/Rear Guard):
+Adjacency: Front↔Left, Front↔Right, Front↔Back, Front↔Air, Back↔Rear. Move=1 adjacent, 2 non-adjacent. OA on leaving hostile zone.
+Starting positions: Melee→Front, Ranged/Casters→Back, Wagon/Mounts→Rear. Air only when flying exists.
+Commands: combat_start:[desc] | combat_end:[summary] | zone_move:[name]|[zone] | zone_add_enemy:[name]|[hp]|[ac]|[zone]|[init] | zone_remove:[name] | zone_effect:[zone]|[text]|[type] | zone_label:[zone]|[label] | zone_fog:[zone]|hide/reveal
 
-COMBAT START CHECKLIST (mandatory — never skip):
-1. Emit combat_start: before anything else
-2. Emit zone_add_enemy: for EVERY enemy (name|hp|ac|zone|initiative)
-3. Emit roll_request: Initiative | 1d20+[mod] | [PC name] for EACH PC — do NOT assume initiative values
-4. Wait for initiative rolls before resolving any combat actions
-Never narrate combat in prose without emitting these mechanics. The app cannot track combat without them.
+COMBAT START — MANDATORY SEQUENCE:
+1. combat_start: [description]
+2. zone_add_enemy: for EVERY enemy
+3. roll_request: Initiative | 1d20+[mod] | [PC] for EACH PC
+4. WAIT for initiative rolls before resolving actions
 
-LEVEL-UP RULES (STRICT — NEVER VIOLATE):
-- You CANNOT level up characters. NEVER narrate or apply stat changes from leveling up (HP increases, new feats, new spells, ability score changes, new features).
-- When a player says "we level up" or "run the level up wizard" or similar: tell them to type //levelup in the chat input, or go to Sheet > their character card > Level Up button. You cannot run the wizard for them.
-- When XP is awarded and a character reaches the threshold, you may announce "You have enough XP to reach Level N! Type //levelup or go to your character sheet to advance." Then STOP. Do not list what they get.
-- The Level Up wizard in the app handles ALL stat changes: HP rolls, feat selection, spell picks, ASI, subclass choices. These are PLAYER CHOICES that you must never make for them.
-- If you see a [LEVEL UP COMPLETE] context message, THEN you may narrate the advancement — but only echo what the wizard already applied. Never add extra stats.
-- NEVER fabricate stat blocks showing post-level-up HP, features, or spells unless you received a [LEVEL UP COMPLETE] confirmation.`;
+LEVEL-UP: You CANNOT level up characters. Direct players to //levelup or Sheet > Level Up. Only narrate after [LEVEL UP COMPLETE] context message.`;
   const premiseSection=state.worldData.premiseLocked&&state.worldData.premise?'\nLOCKED CAMPAIGN PREMISE (fixed fact — never contradict):\n'+state.worldData.premise+'\n':'';
   const s0=state.campaignSetup||{};
   let sessionZeroSection='';
@@ -5353,12 +5301,7 @@ LEVEL-UP RULES (STRICT — NEVER VIOLATE):
       +(globalRef?'\nMODULE REFERENCE (always active):\n'+globalRef+'\n':'')
       +(epContent?'\nACTIVE EPISODE CONTENT — '+activeEp.name+':\n'+epContent+'\n':'');
   }
-  const inventoryGuard='\n\nINVENTORY INTEGRITY (non-negotiable):\n'
-    +'- When a player asks about a specific item, CHECK the CURRENT CAMPAIGN STATE inventory below.\n'
-    +'- If the item is NOT listed in the inventory, say "I don\'t see that item in the current inventory tracker" — do NOT invent stats, abilities, lore, or a backstory for it.\n'
-    +'- NEVER fabricate magic item properties. If you do not know an item\'s stats, say so. Do not guess.\n'
-    +'- If a player gives a specific item name you don\'t recognize, ask them to clarify rather than making something up.\n'
-    +'- When an item IS attuned or identified, output item_add: in your mechanics block so it enters the tracked inventory.\n';
+  const inventoryGuard='\n\nINVENTORY INTEGRITY: Check CAMPAIGN STATE inventory before answering about items. If not listed, say so — never fabricate stats or magic item properties. Emit item_add: when items are identified/attuned.\n';
   return g('ai-persona')+'\n'+premiseSection+sessionZeroSection+'\nCONTRACT 2 — WHAT YOU NEVER DO:\n'+g('ai-never')+inventoryGuard+'\n\nCONTRACT 3 — HOW YOU HANDLE ACTIONS:\n'+g('ai-actions')+'\n\nCONTRACT 4 — CONTINUITY & WAGON:\n'+g('ai-continuity')+'\n\nCONTRACT 5 — MULTI-PLAYER:\n'+g('ai-multi')+mechBlock+moduleSection+secretsSection+snipsSection+summarySection+(ledger?'\nCURRENT CAMPAIGN STATE:\n'+ledger:'');
 }
 
