@@ -4422,7 +4422,7 @@ function migrate(s){
   if(!s.aiContracts||typeof s.aiContracts!=='object')s.aiContracts={persona:'',never:'',actions:'',continuity:'',multi:''};
   // Auto-append missing contract clauses (idempotent — checks for marker text before appending)
   if(s.aiContracts.never&&!s.aiContracts.never.includes('DUNGEON SECRETS')){
-    s.aiContracts.never+='\n\n• DUNGEON SECRETS: Never reveal the contents of unexplored rooms, loot locations, enemy positions, or dungeon secrets before the players discover them through play or successful checks.\n• PLAYER AGENCY: Before resolving any scene transition, room entry, escape sequence, or significant NPC action, ask the players what they want to do first. Do not assume and narrate.\n• SKILL CHECKS: Never skip skill checks. Every uncertain action with meaningful consequences requires a declared DC, a player roll, and narration of the result. No automatic successes or assumed outcomes.';
+    s.aiContracts.never+='\n\n• DUNGEON SECRETS: Never reveal the contents of unexplored rooms, loot locations, enemy positions, or dungeon secrets before the players discover them through play or successful checks.\n• PLAYER AGENCY: Before resolving any scene transition, room entry, escape sequence, or significant NPC action, ask the players what they want to do first. Do not assume and narrate.\n• SKILL CHECKS: Never skip skill checks. Every uncertain action with meaningful consequences requires a declared DC, a player roll, and narration of the result. No automatic successes or assumed outcomes.\n• DICE ROLLS: NEVER roll dice for players. NEVER write "Rolling 1d20... Result: 18" or similar. ALL rolls must go through roll_request: so the player rolls in the app. You narrate the OUTCOME after they submit their roll, never before.\n• XP IS NOT GOLD: NEVER emit gp:/income:/expense: for XP awards. XP uses the xp: mechanic ONLY. Gold and XP are completely separate systems.';
   }
   if(s.aiContracts.multi&&!s.aiContracts.multi.includes('PLAYER AGENCY (STRICT')){
     s.aiContracts.multi+='\n\nPLAYER AGENCY (STRICT — NEVER VIOLATE):\n- One player CANNOT act for another player\'s character. If Player A says "we all charge in," resolve ONLY Player A\'s character. Then ASK the other players what their characters do.\n- When multiple objectives are offered (e.g. "save the temple, secure the mill, or reinforce the gate"), each player chooses independently. NEVER assume the party stays together — ask each player where they go.\n- NEVER narrate a PC\'s action, decision, movement, or position unless that PC\'s player explicitly stated it.\n- Even if a player says "leaving [PC] to follow or not" — that is NOT permission to narrate [PC]\'s choice.\n- After resolving any action, ALWAYS check: has every PC been given a chance to act? If not, ask them by name.';
@@ -5405,6 +5405,7 @@ function parseMechanics(responseText, pendingMsgId=null){
       const nm=(line.slice(ci+1).split('|')[0]||'').trim();
       if(nm&&(state.combat?.list||[]).some(e=>e.name===nm)){_rejected.push('zone_add_enemy: '+nm+' already in combat');return false;}
     }
+    if(['gp','sp','cp','ep','pp','income'].includes(k)&&/\bxp\b/i.test(v)){_rejected.push(k+': XP is not currency — use xp: mechanic');return false;}
     if(k==='xp'){
       const recent=(state.chatHistory||[]).slice(-3);
       const lastXPLine=recent.reverse().find(m=>m.mechanics?.some(c=>c.text?.includes('XP')));
@@ -5571,6 +5572,7 @@ function parseMechanics(responseText, pendingMsgId=null){
       }
       else if(key==='income'){
         const pts=val.split(',').map(p=>p.trim());const amt=parseFloat(pts[0])||0;const cat=pts[1]||'misc';const desc=pts.slice(2).join(',');
+        if(/\bxp\b/i.test(desc)||/\bxp\b/i.test(cat)){_rejected.push('income: XP is not gold — use xp: mechanic instead');return;}
         if(!Array.isArray(state.treasuryData.incomeLog))state.treasuryData.incomeLog=[];
         state.treasuryData.incomeLog.push({desc,amt,type:cat==='overhead'||cat==='emergency'?'out':'in',category:cat,ts:state.worldData.time,location:state.worldData.location||''});
         const gpKey='gp';const td=state.treasuryData;
