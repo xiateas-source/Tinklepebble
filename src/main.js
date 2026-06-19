@@ -1049,63 +1049,62 @@ function renderAll(){
   // Render relationships for active edit tab
   if(state.pcs[state.activeEditTab||0])renderRelationships(state.activeEditTab||0);
   injectPanelFlags();
-  renderContextStrip();
+  renderContextStrip();renderWorldBar();
 }
 
-// ═══ CONTEXT STRIP (carousel) ═══
+// ═══ WORLD BAR (compact location / time / weather at top of chat) ═══
+function renderWorldBar(){
+  const el=document.getElementById('world-bar');if(!el)return;
+  const w=state.worldData||{};
+  const parts=[];
+  if(w.location)parts.push('📍 '+w.location);
+  if(w.time)parts.push('🕐 '+w.time);
+  if(w.weather)parts.push('☁ '+w.weather);
+  if(state.combat&&state.combat.active){
+    const r=state.combat.round||1;
+    const cur=state.combat.list?.[state.combat.currentIdx||0];
+    parts.push('⚔ Rd '+r+(cur?' · '+cur.name:''));
+  }
+  el.innerHTML=parts.map(p=>`<span>${esc(p)}</span>`).join('');
+}
+
+// ═══ CONTEXT STRIP (quest / consequence carousel) ═══
 let _ctxSlide=0;
 let _ctxTimer=null;
 function _ctxSlides(){
   const slides=[];
-  const w=state.worldData||{};
-  const loc=w.location||'—';
-  const scene=w.scene_title||'';
-  slides.push({icon:'📍',text:loc+(scene?' · '+scene:''),action:'showTab(\'tab-world\')'});
-  if(w.time)slides.push({icon:'🕐',text:w.time+(w.weather?' · '+w.weather:''),action:null});
-  if(w.primaryMission)slides.push({icon:'⚔',text:w.primaryMission,action:'showTab(\'tab-world\')'});
-  const pcs=state.pcs||[];
-  if(pcs.length){
-    const hpLine=pcs.map(p=>p.name.slice(0,3)+' '+p.hp+'/'+p.hp_max).join('  ');
-    slides.push({icon:'❤',text:hpLine,action:null});
-  }
   if(state.combat&&state.combat.active&&(state.combat.list||[]).length){
     const round=state.combat.round||1;
     const cur=state.combat.list[state.combat.currentIdx||0];
-    slides.unshift({icon:'⚔',text:'Round '+round+' · '+(cur?cur.name+'\'s turn':'—'),action:'showTab(\'tab-combat\')',combat:true});
+    slides.push({icon:'⚔',text:'Round '+round+' · '+(cur?cur.name+'\'s turn':'—'),action:'showTab(\'tab-combat\')',combat:true});
   }
   const activeQuests=(state.quests||[]).filter(q=>q.status==='active');
   activeQuests.forEach(q=>{
-    slides.push({icon:'📜',text:(q.text||'').split('|')[0].slice(0,50),action:'showTab(\'tab-world\')'});
+    slides.push({icon:'📜',text:(q.text||'').split('|')[0].slice(0,60),action:'showTab(\'tab-world\')',quest:true});
   });
   const activeCsq=(state.consequences||[]).filter(c=>!c.resolved);
   activeCsq.forEach(c=>{
     const tag=c.type?c.type.toUpperCase()+': ':'';
-    slides.push({icon:'⚠',text:tag+(c.text||'').slice(0,50),action:'showTab(\'tab-world\')',warning:true});
+    slides.push({icon:'⚠',text:tag+(c.text||'').slice(0,60),action:'showTab(\'tab-world\')',warning:true});
   });
-  if(state.treasuryData){
-    const gp=parseFloat(state.treasuryData.gp)||0;
-    if(gp>0)slides.push({icon:'💰',text:gp+' gp',action:null});
-  }
+  const w=state.worldData||{};
+  if(w.primaryMission)slides.push({icon:'🎯',text:w.primaryMission,action:'showTab(\'tab-world\')'});
   return slides;
 }
 function renderContextStrip(){
   const el=document.getElementById('context-strip');if(!el)return;
   const slides=_ctxSlides();
-  if(!slides.length){el.innerHTML='';return;}
-  if(_ctxSlide>=slides.length)_ctxSlide=0;
-  const s=slides[_ctxSlide];
-  const dots=slides.length>1?'<span style="margin-left:auto;font-size:8px;color:var(--text-dim);letter-spacing:2px">'+slides.map((_,i)=>i===_ctxSlide?'●':'○').join('')+'</span>':'';
-  const sColor=s.combat?'var(--red)':s.warning?'var(--gold-bright)':'var(--gold)';
-  el.innerHTML=`<span style="cursor:${s.action?'pointer':'default'};color:${sColor};font-weight:${s.combat||s.warning?'600':'normal'}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>${dots}`;
-  if(!_ctxTimer){
-    const n=_ctxSlides().length;
-    if(n>1)_ctxTimer=setInterval(()=>{_ctxSlide=(_ctxSlide+1)%_ctxSlides().length;renderContextStrip();},5000);
-  }
+  if(!slides.length){el.innerHTML='<span style="color:var(--text-dim);font-style:italic">No active quests</span>';return;}
+  el.innerHTML=slides.map((s,i)=>{
+    const bg=s.combat?'var(--red)':s.warning?'var(--gold-dim)':s.quest?'var(--surface3)':'var(--surface2)';
+    const color=s.combat?'var(--text-bright)':s.warning?'var(--gold-bright)':s.quest?'var(--green)':'var(--text)';
+    const border=s.combat?'var(--red)':s.warning?'var(--gold)':s.quest?'var(--green)':'var(--border)';
+    return `<span class="ctx-chip" style="background:${bg};color:${color};border:1px solid ${border}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>`;
+  }).join('');
 }
 function _tapCtxStrip(){
-  if(_ctxTimer){clearInterval(_ctxTimer);_ctxTimer=null;}
-  _ctxSlide=(_ctxSlide+1)%_ctxSlides().length;
-  renderContextStrip();
+  const el=document.getElementById('context-strip');if(!el)return;
+  el.scrollBy({left:120,behavior:'smooth'});
 }
 
 // ═══ CONTRACTS → STATE (DR-6) ═══
@@ -1460,7 +1459,7 @@ function syncWorld(){
   const ds=document.getElementById('dm-secrets');if(ds)ds.value=state.dmSecrets||'';
   const qp=document.getElementById('q_primary');if(qp)qp.value=state.worldData.primaryMission||'';
   const tl=document.getElementById('w_travel_log');if(tl)tl.value=(state.worldData.travelLog||[]).join('\n');
-  renderTravelLog();renderJournalHeader();renderJournalRep();
+  renderTravelLog();renderJournalHeader();renderJournalRep();renderWorldBar();
   const spr=document.getElementById('setup-premise');if(spr)spr.value=state.worldData.premise||'';
   const sst=document.getElementById('setup-setting');if(sst)sst.value=state.worldData.setting||'';
   const smq=document.getElementById('setup-mission');if(smq)smq.value=state.worldData.primaryMission||'';
@@ -10866,7 +10865,7 @@ Object.assign(window, {
   rsAdjMod, rsRollDice, _buildRsPills,
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
-  renderContextStrip, _tapCtxStrip, copyContracts,
+  renderContextStrip, _tapCtxStrip, renderWorldBar, copyContracts,
   navToast, _mechPillNav, catchUpAudit, deepSeed, renderJournalHeader, renderJournalRep, scrollActiveChatBottom, scrollActiveChatTop,
   toggleTestMode, clearTestChat, exportTestChat, sendTestMsg,
   save, saveEditedNote,
