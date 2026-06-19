@@ -6794,7 +6794,8 @@ async function sendMsg(){
     (state.pcs||[]).forEach(p=>{const w=_pcCarryWeight(p),c=_pcCarryCap(p);if(w>c)encWarns.push(p.name+' ENCUMBERED: '+w.toFixed(0)+'/'+c+'lb.');});
     const encCtx=encWarns.length?'\n\n[ENCUMBRANCE WARNING] '+encWarns.join(' ')+' Enforce movement and travel penalties. Emit item_add/item_remove mechanics for any inventory changes.':'';
     const receipt=_lastMechReceipt||'';_lastMechReceipt=null;
-    const sysProm=buildPrompt(ledger)+(_inject?'\n\n'+_inject:'')+encCtx+(receipt?'\n\n'+receipt:'');
+    const pendingRolls=(window._rollRequestQueue||[]).length?'\n\n[PENDING ROLLS — DO NOT RESOLVE] '+window._rollRequestQueue.map(r=>(r.pcname||'Party')+': '+r.skill+(r.dc?' DC '+r.dc:'')).join('; ')+'. These players have NOT rolled yet. Do NOT narrate outcomes, assume results, or roll for them. Resolve ONLY the acting player\'s actions.':'';
+    const sysProm=buildPrompt(ledger)+(_inject?'\n\n'+_inject:'')+encCtx+(receipt?'\n\n'+receipt:'')+pendingRolls;
     const histForApi=state.chatHistory.filter(m=>m.role!=='system').map(m=>({
       role:m.role==='assistant'?'assistant':'user',
       content:(m.playerName&&m.role!=='assistant'?'['+m.playerName+' playing '+m.playerChar+']: ':'')+m.content
