@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/Tinklepebble/assets/app.4ptTjVmV.js"></script>
+  <script type="module" crossorigin src="/Tinklepebble/assets/app.7zFdWEDj.js"></script>
   <link rel="stylesheet" crossorigin href="/Tinklepebble/assets/index.DVQcNmoH.css">
 </head>
 <body>
@@ -877,7 +877,6 @@ When the party travels through wilderness, arrives at a new outdoor location, or
           <button class="chat-tab-btn" id="chat-tab-party" onclick="showChatTab('party');clearPartyBadge()">🗨️ OOC <span id="party-badge" style="display:none;background:var(--gold);color:var(--bg);border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:2px;vertical-align:middle"></span></button>
           <button class="chat-tab-btn" id="chat-tab-test" onclick="showChatTab('test')" style="display:none;color:var(--gold-bright)">⚗ Test</button>
           <span style="margin-left:auto;display:flex;gap:2px;align-items:center">
-            <span id="provider-status-mini" style="font-size:9px;color:var(--text-dim);margin-right:4px">No key set</span>
             <button class="btn sm" onclick="scrollActiveChatTop()" title="Scroll to top" style="padding:2px 6px;min-height:24px;font-size:10px">↑</button>
             <button class="btn sm" onclick="scrollActiveChatBottom()" title="Scroll to bottom" style="padding:2px 6px;min-height:24px;font-size:10px">↓</button>
             <button class="btn sm" onclick="populateVoices();openModal('tts-modal')" title="Text-to-speech" style="padding:2px 6px;min-height:24px;font-size:10px">🔊</button>
@@ -908,11 +907,12 @@ When the party travels through wilderness, arrives at a new outdoor location, or
             <button class="btn sm gold" onclick="openRollSheet()" style="min-width:40px">d100</button>
           </div>
         </div>
-        <div id="dm-options-row" style="display:flex;gap:10px;padding:4px 0 2px;font-size:11px;flex-wrap:wrap;align-items:center;flex-shrink:0;">
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-log" checked> Log</label>
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="chat-ledger" checked> Ledger</label>
-          <button onclick="openFlagModal(-1)" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-dim);font-size:11px;padding:3px 8px;cursor:pointer">⚑</button>
-          <button id="player-lbl" onclick="switchUser()" title="Tap to switch player" style="color:var(--gold);font-size:11px;margin-left:auto;background:none;border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer;padding:2px 6px;white-space:nowrap"></button>
+        <div id="dm-options-row" style="display:flex;gap:6px;padding:2px 10px;font-size:10px;align-items:center;flex-shrink:0;color:var(--text-dim)">
+          <label style="display:flex;align-items:center;gap:3px;cursor:pointer" title="Log messages to session log"><input type="checkbox" id="chat-log" checked style="width:14px;height:14px"> <span style="font-size:9px;letter-spacing:.3px">LOG</span></label>
+          <label style="display:flex;align-items:center;gap:3px;cursor:pointer" title="Include ledger in AI context"><input type="checkbox" id="chat-ledger" checked style="width:14px;height:14px"> <span style="font-size:9px;letter-spacing:.3px">LEDGER</span></label>
+          <button onclick="openFlagModal(-1)" style="background:none;border:none;color:var(--text-dim);font-size:12px;padding:2px 4px;cursor:pointer" title="Flag an issue">⚑</button>
+          <span id="provider-status-mini" style="font-size:8px;color:var(--text-dim);opacity:.6"></span>
+          <button id="player-lbl" onclick="switchUser()" title="Tap to switch player" style="color:var(--gold);font-size:10px;margin-left:auto;background:none;border:none;cursor:pointer;padding:2px 4px;white-space:nowrap"></button>
         </div>
         </div><!-- end chat-pane-narrative -->
         <div id="chat-pane-ooc" style="display:none">

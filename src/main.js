@@ -1073,6 +1073,8 @@ let _ctxSlide=0;
 let _ctxTimer=null;
 function _ctxSlides(){
   const slides=[];
+  const w=state.worldData||{};
+  if(w.primaryMission)slides.push({icon:'🎯',text:w.primaryMission,action:'showTab(\'tab-world\')',primary:true});
   if(state.combat&&state.combat.active&&(state.combat.list||[]).length){
     const round=state.combat.round||1;
     const cur=state.combat.list[state.combat.currentIdx||0];
@@ -1087,8 +1089,6 @@ function _ctxSlides(){
     const tag=c.type?c.type.toUpperCase()+': ':'';
     slides.push({icon:'⚠',text:tag+(c.text||'').slice(0,60),action:'showTab(\'tab-world\')',warning:true});
   });
-  const w=state.worldData||{};
-  if(w.primaryMission)slides.push({icon:'🎯',text:w.primaryMission,action:'showTab(\'tab-world\')'});
   return slides;
 }
 function renderContextStrip(){
@@ -1096,10 +1096,11 @@ function renderContextStrip(){
   const slides=_ctxSlides();
   if(!slides.length){el.innerHTML='<span style="color:var(--text-dim);font-style:italic">No active quests</span>';return;}
   el.innerHTML=slides.map((s,i)=>{
-    const bg=s.combat?'var(--red)':s.warning?'var(--gold-dim)':s.quest?'var(--surface3)':'var(--surface2)';
-    const color=s.combat?'var(--text-bright)':s.warning?'var(--gold-bright)':s.quest?'var(--green)':'var(--text)';
-    const border=s.combat?'var(--red)':s.warning?'var(--gold)':s.quest?'var(--green)':'var(--border)';
-    return `<span class="ctx-chip" style="background:${bg};color:${color};border:1px solid ${border}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>`;
+    const bg=s.primary?'var(--gold-dim)':s.combat?'var(--red)':s.warning?'var(--gold-dim)':s.quest?'var(--surface3)':'var(--surface2)';
+    const color=s.primary?'var(--text-bright)':s.combat?'var(--text-bright)':s.warning?'var(--gold-bright)':s.quest?'var(--green)':'var(--text)';
+    const border=s.primary?'var(--gold)':s.combat?'var(--red)':s.warning?'var(--gold)':s.quest?'var(--green)':'var(--border)';
+    const extra=s.primary?'font-weight:700;font-size:11px;':'';
+    return `<span class="ctx-chip" style="background:${bg};color:${color};border:1px solid ${border};${extra}" ${s.action?'onclick="event.stopPropagation();'+s.action+'"':''}>${s.icon} ${esc(s.text)}</span>`;
   }).join('');
 }
 function _tapCtxStrip(){
