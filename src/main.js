@@ -4973,9 +4973,9 @@ function loadState(){
       p.saveVersion=SAVE_VERSION;
     }
     state=p;
+    state.pcs.forEach(pc=>checkLevelUp(pc));
   }
   catch(e){console.error('Load error',e);}
-  // Drop 2: fbLoad() goes here — must call: migrate(fbData); applyVersionMerge(fbData); state=fbData; renderAll();
 }
 function saveRefresh(){save();renderAll();}
 function autosaveDot(){
@@ -5903,6 +5903,7 @@ function parseMechanics(responseText, pendingMsgId=null){
     }catch(e){changes.push({text:'Parse err: '+line.slice(0,30),error:true});console.warn('Mech parse err:',line,e);}
   });
   if(changes.length>0){
+    state.pcs.forEach(pc=>checkLevelUp(pc));
     save();
     renderCharTabs();renderCards();renderStatusMini();renderSheets();
     renderNPCs();renderQuests();renderConsequences();renderCombat();renderWagon();syncWorld();renderModuleTracker();
