@@ -4982,9 +4982,11 @@ function adjHP(idx,isHeal){
   const inp=document.getElementById('hpamt-'+idx);if(!inp?.value)return;
   const amt=parseInt(inp.value);if(isNaN(amt))return;
   const pc=state.pcs[idx];
+  const wasDown=pc.hp<=0;
   pc.hp=isHeal?Math.min(pc.hp_max,pc.hp+amt):Math.max(0,pc.hp-amt);
-  pc.hp=Math.max(0,Math.min(pc.hp_max,pc.hp)); // always clamp
+  pc.hp=Math.max(0,Math.min(pc.hp_max,pc.hp));
   inp.value='';
+  if(isHeal&&wasDown&&pc.hp>0&&pc.conditions){pc.conditions=pc.conditions.filter(c=>c!=='Unconscious'&&c!=='Dying');}
   if(!isHeal&&pc.hp===0&&document.getElementById('auto-down')?.checked)triggerChk('PC Down: '+pc.name);
   saveRefresh();
 }
@@ -5433,7 +5435,7 @@ function parseMechanics(responseText, pendingMsgId=null){
           const[nm,hpRaw]=part.trim().split('=');
           const hpStr=hpRaw?.split('/')[0];
           const pc=findPC(nm?.trim());
-          if(pc&&hpStr!==undefined){const old=pc.hp;pc.hp=Math.max(0,Math.min(pc.hp_max,parseInt(hpStr)));changes.push({text:pc.name+' HP '+old+'→'+pc.hp});if(pc.hp===0&&document.getElementById('auto-down')?.checked)setTimeout(()=>triggerChk('PC Down: '+pc.name),300);}
+          if(pc&&hpStr!==undefined){const old=pc.hp;pc.hp=Math.max(0,Math.min(pc.hp_max,parseInt(hpStr)));changes.push({text:pc.name+' HP '+old+'→'+pc.hp});if(pc.hp>0&&old<=0&&pc.conditions){pc.conditions=pc.conditions.filter(c=>c!=='Unconscious'&&c!=='Dying');changes.push({text:pc.name+' no longer unconscious'});}if(pc.hp===0&&document.getElementById('auto-down')?.checked)setTimeout(()=>triggerChk('PC Down: '+pc.name),300);}
         });
       }else if(key==='hp_max'){
         val.split(',').forEach(part=>{const[nm,v]=part.trim().split('=');const pc=findPC(nm?.trim());if(pc&&v){pc.hp_max=parseInt(v);changes.push({text:pc.name+' MaxHP→'+v});}});
@@ -10460,9 +10462,10 @@ function renderPCOverview(){
   const classEl=document.getElementById('po-class');if(classEl)classEl.textContent=(pc.class||'')+(pc.subclass?' ('+pc.subclass+')':'')+(pc.level?' Lv.'+pc.level:'')+(pc.race?' — '+pc.race:'');
   const badgeEl=document.getElementById('po-badge');
   if(badgeEl){
+    const _negConds=(pc.conditions||[]).filter(c=>!['Inspired','Concentrating','Dodge','Hidden','Invisible'].includes(c));
     let badge='<span class="status-badge ok">OK</span>';
     if(pc.hp<=0)badge='<span class="status-badge dead">DOWN</span>';
-    else if(pct<50||(pc.conditions||[]).length>0)badge='<span class="status-badge warn">HURT</span>';
+    else if(pct<50||_negConds.length>0)badge='<span class="status-badge warn">HURT</span>';
     badgeEl.innerHTML=badge+'<button class="sheet-lock-btn '+(locked?'locked':'unlocked')+'" onclick="toggleSheetLock('+idx+')" title="'+(locked?'Unlock to edit':'Lock sheet')+'" style="margin-left:8px">'+(locked?'🔒':'🔓')+'</button>';
   }
   const body=document.getElementById('pc-overview-body');if(!body)return;
