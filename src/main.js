@@ -2622,6 +2622,7 @@ function doLongRest(){
   saveRefresh();
   if(document.getElementById('auto-rest')?.checked)triggerChk('Long Rest');
   toast('🌙 Long Rest — all HP and slots restored!');
+  state.pcs.forEach(pc=>checkLevelUp(pc));
   const readyIdx=state.pcs.findIndex(pc=>pc.levelReady);
   if(readyIdx>=0)setTimeout(()=>openLevelUpWizard(readyIdx),800);
 }
@@ -5406,11 +5407,13 @@ function parseMechanics(responseText, pendingMsgId=null){
     if(lines.length) match={1:lines.join('\n')};
   }
   if(!match)return null;
-  const block=match[1].trim();
+  let block=match[1].trim();
   if(block==='none'||block==='')return null;
   const changes=[];
   const _rejected=[];
   const _mechKeySet=new Set(_MECH_KEYS.split('|'));
+  // Split pipe-separated mechanics on a single line: "xp:party+100 | quest_done:..." → separate lines
+  block=block.replace(new RegExp('\\s*\\|\\s*(?=('+_MECH_KEYS+'):)','gi'),'\n');
   const rawLines=block.split('\n').map(l=>{
     l=l.trim().replace(/^[-*•]\s+/,'');
     const ci=l.indexOf(':');
