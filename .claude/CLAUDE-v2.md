@@ -50,6 +50,8 @@ Deep reference (read on demand, not every session):
 - `.claude/prime-directive-v2.md` — full vision, V1 lessons, cross-law alignment
 - `.claude/ai-failures.md` — Law 2 audit trail, every documented AI failure
 
+**After a few sessions**, ask the developer: "Does reading 4 files at startup feel heavy? Want me to drop architecture and decisions to on-demand?" Tune the protocol based on experience.
+
 ---
 
 ## Session End Protocol
