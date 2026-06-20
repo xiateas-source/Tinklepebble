@@ -134,6 +134,12 @@ Never add `hp_max`, `class`, `level`, `features`, `magic`, `skills`, `slots`, `r
 ### Character Creation Wizard
 - **Character Creation Wizard** — Level 1 setup flow (like Level Up wizard but for new characters). Race picker, stat roller/point-buy, class features, starting equipment, spell selection, proficiency picks. Fills blank template PCs into playable Level 1 characters. Would replace manual sheet entry for fresh campaigns.
 
+### Import/Export UX (from Session 25 review)
+- **"Level Up with AI" button** — One-tap on character sheet: exports current PC JSON to clipboard + opens Gemini with level-up template context. Discussed as "Ingenious Feature #1" but never built (replaced by stale-ref fix)
+- **"Copy State" button cleanup** — `copyStateCompact()` is confusing alongside Export (file download). Remove or fold into Export as a toggle
+- **SPELL_DB expansion (L3+ spells)** — Current DB only covers cantrips–L2 even for covered classes (bard/wizard/druid). Characters past level 5 will have empty spell pickers unless users import spellLists. Either expand DB or provide pre-built class progression downloads
+- **Pre-built class progression files** — Provide downloadable ready-made class progression JSONs for common classes (at least the 3 built-in: Fighter/Rogue/Bard L11-20) so users don't need to generate via Gemini
+
 ### From Gameplay UX Audit (medium-effort, not yet built)
 - ✅ ~~**Condition duration tracking** — track rounds remaining on conditions, auto-expire~~ — Session 17
 - ✅ ~~**Quick enemy clone** — duplicate an existing combatant for fast encounter setup~~ — Session 17
