@@ -78,6 +78,8 @@ V2 is a prototype for V3 — the developer is a player, the session is the test 
 
 The app is the development environment. The developer plays alongside the other player, spotting failures, flagging issues, and fixing state live. Dev tools aren't hidden behind mode friction — they live inside play. The `//` command line, the flag system, the rewind stack, the contract verifier are first-class play tools, not debug afterthoughts. The app gets better every session because the developer is in every session.
 
+The developer is not a software engineer — they're a player who learned to build by building. The AI fills the experience gap: anticipating pitfalls, catching architectural problems before they ship, surfacing solutions the developer wouldn't know to look for. The workboard defines what to build, but the AI is expected to go beyond it — connecting features, hardening edge cases, and adding small wins that serve the Five Laws. Unplanned additions are welcome when they clearly serve the product; they're flagged so the developer can review. The laws are the boundary for improvisation, not the workboard.
+
 ---
 
 ## V1 LESSONS — WHAT WE KNOW
