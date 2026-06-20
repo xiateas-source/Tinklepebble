@@ -46,8 +46,9 @@ When code is merged to main (user says "make it live"), always merge `.claude/` 
 - Vite build: `src/main.js` + `src/style.css` → `index.html` → builds to `docs/` (GitHub Pages from `main`)
 - Firebase Realtime Database for real-time sync; `STATE_KEYS` controls what syncs
 - `state` persisted to `localStorage('tt_v1')` and Firebase
-- `SAVE_VERSION=12` — increment + add `migrate()` gate for any state structure changes
-- `migrate()` = version-gated engine: structural guards → v8–v12 gates → canonical QA → core defaults
+- `SAVE_VERSION=14` — increment + add `migrate()` gate for any state structure changes
+- `migrate()` = version-gated engine: structural guards → v8–v14 gates → canonical QA → core defaults
+- **V2 lives in separate repo** — `xiateas-source/V2`. This repo (tinklepebble) is v1 maintenance only. V2 planning docs are on feature branch `claude/xiateas-source-v2-0obeyj` pending transfer.
 - `renderAll()` = central render; `renderChat()` = narrative chat only
 - `parseMechanics()` = 60+ handlers / 65 keys; `_MECH_KEYS` controls display stripping
 - `genLedger()` + `buildPrompt()` = build AI system prompt
