@@ -812,6 +812,7 @@ let playerName='',playerChar='',provider='openrouter';
 let sessionLogIdx=0;
 let _lastPartyChatLen=0,_unreadParty=0;
 const _expandedMsgs=new Set(); // message indices the user has expanded
+const _expandedMechs=new Set(); // message indices with expanded mechanics pills
 let _spellFilter='all'; // spellbook level filter
 let sessionStart=Date.now(),sessionStartGP=0;
 // Message content lookup — avoids JSON.stringify in onclick attributes
@@ -5593,6 +5594,7 @@ PC: pc_update:[name],[field],[value] | pc_add/pc_delete:[name]
 
 CRITICAL RULES:
 1. roll_request: Skill|DC|PCname — ONLY way players can roll. Emit for ALL rolls (checks, saves, attacks, damage, spells). NEVER resolve rolls in prose. Multiple roll_requests queue as separate banners.
+   NARRATIVE PAUSE: When you emit a roll_request, STOP the narrative at the moment of the attempt. Describe the setup and tension, but NEVER describe the outcome (success OR failure). Do NOT narrate what happens next — the player must roll first. Resume narration ONLY after the player submits their roll result. This means your response ENDS with the roll_request in the mechanics block. No prose after the point where the roll is needed.
 2. npc_add: Emit for EVERY named NPC mentioned — formal intro, dialogue reference, or lore recall. Every time.
 3. item_add: Emit for EVERY item found/foraged/bought/stolen/acquired — even if mentioned in prose.
 4. location_add: Emit for ANY new named location visited.
@@ -6260,6 +6262,11 @@ function navToast(icon, label, caption, onTap, autoMs=6500){
   setTimeout(()=>{chip.style.opacity='1';chip.style.transform='translateX(0)';},30);
   setTimeout(()=>{chip.style.opacity='0';chip.style.transform='translateX(14px)';setTimeout(()=>chip.remove(),320);},autoMs);
 }
+function toggleMechPills(msgIdx){
+  if(_expandedMechs.has(msgIdx))_expandedMechs.delete(msgIdx);
+  else _expandedMechs.add(msgIdx);
+  renderChat();
+}
 function _mechPillNav(el){
   const t=el.textContent||'';
   const pcs=state.pcs||[];
@@ -6603,7 +6610,7 @@ function getCached(){return JSON.parse(localStorage.getItem(CKEY)||'[]')[0]||nul
 let _chatRenderHash='';
 function renderChat(){
   const c=document.getElementById('chat-msgs');if(!c)return;
-  const hash=(state.chatHistory||[]).length+':'+(state.chatHistory?.at(-1)?.content?.length||0)+':'+(Object.keys(_expandedMsgs||{}).length);
+  const hash=(state.chatHistory||[]).length+':'+(state.chatHistory?.at(-1)?.content?.length||0)+':'+(Object.keys(_expandedMsgs||{}).length)+':'+_expandedMechs.size;
   if(hash===_chatRenderHash&&c.children.length>0)return;
   _chatRenderHash=hash;
   const prevScroll=c.scrollTop;const prevHeight=c.scrollHeight;
@@ -6646,8 +6653,9 @@ function renderChat(){
     if(msg.ts||msg.realTs){tsHtml='<span style="font-size:9px;opacity:.5">';if(msg.ts)tsHtml+=esc(msg.ts);if(msg.ts&&msg.realTs)tsHtml+=' · ';if(msg.realTs)tsHtml+=esc(msg.realTs);tsHtml+='</span>';}
     let mechBadge='';
     if(msg.mechanics?.length){
+      const mechOpen=_expandedMechs.has(msgIdx);
       const pills=msg.mechanics.map(m=>`<span class="mech-pill${m.error?' err':''}" onclick="_mechPillNav(this)">${esc(m.text)}</span>`).join('');
-      mechBadge=`<div class="mech-badge"><div class="mech-badge-hdr" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='flex'?'none':'flex'"><span class="mech-badge-lbl">⚡ Changes</span><span style="font-size:10px;color:var(--green-bright);margin-left:4px">${msg.mechanics.length} — tap to expand</span></div><div class="mech-pills" style="display:none">${pills}</div></div>`;
+      mechBadge=`<div class="mech-badge"><div class="mech-badge-hdr" onclick="toggleMechPills(${msgIdx})"><span class="mech-badge-lbl">⚡ Changes</span><span style="font-size:10px;color:var(--green-bright);margin-left:4px">${msg.mechanics.length} — tap to ${mechOpen?'collapse':'expand'}</span></div><div class="mech-pills${mechOpen?' open':''}">${pills}</div></div>`;
     }
     const isExpanded=_expandedMsgs.has(msgIdx);
     let questChips='';
@@ -11219,7 +11227,7 @@ Object.assign(window, {
   useResource, verifyElKey, renderPartyPCList, toggleSkillProf,
   sendRollToChat, addPartyItem, remPI, updPI, closeInvEdit,
   showTermTip, rollStatCheck, rollInitiative,
-  _expandedMsgs, openCompendiumFromOverview, setCompFilter, setSpellFilter, toggleCompendium,
+  _expandedMsgs, _expandedMechs, openCompendiumFromOverview, setCompFilter, setSpellFilter, toggleCompendium,
   openFamiliarOverview, closeFamiliarOverview, openGritOverview, closeGritOverview, syncMountTitle,
   renderLocations, openLocationDetail, closeLocDetail, toggleLocDmMode,
   addLocationManual, updateLocNotes, addLocHistory, addLocNPC, addLocInvestment,
@@ -11232,7 +11240,7 @@ Object.assign(window, {
   renderCharSheet, toggleSheetLock, setCharSheetTab,
   csSpendHD, csSetExhaustion, csAddLang, csRemLang,
   renderContextStrip, _tapCtxStrip, renderWorldBar, copyContracts,
-  navToast, _mechPillNav, catchUpAudit, deepSeed, renderJournalHeader, renderJournalRep, scrollActiveChatBottom, scrollActiveChatTop,
+  navToast, _mechPillNav, toggleMechPills, catchUpAudit, deepSeed, renderJournalHeader, renderJournalRep, scrollActiveChatBottom, scrollActiveChatTop,
   toggleTestMode, clearTestChat, exportTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,
