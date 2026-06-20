@@ -1,39 +1,49 @@
 # Session Log — Handoff Note
 
-## Session 27 · 2026-06-20
+## Session 29 · 2026-06-20
 
 ### Shipped
-- **Superpowers plugin installed** — `obra/superpowers` v6.0.3 installed via `claude plugin marketplace add obra/superpowers-marketplace` + `claude plugin install superpowers`. 14 skills: brainstorming, TDD, systematic-debugging, writing-plans, executing-plans, code-review, subagent-driven-development, verification-before-completion, etc.
+- **v2 AI engine module** — Complete AI pipeline ported from v1 monolith into clean modular architecture at `/home/user/tinklepebble-v2/src/ai/`:
+  - `providers.js` — Google AI and OpenRouter fetch wrappers with 25s timeout and retry logic
+  - `prompt.js` — `buildPrompt()` (system prompt with all 9 contracts + module fidelity) and `genLedger()` (compact/full state ledger)
+  - `mechanics.js` — `parseMechanics()` as dispatch table registry (DR-5 pattern), `extractMechanicsBlock()`, `stripMechanicsFromDisplay()`, 60+ handler registrations
+  - `engine.js` — `callAI()` (retry + free-model fallback), `sendMsg()` (full chat send loop), `//` slash commands, roll request queue
+  - `index.js` — barrel export for clean imports
+- **v2 InputBar wired to AI** — Chat input now calls `sendMsg()`, typing indicator driven by `isTyping` signal, send button disabled during AI response
+- **v1 .claude/ docs merged to main** — Session End Protocol completed, local main reset to match origin/main before merge
 
 ### Decisions Made
-- Superpowers is a user-level Claude Code plugin (lives in `~/.claude/plugins/`), not repo code — no source changes needed
-- Skills auto-trigger based on task context (brainstorming before new features, systematic-debugging for bugs, etc.)
-- Plugin needs a fresh session to bootstrap — `using-superpowers` skill loads at session start and enables auto-triggering
+- v2 parseMechanics uses **dispatch table registry** (the DR-5 refactor) — each mechanic key registered with `reg(key, handler)` instead of v1's 400-line if/else chain
+- parseMechanics returns `{ changes, rollQueue }` — no circular imports between engine.js and mechanics.js
+- v2 mechanics operate on a **structuredClone** of state then assign back — clean immutable pattern vs v1's direct mutation
 
 ### Known Issues
-- All prior known issues from Session 26 still apply (see below)
-- Built-in LEVEL_UP_DATA still only covers Fighter, Rogue, Bard L2-10
-- SPELL_DB only covers cantrips–L2
-- Treasury gold tracking audit (215gp discrepancy) still open
-- Dropped quest/consequence entries from Dragon Hatchery session may still be missing
+- v2 GitHub repo not created — MCP integration lacks `create_repository` permission. User needs to create `tinklepebble-v2` on GitHub manually
+- v2 Firebase sync not implemented
+- v2 no `checkLevelUp` or `_autoOpenLevelUp` wired (level-up wizard not yet built)
+- v2 no detection functions (`detectUnloggedGold`, etc.) — planned for later
+- v2 no `_validateMechanics` post-parse audit yet
+- v2 no TTS integration
+- v2 mechanics `roll_request` handler adds to ctx.rollQueue but toast-based roll UI not built yet
+- All prior v1 known issues from Session 27 still apply
 
 ### In Progress
-- Nothing actively in progress
+- v2 needs: Firebase sync, level-up wizard, combat UI, character sheet editing
 
 ### Next Up
-1. **Spell tap-to-see** — user request
-2. **Treasury gold tracking audit** — user reported 215gp discrepancy
-3. **"Level Up with AI" button** — one-tap: export PC JSON to clipboard + open Gemini with level-up template
-4. **Copy State button cleanup** — remove or fold into Export toggle
-5. **SPELL_DB L3+ expansion** — expand DB or provide pre-built class progression downloads
-6. **Inline NPC name linking** — scan DM messages for known NPC names, wrap in tappable chips
-7. **Combat quick-panel** — context strip becomes tappable combat action bar during combat
-8. **Character Creation Wizard** — Level 1 setup flow
-9. **Module import → world setup auto-fill**
-10. **Deep refactors** — renderAll dirty-flag system, Firebase partial sync, lazy-load static data
+1. **Create GitHub repo** for tinklepebble-v2 (user action) and push scaffold + AI engine
+2. **API key settings UI** — Systems panel needs provider selection, key input, model picker
+3. **Roll request UI** — stacked banners from rollRequestQueue signal, dice roller integration
+4. **Detection functions** — port detectUnloggedGold/NPC/Item/Damage/Healing/Condition/Location
+5. **State persistence** — save/load with migration, Firebase sync
+6. **Combat module** — zone grid UI, initiative strip, active card
+7. **Character sheets** — 6-tab editing, level-up wizard
+8. Continue v1 maintenance as needed
 
 ### Branch State
-- Branch: `claude/superpowers-plugin-setup-0hpayf`
-- No code changes — plugin is user-level config
-- Main is up to date with origin/main
-- Last commit on main: 47d7280
+- v1 Branch: `claude/naerytar-infiltration-review-y1ixxl` (up to date with origin)
+- v1 Last commit: 0643c15 (CHANGES pill fix + contract update)
+- v1 main: merged and pushed (matches feature branch)
+- v2 Location: `/home/user/tinklepebble-v2/` (local git, master branch)
+- v2 Last commit: 2a8bf6c (AI engine module)
+- v2 Build: 79KB JS bundle (was 38KB UI-only)
