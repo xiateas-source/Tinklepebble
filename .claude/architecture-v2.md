@@ -40,6 +40,8 @@ The screens, buttons, chat, overlays. Organized by mode:
   - Player quests: scrollable after, player-arranged by preference
 - Character tiles (tap → sheet overlay)
 - Combat overlay (zone grid, initiative strip — appears when combat starts)
+  - Phase 1: zone-based (Frontline/Backline/Flanks) with token chips
+  - Phase 2: visual tile map — tappable grid, terrain backgrounds, token movement (mobile VTT inspired)
 - Dice roller
 - Input bar
 - TTS toggle
@@ -244,7 +246,7 @@ src/
 │   │   ├── QuestBar.jsx   # quest chips, main quest pinned
 │   │   ├── CharTiles.jsx  # character HP tiles
 │   │   ├── InputBar.jsx   # message input + send
-│   │   ├── Combat.jsx     # zone grid, initiative, active card
+│   │   ├── Combat.jsx     # zone grid → visual tile map evolution, initiative, tokens
 │   │   ├── DiceRoller.jsx # d4-d20 roller
 │   │   ├── RollRequest.jsx # roll request banners
 │   │   └── TTS.jsx        # text-to-speech controls
