@@ -59,6 +59,7 @@ The screens, buttons, chat, overlays. Organized by mode:
   - Familiar/mount section — tied to specific PC, gets own combat token
 - Journal (quests, locations, NPCs, travel log, consequences, town reputation, secrets)
 - Cargo (inventory, wagon, hoard)
+- Treasury (PP/GP/EP/SP/CP, income/expense log, lifestyle tracker, business profile)
 - Spell/feat reference (from local compendium)
 - Term glossary (D&D reference — conditions, mechanics, class features)
 
@@ -278,6 +279,7 @@ src/
 │   │   ├── CharSheet.jsx  # 6-tab character sheet overlay
 │   │   ├── Journal.jsx    # quests, locations, NPCs, consequences
 │   │   ├── Cargo.jsx      # inventory, wagon, hoard
+│   │   ├── Treasury.jsx   # PP/GP/EP/SP/CP, income/expense log, lifestyle, business profile
 │   │   ├── Compendium.jsx # spell/feat/item browser
 │   │   └── Glossary.jsx   # D&D term definitions, auto-linked in chat
 │   ├── setup/
@@ -295,7 +297,7 @@ src/
 │   │   ├── MechPill.jsx   # tappable mechanic pills
 │   │   ├── Toast.jsx      # notification toasts
 │   │   ├── Modal.jsx      # bottom sheet overlays
-│   │   ├── Nav.jsx        # bottom nav: Cargo / Journal / Settings
+│   │   ├── Nav.jsx        # bottom nav: Cargo / Treasury / Journal / Settings
 │   │   └── LevelUp.jsx    # event-driven wizard overlay (triggers on XP threshold)
 │   ├── App.jsx            # root component, mode routing
 │   └── AppSimple.jsx      # child-friendly entry point — same state/engine, simplified UI

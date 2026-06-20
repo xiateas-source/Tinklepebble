@@ -5,13 +5,14 @@
 ### Shipped
 - **prime-directive-v2.md** — Five Laws, content portability, v1 lessons, cross-law alignment, open questions
 - **ai-failures.md** — Extracted from directive. Mechanical (10), information (4), narrative (5) failures categorized. Includes consequence timer enforcement and combat turn enforcement
-- **architecture-v2.md** — Five pieces (UI/Engine/State/Data/Content), engine pipeline, module map, data tiers, mode transitions, information gating, tap-to-source principle
+- **architecture-v2.md** — Five pieces (UI/Engine/State/Data/Content), engine pipeline, module map, data tiers, mode transitions, information gating, tap-to-source principle. Treasury.jsx added as dedicated reference screen
 - **decisions-v2.md** — Every design choice from planning sessions in table format with rationale. Features carried forward (11) and cut (6) from v1
 - **CLAUDE-v2.md** — Auto-loaded instructions: Five Laws inline, architecture summary, session protocol, key constraints, developer working style
 - **gameplay-reference-v2.md** — Patterns from actual v1 play logs: AI response structure, choice presentation, roll request flow, XP delivery issues, full contract compliance analysis (15 followed / 12 ignored)
 - **v1-contract-reference.md** — Complete v1 AI contract preserved for reference
 - **enforcement-spec-v2.md** — 9-gate mechanics pipeline spec: roll confirmation, combat turns, drift detectors, scene transitions, unmentioned PCs, spell validation, skill checks, XP audit, income reconciliation. Priority-ordered for implementation
 - **v1-engine-reference.md** — buildPrompt() assembly order (13 sections), genLedger() compact + full formats, parseMechanics() all 65 keys with format reference, detection strategy, built-in validation, post-parse actions
+- **v1-seed-data.md** — XP thresholds (L1–20), level-up data (Fighter/Rogue/Bard L2–10), Bard spell list, spell compendium (94 spells), 16 Battle Master maneuvers, 44 feats (PHB + TCoE), 97-term D&D glossary
 - **v2-mockup.html** — Interactive play screen mockup with Soft Autumn palette (palette will change in v2)
 
 ### Decisions Made
@@ -76,5 +77,6 @@ When starting a new session on xiateas-source/V2:
 - `.claude/v1-contract-reference.md` → `.claude/v1-contract-reference.md`
 - `.claude/enforcement-spec-v2.md` → `.claude/enforcement-spec.md`
 - `.claude/v1-engine-reference.md` → `.claude/v1-engine-reference.md`
+- `.claude/v1-seed-data.md` → `.claude/v1-seed-data.md`
 - `.claude/session-log-v2.md` → `.claude/session-log.md`
 - `v2-mockup.html` → `mockup.html` (reference)
