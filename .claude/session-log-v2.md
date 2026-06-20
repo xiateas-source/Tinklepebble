@@ -11,6 +11,7 @@
 - **gameplay-reference-v2.md** — Patterns from actual v1 play logs: AI response structure, choice presentation, roll request flow, XP delivery issues, full contract compliance analysis (15 followed / 12 ignored)
 - **v1-contract-reference.md** — Complete v1 AI contract preserved for reference
 - **enforcement-spec-v2.md** — 9-gate mechanics pipeline spec: roll confirmation, combat turns, drift detectors, scene transitions, unmentioned PCs, spell validation, skill checks, XP audit, income reconciliation. Priority-ordered for implementation
+- **v1-engine-reference.md** — buildPrompt() assembly order (13 sections), genLedger() compact + full formats, parseMechanics() all 65 keys with format reference, detection strategy, built-in validation, post-parse actions
 - **v2-mockup.html** — Interactive play screen mockup with Soft Autumn palette (palette will change in v2)
 
 ### Decisions Made
@@ -74,5 +75,6 @@ When starting a new session on xiateas-source/V2:
 - `.claude/gameplay-reference-v2.md` → `.claude/gameplay-reference.md`
 - `.claude/v1-contract-reference.md` → `.claude/v1-contract-reference.md`
 - `.claude/enforcement-spec-v2.md` → `.claude/enforcement-spec.md`
+- `.claude/v1-engine-reference.md` → `.claude/v1-engine-reference.md`
 - `.claude/session-log-v2.md` → `.claude/session-log.md`
 - `v2-mockup.html` → `mockup.html` (reference)
