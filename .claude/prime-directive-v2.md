@@ -28,14 +28,22 @@ Player acts → AI narrates → mechanics parse → validate → state updates �
 **2. The container is the contract.**
 V2 encodes AI failure modes as architecture — validation layers, structured output, state guards — so the AI *can't* break rules, not just *shouldn't*. If it can be enforced in code, it must be. What code can't enforce, contracts handle — but the contract list should shrink, not grow. If a contract keeps getting violated, that's a signal to find a code constraint. Prevent first, recover second — when enforcement fails, the player can rewind.
 
+The container gates information, not just mechanics. Imported module content is available to the AI but hidden from players until discovered through play. Setup and manage modes show everything; play and reference modes show only what's been earned.
+
+State fields have owners — AI (via mechanics), player (via editors), or system (via wizards). No field is writable by more than one owner. The container enforces ownership, not just AI behavior.
+
 **3. Mobile only.**
 Portrait mode, one-handed, mid-session. No desktop fallback.
 
 **4. One experience, not many features.**
-Four modes: **setup**, **play**, **reference**, and **manage**. Setup is the onramp — Session Zero, character creation, content import, campaign launch. Done once, mostly locked after. Play is the session — chat, combat, dice, state surfacing where you already are. Reference is mid-session orientation — "where are we, who's here, what do I know, what can I cast" — fast, read-only, one tap away. Manage is between sessions — contract tuning, session review, data fixes. Every feature belongs to one. Features appear when they have content, not before. If the AI mentions a location, the journal updates *and the player sees it happen*. If a quest is given, it surfaces in the chat, not buried in a tab. Players should never need to know where to look — the app guides them to the right tool at the right moment. Features that exist but aren't discovered are dead weight. Surface changes where the player is — don't notify *about* changes somewhere else. Mode transitions should have appropriate friction — reference is a glance, manage is intentional.
+Four modes: **setup**, **play**, **reference**, and **manage**. Setup is the onramp — Session Zero, character creation, content import, campaign launch. Done once, mostly locked after. Play is the session — chat, combat, dice, state surfacing where you already are. Reference is mid-session orientation — "where are we, who's here, what do I know, what can I cast" — fast, read-only, one tap away. Manage is between sessions — contract tuning, session review, data fixes. Every feature belongs to one. Every piece of data has one home — no field, tracker, or setting lives in two places.
+
+Features appear when they have content, not before. If the AI mentions a location, the journal updates *and the player sees it happen*. If a quest is given, it surfaces in the chat, not buried in a tab. Players should never need to know where to look — the app guides them to the right tool at the right moment. Features that exist but aren't discovered are dead weight. Surface changes where the player is — don't notify *about* changes somewhere else. Mode transitions should have appropriate friction — reference is a glance, manage is intentional.
 
 **5. Zero cost to play.**
-Free APIs, free hosting, free sync — no paid tiers, no exceptions. Never depend on a single provider. The system prompt is a budget — game state grows every session, the architecture must keep the prompt lean as the world expands. Three tiers of data:
+Free APIs, free hosting, free sync — no paid tiers, no exceptions. Never depend on a single provider. The system prompt is a budget — game state grows every session, the architecture must keep the prompt lean as the world expands. Memory is a feature: session summaries, pruned chat, and context injection ensure the AI remembers what matters without exceeding free-tier limits.
+
+Three tiers of data:
 - **Firebase** — game state that changes during play: HP, quests, inventory, chat, combat positions
 - **Local (IndexedDB)** — reference content that doesn't change during play: spell compendiums, class data, feat databases, imported module text, parsed books
 - **Shared bundles** — one player imports content, app generates a shareable pack, other player imports it. Firebase carries "player 2 has content pack X," not the content itself
@@ -53,6 +61,12 @@ The system ingests any game content — uploaded files (PDF, epub, mobi), web re
 2. **Web reference** — import from open reference sites into local compendium
 3. **Homebrew** — author directly in-app or in markdown
 4. **AI-generated** — design on any LLM, export structured JSON, import into app
+
+### Campaign portability
+Campaigns are self-contained. System-level reference (spells, classes, feats, rules) persists across campaigns. Campaign data (characters, world, history) resets cleanly. Starting a new campaign means importing new content, not rebuilding the app.
+
+- **System data** (survives campaign swap): spell compendiums, class progressions, feat databases, app settings, player preferences, AI contract rules (D&D mechanics enforcement)
+- **Campaign data** (reset on swap): PCs, world state, NPCs, quests, chat history, combat, treasury, module episodes, session archive, campaign-specific contracts (persona, tone)
 
 ---
 
@@ -74,24 +88,44 @@ V1 was 29 sessions of discovery. V2 is the intentional rebuild — modular, test
 - 6,000+ lines in one file — monolith couldn't scale
 - Features existed in isolation until bridges were retrofitted
 - Play and management UI mixed together — everything always visible, nothing with clear purpose
+- Data lived in multiple places — same field editable from two panels, stale copies
 - Hardcoded compendiums (SPELL_DB, FEATS_DB) — didn't scale, couldn't ingest user content
 - PDF parsing was fragile — web content import didn't exist
 - 5 dense contract textareas because the architecture couldn't enforce rules the contracts described
+- No field ownership — AI, player, and level-up wizard could all write to the same fields, causing corruption (SHEET_FIELDS rule was a band-aid)
+- Lock/unlock editing was damage control, not design — accidental mid-session edits broke game state
 
 ### The AI failure record
 Every contract clause exists because the AI broke a rule in actual play:
-- Adjusted HP without mechanics — now needs code-level enforcement
-- Skipped concentration saves — needs automatic validation
+- Adjusted HP without mechanics — needs code-level enforcement
+- Skipped concentration saves after damage — needs automatic validation
 - Resolved actions without rolls — needs structural roll gating
-- Fabricated content — needs source verification against imported canon
-- Addressed players generically — needs per-character awareness baked into prompt construction
+- Fabricated content not in source material — needs source verification against imported canon
+- Addressed players generically ("you") instead of by character name — needs per-character awareness baked into prompt construction
 - Narrated state changes without emitting mechanics — needs response structure validation
+- Let a caster cast, bonus action, AND help in one turn — needs action economy enforcement
+- Resolved hidden enemies without perception checks — needs information gating
+- Duplicated NPCs instead of updating existing records — needs entity dedup before creation
+- Revealed dungeon secrets before players discovered them — needs module content gating (Law 2: discovered vs undiscovered)
+- Progressed scenes without asking players first — needs player agency contract (code can't fully enforce)
+- Skipped skill checks and gave players what they wanted — needs roll requirement enforcement
+
+---
+
+## CROSS-LAW ALIGNMENT
+
+The five laws reinforce each other:
+- **Laws 2 + 5**: Code enforcement is both more reliable AND free. Contract enforcement costs prompt tokens. Enforce in code first.
+- **Laws 1 + 2**: Validation is a step in the core loop, not an afterthought. Parse → validate → update.
+- **Laws 4 + 5**: Reference panels are free, AI reference costs tokens. Free paths first.
+- **Laws 4 + 3**: All four modes must work on a phone.
+- **Laws 4 + 2**: Mode determines access. Play/reference show discovered content only. Setup/manage show everything. Field ownership enforced per mode.
 
 ---
 
 ## OPEN QUESTIONS
 
-- **OOC & Rules channels** — V1 had three chat modes: Narrative (AI, in-character), Rules (AI, mechanical questions), and OOC (player-to-player, no AI). The function of each isn't clearly defined in the four-mode framework. Rules is reference via AI, which conflicts with Law 5 (free paths first). Needs design work: what's static reference vs AI interpretation? Does Rules share narrative context or build its own prompt? Come back to this.
+- **OOC & Rules channels** — V1 had three chat modes: Narrative (AI, in-character), Rules (AI, mechanical questions), and OOC (player-to-player, no AI). The function of each isn't clearly defined in the four-mode framework. Rules is reference via AI, which conflicts with Law 5 (free paths first). Needs design: what's static reference vs AI interpretation? Does Rules share narrative context or build its own prompt?
 
 ---
 
