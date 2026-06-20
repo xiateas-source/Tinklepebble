@@ -128,6 +128,7 @@
 | Encounter presets (as built) | Never used. Import path could exist someday via content pipeline | 30 |
 | AI DM button / tab | Never used in v1 | 30 |
 | Clear character button | Never used, but might need rethinking | 30 |
+| Scenes / snippets | Being phased out — replaced by content import pipeline | 30 |
 
 ## Audio
 
@@ -143,6 +144,17 @@
 | Five Laws live in CLAUDE.md | Auto-loaded every session. Dev AI can't drift from rules it reads every time. | 30 |
 | AI failures in own file, not directive | Keeps the laws clean. Law 2 in CLAUDE.md gets inline examples + pointer to ai-failures.md. | 30 |
 
+## Missed in Initial Planning (added after audit)
+
+| Decision | Rationale | Session |
+|----------|-----------|---------|
+| Town reputation system carried forward | Useful concept, didn't execute properly in v1. Needs proper implementation. Lives in Journal. AI-owned via mechanics. | 30 |
+| Secrets system — one home | v1 had campaign secrets AND dm secrets in multiple places. V2: one secrets model in Journal, with playerKnown/aiOnly flags. Law 4: data has one home. | 30 |
+| Three color modes (default, light, night) | Valued feature from v1. New palette TBD but mode switching stays. | 30 |
+| Prose dice rolling added to AI failures | AI rolls dice in narration instead of using mechanics system. Detection needed. | 30 |
+| Scenes/snippets cut | Being phased out — replaced by content import pipeline. | 30 |
+| Plugin system — icebox | Created accidentally in v1 (superpowers). Could support game-system plugins (Pathfinder, homebrew rules) someday. Not v2 priority. | 30 |
+
 ## Open Questions (not yet decided)
 
 - **OOC & Rules channel context** — Do they share narrative AI context? Does Rules build its own prompt? Does OOC need AI at all?
@@ -150,3 +162,4 @@
 - **Episode/module tracking system** — How does the AI know where the party is in the story? What triggers chapter progression? Workboard spec needed.
 - **Quick Actions redesign** — Kept from v1 but needs improvement. What actions? How presented?
 - **Encounter preset import** — Design encounter externally, import JSON. Never used in v1 but could tie into content pipeline.
+- **Plugin system application** — Game-system swappable rules? Custom mechanic handlers? Icebox until core is solid.

@@ -57,7 +57,7 @@ The screens, buttons, chat, overlays. Organized by mode:
 **Reference mode screens:**
 - Character sheet (slides up over chat)
   - Familiar/mount section — tied to specific PC, gets own combat token
-- Journal (quests, locations, NPCs, travel log, consequences)
+- Journal (quests, locations, NPCs, travel log, consequences, town reputation, secrets)
 - Cargo (inventory, wagon, hoard)
 - Spell/feat reference (from local compendium)
 - Term glossary (D&D reference — conditions, mechanics, class features)
@@ -105,7 +105,7 @@ Player types action
 One reactive state object (SolidJS signals). Everything reads from here, everything writes through controlled paths.
 
 **Field ownership (Law 2):**
-- **AI-owned** — changed only via mechanics pipeline: `hp`, `conditions`, `gold`, `quest status`, `npc data`, `location`, `weather`, `time`
+- **AI-owned** — changed only via mechanics pipeline: `hp`, `conditions`, `gold`, `quest status`, `npc data`, `location`, `weather`, `time`, `town reputation`, `secrets`
 - **Player-owned** — changed only via editors in manage/setup mode: `name`, `backstory`, `appearance`, `personality`, `notes`
 - **System-owned** — changed only via wizards: `level`, `hp_max`, `class`, `features`, `spells`, `slots`, `resources`
 

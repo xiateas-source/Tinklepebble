@@ -18,6 +18,7 @@ Every entry is a documented AI failure from v1 gameplay. Each one either needs a
 - **Combined/skipped turns** — AI combined multiple players' turns into one response, skipped players, or advanced the story while players were still deliberating. Needs: enforced turn order in combat — AI waits for all players in initiative order before advancing.
 - **Skill check skipping** — AI gave players what they wanted without requiring a skill check. Needs: roll requirement enforcement for action types that demand checks.
 - **Consequence timer ignored** — AI forgot to enforce time-sensitive consequences (sleep wearing off, enemies tracking party, environmental countdowns). Players also forgot because consequences were buried behind quests. Needs: active consequences injected into prompt with timers, engine flags expiring timers for resolution before AI moves on, situation bar shows consequences with priority placement.
+- **Prose dice rolling** — AI rolled dice in narration text ("the goblin rolls a 15 to hit") instead of using the mechanics system. Needs: detection when AI makes rolls in prose, should go through roll mechanics not narration.
 
 ## Information Failures (code-enforceable)
 
