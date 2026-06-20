@@ -19,6 +19,11 @@ Every entry is a documented AI failure from v1 gameplay. Each one either needs a
 - **Skill check skipping** — AI gave players what they wanted without requiring a skill check. Needs: roll requirement enforcement for action types that demand checks.
 - **Consequence timer ignored** — AI forgot to enforce time-sensitive consequences (sleep wearing off, enemies tracking party, environmental countdowns). Players also forgot because consequences were buried behind quests. Needs: active consequences injected into prompt with timers, engine flags expiring timers for resolution before AI moves on, situation bar shows consequences with priority placement.
 - **Prose dice rolling** — AI rolled dice in narration text ("the goblin rolls a 15 to hit") instead of using the mechanics system. Needs: detection when AI makes rolls in prose, should go through roll mechanics not narration.
+- **Selective roll requesting** — AI requests one "dramatic" roll from the player, then auto-resolves 2-3 other characters' rolls in the same response. Example: player rolls Slasher's Stealth (fail), AI auto-rolls Aria's Stealth (18) and Valenns's Stealth (14). Needs: engine enforces one roll request per character per action — all must come from players.
+- **PC autopiloting** — When one player controls multiple PCs, AI fills in actions for characters the player didn't mention. Example: player specifies Valenns + Slasher actions, AI narrates Aria "standing guard." Needs: contract clause — never resolve a PC's action unless the player stated it.
+- **Spell slot tracking absent** — AI allows unlimited cantrip/spell use with no slot accounting. Multiple spells per scene, no "you have X slots remaining." Needs: spell use emitted as mechanics, slot deduction enforced.
+- **Spell list not verified** — AI lets characters use spells they may not know. Example: Slasher (Eldritch Knight, 2 cantrips) casting Mend without verifying it's in his cantrip list. Needs: spell validation against character's known spells.
+- **XP omission** — AI forgets to award XP during long narrative arcs. Entire multi-encounter sequences (ambush + infiltration + sabotage + boss capture) produce zero XP. Needs: drift detector — after encounter/quest resolution, check if XP was emitted.
 
 ## Information Failures (code-enforceable)
 
@@ -34,6 +39,7 @@ Every entry is a documented AI failure from v1 gameplay. Each one either needs a
 - **Repeated descriptions** — AI gave the same description it already provided in a recent turn.
 - **Inconsistent information** — AI told different players different things about the same situation.
 - **Misread own ledger** — AI stated wrong HP, gold, or inventory despite correct values in the system prompt.
+- **Item/object continuity error** — AI contradicts its own recent narration about item location or state. Example: Staff of Power described as "shattered, wedged in debris" in one message, then Aria has "her hand on the Staff's broken remnants" at a different location two messages later.
 
 ---
 
