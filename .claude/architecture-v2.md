@@ -46,10 +46,12 @@ The screens, buttons, chat, overlays. Organized by mode:
   - Phase 1: zone-based (Frontline/Backline/Flanks) with token chips
   - Phase 2: visual tile map — tappable grid, terrain backgrounds, token movement (mobile VTT inspired)
 - Quick Actions (floating action button — common play actions, one tap)
-- Dice roller
+- Dice roller (inline icon, not a tab — small and accessible)
 - Input bar
 - TTS toggle
-- Roll request banners
+- Roll request banners (system prompts player to roll, menu pops up)
+- Level-up wizard (event-driven overlay — triggers when XP threshold met, not a button)
+- Nav dot badges + in-chat alerts (notify player when state changes elsewhere)
 - Previously On / Catch Up — AI-powered session recap and tracker audit, surfaces when returning from AFK
 
 **Reference mode screens:**
@@ -143,6 +145,12 @@ One reactive state object (SolidJS signals). Everything reads from here, everyth
 **Offline behavior (Law 1):** When Firebase is unreachable, state writes to localStorage. When connection returns, reconcile. Chat merge uses clock-independent strategy (v1's proven approach).
 
 **Item data split:** Compendium items (from sourcebooks) → IndexedDB. AI-generated items (created during play) → Firebase as inventory game state with structured properties via mechanics pipeline.
+
+**Map images:** Uploaded campaign/area maps stored in IndexedDB (too large for Firebase). Location pins and discovered state sync via Firebase.
+
+**Multi-player model:** Device-local setting for "which PC am I." No formal identity system — family shares informally, one player can act for another. Firebase syncs game state between all connected devices.
+
+**Error recovery:** When callAI() fails, retry + provider fallback. When Firebase disconnects, continue locally and reconcile on reconnect. When AI returns unparseable mechanics, drift detectors flag it, rewind is available. Details designed during implementation.
 
 ### 5. CONTENT — The import pipeline
 
@@ -287,7 +295,8 @@ src/
 │   │   ├── MechPill.jsx   # tappable mechanic pills
 │   │   ├── Toast.jsx      # notification toasts
 │   │   ├── Modal.jsx      # bottom sheet overlays
-│   │   └── Nav.jsx        # bottom navigation bar
+│   │   ├── Nav.jsx        # bottom nav: Cargo / Journal / Settings
+│   │   └── LevelUp.jsx    # event-driven wizard overlay (triggers on XP threshold)
 │   ├── App.jsx            # root component, mode routing
 │   └── AppSimple.jsx      # child-friendly entry point — same state/engine, simplified UI
 ├── audio/
