@@ -104,20 +104,7 @@ The developer is not a software engineer — they're a player who learned to bui
 - Lock/unlock editing was damage control, not design — accidental mid-session edits broke game state
 
 ### The AI failure record
-Every contract clause exists because the AI broke a rule in actual play:
-- Adjusted HP without mechanics — needs code-level enforcement
-- Skipped concentration saves after damage — needs automatic validation
-- Resolved actions without rolls — needs structural roll gating
-- Fabricated content not in source material — needs source verification against imported canon
-- Addressed players generically ("you") instead of by character name — needs per-character awareness baked into prompt construction
-- Narrated state changes without emitting mechanics — needs response structure validation
-- Let a caster cast, bonus action, AND help in one turn — needs action economy enforcement
-- Resolved hidden enemies without perception checks — needs information gating
-- Duplicated NPCs instead of updating existing records — needs entity dedup before creation
-- Revealed dungeon secrets before players discovered them — needs module content gating (Law 2: discovered vs undiscovered)
-- Progressed scenes without asking players first — needs player agency contract (code can't fully enforce)
-- Skipped skill checks and gave players what they wanted — needs roll requirement enforcement
-- Combined multiple players' turns, skipped players, or advanced the story while players were still deliberating — needs enforced turn order in combat, one player acts at a time, AI waits for all players before advancing
+See `.claude/ai-failures.md` — full audit trail of every documented AI failure from v1, categorized by enforcement type (code-enforceable vs contract-only). That file is the development reference for Law 2.
 
 ---
 
