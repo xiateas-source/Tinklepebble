@@ -20,19 +20,27 @@ The AI runs the game. The app constrains the AI.
 
 ---
 
-## THE FOUR LAWS
+## THE FIVE LAWS
 
 **1. The core loop is sacred.**
-Player acts → AI narrates → mechanics parse → state updates → devices sync. Nothing ships that breaks this chain.
+Player acts → AI narrates → mechanics parse → validate → state updates → devices sync. Play never stops — if sync fails, the session continues locally and reconciles when connection returns.
 
 **2. The container is the contract.**
-V1 taught us what the AI gets wrong. V2 encodes those lessons as architecture — validation layers, structured output, state guards — so the AI *can't* break rules, not just *shouldn't*. Every contract clause should have a corresponding code constraint. If it can be enforced in code, it must be.
+V2 encodes AI failure modes as architecture — validation layers, structured output, state guards — so the AI *can't* break rules, not just *shouldn't*. If it can be enforced in code, it must be. What code can't enforce, contracts handle — but the contract list should shrink, not grow. If a contract keeps getting violated, that's a signal to find a code constraint. Prevent first, recover second — when enforcement fails, the player can rewind.
 
-**3. Mobile first, always.**
-Portrait mode, one-handed, mid-session. If it doesn't work on a phone screen, it doesn't ship.
+**3. Mobile only.**
+Portrait mode, one-handed, mid-session. No desktop fallback.
 
 **4. One experience, not many features.**
-The app has two modes: **play** and **manage**. Play is the session — chat, combat, dice, state changes surfacing where the player already is. Manage is between sessions — character building, content import, contract tuning, session review. Every feature belongs to one mode. V1 proved that connecting features to the play loop works (tappable mechanic pills, quest bar, contextual links) — V2 bakes that connectivity into the architecture from day one. If a play feature takes effort to reach, it needs a bridge or it needs to be closer. If a management feature clutters the play screen, it needs to move.
+Four modes: **setup**, **play**, **reference**, and **manage**. Setup is the onramp — Session Zero, character creation, content import, campaign launch. Done once, mostly locked after. Play is the session — chat, combat, dice, state surfacing where you already are. Reference is mid-session orientation — "where are we, who's here, what do I know, what can I cast" — fast, read-only, one tap away. Manage is between sessions — contract tuning, session review, data fixes. Every feature belongs to one. Features appear when they have content, not before. If the AI mentions a location, the journal updates *and the player sees it happen*. If a quest is given, it surfaces in the chat, not buried in a tab. Players should never need to know where to look — the app guides them to the right tool at the right moment. Features that exist but aren't discovered are dead weight. Surface changes where the player is — don't notify *about* changes somewhere else. Mode transitions should have appropriate friction — reference is a glance, manage is intentional.
+
+**5. Zero cost to play.**
+Free APIs, free hosting, free sync — no paid tiers, no exceptions. Never depend on a single provider. The system prompt is a budget — game state grows every session, the architecture must keep the prompt lean as the world expands. Three tiers of data:
+- **Firebase** — game state that changes during play: HP, quests, inventory, chat, combat positions
+- **Local (IndexedDB)** — reference content that doesn't change during play: spell compendiums, class data, feat databases, imported module text, parsed books
+- **Shared bundles** — one player imports content, app generates a shareable pack, other player imports it. Firebase carries "player 2 has content pack X," not the content itself
+
+The AI narrates and runs the game, nothing else. If the app can do it without an API call, it must. Free paths first, AI when you're already talking.
 
 ---
 
@@ -45,6 +53,12 @@ The system ingests any game content — uploaded files (PDF, epub, mobi), web re
 2. **Web reference** — import from open reference sites into local compendium
 3. **Homebrew** — author directly in-app or in markdown
 4. **AI-generated** — design on any LLM, export structured JSON, import into app
+
+---
+
+## BUILT WITH INTENTION
+
+V1 was 29 sessions of discovery. V2 is the intentional rebuild — modular, tested, optimized. The architecture supports portability: any game content in, structured data out. Every feature earned its place in v1 before it gets rebuilt in v2.
 
 ---
 
@@ -72,6 +86,12 @@ Every contract clause exists because the AI broke a rule in actual play:
 - Fabricated content — needs source verification against imported canon
 - Addressed players generically — needs per-character awareness baked into prompt construction
 - Narrated state changes without emitting mechanics — needs response structure validation
+
+---
+
+## OPEN QUESTIONS
+
+- **OOC & Rules channels** — V1 had three chat modes: Narrative (AI, in-character), Rules (AI, mechanical questions), and OOC (player-to-player, no AI). The function of each isn't clearly defined in the four-mode framework. Rules is reference via AI, which conflicts with Law 5 (free paths first). Needs design work: what's static reference vs AI interpretation? Does Rules share narrative context or build its own prompt? Come back to this.
 
 ---
 
