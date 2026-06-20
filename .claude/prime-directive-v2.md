@@ -78,6 +78,8 @@ V2 is built to last. If it needs a V3, the architecture supports evolution — b
 
 The app is the development environment. The developer plays alongside the other player, spotting failures, flagging issues, and fixing state live. Dev tools aren't hidden behind mode friction — they live inside play. The `//` command line, the flag system, the rewind stack, the contract verifier are first-class play tools, not debug afterthoughts. The app gets better every session because the developer is in every session.
 
+The Five Laws live in `CLAUDE.md` where they auto-load every session — the development AI can't drift from rules it reads every time. The full directive, V1 lessons, and design history stay in `prime-directive.md` as deep reference, read when decisions need grounding, not every session. Session handoff and active work load at startup; everything else loads on demand. The development AI has the same memory problem as the game AI — the docs are the fix for both.
+
 The developer is not a software engineer — they're a player who learned to build by building. The AI fills the experience gap: anticipating pitfalls, catching architectural problems before they ship, surfacing solutions the developer wouldn't know to look for. The workboard defines what to build, but the AI is expected to go beyond it — connecting features, hardening edge cases, and adding small wins that serve the Five Laws. Unplanned additions are welcome when they clearly serve the product; they're flagged so the developer can review. The laws are the boundary for improvisation, not the workboard.
 
 ---
