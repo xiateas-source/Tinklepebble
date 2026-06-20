@@ -34,7 +34,10 @@ The screens, buttons, chat, overlays. Organized by mode:
 **Play mode screens:**
 - Chat (the canvas — always visible)
 - Context banner (location, weather, time)
-- Quest bar (main quest pinned, others scrollable)
+- Situation bar: `[Main Quest]` `[⚡Consequence]` `[⚡Countdown]` `[Quest 2]` `[Quest 3]` →
+  - Main quest: pinned left, always visible (DM's railroad — keeps players on the story)
+  - Active consequences/countdowns: pinned after main quest, visually distinct, auto-sorted by urgency
+  - Player quests: scrollable after, player-arranged by preference
 - Character tiles (tap → sheet overlay)
 - Combat overlay (zone grid, initiative strip — appears when combat starts)
 - Dice roller
@@ -80,7 +83,7 @@ Player types action
 
 **Engine modules:**
 - `providers.js` — API wrappers (Gemini, OpenRouter). Retry, timeout, fallback. Never depends on one provider.
-- `prompt.js` — buildPrompt() assembles system prompt from state + contracts + ledger. genLedger() compiles compact state summary. Prompt budget management.
+- `prompt.js` — buildPrompt() assembles system prompt from state + contracts + ledger + active consequences. genLedger() compiles compact state summary. Prompt budget management. Active consequences with timers injected so the AI can't forget to enforce them.
 - `mechanics.js` — dispatch table registry. Each mechanic key registered with handler. parseMechanics() extracts, validateMechanics() checks, applyMechanics() writes.
 - `engine.js` — sendMsg() orchestrates the full loop. callAI() handles retry + fallback. Context injection. Double-send guard.
 - `contracts.js` — loads, validates, and injects AI contracts. Tracks which are code-enforced vs prompt-enforced.
