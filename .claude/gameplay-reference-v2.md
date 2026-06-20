@@ -141,23 +141,87 @@ Names the PC, the skill, the DC, the context →
 
 ---
 
+## V1 Contract Compliance — What Worked vs What Failed
+
+*Full v1 contract saved in `.claude/v1-contract-reference.md`. This section grades each clause against actual gameplay.*
+
+### Contract Clauses the AI FOLLOWED
+
+| Clause | Evidence |
+|--------|----------|
+| Multi-player addressing by name | Every response addresses Valenns, Slasher, Aria individually. Never "you" generically. |
+| Tone and narrative quality | Consistent epic fantasy with sensory detail throughout. |
+| Quest tracking mechanics | `quest_done`, `primary_mission`, `quest_add` emitted correctly. |
+| NPC tracking | `npc_add` on first introduction, referenced naturally after. |
+| Item add mechanics | `item_add` emitted for loot (quartz shards, potions, keys, robes). |
+| Consequence tracking | `consequence_add` and `consequence_resolve` emitted and tracked. |
+| Chapter tracking | `chapter_add` at major milestones. |
+| Choice presentation | 2-3 options with bold headers, "How do you proceed?" consistently. |
+| Dungeon secrets / info gating | Didn't reveal Lodge layout before discovery. |
+| Continuity verification (mostly) | Location, conditions tracked between messages (Staff of Power error is an exception). |
+| Advantage/disadvantage (when rolling) | Stated "Advantage: Disguise/Robes" on Aria's Deception check. |
+
+### Contract Clauses the AI IGNORED
+
+| Clause | Contract Text | What Actually Happened | V2 Fix |
+|--------|--------------|----------------------|--------|
+| **Roll before resolve** | "NEVER resolve a physically challenging action as success without first requesting a roll" | Looting Talis, binding, Mold Earth tunneling — all resolved without rolls. | Code: roll confirmation gate |
+| **Wait for roll** | "state check type and DC, wait. Do not narrate outcome until roll arrives" | AI auto-rolled Aria Stealth (18), Valenns Stealth (14), all initiative, Valenns Arcana (24), Slasher Shove (18). | Code: reject AI-generated rolls |
+| **Resolve each PC separately** | "When multiple PCs act in the same moment, resolve each separately with appropriate checks" | All 3 PCs resolved in single narrative blocks, every response. | Code: one PC per resolution prompt |
+| **Never narrate unspoken PC actions** | "NEVER narrate a PC's action, decision, movement, or position unless that PC's player explicitly stated it" | Player says Valenns+Slasher actions; AI narrates Aria "standing guard," changing clothes, maintaining illusion. | Code: flag unmentioned PC actions |
+| **Ask every PC** | "After resolving any action, ALWAYS check: has every PC been given a chance to act? If not, ask them by name" | Never once asked "Aria, what do you do?" when player only specified Valenns/Slasher. | Code: unmentioned PC prompt |
+| **No auto-complete plans** | "If the party outlines a plan, narrate step 1 and ask for confirmation before proceeding to step 2" | Player says "escape in the chaos" → AI narrates full escape + tunnel + regrouping in one response. | Code: scene transition gate |
+| **One scene beat** | "Never advance time more than one scene beat without player input" | AI advanced through: distraction → disguise change → room looting → building collapse → tunnel escape in one message. | Code: scene transition gate |
+| **Spell verification** | "Check each caster PC's magic field... Never invent spells a PC doesn't have" | Slasher uses Mend without verifying Eldritch Knight cantrip list. | Code: spell validation against character data |
+| **Action economy** | "Track these strictly. State which action type is being used for each action" | Zero action economy tracking outside combat. Inside combat, turns combined. | Code: action tracking in combat state |
+| **Skill checks required** | "Every uncertain action with meaningful consequences requires a declared DC, a player roll, and narration" | Searching Talis (Investigation?), binding (Athletics?), navigating rubble (Athletics?) — no checks. | Code: action-type → required-check mapping |
+| **Income tracking** | "Every gold transaction MUST have a mechanics line. No exceptions" | Looted Gemstone Pouch — no income mechanic. | Code: drift detector for loot without income |
+| **Who goes next** | "Never end a combat turn without stating who goes next" | Bog Ambush: initiative set, turns combined, no turn tracking. | Code: combat turn enforcement |
+
+### The Pattern
+
+**15 clauses followed. 12 clauses ignored.** The clauses that work are:
+- Output format rules (how to structure mechanics blocks)
+- Identity rules (who to address, what tone)
+- Tracking rules (quest/NPC/item mechanics)
+
+The clauses that fail are:
+- Behavioral constraints ("wait," "ask first," "don't skip")
+- Mechanical enforcement ("track action economy," "require rolls")
+- Pacing rules ("one scene at a time," "confirm before advancing")
+
+**The AI follows rules about WHAT to output. It ignores rules about WHEN to stop.** Format compliance is high. Behavioral compliance is low. This is exactly why Law 2 exists — these behavioral rules must become code gates, not contract clauses.
+
+---
+
 ## Notes for V2 Contract Writing
 
-**The AI responds well to:**
-- Specific character names in instructions (not "the players")
-- Explicit format rules (MECHANICS block, XP as deltas)
-- "Before narrating X, you MUST Y" imperative patterns
-- Information gating language ("only reveal what players discovered")
-- Bold/formatted output rules (the AI follows formatting instructions reliably)
+**Keep in the contract (AI follows these):**
+- Character addressing by name
+- Tone and narrative voice
+- Output format (mechanics blocks, Campaign State, choices)
+- Quest/NPC/item tracking mechanics format
+- Information gating language
+- Dungeon secrets / discovery rules
 
-**The AI ignores or drifts on:**
-- "Request rolls before resolving" — follows it sometimes, ignores it when it would slow down a dramatic scene
-- Spell slot tracking — never self-enforces, needs code-side tracking
-- PC agency boundaries — will narrate actions for PCs the player didn't mention
-- XP delivery — forgets entirely during long narrative arcs
-- Turn order in combat — collapses to narrative flow unless mechanically enforced
+**Move to code enforcement (AI ignores these):**
+- Roll before resolve → roll confirmation gate
+- Wait for player input → scene transition gate
+- Don't act for unmentioned PCs → unmentioned PC flag
+- Track action economy → combat state tracker
+- Verify spell lists → spell validation
+- Income on every transaction → loot drift detector
+- One scene beat at a time → scene change detection
+- Turn order in combat → turn enforcement
 
-**Key insight from solo play:** When one player is running all PCs, the AI becomes a co-DM rather than a rules-enforcer. It prioritizes narrative momentum over mechanical accuracy. Every failure above is the AI choosing story over rules. V2 enforcement must make this choice impossible — the engine enforces rules so the AI can focus on story.
+**Contract writing principles from v1:**
+- The AI responds to specific character names, not "the players"
+- "Before narrating X, you MUST Y" imperative patterns work when the AI remembers them
+- Short, rule-per-line format beats long paragraphs
+- Bold/formatted output rules are followed reliably
+- The AI ignores behavioral constraints when narrative momentum is high
+- Vague instructions ("be careful with pacing") are always ignored
+- Instructions buried in the middle of large text blocks are lost
 
 ---
 
