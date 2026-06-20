@@ -117,6 +117,7 @@ Every contract clause exists because the AI broke a rule in actual play:
 - Revealed dungeon secrets before players discovered them — needs module content gating (Law 2: discovered vs undiscovered)
 - Progressed scenes without asking players first — needs player agency contract (code can't fully enforce)
 - Skipped skill checks and gave players what they wanted — needs roll requirement enforcement
+- Combined multiple players' turns, skipped players, or advanced the story while players were still deliberating — needs enforced turn order in combat, one player acts at a time, AI waits for all players before advancing
 
 ---
 
