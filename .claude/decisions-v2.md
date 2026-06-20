@@ -33,7 +33,7 @@
 | Decision | Rationale | Session |
 |----------|-----------|---------|
 | Mobile only — no desktop fallback | "I have no PC." Law 3. Portrait mode, one-handed, mid-session. | 30 |
-| Soft Autumn palette carried forward | Proven in v1, deployed 2026-06-14. Warm chocolate/cinnamon tones. | v1 |
+| New color palette for v2 | Soft Autumn palette not carrying forward. New palette TBD — design session needed with UI visible. | 30 |
 | Tap-to-source — no dead text | Any displayed information is tappable and navigates to its source. Location banner → journal. Quest chip → quest detail. Mechanic pill → reference. | 30 |
 | Situation bar replaces quest bar | Main quest pinned left (DM's railroad). Active consequences/countdowns pinned after (visually distinct, sorted by urgency). Player quests scrollable after. | 30 |
 | Context banner is interactive | Location, weather, time — all tappable. Location taps through to journal locations section. | 30 |
