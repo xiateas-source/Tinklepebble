@@ -1252,9 +1252,12 @@ function renderSheets(){
   const idx=state.activeEditTab||0;const pc=state.pcs[idx];if(!pc)return;
   try{
   c.innerHTML=`
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+      <button class="btn sm gold" onclick="importPCFromJSON(${idx})" style="font-size:10px;flex:1">📋 Update from JSON</button>
+      <button class="btn sm" onclick="exportPC(${idx})" style="font-size:10px;flex:1">📤 Share Character</button>
+    </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="display:flex;gap:8px;align-items:center"><label class="field-label" style="margin:0">Color</label><input type="color" value="${pc.color||'#5a8a5a'}" onchange="upd(${idx},'color',this.value)" style="width:40px;height:32px;padding:2px;cursor:pointer;background:none;border:1px solid var(--border);border-radius:2px"></div>
-      <button class="btn sm" onclick="importPCFromJSON(${idx})" style="font-size:10px">📋 Update from JSON</button>
       <button class="btn sm red" onclick="delChar(${idx})">🗑 Delete ${esc(pc.name)}</button>
     </div>
     <div class="form-row">
@@ -1319,6 +1322,7 @@ function renderSheets(){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px">
       <span style="font-size:11px;color:var(--text-dim)">✨ ${pc.spellbook&&pc.spellbook.length?pc.spellbook.length+' spell'+(pc.spellbook.length===1?'':'s'):'No spells yet'}</span>
       <div style="display:flex;gap:4px">
+        <button class="btn sm" onclick="importSpellsFromJSON(${idx})" style="font-size:10px">📋 Import</button>
         <button class="btn sm" onclick="toggleCompendium(${idx})" style="font-size:10px">${_compOpen?'Close':'📚 Browse'}</button>
         <button class="btn sm gold" onclick="addSpell(${idx})">+ Manual</button>
       </div>
@@ -4309,8 +4313,8 @@ function importPCFromJSON(idx){
     <h3 style="margin:0 0 8px;font-size:14px;color:var(--gold)">Update ${esc(pc.name||'Character')} from JSON</h3>
     <p style="font-size:11px;color:var(--text-dim);margin:0 0 10px;line-height:1.4">
       <b style="color:var(--text)">Single character update</b> — paste one character's JSON to update stats, spells, features, etc.<br>
-      Use the templates on GitHub (<i>single-character-template</i>, <i>levelup-template</i>, or <i>spellbook-template</i>) with Gemini to generate the JSON.<br>
-      <span style="color:var(--gold-dim)">Loading a whole party?</span> Use <b>Systems &gt; Dev &gt; Paste JSON</b> instead.
+      Use templates with Gemini: <a href="https://github.com/xiateas-source/Tinklepebble/blob/main/single-character-template.json" target="_blank" style="color:var(--gold)">character</a> · <a href="https://github.com/xiateas-source/Tinklepebble/blob/main/levelup-template.json" target="_blank" style="color:var(--gold)">level-up</a> · <a href="https://github.com/xiateas-source/Tinklepebble/blob/main/spellbook-template.json" target="_blank" style="color:var(--gold)">spellbook</a><br>
+      <span style="color:var(--gold-dim)">Loading a whole party?</span> Use <b>☰ &gt; Paste JSON</b> instead.
     </p>
     <textarea id="pc-json-input" style="width:100%;min-height:140px;font-size:12px;font-family:var(--mono)" placeholder='{"name":"...","class":"Fighter","level":3,...}'></textarea>
     <div id="pc-json-err" style="display:none;color:var(--red);font-size:11px;margin:4px 0"></div>
@@ -4355,6 +4359,56 @@ function applyPCJSON(idx){
     closeModal('pc-json-modal');
     saveRefresh();
     toast('✓ '+state.pcs[idx].name+' updated from JSON');
+  }catch(e){errShow('JSON Error: '+e.message);}
+}
+function exportPC(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  const clean=JSON.parse(JSON.stringify(pc));
+  delete clean.pending;delete clean.levelReady;
+  const json=JSON.stringify(clean,null,2);
+  navigator.clipboard.writeText(json).then(()=>{
+    toast('✓ '+esc(pc.name)+' copied to clipboard — paste into Gemini or share with another player');
+  }).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=json;ta.style.position='fixed';ta.style.top='-999px';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    toast('✓ '+esc(pc.name)+' copied to clipboard');
+  });
+}
+function importSpellsFromJSON(idx){
+  const pc=state.pcs[idx];if(!pc)return;
+  let el=document.getElementById('spells-json-modal');
+  if(!el){el=document.createElement('div');el.id='spells-json-modal';el.className='modal-overlay';document.body.appendChild(el);}
+  el.classList.add('open');
+  el.innerHTML=`<div class="modal-box" style="max-width:440px;max-height:85vh;overflow:auto">
+    <h3 style="margin:0 0 8px;font-size:14px;color:var(--gold)">Import Spells for ${esc(pc.name||'Character')}</h3>
+    <p style="font-size:11px;color:var(--text-dim);margin:0 0 10px;line-height:1.4">
+      Paste spell JSON to update spellbook, spell slots, and spellcasting notes.<br>
+      <b>Only spell data changes</b> — stats, HP, inventory, and everything else stays untouched.<br>
+      Use the <a href="https://github.com/xiateas-source/Tinklepebble/blob/main/spellbook-template.json" target="_blank" style="color:var(--gold)">spellbook template</a> with Gemini to generate the JSON.
+    </p>
+    <textarea id="spells-json-input" style="width:100%;min-height:140px;font-size:11px;font-family:var(--mono)" placeholder='{"name":"...","magic":"Spellcasting: ...","spellbook":[...],"slots":[...]}'></textarea>
+    <div id="spells-json-err" style="display:none;color:var(--red);font-size:11px;margin:4px 0"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn gold" onclick="applySpellsJSON(${idx})" style="flex:1">Apply Spells</button>
+      <button class="btn" onclick="closeModal('spells-json-modal')">Cancel</button>
+    </div>
+  </div>`;
+}
+function applySpellsJSON(idx){
+  const raw=(document.getElementById('spells-json-input')?.value||'').trim();
+  const errEl=document.getElementById('spells-json-err');
+  const errShow=m=>{if(errEl){errEl.textContent=m;errEl.style.display='block';}};
+  if(!raw){errShow('Nothing pasted.');return;}
+  try{
+    const p=JSON.parse(raw);
+    if(!p.name){errShow('JSON needs a "name" field so we know it\'s valid.');return;}
+    const pc=state.pcs[idx];
+    if(p.magic!==undefined)pc.magic=p.magic;
+    if(Array.isArray(p.spellbook))pc.spellbook=p.spellbook;
+    if(Array.isArray(p.slots))pc.slots=p.slots.map(s=>({max:s.max||0,used:s.used||0}));
+    closeModal('spells-json-modal');
+    saveRefresh();
+    toast('✓ '+pc.name+' spellbook updated');
   }catch(e){errShow('JSON Error: '+e.message);}
 }
 function openClassDataImport(){
@@ -10752,7 +10806,7 @@ function renderPCOverview(){
     if(pc.hp<=0)badge='<span class="status-badge dead" onclick="setCharSheetTab(2);renderPCOverview()" style="cursor:pointer">DOWN</span>';
     else if(_negConds.length>0)badge='<span class="status-badge warn" onclick="clearPCConditions('+idx+')" style="cursor:pointer" title="Tap to clear conditions">'+esc(_negConds[0])+(_negConds.length>1?' +'+(_negConds.length-1):'')+'</span>';
     else if(pct<50)badge='<span class="status-badge warn" title="HP below 50%">HURT</span>';
-    badgeEl.innerHTML=badge+'<button class="sheet-lock-btn '+(locked?'locked':'unlocked')+'" onclick="toggleSheetLock('+idx+')" title="'+(locked?'Unlock to edit':'Lock sheet')+'" style="margin-left:8px">'+(locked?'🔒':'🔓')+'</button>';
+    badgeEl.innerHTML=badge+'<button class="btn sm" onclick="exportPC('+idx+')" style="font-size:9px;padding:2px 8px;margin-left:8px" title="Copy character JSON to clipboard">📤</button><button class="sheet-lock-btn '+(locked?'locked':'unlocked')+'" onclick="toggleSheetLock('+idx+')" title="'+(locked?'Unlock to edit':'Lock sheet')+'" style="margin-left:4px">'+(locked?'🔒':'🔓')+'</button>';
   }
   const body=document.getElementById('pc-overview-body');if(!body)return;
   body.innerHTML=renderCharSheet(idx,locked);
@@ -11185,7 +11239,7 @@ Object.assign(window, {
   exportGameplayLog, exportMoment, exportOOCMoment, deleteOOCMsg, populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
   zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
-  renderSetupLock, setSetupUnlocked, remAtk, rewindTo, redoRewind, importPCFromJSON, applyPCJSON, openClassDataImport, applyClassData,
+  renderSetupLock, setSetupUnlocked, remAtk, rewindTo, redoRewind, importPCFromJSON, applyPCJSON, openClassDataImport, applyClassData, exportPC, importSpellsFromJSON, applySpellsJSON,
   renderPCOverview, renderHUD, renderCharTabs,
   remPcItem, remResource, renderCapacity, renderErrorLog, closeWEdit, setCargoPCFilter, _setInvSearch,
 });
