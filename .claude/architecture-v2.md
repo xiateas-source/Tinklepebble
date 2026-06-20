@@ -1,0 +1,281 @@
+# V2 Architecture — Draft
+
+## The Pieces
+
+```
+┌─────────────────────────────────────────────┐
+│                   APP                        │
+│                                              │
+│  ┌──────────┐  ┌──────────┐  ┌───────────┐  │
+│  │    UI    │  │  ENGINE  │  │   DATA    │  │
+│  │ (screen) │  │ (brain)  │  │ (storage) │  │
+│  └────┬─────┘  └────┬─────┘  └─────┬─────┘  │
+│       │              │              │         │
+│       └──────┬───────┘              │         │
+│              │                      │         │
+│        ┌─────┴─────┐               │         │
+│        │   STATE   │───────────────┘         │
+│        │  (truth)  │                         │
+│        └───────────┘                         │
+└─────────────────────────────────────────────┘
+```
+
+### 1. UI — What you see and tap
+The screens, buttons, chat, overlays. Organized by mode:
+
+**Setup mode screens:**
+- Session Zero wizard
+- Character creation
+- Content import (PDF, epub, mobi, web, JSON)
+- Campaign configuration
+- API key entry
+- Player onboarding (share link, sync, create character)
+
+**Play mode screens:**
+- Chat (the canvas — always visible)
+- Context banner (location, weather, time)
+- Quest bar (main quest pinned, others scrollable)
+- Character tiles (tap → sheet overlay)
+- Combat overlay (zone grid, initiative strip — appears when combat starts)
+- Dice roller
+- Input bar
+- TTS toggle
+- Roll request banners
+
+**Reference mode screens:**
+- Character sheet (slides up over chat)
+- Journal (quests, locations, NPCs, travel log, consequences)
+- Cargo (inventory, wagon, hoard)
+- Spell/feat reference (from local compendium)
+
+**Manage mode screens:**
+- AI contracts editor
+- Session review / archive
+- Campaign data export/import
+- Dev tools (flags, error log, state inspector)
+- Settings (providers, TTS config)
+
+### 2. ENGINE — The AI brain
+Everything between "player sends message" and "state updates."
+
+```
+Player types action
+       ↓
+   sendMsg()
+       ↓
+   buildPrompt()  ←── state, contracts, ledger, module content
+       ↓
+   callAI()  ←── provider abstraction (Gemini, OpenRouter, fallback)
+       ↓
+   AI responds
+       ↓
+   extractMechanics()  ←── pulls structured data from response
+       ↓
+   validateMechanics()  ←── Law 2: clamp, reject, enforce ownership
+       ↓
+   applyMechanics()  ←── writes to state (only valid changes)
+       ↓
+   state updates → UI reacts → Firebase syncs
+```
+
+**Engine modules:**
+- `providers.js` — API wrappers (Gemini, OpenRouter). Retry, timeout, fallback. Never depends on one provider.
+- `prompt.js` — buildPrompt() assembles system prompt from state + contracts + ledger. genLedger() compiles compact state summary. Prompt budget management.
+- `mechanics.js` — dispatch table registry. Each mechanic key registered with handler. parseMechanics() extracts, validateMechanics() checks, applyMechanics() writes.
+- `engine.js` — sendMsg() orchestrates the full loop. callAI() handles retry + fallback. Context injection. Double-send guard.
+- `contracts.js` — loads, validates, and injects AI contracts. Tracks which are code-enforced vs prompt-enforced.
+- `memory.js` — summarizeAndPrune(), session archive, context injection. Keeps prompt lean as history grows.
+- `tts.js` — browser TTS + ElevenLabs free tier. Toggle on/off. Not automatic.
+
+### 3. STATE — The single source of truth
+One reactive state object (SolidJS signals). Everything reads from here, everything writes through controlled paths.
+
+**Field ownership (Law 2):**
+- **AI-owned** — changed only via mechanics pipeline: `hp`, `conditions`, `gold`, `quest status`, `npc data`, `location`, `weather`, `time`
+- **Player-owned** — changed only via editors in manage/setup mode: `name`, `backstory`, `appearance`, `personality`, `notes`
+- **System-owned** — changed only via wizards: `level`, `hp_max`, `class`, `features`, `spells`, `slots`, `resources`
+
+**Campaign vs System split (Content portability):**
+- **Campaign data** (reset on swap): PCs, worldData, NPCs, quests, chatHistory, combat, treasury, consequences, locations, sessionArchive, campaign-specific contracts
+- **System data** (survives swap): spell compendiums, class progressions, feat databases, app settings, player preferences, rules contracts
+
+### 4. DATA — Where things are stored
+
+```
+┌─────────────┐     ┌──────────────┐     ┌────────────────┐
+│  Firebase   │     │  IndexedDB   │     │ Shared Bundles │
+│  (synced)   │     │  (local)     │     │ (one-time)     │
+├─────────────┤     ├──────────────┤     ├────────────────┤
+│ HP, quests  │     │ Spell DB     │     │ Content packs  │
+│ inventory   │     │ Class data   │     │ generated by   │
+│ chat history│     │ Feat DB      │     │ one player,    │
+│ combat state│     │ Module text  │     │ imported by    │
+│ NPC tracker │     │ Parsed books │     │ the other      │
+│ locations   │     │ Web imports  │     │                │
+│ treasury    │     │ Monster data │     │ Firebase only  │
+│ contracts   │     │              │     │ carries "has   │
+│ world data  │     │ Never synced │     │ pack X" flag   │
+│             │     │ Same on both │     │                │
+│ Changes     │     │ devices via  │     │                │
+│ during play │     │ import       │     │                │
+└─────────────┘     └──────────────┘     └────────────────┘
+```
+
+**Offline behavior (Law 1):** When Firebase is unreachable, state writes to localStorage. When connection returns, reconcile. Chat merge uses clock-independent strategy (v1's proven approach).
+
+### 5. CONTENT — The import pipeline
+
+```
+Input                    Parser              Output
+─────                    ──────              ──────
+PDF/epub/mobi    →    fileParser.js    →    structured data
+Web reference    →    webParser.js     →    structured data
+Markdown/text    →    mdParser.js      →    structured data
+AI-generated JSON →   jsonParser.js    →    structured data
+                                              ↓
+                                        ┌─────────────┐
+                                        │  Normalizer  │
+                                        │  (one format │
+                                        │   for all)   │
+                                        └──────┬──────┘
+                                               ↓
+                                        ┌─────────────┐
+                                        │  IndexedDB   │
+                                        │  compendium  │
+                                        └─────────────┘
+```
+
+**Content types:**
+- Spells → spell compendium (replaces hardcoded SPELL_DB)
+- Classes → class progression data (replaces hardcoded LEVEL_UP_DATA)
+- Feats → feat database (replaces hardcoded FEATS_DB)
+- Monsters → encounter reference
+- Adventures/modules → episode tracker + chapter text for AI context
+- Items → item compendium
+
+All content normalized to a common schema per type. The engine, level-up wizard, spell picker, and module tracker all read from IndexedDB, not constants.
+
+---
+
+## How the Pieces Connect
+
+### The Core Loop (Law 1)
+```
+Player taps send
+  → engine.sendMsg()
+    → prompt.buildPrompt(state, contracts, ledger)
+    → providers.callAI(messages, systemPrompt)
+    → mechanics.extractMechanics(response)
+    → mechanics.validateMechanics(changes, state)  ← Law 2
+    → mechanics.applyMechanics(validChanges, state)
+    → state updates (SolidJS signals)
+    → UI reacts automatically
+    → data.syncToFirebase(changedFields)
+    → data.saveToLocal(state)
+```
+
+### Mode Transitions (Law 4)
+```
+SETUP → first launch, locked after campaign starts
+  ↓
+PLAY ↔ REFERENCE → seamless, no friction
+  ↓        ↑
+MANAGE → intentional transition, between sessions
+```
+
+- Setup → Play: `launchCampaign()` locks setup
+- Play → Reference: tap character tile, tap journal icon. Overlay, not navigation.
+- Play → Manage: tap settings. One step removed. Intentional.
+- Reference → Play: tap away, close overlay. Instant.
+
+### Information Gating (Law 2)
+```
+Imported module content
+  → all chapters stored in IndexedDB
+  → each chapter has: discovered = true/false
+  → buildPrompt() only injects discovered chapters
+  → UI only shows discovered content in play/reference
+  → setup/manage shows everything
+```
+
+---
+
+## Module Map (file structure)
+
+```
+src/
+├── ai/
+│   ├── providers.js      # API wrappers (Gemini, OpenRouter)
+│   ├── prompt.js          # buildPrompt(), genLedger()
+│   ├── mechanics.js       # dispatch table, extract, validate, apply
+│   ├── engine.js          # sendMsg(), callAI(), context injection
+│   ├── contracts.js       # contract loading, validation, injection
+│   ├── memory.js          # summarize, prune, session archive
+│   └── index.js           # barrel export
+├── content/
+│   ├── fileParser.js      # PDF, epub, mobi parsing
+│   ├── webParser.js       # web reference import
+│   ├── mdParser.js        # markdown/text parsing
+│   ├── jsonParser.js      # AI-generated JSON import
+│   ├── normalizer.js      # normalize all inputs to common schemas
+│   └── index.js
+├── data/
+│   ├── firebase.js        # Firebase sync, merge, offline fallback
+│   ├── local.js           # IndexedDB for compendiums, localStorage for state
+│   ├── bundles.js         # shared content pack generation + import
+│   ├── migrate.js         # state version migration
+│   └── index.js
+├── state/
+│   ├── store.js           # SolidJS signal store, field ownership enforcement
+│   ├── campaign.js        # campaign data shape + reset
+│   ├── system.js          # system data shape (survives campaign swap)
+│   └── index.js
+├── ui/
+│   ├── play/
+│   │   ├── Chat.jsx       # chat canvas
+│   │   ├── ContextBanner.jsx  # location, weather, time
+│   │   ├── QuestBar.jsx   # quest chips, main quest pinned
+│   │   ├── CharTiles.jsx  # character HP tiles
+│   │   ├── InputBar.jsx   # message input + send
+│   │   ├── Combat.jsx     # zone grid, initiative, active card
+│   │   ├── DiceRoller.jsx # d4-d20 roller
+│   │   ├── RollRequest.jsx # roll request banners
+│   │   └── TTS.jsx        # text-to-speech controls
+│   ├── reference/
+│   │   ├── CharSheet.jsx  # 6-tab character sheet overlay
+│   │   ├── Journal.jsx    # quests, locations, NPCs, consequences
+│   │   ├── Cargo.jsx      # inventory, wagon, hoard
+│   │   └── Compendium.jsx # spell/feat/item browser
+│   ├── setup/
+│   │   ├── SessionZero.jsx
+│   │   ├── CharCreate.jsx
+│   │   ├── ContentImport.jsx
+│   │   ├── CampaignConfig.jsx
+│   │   └── PlayerOnboard.jsx
+│   ├── manage/
+│   │   ├── Contracts.jsx  # AI contract editor
+│   │   ├── SessionReview.jsx
+│   │   ├── DevTools.jsx   # flags, state inspector
+│   │   └── Settings.jsx   # API keys, TTS config, preferences
+│   ├── shared/
+│   │   ├── MechPill.jsx   # tappable mechanic pills
+│   │   ├── Toast.jsx      # notification toasts
+│   │   ├── Modal.jsx      # bottom sheet overlays
+│   │   └── Nav.jsx        # bottom navigation bar
+│   └── App.jsx            # root component, mode routing
+├── audio/
+│   ├── browserTTS.js      # free browser speech synthesis
+│   └── elevenlabs.js      # ElevenLabs free tier
+├── main.js                # entry point
+└── style.css              # global styles, palette
+```
+
+---
+
+## What This Gives Us
+
+- **AI can build autonomously** — "build the spell compendium browser" → it knows to create `src/ui/reference/Compendium.jsx`, read from `src/data/local.js` IndexedDB, display spells from the normalized schema
+- **Law 2 enforced structurally** — mechanics go through extract → validate → apply. No shortcut.
+- **Law 4 enforced by folders** — play components can't import manage components. Modes are directory boundaries.
+- **Law 5 respected** — clear separation of Firebase (synced) vs IndexedDB (local) vs bundles (one-time transfer)
+- **Content pipeline is universal** — any input → normalizer → same schema → IndexedDB. No more hardcoded SPELL_DB.
