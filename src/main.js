@@ -5661,7 +5661,7 @@ const _NAKED_MECH_RE=new RegExp('^[-*•]?\\s*(?:[A-Za-z][A-Za-z0-9 ]*:\\s*)?('+
 function parseMechanics(responseText, pendingMsgId=null){
   // Flexible mechanics block detection — catches all AI format variations
   let match=null;
-  const cleanText=responseText.replace(/\*\*/g,'').replace(/\*/g,''); // strip bold/italic
+  const cleanText=responseText.replace(/\*\*/g,'').replace(/\*/g,'').replace(new RegExp('\\[((?:'+_MECH_KEYS+'):\\s[^\\]]+)\\]','gi'),'$1'); // strip bold/italic + unwrap bracketed mechanics like [quest_add: ...]
   // Try with ---END--- first (preferred)
   match=cleanText.match(/---MECHANICS---([\s\S]*?)---END---/i);
   if(!match) match=cleanText.match(/MECHANICS BLOCK:?([\s\S]*?)---END---/i);
