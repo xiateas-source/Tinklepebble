@@ -8,7 +8,9 @@
 - **architecture-v2.md** — Five pieces (UI/Engine/State/Data/Content), engine pipeline, module map, data tiers, mode transitions, information gating, tap-to-source principle
 - **decisions-v2.md** — Every design choice from planning sessions in table format with rationale. Features carried forward (11) and cut (6) from v1
 - **CLAUDE-v2.md** — Auto-loaded instructions: Five Laws inline, architecture summary, session protocol, key constraints, developer working style
-- **gameplay-reference-v2.md** — Patterns from actual v1 play logs: AI response structure, choice presentation, roll request flow, XP delivery issues, contract writing notes
+- **gameplay-reference-v2.md** — Patterns from actual v1 play logs: AI response structure, choice presentation, roll request flow, XP delivery issues, full contract compliance analysis (15 followed / 12 ignored)
+- **v1-contract-reference.md** — Complete v1 AI contract preserved for reference
+- **enforcement-spec-v2.md** — 9-gate mechanics pipeline spec: roll confirmation, combat turns, drift detectors, scene transitions, unmentioned PCs, spell validation, skill checks, XP audit, income reconciliation. Priority-ordered for implementation
 - **v2-mockup.html** — Interactive play screen mockup with Soft Autumn palette (palette will change in v2)
 
 ### Decisions Made
@@ -36,6 +38,10 @@
 - Mechanic pills, glossary, Previously On, Quick Actions, checkpoint/rewind all carried forward
 - v1 stays live while v2 is built
 - Session start protocol reads 4 files — will tune after a few sessions
+- All rolls must be player-confirmed — engine rejects AI-generated rolls
+- Scene transitions require player confirmation — no auto-advancing
+- AI cannot act for PCs the player didn't mention — no autopiloting
+- 9-gate enforcement pipeline spec written — replaces 12 contract clauses AI ignored
 
 ### Known Issues
 - Cannot push to xiateas-source/V2 repo from this session (auth proxy locked to tinklepebble)
@@ -66,5 +72,7 @@ When starting a new session on xiateas-source/V2:
 - `.claude/decisions-v2.md` → `.claude/decisions.md`
 - `.claude/ai-failures.md` → `.claude/ai-failures.md`
 - `.claude/gameplay-reference-v2.md` → `.claude/gameplay-reference.md`
+- `.claude/v1-contract-reference.md` → `.claude/v1-contract-reference.md`
+- `.claude/enforcement-spec-v2.md` → `.claude/enforcement-spec.md`
 - `.claude/session-log-v2.md` → `.claude/session-log.md`
 - `v2-mockup.html` → `mockup.html` (reference)
