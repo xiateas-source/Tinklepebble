@@ -33,7 +33,7 @@ The screens, buttons, chat, overlays. Organized by mode:
 
 **Play mode screens:**
 - Chat (the canvas — always visible)
-- Context banner (location, weather, time)
+- Context banner (location, weather, time — all tappable, each navigates to its source)
 - Situation bar: `[Main Quest]` `[⚡Consequence]` `[⚡Countdown]` `[Quest 2]` `[Quest 3]` →
   - Main quest: pinned left, always visible (DM's railroad — keeps players on the story)
   - Active consequences/countdowns: pinned after main quest, visually distinct, auto-sorted by urgency
@@ -196,6 +196,8 @@ MANAGE → intentional transition, between sessions
 - Play → Reference: tap character tile, tap journal icon. Overlay, not navigation.
 - Play → Manage: tap settings. One step removed. Intentional.
 - Reference → Play: tap away, close overlay. Instant.
+
+**Tap-to-source principle:** Any displayed information is tappable and navigates to its source. No dead text. Location in the banner → journal locations. Quest chip → quest detail. Character tile → character sheet. Mechanic pill → relevant reference. The UI is a web of links, not isolated panels.
 
 ### Information Gating (Law 2)
 ```
