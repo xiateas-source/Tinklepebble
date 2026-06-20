@@ -203,7 +203,8 @@ state = {
   activeEditTab: num, wagonFilter: string,
   quickActions: [{id, label, type, params, context}],
   campaignSetup: { tone, origin, goal, lines },  // Session Zero Step 0 fields — persisted inline, injected into buildPrompt()
-  saveVersion: 12
+  classData: { className: { hit_die, slots:{level:[counts]}, spellList:{0:[cantrips],1:[spells]}, levels:{N:{auto:[],choose:[]}} } },
+  saveVersion: 14
 }
 ```
 
@@ -211,7 +212,7 @@ state = {
 
 ## STATE_KEYS (Firebase sync)
 
-Synced: `pcs`, `worldData`, `npcs`, `quests`, `treasuryData`, `partyInventory`, `wagon`, `combat`, `encounterPresets`, `scenes`, `activeSceneIdx`, `snippets`, `dmSecrets`, `logSummary`, `logs`, `activeEditTab`, `turnCount`, `turnsSince`, `chkCount`, `chkMode`, `chkHistory`, `rewindStack`, `wagonFilter`, `chatHistory`, `oocHistory`, `partyChat`, `plugins`, `errorLog`, `sessionNotes`, `storyChapters`, `prevSessionSummary`, `aiContracts`, `sessionArchive`, `locations`, `consequences`, `headerShortcuts`, `campaignSetup`
+Synced: `pcs`, `worldData`, `npcs`, `quests`, `treasuryData`, `partyInventory`, `wagon`, `combat`, `encounterPresets`, `scenes`, `activeSceneIdx`, `snippets`, `dmSecrets`, `logSummary`, `logs`, `activeEditTab`, `turnCount`, `turnsSince`, `chkCount`, `chkMode`, `chkHistory`, `rewindStack`, `wagonFilter`, `chatHistory`, `oocHistory`, `partyChat`, `plugins`, `errorLog`, `sessionNotes`, `storyChapters`, `prevSessionSummary`, `aiContracts`, `sessionArchive`, `locations`, `consequences`, `headerShortcuts`, `campaignSetup`, `classData`
 
 Device-local only (not synced): API keys, provider/model selections, TTS settings, player name/character, offline cache.
 
@@ -219,15 +220,16 @@ Device-local only (not synced): API keys, provider/model selections, TTS setting
 
 ## SAVE_VERSION & migrate()
 
-**Current Version:** `SAVE_VERSION = 12`
+**Current Version:** `SAVE_VERSION = 14`
 
 `migrate(s)` is version-gated:
-- **Always-run structural guards** — null/array protection for all fields (incl. sessionArchive, headerShortcuts)
+- **Always-run structural guards** — null/array protection for all fields (incl. sessionArchive, headerShortcuts, classData)
 - **v8 gate** — moduleProgress, dev flags, qa renames, tab ID remaps, storyChapters
 - **v9 gate** — campaignLaunched backfill
 - **v10 gate** — canonical L3 character sync (Slasher Fighter, Tinkle Rogue, Pebble Bard)
 - **v11 gate** — re-patches L3 data clobbered by SHEET_FIELDS bug; preserves current HP and slot usage
 - **v12 gate** — zone combat: adds `combat.zones`, `combat.moveMode`, per-combatant `zone` property
+- **v14 gate** — classData: initializes `state.classData` as empty object for importable class progression
 - **Always-run canonical QA** — ensures all 23 QA actions present
 - **Always-run core defaults** — structural defaults for all fields
 
