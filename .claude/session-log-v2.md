@@ -8,6 +8,7 @@
 - **architecture-v2.md** — Five pieces (UI/Engine/State/Data/Content), engine pipeline, module map, data tiers, mode transitions, information gating, tap-to-source principle
 - **decisions-v2.md** — Every design choice from planning sessions in table format with rationale. Features carried forward (11) and cut (6) from v1
 - **CLAUDE-v2.md** — Auto-loaded instructions: Five Laws inline, architecture summary, session protocol, key constraints, developer working style
+- **gameplay-reference-v2.md** — Patterns from actual v1 play logs: AI response structure, choice presentation, roll request flow, XP delivery issues, contract writing notes
 - **v2-mockup.html** — Interactive play screen mockup with Soft Autumn palette (palette will change in v2)
 
 ### Decisions Made
@@ -64,5 +65,6 @@ When starting a new session on xiateas-source/V2:
 - `.claude/architecture-v2.md` → `.claude/architecture.md`
 - `.claude/decisions-v2.md` → `.claude/decisions.md`
 - `.claude/ai-failures.md` → `.claude/ai-failures.md`
+- `.claude/gameplay-reference-v2.md` → `.claude/gameplay-reference.md`
 - `.claude/session-log-v2.md` → `.claude/session-log.md`
 - `v2-mockup.html` → `mockup.html` (reference)
