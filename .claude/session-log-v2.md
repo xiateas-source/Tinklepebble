@@ -22,6 +22,11 @@
 - Consequence timer enforcement via buildPrompt injection
 - New color palette TBD — Soft Autumn not carrying forward
 - Shared bundles reusable (not one-time) — supports mid-game player joins
+- Town reputation carried forward (Journal, AI-owned, needs proper v2 implementation)
+- Secrets consolidated to one home (v1 had multiple places — Law 4 fix)
+- Three color modes (default/light/night) — new palette TBD
+- Scenes/snippets cut (replaced by content pipeline)
+- Plugin system noted as icebox (accidental v1 feature, could support game-system plugins)
 - AI-generated items → Firebase, compendium items → IndexedDB
 - Campaign map images → IndexedDB
 - Device-local "which PC am I" — no formal identity system
@@ -48,7 +53,7 @@
 
 ### Branch State
 - Branch: `claude/xiateas-source-v2-0obeyj` on xiateas-source/tinklepebble
-- Last commit: b57a3d3
+- Last commit: 70fd090
 - All planning docs committed and pushed
 - Not merged to main (v1 CLAUDE.md still active on main for v1 sessions)
 
