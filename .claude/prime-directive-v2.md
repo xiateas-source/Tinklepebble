@@ -6,7 +6,7 @@
 
 ## WHO WE ARE
 
-Two players (expandable) building a phone-native AI virtual tabletop. No human DM. No books on the table. No subscription. Open a browser and play.
+A family building a phone-native AI virtual tabletop. Two players now, expandable to 6-7. No human DM. No books on the table. No subscription. Open a browser and play.
 
 V1 was 29 sessions of discovery — 50+ features, 25 sessions of gameplay, every AI failure mode documented and patched. V2 is the intentional rebuild: same vision, better engineering. Every feature earned its place in v1 before it gets rebuilt in v2.
 
@@ -32,13 +32,13 @@ The container gates information, not just mechanics. Imported module content is 
 
 State fields have owners — AI (via mechanics), player (via editors), or system (via wizards). No field is writable by more than one owner. The container enforces ownership, not just AI behavior.
 
-**3. Mobile only.**
-Portrait mode, one-handed, mid-session. No desktop fallback.
+**3. Mobile only. Eyes-free when needed.**
+Portrait mode, one-handed, mid-session. No desktop fallback. TTS is a play feature — the session can be listened to, not just read. The player checks in and out of active play while managing real life. The app accommodates partial attention, not just full focus.
 
 **4. One experience, not many features.**
 Four modes: **setup**, **play**, **reference**, and **manage**. Setup is the onramp — Session Zero, character creation, content import, campaign launch. Done once, mostly locked after. Play is the session — chat, combat, dice, state surfacing where you already are. Reference is mid-session orientation — "where are we, who's here, what do I know, what can I cast" — fast, read-only, one tap away. Manage is between sessions — contract tuning, session review, data fixes. Every feature belongs to one. Every piece of data has one home — no field, tracker, or setting lives in two places.
 
-Features appear when they have content, not before. If the AI mentions a location, the journal updates *and the player sees it happen*. If a quest is given, it surfaces in the chat, not buried in a tab. Players should never need to know where to look — the app guides them to the right tool at the right moment. Features that exist but aren't discovered are dead weight. Surface changes where the player is — don't notify *about* changes somewhere else. Mode transitions should have appropriate friction — reference is a glance, manage is intentional.
+Adding a player is a setup action, not a rebuild — share a link, sync content, create a character, play. A child-friendly view simplifies the interface for young players (ages 7-16): bigger targets, less text, guided choices. Features appear when they have content, not before. If the AI mentions a location, the journal updates *and the player sees it happen*. If a quest is given, it surfaces in the chat, not buried in a tab. Players should never need to know where to look — the app guides them to the right tool at the right moment. Features that exist but aren't discovered are dead weight. Surface changes where the player is — don't notify *about* changes somewhere else. Mode transitions should have appropriate friction — reference is a glance, manage is intentional.
 
 **5. Zero cost to play.**
 Free APIs, free hosting, free sync — no paid tiers, no exceptions. Never depend on a single provider. The system prompt is a budget — game state grows every session, the architecture must keep the prompt lean as the world expands. Memory is a feature: session summaries, pruned chat, and context injection ensure the AI remembers what matters without exceeding free-tier limits.
@@ -74,7 +74,7 @@ Campaigns are self-contained. System-level reference (spells, classes, feats, ru
 
 V1 was 29 sessions of discovery. V2 is the intentional rebuild — modular, tested, optimized. The architecture supports portability: any game content in, structured data out. Every feature earned its place in v1 before it gets rebuilt in v2.
 
-V2 is a prototype for V3 — the developer is a player, the session is the test environment, and the app improves every time it's played. Dev tools are play tools. V1 stays live for the other player while V2 is built and tested. No migration pressure — V2 launches when it can run a full session.
+V2 is built to last. If it needs a V3, the architecture supports evolution — but the goal is a finished product, not a perpetual prototype. It's done when a full session runs without the developer needing to fix anything. The developer is a player, the session is the test environment, and the app improves every time it's played. Dev tools are play tools. V1 stays live for the other player while V2 is built and tested. No migration pressure — V2 launches when it can run a full session.
 
 The app is the development environment. The developer plays alongside the other player, spotting failures, flagging issues, and fixing state live. Dev tools aren't hidden behind mode friction — they live inside play. The `//` command line, the flag system, the rewind stack, the contract verifier are first-class play tools, not debug afterthoughts. The app gets better every session because the developer is in every session.
 
@@ -124,7 +124,7 @@ The five laws reinforce each other:
 - **Laws 2 + 5**: Code enforcement is both more reliable AND free. Contract enforcement costs prompt tokens. Enforce in code first.
 - **Laws 1 + 2**: Validation is a step in the core loop, not an afterthought. Parse → validate → update.
 - **Laws 4 + 5**: Reference panels are free, AI reference costs tokens. Free paths first.
-- **Laws 4 + 3**: All four modes must work on a phone.
+- **Laws 4 + 3**: All four modes must work on a phone. TTS bridges partial attention — play doesn't require constant screen focus.
 - **Laws 4 + 2**: Mode determines access. Play/reference show discovered content only. Setup/manage show everything. Field ownership enforced per mode.
 
 ---
@@ -132,9 +132,10 @@ The five laws reinforce each other:
 ## OPEN QUESTIONS
 
 - **OOC & Rules channels** — V1 had three chat modes: Narrative (AI, in-character), Rules (AI, mechanical questions), and OOC (player-to-player, no AI). The function of each isn't clearly defined in the four-mode framework. Rules is reference via AI, which conflicts with Law 5 (free paths first). Needs design: what's static reference vs AI interpretation? Does Rules share narrative context or build its own prompt?
+- **Child-friendly view scope** — Ages 7-16 is a wide range. A 7-year-old needs icons and guided choices; a 16-year-old uses the full interface. What's the target? Simplified action picker? Read-aloud mode with TTS? Reduced UI that hides management complexity? Needs design based on actual play with the child.
 
 ---
 
 ## THE GOAL
 
-A session terminal so complete that opening a browser is all that's needed. The architecture constrains the AI. The content pipeline feeds it. The UI guides players through the session without asking them to manage the game. Play feels like play. Management feels intentional, not like homework.
+A session terminal so complete that opening a browser is all that's needed. The architecture constrains the AI. The content pipeline feeds it. The UI guides players through the session without asking them to manage the game. Play feels like play. Management feels intentional, not like homework. A full session runs without the developer needing to intervene — that's when it's done.
