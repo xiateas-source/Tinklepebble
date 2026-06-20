@@ -33,6 +33,9 @@ The screens, buttons, chat, overlays. Organized by mode:
 
 **Play mode screens:**
 - Chat (the canvas — always visible)
+  - OOC and Rules as tappable tabs within chat (shared canvas, separate contexts)
+  - Mechanic pills in AI responses (tappable → navigates to source)
+  - Term glossary — D&D terms auto-linked in AI messages, tap for definition (especially useful for younger players)
 - Context banner (location, weather, time — all tappable, each navigates to its source)
 - Situation bar: `[Main Quest]` `[⚡Consequence]` `[⚡Countdown]` `[Quest 2]` `[Quest 3]` →
   - Main quest: pinned left, always visible (DM's railroad — keeps players on the story)
@@ -42,16 +45,20 @@ The screens, buttons, chat, overlays. Organized by mode:
 - Combat overlay (zone grid, initiative strip — appears when combat starts)
   - Phase 1: zone-based (Frontline/Backline/Flanks) with token chips
   - Phase 2: visual tile map — tappable grid, terrain backgrounds, token movement (mobile VTT inspired)
+- Quick Actions (floating action button — common play actions, one tap)
 - Dice roller
 - Input bar
 - TTS toggle
 - Roll request banners
+- Previously On / Catch Up — AI-powered session recap and tracker audit, surfaces when returning from AFK
 
 **Reference mode screens:**
 - Character sheet (slides up over chat)
+  - Familiar/mount section — tied to specific PC, gets own combat token
 - Journal (quests, locations, NPCs, travel log, consequences)
 - Cargo (inventory, wagon, hoard)
 - Spell/feat reference (from local compendium)
+- Term glossary (D&D reference — conditions, mechanics, class features)
 
 **Manage mode screens:**
 - AI contracts editor
@@ -86,7 +93,7 @@ Player types action
 **Engine modules:**
 - `providers.js` — API wrappers (Gemini, OpenRouter). Retry, timeout, fallback. Never depends on one provider.
 - `prompt.js` — buildPrompt() assembles system prompt from state + contracts + ledger + active consequences. genLedger() compiles compact state summary. Prompt budget management. Active consequences with timers injected so the AI can't forget to enforce them.
-- `mechanics.js` — dispatch table registry. Each mechanic key registered with handler. parseMechanics() extracts, validateMechanics() checks, applyMechanics() writes.
+- `mechanics.js` — dispatch table registry. Each mechanic key registered with handler. parseMechanics() extracts, validateMechanics() checks, applyMechanics() writes. Includes drift detectors — catch when AI narrates state changes (gold, NPCs, damage, conditions, locations) without emitting mechanics. Law 2 enforcement layer.
 - `engine.js` — sendMsg() orchestrates the full loop. callAI() handles retry + fallback. Context injection. Double-send guard.
 - `contracts.js` — loads, validates, and injects AI contracts. Tracks which are code-enforced vs prompt-enforced.
 - `memory.js` — summarizeAndPrune(), session archive, context injection. Keeps prompt lean as history grows.
@@ -99,6 +106,11 @@ One reactive state object (SolidJS signals). Everything reads from here, everyth
 - **AI-owned** — changed only via mechanics pipeline: `hp`, `conditions`, `gold`, `quest status`, `npc data`, `location`, `weather`, `time`
 - **Player-owned** — changed only via editors in manage/setup mode: `name`, `backstory`, `appearance`, `personality`, `notes`
 - **System-owned** — changed only via wizards: `level`, `hp_max`, `class`, `features`, `spells`, `slots`, `resources`
+
+**Checkpoint/rewind (Law 2 recovery):**
+- State snapshots at key moments (long rest, level-up, PC at 0 HP, periodic auto)
+- Rewind stack — one-tap full state restore when enforcement fails
+- Surfaces in play mode, not buried in manage — safety nets must be accessible mid-session
 
 **Campaign vs System split (Content portability):**
 - **Campaign data** (reset on swap): PCs, worldData, NPCs, quests, chatHistory, combat, treasury, consequences, locations, sessionArchive, campaign-specific contracts
@@ -249,14 +261,17 @@ src/
 │   │   ├── CharTiles.jsx  # character HP tiles
 │   │   ├── InputBar.jsx   # message input + send
 │   │   ├── Combat.jsx     # zone grid → visual tile map evolution, initiative, tokens
+│   │   ├── QuickActions.jsx # floating action button, common play actions
 │   │   ├── DiceRoller.jsx # d4-d20 roller
 │   │   ├── RollRequest.jsx # roll request banners
+│   │   ├── Rewind.jsx     # checkpoint/rewind controls (accessible mid-session)
 │   │   └── TTS.jsx        # text-to-speech controls
 │   ├── reference/
 │   │   ├── CharSheet.jsx  # 6-tab character sheet overlay
 │   │   ├── Journal.jsx    # quests, locations, NPCs, consequences
 │   │   ├── Cargo.jsx      # inventory, wagon, hoard
-│   │   └── Compendium.jsx # spell/feat/item browser
+│   │   ├── Compendium.jsx # spell/feat/item browser
+│   │   └── Glossary.jsx   # D&D term definitions, auto-linked in chat
 │   ├── setup/
 │   │   ├── SessionZero.jsx
 │   │   ├── CharCreate.jsx
@@ -273,7 +288,8 @@ src/
 │   │   ├── Toast.jsx      # notification toasts
 │   │   ├── Modal.jsx      # bottom sheet overlays
 │   │   └── Nav.jsx        # bottom navigation bar
-│   └── App.jsx            # root component, mode routing
+│   ├── App.jsx            # root component, mode routing
+│   └── AppSimple.jsx      # child-friendly entry point — same state/engine, simplified UI
 ├── audio/
 │   ├── browserTTS.js      # free browser speech synthesis
 │   └── elevenlabs.js      # ElevenLabs free tier
@@ -290,3 +306,4 @@ src/
 - **Law 4 enforced by folders** — play components can't import manage components. Modes are directory boundaries.
 - **Law 5 respected** — clear separation of Firebase (synced) vs IndexedDB (local) vs bundles (one-time transfer)
 - **Content pipeline is universal** — any input → normalizer → same schema → IndexedDB. No more hardcoded SPELL_DB.
+- **Child-friendly view is a second entry point** — `AppSimple.jsx` wraps the same state and engine with bigger targets, less text, guided choices. Separate URL, same Firebase + API keys. Not a toggle — a different UI root.
