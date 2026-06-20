@@ -27,12 +27,16 @@ Every entry is a documented AI failure from v1 gameplay. Each one either needs a
 - **Scene transition without player confirmation** — AI switches scenes, advances time, or moves locations without confirming the player is done with the current scene. Example: player loots a room, AI narrates the exit and transitions to next location without asking "are you done here?" Needs: engine detects scene/location/time changes in AI response and requires player confirmation before applying. Promoted from narrative-only — this is code-enforceable.
 - **Unconfirmed rolls** — AI resolves ANY roll (skill check, attack, save, initiative) without the player submitting it. Every roll that affects game state must come from the player via the roll UI, never from AI prose. Needs: engine rejects any mechanic that depends on a roll result the player didn't submit.
 
+- **System operations routed through AI chat** — Player asks "Reset everyone's HP" in OOC/Rules. AI narrates "all PCs restored to maximum hit points" but may not emit mechanics — nothing actually changes in state. HP reset, stat corrections, and slot refills are system operations that need dedicated UI, not AI narration. Needs: system actions accessible from character sheet or manage mode (one-tap HP reset, rest operations, stat corrections).
+- **No re-entry to level-up wizard** — Player can't modify expertise after Bard 3 level-up because the wizard choice was missed or skipped. Once a level-up choice passes, there's no way to fix system-owned fields. Needs: re-entry path for level-up wizard (edit mode or "redo level N choices") and manual override for system-owned fields in manage mode.
+
 ## Information Failures (code-enforceable)
 
 - **Generic addressing** — AI said "you" as a catch-all instead of addressing characters by name. Needs: per-character awareness baked into prompt construction.
 - **Hidden enemy resolution** — AI resolved hidden enemies without requiring perception checks first. Needs: information gating — hidden entities not revealed without detection.
 - **Dungeon secret leaks** — AI revealed module content (upcoming rooms, plot twists, secrets) before players discovered them through play. Needs: module content gating — imported content has `discovered` flag, AI prompt only includes discovered content.
 - **Fabricated content** — AI invented NPCs, locations, items, or lore not in the source material or established campaign. Needs: source verification against imported canon.
+- **AI treats app issues as rules questions** — Player says "Can't modify expertise" (a UI bug report) in Rules chat. AI responds with PHB page citations and formula explanations instead of acknowledging it can't fix the app. Needs: OOC/Rules channel needs to distinguish between rules questions and app/system issues — or the system needs a non-AI path for character sheet corrections.
 
 ## Narrative Failures (contract-only — code can't fully enforce)
 

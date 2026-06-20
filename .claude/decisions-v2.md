@@ -158,9 +158,17 @@
 | Scenes/snippets cut | Being phased out — replaced by content import pipeline. | 30 |
 | Plugin system — icebox | Created accidentally in v1 (superpowers). Could support game-system plugins (Pathfinder, homebrew rules) someday. Not v2 priority. | 30 |
 
+## System Operations (from OOC/Rules review)
+
+| Decision | Rationale | Session |
+|----------|-----------|---------|
+| System operations need dedicated UI, not AI chat | "Reset HP" sent through chat → AI narrates it but may not emit mechanics. HP reset, stat corrections, rest operations are system actions — need one-tap access from character sheet or manage mode. | 30 |
+| Level-up wizard needs re-entry / edit mode | Player couldn't fix expertise after missing the Bard 3 choice. Once system-owned fields are set, there's no way back. Wizard needs "redo level N choices" or manage-mode manual override. | 30 |
+| OOC/Rules channels serve different purposes (partially resolved) | OOC export shows players use Rules chat for two things: actual rules questions AND app bug reports. AI can't help with app issues. Needs: either smart routing (detect "I can't edit X" → system help) or a non-AI path for sheet corrections. | 30 |
+
 ## Open Questions (not yet decided)
 
-- **OOC & Rules channel context** — Do they share narrative AI context? Does Rules build its own prompt? Does OOC need AI at all?
+- **OOC & Rules channel context** — Do they share narrative AI context? Does Rules build its own prompt? Does OOC need AI at all? *Partially answered: Rules chat is used for both rules questions and app issues. The app issue path shouldn't go through AI at all.*
 - **Child-friendly view target age** — 7-16 is wide. What's the actual simplification scope?
 - **Episode/module tracking system** — How does the AI know where the party is in the story? What triggers chapter progression? Workboard spec needed.
 - **Quick Actions redesign** — Kept from v1 but needs improvement. What actions? How presented?
