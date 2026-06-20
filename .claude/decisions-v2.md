@@ -13,6 +13,8 @@
 | Five-piece architecture: UI, Engine, State, Data, Content | Clear boundaries. Each piece has one job. AI can build autonomously when boundaries are clear. | 30 |
 | Module map organized by mode (play/reference/setup/manage) | Law 4 enforcement — directory boundaries prevent mode bleed. | 30 |
 | Dispatch table pattern for mechanics | Built in v1 Session 29. Each mechanic key registers a handler. Extensible without touching core. | 29 |
+| v1 stays live while v2 is built | No migration pressure. Other player keeps using v1. V2 launches when it can run a full session. | 30 |
+| Separate Firebase project for v2 | New API keys, new database. Clean break, no data collision with v1. | 30 |
 
 ## Modes & Navigation
 
@@ -30,10 +32,15 @@
 
 | Decision | Rationale | Session |
 |----------|-----------|---------|
+| Mobile only — no desktop fallback | "I have no PC." Law 3. Portrait mode, one-handed, mid-session. | 30 |
+| Soft Autumn palette carried forward | Proven in v1, deployed 2026-06-14. Warm chocolate/cinnamon tones. | v1 |
 | Tap-to-source — no dead text | Any displayed information is tappable and navigates to its source. Location banner → journal. Quest chip → quest detail. Mechanic pill → reference. | 30 |
 | Situation bar replaces quest bar | Main quest pinned left (DM's railroad). Active consequences/countdowns pinned after (visually distinct, sorted by urgency). Player quests scrollable after. | 30 |
 | Context banner is interactive | Location, weather, time — all tappable. Location taps through to journal locations section. | 30 |
 | Nav dot badges + in-chat alerts for notifications | Player needs to know when state changes elsewhere. Both patterns worked in v1. | 30 |
+| Mechanic pills kept | Tappable pills in AI responses — worked well in v1 for connecting features to play loop. Tap navigates to source (tap-to-source). | 30 |
+| Term glossary kept | D&D terms auto-linked in chat. Especially useful for younger players. Reference data surfacing in play. | 30 |
+| Previously On / Catch Up kept | AI-powered session recap and tracker audit. Very useful when returning from AFK. Surfaces in play mode. | 30 |
 | No suggestion chips | Cut from v2. Didn't earn their place. | 30 |
 | No `//` command system | v1 slash commands patched broken mechanics. If v2 mechanics pipeline works, players don't need them. Dev commands live in DevTools. | 30 |
 
@@ -62,6 +69,9 @@
 | Drift detectors in mechanics pipeline | Catch when AI narrates state changes without emitting mechanics. Law 2 enforcement. Carried from v1 (detectUnloggedGold, etc.). | 30 |
 | Active consequences injected into buildPrompt | AI can't forget to enforce time-sensitive events. Engine flags expiring timers for resolution. | 30 |
 | Consequence timer enforcement added to AI failure record | Both AI forgetting and UI burying were problems. Fix is structural on both sides. | 30 |
+| Clock-independent chat merge carried forward | v1's proven approach to Firebase sync. Prevents vanishing messages from concurrent device writes. | v1 |
+| Memory is a feature (Law 5) | Session summaries, pruned chat, context injection keep prompt lean as world expands. Architecture must manage prompt budget. | 30 |
+| Never depend on a single AI provider | Retry + fallback across providers. Free-tier first. | 30 |
 
 ## Combat
 
@@ -89,7 +99,35 @@
 |----------|-----------|---------|
 | Four input paths: files, web, homebrew, AI-generated JSON | PDF/epub/mobi, web reference import, in-app authoring, structured JSON from any LLM. | 30 |
 | All content normalized to common schema per type | Engine, level-up wizard, spell picker, module tracker all read from IndexedDB, not hardcoded constants. | 30 |
+| D&D 5e primary, not the only system | Architecture supports any game content. System-agnostic content pipeline. | 30 |
 | Episode/module tracking is a workboard item | How the AI tracks campaign progress, chapter triggers, discovery conditions — needs its own spec. Architecture acknowledges it exists. | 30 |
+
+## Features Carried Forward (v1 → v2)
+
+| Feature | Status | Session |
+|---------|--------|---------|
+| Mechanic pills (tappable, navigate to source) | Keep — core play loop connector | 30 |
+| Term glossary (84+ terms, auto-linked in chat) | Keep — especially for kids | 30 |
+| Previously On / Catch Up | Keep — very useful for AFK return | 30 |
+| Quick Actions FAB | Keep — needs redesign | 30 |
+| Checkpoint / rewind stack | Keep — Law 2 recovery | 30 |
+| Dice roller (inline icon) | Keep — small, accessible, not a tab | 30 |
+| Roll request banners | Keep — system prompts player to roll | 30 |
+| Familiar / mount system | Keep — lives in character sheet, gets combat token | 30 |
+| Session archive | Keep — memory management | 30 |
+| Error flag system | Keep — lives in DevTools | 30 |
+| OOC / Rules chat tabs | Keep — tabs within main chat canvas | 30 |
+
+## Features Cut (v1 → v2)
+
+| Feature | Reason | Session |
+|---------|--------|---------|
+| Suggestion chips | Didn't earn their place | 30 |
+| `//` command system | Patched broken mechanics — v2 pipeline should handle it | 30 |
+| Relationships array | Redundant with NPC dispositions | 30 |
+| Encounter presets (as built) | Never used. Import path could exist someday via content pipeline | 30 |
+| AI DM button / tab | Never used in v1 | 30 |
+| Clear character button | Never used, but might need rethinking | 30 |
 
 ## Audio
 
