@@ -95,7 +95,7 @@ Player types action
 **Engine modules:**
 - `providers.js` — API wrappers (Gemini, OpenRouter). Retry, timeout, fallback. Never depends on one provider.
 - `prompt.js` — buildPrompt() assembles system prompt from state + contracts + ledger + active consequences. genLedger() compiles compact state summary. Prompt budget management. Active consequences with timers injected so the AI can't forget to enforce them.
-- `mechanics.js` — dispatch table registry. Each mechanic key registered with handler. parseMechanics() extracts, validateMechanics() checks, applyMechanics() writes. Includes drift detectors — catch when AI narrates state changes (gold, NPCs, damage, conditions, locations) without emitting mechanics. Law 2 enforcement layer.
+- `mechanics.js` — dispatch table registry. Each mechanic key registered with handler. parseMechanics() extracts, validateMechanics() checks, applyMechanics() writes. Includes drift detectors — catch when AI narrates state changes (gold, NPCs, damage, conditions, locations) without emitting mechanics. Roll confirmation gate — rejects any mechanic depending on a roll the player didn't submit. Scene transition gate — detects location/time changes and requires player confirmation before applying. PC action gate — flags when AI resolves actions for a PC the player didn't mention. Law 2 enforcement layer.
 - `engine.js` — sendMsg() orchestrates the full loop. callAI() handles retry + fallback. Context injection. Double-send guard.
 - `contracts.js` — loads, validates, and injects AI contracts. Tracks which are code-enforced vs prompt-enforced.
 - `memory.js` — summarizeAndPrune(), session archive, context injection. Keeps prompt lean as history grows.

@@ -24,6 +24,8 @@ Every entry is a documented AI failure from v1 gameplay. Each one either needs a
 - **Spell slot tracking absent** — AI allows unlimited cantrip/spell use with no slot accounting. Multiple spells per scene, no "you have X slots remaining." Needs: spell use emitted as mechanics, slot deduction enforced.
 - **Spell list not verified** — AI lets characters use spells they may not know. Example: Slasher (Eldritch Knight, 2 cantrips) casting Mend without verifying it's in his cantrip list. Needs: spell validation against character's known spells.
 - **XP omission** — AI forgets to award XP during long narrative arcs. Entire multi-encounter sequences (ambush + infiltration + sabotage + boss capture) produce zero XP. Needs: drift detector — after encounter/quest resolution, check if XP was emitted.
+- **Scene transition without player confirmation** — AI switches scenes, advances time, or moves locations without confirming the player is done with the current scene. Example: player loots a room, AI narrates the exit and transitions to next location without asking "are you done here?" Needs: engine detects scene/location/time changes in AI response and requires player confirmation before applying. Promoted from narrative-only — this is code-enforceable.
+- **Unconfirmed rolls** — AI resolves ANY roll (skill check, attack, save, initiative) without the player submitting it. Every roll that affects game state must come from the player via the roll UI, never from AI prose. Needs: engine rejects any mechanic that depends on a roll result the player didn't submit.
 
 ## Information Failures (code-enforceable)
 
@@ -34,7 +36,7 @@ Every entry is a documented AI failure from v1 gameplay. Each one either needs a
 
 ## Narrative Failures (contract-only — code can't fully enforce)
 
-- **Scene progression without consent** — AI progressed scenes, moved time forward, or advanced the story without asking players if they were ready. Needs: player agency contract clause.
+- **Scene progression without consent** — *(Promoted to Mechanical Failures as "Scene transition without player confirmation." Kept here for audit trail.)* AI progressed scenes, moved time forward, or advanced the story without asking players if they were ready.
 - **Forgot established personality** — AI changed an NPC's established behavior or disposition mid-scene without reason.
 - **Repeated descriptions** — AI gave the same description it already provided in a recent turn.
 - **Inconsistent information** — AI told different players different things about the same situation.

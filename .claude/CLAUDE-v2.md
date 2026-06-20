@@ -14,6 +14,9 @@ Examples of code enforcement (see `.claude/ai-failures.md` for full audit):
 - AI narrates gold/items/NPCs without mechanics → drift detector flags it
 - AI skips concentration save after damage → auto-trigger check
 - Consequence timer expires → engine flags for resolution before AI moves on
+- AI resolves a roll in prose → reject; every roll must come from the player via roll UI
+- AI switches scene/location/time → require player confirmation before applying
+- AI acts for a PC the player didn't mention → flag; never resolve unspoken PC actions
 
 State fields have owners:
 - **AI-owned** (via mechanics): hp, conditions, gold, quests, NPCs, location, weather, time

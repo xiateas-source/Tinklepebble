@@ -72,6 +72,9 @@
 | Clock-independent chat merge carried forward | v1's proven approach to Firebase sync. Prevents vanishing messages from concurrent device writes. | v1 |
 | Memory is a feature (Law 5) | Session summaries, pruned chat, context injection keep prompt lean as world expands. Architecture must manage prompt budget. | 30 |
 | Never depend on a single AI provider | Retry + fallback across providers. Free-tier first. | 30 |
+| All rolls must be player-confirmed | Engine rejects any mechanic depending on a roll the player didn't submit via roll UI. AI cannot resolve rolls in prose. From v1 gameplay review: AI auto-rolled for 2-3 characters per response. | 30 |
+| Scene transitions require player confirmation | AI cannot switch location, advance time, or change scenes without player saying they're done. Engine detects scene changes in AI response and gates them. From v1: AI would loot a room then narrate the exit in one message. | 30 |
+| AI cannot act for unmentioned PCs | If player specifies actions for some PCs but not others, AI must ask — not decide. From v1: player says "Valenns + Slasher do X," AI narrates Aria doing something the player never said. | 30 |
 
 ## Combat
 
