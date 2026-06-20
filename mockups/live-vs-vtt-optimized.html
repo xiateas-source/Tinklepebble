@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Live Site vs. VTT-Optimized Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;overflow:hidden;}
+body{
+  font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:14px;
+  height:100%;display:flex;overflow:hidden;background:#111;
+}
+
+/* ══════════════════════════════════════════
+   SIDE-BY-SIDE COMPARISON LAYOUT
+   ══════════════════════════════════════════ */
+.compare-wrap{display:flex;width:100%;height:100%;}
+.phone-frame{
+  width:50%;height:100%;display:flex;flex-direction:column;overflow:hidden;
+  position:relative;
+}
+.phone-frame + .phone-frame{border-left:2px solid #333;}
+.frame-label{
+  position:absolute;top:0;left:0;right:0;z-index:100;text-align:center;
+  font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:3px 0;
+}
+
+/* ══════════════════════════════════════════
+   LEFT PANEL: CURRENT LIVE SITE (Soft Autumn)
+   ══════════════════════════════════════════ */
+.live{
+  --bg:#1a0c07;--surface:#2c1a10;--surface2:#3c2618;--surface3:#4c3222;
+  --border:#5a3820;--border-bright:#7a5038;
+  --gold:#b05830;--gold-dim:#70381a;--gold-bright:#d07845;
+  --red:#8b3a2a;--red-dim:#5c2415;
+  --green:#788a73;--green-bright:#9aab95;
+  --blue:#4a7068;--blue-bright:#628a7a;
+  --purple:#8a5e6a;--purple-bright:#a87888;
+  --text:#c4a88a;--text-dim:#b89070;--text-bright:#e8d9c4;
+  --mono:'Share Tech Mono','Courier New',monospace;
+  --serif:'IM Fell English',Georgia,serif;
+  --display:'Cinzel',Georgia,serif;
+  background:var(--bg);color:var(--text);
+}
+.live .frame-label{background:var(--gold);color:var(--bg);}
+
+/* ══════════════════════════════════════════
+   RIGHT PANEL: VTT-OPTIMIZED (Midnight Emerald)
+   — deep slate + emerald/amber accents
+   — maximized chat viewport
+   — thinner chrome, bigger text area
+   ══════════════════════════════════════════ */
+.vtt{
+  --bg:#0c1014;--surface:#151c22;--surface2:#1c2630;--surface3:#24303c;
+  --border:#2a3a48;--border-bright:#3a5060;
+  --gold:#c8943c;--gold-dim:#8a6420;--gold-bright:#e8b050;
+  --red:#a83830;--red-dim:#6c2018;
+  --green:#3a8a5a;--green-bright:#58b878;
+  --blue:#2a6888;--blue-bright:#48a0c8;
+  --purple:#6858a8;--purple-bright:#8878d0;
+  --text:#b8c8d8;--text-dim:#708898;--text-bright:#e0ecf4;
+  --accent:#2a9868;--accent-bright:#40c888;
+  --mono:'Share Tech Mono','Courier New',monospace;
+  --serif:'IM Fell English',Georgia,serif;
+  --display:'Cinzel',Georgia,serif;
+  background:var(--bg);color:var(--text);
+}
+.vtt .frame-label{background:var(--accent);color:#fff;}
+
+/* ══════════════════════════════════════════
+   SHARED COMPONENT STYLES
+   ══════════════════════════════════════════ */
+
+/* HUD */
+.global-hud{
+  height:46px;background:var(--surface);border-bottom:2px solid var(--border);
+  display:flex;align-items:center;padding:0 8px;gap:5px;flex-shrink:0;
+}
+.hud-mosaic{display:flex;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none;align-items:center;}
+.hud-mosaic::-webkit-scrollbar{display:none;}
+.hud-tile{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 7px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;cursor:pointer;flex-shrink:0;min-width:62px;}
+.hud-name{font-size:8px;font-weight:700;color:var(--text-dim);text-transform:uppercase;white-space:nowrap;letter-spacing:.3px;font-family:var(--display);}
+.hud-val{font-family:var(--mono);font-size:11px;font-weight:bold;color:var(--text-bright);line-height:1.2;}
+.hud-spark{position:absolute;bottom:0;left:0;height:2px;}
+.hud-spark.ok{background:var(--green);}
+.hud-spark.warn{background:#cc8b3c;}
+.hud-spark.danger{background:var(--red);}
+.hud-gp{font-family:var(--mono);background:var(--surface2);padding:3px 7px;border-radius:4px;font-size:10px;color:var(--gold);cursor:pointer;border:1px solid var(--gold-dim);font-weight:600;}
+.hud-btn{background:var(--surface2);border:1px solid var(--border-bright);color:var(--text-dim);padding:3px 7px;font-size:11px;cursor:pointer;border-radius:4px;min-height:28px;display:flex;align-items:center;}
+
+/* Chat tabs */
+.chat-tab-row{display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;padding:0 6px;height:32px;align-items:stretch;}
+.chat-tab-btn{padding:0 12px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;line-height:32px;}
+.chat-tab-btn.active{color:var(--gold-bright);border-bottom-color:var(--gold);}
+.tab-actions{margin-left:auto;display:flex;align-items:center;gap:1px;}
+.tab-actions button{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:10px;padding:2px 5px;opacity:.5;}
+
+/* World bar */
+.world-bar{display:flex;gap:8px;padding:1px 8px;font-size:8px;color:var(--text-dim);border-bottom:1px solid var(--border);flex-shrink:0;align-items:center;height:18px;background:var(--surface2);}
+
+/* Messages */
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.chat-msgs{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;min-height:0;background:var(--bg);}
+.chat-msgs::-webkit-scrollbar{width:3px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:2px;}
+
+.msg{padding:7px 10px;border-radius:4px;max-width:94%;line-height:1.55;font-size:13px;word-break:break-word;position:relative;}
+.msg.dm{background:var(--surface);border:1px solid var(--border-bright);color:var(--text-bright);font-family:var(--serif);font-size:13.5px;align-self:flex-start;border-left:3px solid var(--gold);}
+.msg.player{background:var(--surface2);border:1px solid var(--border);color:var(--text);align-self:flex-end;border-right:3px solid var(--blue-bright);}
+.msg.sys{background:rgba(120,120,120,.06);border:1px solid var(--border);color:var(--text-dim);font-size:10px;align-self:center;text-align:center;padding:3px 8px;}
+.msg-hdr{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:2px;font-family:var(--display);}
+.msg.dm .msg-hdr{color:var(--gold);}
+.msg.player .msg-hdr{color:var(--blue-bright);}
+.msg-text{white-space:pre-wrap;}
+.msg-overflow{position:absolute;top:2px;right:3px;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:11px;opacity:.3;padding:1px 4px;}
+.msg em{font-style:italic;color:var(--text-bright);}
+
+/* Mechanic pills */
+.pills{display:flex;gap:2px;margin-top:4px;flex-wrap:wrap;}
+.pill{display:inline-block;padding:1px 6px;border-radius:6px;font-size:8px;font-weight:600;cursor:pointer;}
+.pill-g{background:rgba(176,88,48,.12);border:1px solid var(--gold-dim);color:var(--gold-bright);}
+.pill-r{background:rgba(139,58,42,.12);border:1px solid var(--red-dim);color:var(--red);}
+.pill-n{background:rgba(120,138,115,.12);border:1px solid var(--green);color:var(--green-bright);}
+.pill-p{background:rgba(100,88,168,.12);border:1px solid var(--purple);color:var(--purple-bright);}
+.quest-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:8px;font-size:9px;font-weight:600;background:rgba(176,88,48,.08);border:1px solid var(--gold-dim);color:var(--gold-bright);cursor:pointer;margin-top:3px;}
+
+/* Roll banner */
+.roll-banner{background:rgba(200,148,60,.08);border:1px solid var(--gold);border-radius:3px;padding:4px 8px;display:flex;align-items:center;gap:6px;margin:2px 0;}
+.roll-banner-text{flex:1;font-size:10px;color:var(--gold-bright);font-weight:600;}
+.roll-banner-btn{background:var(--gold);color:var(--bg);border:none;border-radius:3px;padding:3px 8px;font-size:9px;font-weight:700;cursor:pointer;}
+
+/* Options row */
+.opt-row{display:flex;gap:4px;padding:1px 8px;font-size:9px;align-items:center;flex-shrink:0;color:var(--text-dim);height:20px;border-top:1px solid var(--border);background:var(--surface);}
+.opt-row label{display:flex;align-items:center;gap:2px;cursor:pointer;}
+.opt-row input[type=checkbox]{width:11px;height:11px;accent-color:var(--gold);}
+
+/* Typing */
+.typing{padding:3px 8px;font-size:10px;color:var(--text-dim);font-style:italic;}
+.td{animation:tdp 1.4s infinite;opacity:.3;}
+.td:nth-child(2){animation-delay:.2s;}
+.td:nth-child(3){animation-delay:.4s;}
+@keyframes tdp{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ══════════════════════════════════════════
+   LOWER DOCK
+   ══════════════════════════════════════════ */
+.lower-dock{background:var(--surface);border-top:2px solid var(--border);flex-shrink:0;}
+.ctx-strip{display:flex;align-items:center;gap:4px;padding:2px 6px;overflow-x:auto;scrollbar-width:none;min-height:20px;}
+.ctx-strip::-webkit-scrollbar{display:none;}
+.ctx-chip{white-space:nowrap;padding:2px 7px;font-size:8px;border-radius:8px;cursor:pointer;flex-shrink:0;font-weight:600;}
+.ctx-dots{display:flex;gap:3px;align-items:center;margin-left:auto;}
+.ctx-dot{width:4px;height:4px;border-radius:50%;background:var(--border-bright);}
+.ctx-dot.on{background:var(--gold);}
+
+.suggest{display:flex;gap:3px;padding:2px 6px;overflow-x:auto;scrollbar-width:none;}
+.suggest::-webkit-scrollbar{display:none;}
+.sug-chip{white-space:nowrap;padding:3px 8px;font-size:9px;border-radius:10px;border:1px solid var(--border);color:var(--text-dim);background:var(--surface2);cursor:pointer;flex-shrink:0;min-height:22px;display:inline-flex;align-items:center;}
+
+.input-bar{display:flex;padding:4px 6px;gap:4px;background:var(--bg);align-items:flex-end;}
+.input-textarea{flex:1;min-height:38px;max-height:80px;background:var(--surface2);border:1px solid var(--border-bright);border-radius:4px;padding:5px 8px;font-family:inherit;color:var(--text);font-size:14px;resize:none;line-height:1.4;-webkit-appearance:none;}
+.send-btn{width:32px;min-height:38px;background:var(--gold);border:none;border-radius:4px;color:var(--bg);font-size:12px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.side-btn{background:var(--surface2);border:1px solid var(--border-bright);color:var(--text-dim);padding:2px 6px;font-size:12px;cursor:pointer;border-radius:4px;min-height:38px;display:flex;align-items:center;}
+
+.nav-dock{display:flex;height:42px;border-top:1px solid var(--border);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:var(--text-dim);gap:1px;cursor:pointer;}
+.nav-ico{font-size:15px;line-height:1;}
+.nav-lbl{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.2px;}
+.nav-btn.active{color:var(--gold);background:var(--surface2);}
+.nav-dot{position:absolute;top:4px;right:calc(50% - 14px);width:5px;height:5px;border-radius:50%;background:var(--gold);}
+
+/* ══════════════════════════════════════════
+   VTT-SPECIFIC OVERRIDES
+   — bigger chat area, slimmer chrome
+   — emerald accents, amber gold
+   — grid texture background
+   ══════════════════════════════════════════ */
+.vtt .global-hud{
+  height:38px;
+  background:linear-gradient(180deg, var(--surface) 0%, #101820 100%);
+  border-bottom:1px solid var(--accent);
+}
+.vtt .global-hud::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;
+  background:linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.vtt .hud-tile{
+  background:linear-gradient(180deg, var(--surface2) 0%, var(--surface) 100%);
+  border-color:var(--border);
+  border-radius:3px;
+  padding:2px 6px;
+  min-width:56px;
+}
+.vtt .hud-spark.ok{background:var(--accent);}
+
+.vtt .chat-tab-row{
+  height:26px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.vtt .chat-tab-btn{font-size:9px;line-height:26px;padding:0 10px;}
+.vtt .chat-tab-btn.active{color:var(--accent-bright);border-bottom-color:var(--accent);}
+
+.vtt .world-bar{height:15px;font-size:7.5px;background:rgba(42,152,104,.06);}
+
+.vtt .chat-msgs{
+  background:
+    linear-gradient(180deg, rgba(42,152,104,.02) 0%, transparent 30%),
+    var(--bg);
+  padding:6px;
+  gap:5px;
+}
+
+.vtt .msg{font-size:12.5px;padding:6px 9px;}
+.vtt .msg.dm{
+  background:linear-gradient(135deg, rgba(42,152,104,.06) 0%, var(--surface) 100%);
+  border-left:2px solid var(--accent);
+  border-color:var(--border);
+}
+.vtt .msg.player{
+  border-right:2px solid var(--blue-bright);
+}
+.vtt .msg.dm .msg-hdr{color:var(--accent-bright);}
+
+.vtt .pill-g{background:rgba(200,148,60,.1);border-color:var(--gold-dim);color:var(--gold-bright);}
+.vtt .pill-r{background:rgba(168,56,48,.1);border-color:var(--red-dim);color:#e06050;}
+.vtt .pill-n{background:rgba(58,138,90,.1);border-color:var(--green);color:var(--green-bright);}
+
+.vtt .roll-banner{background:rgba(200,148,60,.06);border-color:var(--gold-dim);}
+
+.vtt .lower-dock{
+  border-top:1px solid var(--accent);
+  background:linear-gradient(180deg, var(--surface) 0%, #0a1018 100%);
+}
+.vtt .ctx-dot.on{background:var(--accent);}
+
+.vtt .sug-chip{border-color:var(--border);background:rgba(42,152,104,.06);}
+
+.vtt .input-textarea{
+  min-height:42px;font-size:15px;
+  background:var(--surface2);
+  border-color:var(--border-bright);
+}
+.vtt .input-textarea:focus{border-color:var(--accent);outline:none;}
+.vtt .send-btn{background:linear-gradient(180deg, var(--accent-bright) 0%, var(--accent) 100%);min-height:42px;width:36px;font-size:14px;}
+
+.vtt .nav-dock{height:38px;border-top-color:var(--border);}
+.vtt .nav-btn.active{color:var(--accent-bright);background:rgba(42,152,104,.08);}
+
+.vtt .opt-row{height:18px;}
+
+/* VTT grid texture overlay */
+.vtt .chat-msgs::before{
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;
+  background:
+    linear-gradient(rgba(42,152,104,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42,152,104,.015) 1px, transparent 1px);
+  background-size:24px 24px;
+  z-index:0;opacity:.5;
+}
+.vtt .chat-msgs{position:relative;}
+.vtt .chat-msgs > *{position:relative;z-index:1;}
+
+/* VTT FAB */
+.fab{position:absolute;bottom:130px;right:10px;width:36px;height:36px;border-radius:50%;border:none;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:50;}
+.live .fab{background:radial-gradient(circle at 36% 34%,var(--gold-bright) 0%,var(--gold) 55%,#8a5020 100%);color:var(--bg);box-shadow:0 3px 12px rgba(176,88,48,.5);}
+.vtt .fab{background:linear-gradient(135deg,var(--accent-bright) 0%,var(--accent) 100%);color:#fff;box-shadow:0 3px 12px rgba(42,152,104,.4);}
+</style>
+</head>
+<body>
+
+<div class="compare-wrap">
+
+<!-- ═══════════════════════════════════════════
+     LEFT: CURRENT LIVE SITE (Soft Autumn theme)
+     ═══════════════════════════════════════════ -->
+<div class="phone-frame live">
+  <div class="frame-label">Current Live Site — Soft Autumn</div>
+  <div style="height:14px;flex-shrink:0"></div>
+
+  <header class="global-hud">
+    <div class="hud-mosaic">
+      <div class="hud-tile"><div class="hud-name">Valenns</div><div class="hud-val">15<span style="font-size:9px;color:var(--text-dim)">/15</span></div><div class="hud-spark ok" style="width:100%"></div></div>
+      <div class="hud-tile"><div class="hud-name">Slasher</div><div class="hud-val">23<span style="font-size:9px;color:var(--text-dim)">/33</span></div><div class="hud-spark warn" style="width:70%"></div></div>
+      <div class="hud-tile"><div class="hud-name">Aria</div><div class="hud-val">10<span style="font-size:9px;color:var(--text-dim)">/10</span></div><div class="hud-spark ok" style="width:100%"></div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+      <div class="hud-gp">116gp</div>
+      <span style="font-size:7px;color:var(--green)">●</span>
+      <button class="hud-btn">☰</button>
+    </div>
+  </header>
+
+  <div class="chat-area">
+    <div class="chat-tab-row">
+      <button class="chat-tab-btn active">📖 Narrative</button>
+      <button class="chat-tab-btn">❓ Rules</button>
+      <button class="chat-tab-btn">🗨️ OOC</button>
+      <div class="tab-actions"><button>⚙</button></div>
+    </div>
+
+    <div class="world-bar">
+      <span>📍 Sunset Mountains Foothills</span>
+      <span>🕐 Day 7, 07:30 AM</span>
+      <span>☁ Overcast</span>
+    </div>
+
+    <div class="chat-msgs">
+      <div class="msg player">
+        <div class="msg-hdr"><span>Valenns (Valenns Vogelsang)</span><span style="font-size:7px;color:var(--text-dim)">Day 7, 06:00 AM</span></div>
+        <div class="msg-text">We take a few minutes to interrogate the wearer of purple with Leosin for more information before shoving the gag back in and leaving for the closest relevant destination on the way to Burdusk</div>
+      </div>
+
+      <div class="msg dm">
+        <button class="msg-overflow">⋮</button>
+        <div class="msg-hdr"><span>🧙 Dungeon Master</span><span style="font-size:7px;color:var(--text-dim)">Day 7, 06:00 AM</span></div>
+        <div class="msg-text">Valenns, you and <strong>Leosin</strong> approach the buried "mound" of the <em>Wearer of Purple</em>. With a flick of your wrist, you dissipate the earthen dome. The cultist leader gasps, his eyes bloodshot and frantic as the gag is pulled just low enough for him to speak. He is shivering, his reptile-stringed arms worn by the…</div>
+        <div style="font-size:10px;color:var(--gold-dim);margin-top:4px;cursor:pointer">Read more ▾</div>
+        <div class="pills">
+          <span class="pill pill-n">🔀 Changes 1 — tap to expand</span>
+        </div>
+        <div class="pills">
+          <span class="pill pill-g">Time → Day 7, 07:30 AM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="opt-row">
+      <label><input type="checkbox" checked> <span style="font-size:8px">LOG</span></label>
+      <label><input type="checkbox" checked> <span style="font-size:8px">LEDGER</span></label>
+      <button style="background:none;border:none;color:var(--text-dim);font-size:10px;cursor:pointer">⚑</button>
+      <span style="font-size:7px;color:var(--text-dim);opacity:.5;margin-left:auto">👤 Set player</span>
+    </div>
+  </div>
+
+  <button class="fab">⚡</button>
+
+  <footer class="lower-dock">
+    <div class="ctx-strip">
+      <span class="ctx-chip" style="background:rgba(176,88,48,.12);border:1px solid var(--gold-dim);color:var(--gold-bright)">📍 Sunset Mountains</span>
+    </div>
+    <div class="suggest">
+      <div class="sug-chip">Infiltrate and investigate the locations marked in red ink o</div>
+      <div class="sug-chip">Interrogate the ca</div>
+    </div>
+    <div class="suggest" style="padding-top:0">
+      <div class="sug-chip">I search the area</div>
+      <div class="sug-chip">I talk to…</div>
+      <div class="sug-chip">I attack</div>
+      <div class="sug-chip">What do I see?</div>
+      <div class="sug-chip">Short rest</div>
+      <div class="sug-chip">// no</div>
+    </div>
+    <div class="input-bar">
+      <textarea class="input-textarea" placeholder="Command AI DM…" rows="1"></textarea>
+    </div>
+    <nav class="nav-dock">
+      <button class="nav-btn active"><span class="nav-ico">🤖</span><span class="nav-lbl">AI DM</span></button>
+      <button class="nav-btn"><span class="nav-ico">📔</span><span class="nav-lbl">Sheet</span></button>
+      <button class="nav-btn"><span class="nav-ico">📦</span><span class="nav-lbl">Logistics</span></button>
+      <button class="nav-btn"><span class="nav-ico">⚙</span><span class="nav-lbl">Systems</span></button>
+    </nav>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     RIGHT: VTT-OPTIMIZED (Midnight Emerald)
+     — Maximized chat viewport
+     — Slimmer chrome elements
+     — Larger text input
+     — Subtle grid texture (tabletop feel)
+     — Emerald + amber accent scheme
+     ═══════════════════════════════════════════ -->
+<div class="phone-frame vtt">
+  <div class="frame-label">VTT-Optimized — Midnight Emerald</div>
+  <div style="height:14px;flex-shrink:0"></div>
+
+  <header class="global-hud" style="position:relative">
+    <div class="hud-mosaic">
+      <div class="hud-tile"><div class="hud-name">Valenns</div><div class="hud-val">15<span style="font-size:9px;color:var(--text-dim)">/15</span></div><div class="hud-spark ok" style="width:100%"></div></div>
+      <div class="hud-tile"><div class="hud-name">Slasher</div><div class="hud-val">23<span style="font-size:9px;color:var(--text-dim)">/33</span></div><div class="hud-spark warn" style="width:70%"></div></div>
+      <div class="hud-tile"><div class="hud-name">Aria</div><div class="hud-val">10<span style="font-size:9px;color:var(--text-dim)">/10</span></div><div class="hud-spark ok" style="width:100%"></div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+      <div class="hud-gp" style="border-color:var(--gold-dim)">116gp</div>
+      <span style="font-size:7px;color:var(--accent)">●</span>
+      <button class="hud-btn">☰</button>
+    </div>
+  </header>
+
+  <div class="chat-area">
+    <div class="chat-tab-row">
+      <button class="chat-tab-btn active">📖 Narrative</button>
+      <button class="chat-tab-btn">❓ Rules</button>
+      <button class="chat-tab-btn">🗨️ OOC</button>
+      <div class="tab-actions"><button>⚙</button></div>
+    </div>
+
+    <div class="world-bar">
+      <span>📍 Sunset Mountains</span>
+      <span>🕐 Day 7, 07:30</span>
+      <span>☁ Overcast</span>
+      <span style="margin-left:auto;color:var(--accent);font-weight:700">🟢 Sync</span>
+    </div>
+
+    <div class="chat-msgs">
+
+      <div class="msg sys">⚡ Session resumed — Day 7</div>
+
+      <div class="msg player">
+        <div class="msg-hdr"><span>Valenns Vogelsang</span><span style="font-size:7px;color:var(--text-dim)">06:00</span></div>
+        <div class="msg-text">We take a few minutes to interrogate the wearer of purple with Leosin for more information before shoving the gag back in and leaving for the closest relevant destination on the way to Burdusk</div>
+      </div>
+
+      <div class="msg dm">
+        <button class="msg-overflow">⋮</button>
+        <div class="msg-hdr"><span>🧙 Dungeon Master</span><span style="font-size:7px;color:var(--text-dim)">06:00</span></div>
+        <div class="msg-text">Valenns, you and <strong>Leosin</strong> approach the buried "mound" of the <em>Wearer of Purple</em>. With a flick of your wrist, you dissipate the earthen dome. The cultist leader gasps, his eyes bloodshot and frantic as the gag is pulled just low enough for him to speak.
+
+He is shivering, his reptile-stringed arms worn by the cold night. His eyes dart between you and Leosin — recognition flickers, then rage.
+
+<em>"You think you've won something here? The Dragon Queen's return is inevitable. Mondath will see to that."</em>
+
+Leosin leans in, voice low and steady. <em>"Where is the treasure being taken?"</em>
+
+The cultist spits. <em>"North. Always north. The lodge near the mountains — but you'll never reach it. Rezmir's guard will see to that."</em></div>
+        <div class="pills">
+          <span class="pill pill-n">npc: Leosin</span>
+          <span class="pill pill-g">Time → 07:30</span>
+          <span class="pill pill-r">npc_mood: Cultist → hostile</span>
+        </div>
+      </div>
+
+      <!-- Roll request -->
+      <div class="roll-banner">
+        <span style="font-size:14px">🎲</span>
+        <span class="roll-banner-text">Valenns — Insight (DC 14)</span>
+        <button class="roll-banner-btn" style="background:var(--accent)">Roll →</button>
+      </div>
+
+      <div class="msg player">
+        <div class="msg-hdr"><span>Valenns Vogelsang</span><span style="font-size:7px;color:var(--text-dim)">07:32</span></div>
+        <div class="msg-text">I study his face carefully as he speaks — is he telling the truth about the lodge?</div>
+      </div>
+
+      <div class="msg dm">
+        <button class="msg-overflow">⋮</button>
+        <div class="msg-hdr"><span>🧙 Dungeon Master</span><span style="font-size:7px;color:var(--text-dim)">07:33</span></div>
+        <div class="msg-text">Your eyes narrow, reading the subtle tremors in the cultist's jaw, the way his gaze flicks involuntarily northwest. He's telling the truth about the lodge — but there's something else. Something he's holding back.
+
+The mention of "Rezmir" carried a weight that went beyond a simple guard captain. This is someone he genuinely fears.</div>
+        <div class="pills">
+          <span class="pill pill-p">🔮 Insight: partial truth detected</span>
+        </div>
+      </div>
+
+      <div class="typing">
+        DM is writing<span class="td">.</span><span class="td">.</span><span class="td">.</span>
+      </div>
+
+    </div>
+
+    <div class="opt-row">
+      <label><input type="checkbox" checked> <span style="font-size:8px">LOG</span></label>
+      <label><input type="checkbox" checked> <span style="font-size:8px">LEDGER</span></label>
+      <button style="background:none;border:none;color:var(--text-dim);font-size:10px;cursor:pointer">⚑</button>
+      <span style="font-size:7px;color:var(--accent);opacity:.8;margin-left:auto">👤 Valenns</span>
+    </div>
+  </div>
+
+  <button class="fab">⚡</button>
+
+  <footer class="lower-dock">
+    <div class="ctx-strip">
+      <span class="ctx-chip" style="background:rgba(42,152,104,.1);border:1px solid rgba(42,152,104,.3);color:var(--accent-bright)">📍 Sunset Mountains</span>
+      <span class="ctx-chip" style="background:rgba(200,148,60,.08);border:1px solid var(--gold-dim);color:var(--gold-bright)">📜 1 active quest</span>
+      <span class="ctx-chip" style="background:rgba(58,138,90,.08);border:1px solid rgba(58,138,90,.3);color:var(--green-bright)">Party: 48/58</span>
+      <div class="ctx-dots">
+        <span class="ctx-dot on"></span>
+        <span class="ctx-dot"></span>
+        <span class="ctx-dot"></span>
+      </div>
+    </div>
+    <div class="suggest">
+      <div class="sug-chip">Press for more info</div>
+      <div class="sug-chip">Threaten him</div>
+      <div class="sug-chip">Ask about Rezmir</div>
+      <div class="sug-chip">Leave for Burdusk</div>
+      <div class="sug-chip">//help</div>
+    </div>
+    <div class="input-bar">
+      <button class="side-btn">💾</button>
+      <button class="side-btn">🎲</button>
+      <textarea class="input-textarea" placeholder="Command AI DM…" rows="1"></textarea>
+      <button class="send-btn">▶</button>
+    </div>
+    <nav class="nav-dock">
+      <button class="nav-btn active"><span class="nav-ico">🤖</span><span class="nav-lbl">AI DM</span></button>
+      <button class="nav-btn"><span class="nav-ico">📔</span><span class="nav-lbl">Sheet</span></button>
+      <button class="nav-btn" style="position:relative"><span class="nav-ico">📦</span><span class="nav-lbl">Logistics</span><span class="nav-dot" style="background:var(--accent)"></span></button>
+      <button class="nav-btn"><span class="nav-ico">⚙</span><span class="nav-lbl">Systems</span></button>
+    </nav>
+  </footer>
+</div>
+
+</div><!-- end compare-wrap -->
+
+</body>
+</html>
