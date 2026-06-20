@@ -74,6 +74,10 @@ Campaigns are self-contained. System-level reference (spells, classes, feats, ru
 
 V1 was 29 sessions of discovery. V2 is the intentional rebuild — modular, tested, optimized. The architecture supports portability: any game content in, structured data out. Every feature earned its place in v1 before it gets rebuilt in v2.
 
+V2 is a prototype for V3 — the developer is a player, the session is the test environment, and the app improves every time it's played. Dev tools are play tools. V1 stays live for the other player while V2 is built and tested. No migration pressure — V2 launches when it can run a full session.
+
+The app is the development environment. The developer plays alongside the other player, spotting failures, flagging issues, and fixing state live. Dev tools aren't hidden behind mode friction — they live inside play. The `//` command line, the flag system, the rewind stack, the contract verifier are first-class play tools, not debug afterthoughts. The app gets better every session because the developer is in every session.
+
 ---
 
 ## V1 LESSONS — WHAT WE KNOW
