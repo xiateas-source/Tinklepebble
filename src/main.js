@@ -6987,7 +6987,7 @@ function renderParty(){
     c.innerHTML='<div class="chat-msg sys"><div class="chat-msg-text" style="font-size:11px">Party channel — discuss strategy, theory craft, plan your next move. Tap 🧙 Ask DM to pull the DM in.</div></div>';
     return;
   }
-  state.partyChat.forEach(msg=>{
+  state.partyChat.forEach((msg,idx)=>{
     const d=document.createElement('div');
     const isDM=msg.role==='dm';
     const isSys=msg.role==='sys';
@@ -6999,10 +6999,40 @@ function renderParty(){
     const sender=isSys?'System':isDM?'Dungeon Master':(msg.playerName||playerName||'Party');
     let tsHtml='';
     if(msg.gameTs||msg.ts){tsHtml='<span style="font-size:9px;opacity:.5">';if(msg.gameTs)tsHtml+=esc(msg.gameTs);if(msg.gameTs&&msg.ts)tsHtml+=' · ';if(msg.ts)tsHtml+=esc(msg.ts);tsHtml+='</span>';}
-    d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div>${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
+    const copyBtn=`<button class="copy-btn" onclick="navigator.clipboard.writeText(state.partyChat[${idx}].content||'');toast('Copied')" title="Copy">📋</button>`;
+    const exportBtn=`<button class="flag-btn" onclick="exportPartyMoment(${idx})" title="Export this moment">⚠️</button>`;
+    const delBtn=`<button class="flag-btn" onclick="deletePartyMsg(${idx})" title="Delete" style="color:#c05050">✕</button>`;
+    d.innerHTML=`<div class="msg-hdr"><span>${esc(sender)}</span><div style="display:flex;align-items:center;gap:2px">${copyBtn}${exportBtn}${delBtn}${tsHtml}</div></div><div class="chat-msg-text">${text}</div>`;
     c.appendChild(d);
   });
   c.scrollTop=c.scrollHeight;
+}
+function deletePartyMsg(idx){
+  if(!confirm('Delete this party message?'))return;
+  state.partyChat.splice(idx,1);save();renderParty();
+}
+function exportPartyMoment(idx){
+  const msgs=state.partyChat||[];
+  if(idx<0||idx>=msgs.length){toast('Message not found');return;}
+  const start=Math.max(0,idx-5);const end=Math.min(msgs.length,idx+6);
+  const window=msgs.slice(start,end);
+  const loc=state.worldData.location||'Unknown';
+  const pcs=(state.pcs||[]).map(p=>p.name+' ('+p.class+' '+p.level+', '+(p.hp||0)+'/'+(p.hp_max||0)+' HP)').join(', ');
+  let out='=== TINKLE\'S TINCTURES — PARTY MOMENT EXPORT ===\n';
+  out+='Exported: '+new Date().toISOString().slice(0,16)+'\n';
+  out+='Target message: #'+(idx+1)+' of '+msgs.length+'\n';
+  out+='Context window: messages '+(start+1)+'–'+end+' ('+window.length+' total)\n';
+  out+='Location: '+loc+'\nPCs: '+pcs+'\n\n--- CONTEXT ---\n\n';
+  window.forEach((m,i)=>{
+    const role=m.role==='dm'?'DM (Party)':m.role==='sys'||m.role==='system'?'SYSTEM':'PLAYER';
+    const ts=m.gameTs||m.ts||'';
+    const marker=(start+i)===idx?'\n>>> TARGET MESSAGE <<<':'';
+    out+=(ts?'['+ts+'] ':'')+role+':\n'+m.content+'\n'+marker+'\n***\n\n';
+  });
+  out+='--- PROMPT FOR DEV ---\nThe player flagged this party chat moment for review. The TARGET MESSAGE is marked above.\n';
+  out+='Cross-reference against .claude/roadmap.md and .claude/features.md.\n\n';
+  out+='Analyze:\n1. What went wrong or felt off at this moment?\n2. Was it an AI rules error, a missing mechanic, a UX gap, or a context gap?\n3. Does a fix or feature already exist that should have caught this? If so, why didn\'t it?\n4. What specific change (code, contract clause, or prompt) would prevent this from recurring?\n';
+  navigator.clipboard.writeText(out).then(()=>toast('Party moment exported to clipboard')).catch(()=>toast('Export failed'));
 }
 function partyKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendPartyMsg();}}
 function sendPartyMsg(contentOverride){
@@ -11244,7 +11274,7 @@ Object.assign(window, {
   toggleTestMode, clearTestChat, exportTestChat, sendTestMsg,
   save, saveEditedNote,
   previouslyOn, viewQuestInChat,
-  exportGameplayLog, exportMoment, exportOOCMoment, deleteOOCMsg, populateVoices, openResetModal, requestNotifPermission,
+  exportGameplayLog, exportMoment, exportOOCMoment, deleteOOCMsg, exportPartyMoment, deletePartyMsg, populateVoices, openResetModal, requestNotifPermission,
   saveDmSecrets, renderSetupPCCards, resetTurns, resyncAI, quickSellItem,
   zoneTokenTap, zoneBoxTap, zoneHPAdj, zoneHPCustom, quickAddCond, toggleMoveMode, toggleZoneFog,
   renderSetupLock, setSetupUnlocked, remAtk, rewindTo, redoRewind, importPCFromJSON, applyPCJSON, openClassDataImport, applyClassData, exportPC, importSpellsFromJSON, applySpellsJSON,
